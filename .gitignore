@@ -6,7 +6,6 @@ tags
 .DS_Store
 *.log
 *.orig
-corda-docs-only-build
 
 # Created by .ignore support plugin (hsz.mobi)
 
@@ -16,9 +15,6 @@ local.properties
 
 # General build files
 **/build/*
-
-lib/dokka.jar
-lib/quasar.jar
 
 **/logs/*
 
