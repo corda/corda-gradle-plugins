@@ -6,7 +6,7 @@ apply plugin: 'com.jfrog.artifactory'
 // Used for bootstrapping project
 buildscript {
     Properties constants = new Properties()
-    file("../constants.properties").withInputStream { constants.load(it) }
+    file("../../constants.properties").withInputStream { constants.load(it) }
 
     ext {
         gradle_plugins_version = constants.getProperty("gradlePluginsVersion")
