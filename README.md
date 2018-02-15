@@ -10,7 +10,7 @@ belong in this repository.
 ## Version number
 
 
-To modify the version number edit constants.properties in root dir. 
+To modify the version number edit constants.properties in the project root. 
 
 The version number should track the Corda version number it is built for. Eg; Corda `4.0` should be built as `4.0.x`.
 
