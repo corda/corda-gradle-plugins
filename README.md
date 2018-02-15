@@ -23,6 +23,6 @@ To bootstrap this repository you can install the publishing plugins with;
 
 ## Installing locally
 
-To install locally for testing a new build against Corda you can run the following from the root;
+To install locally for testing a new build against Corda you can run the following from the project root;
 
     ./gradlew install
