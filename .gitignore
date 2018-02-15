@@ -24,18 +24,7 @@ local.properties
 *.iml
 
 ## Directory-based project format:
-.idea/*.xml
-.idea/.name
-.idea/copyright
-.idea/inspectionProfiles
-.idea/libraries
-.idea/shelf
-.idea/dataSources
-.idea/markdown-navigator
-.idea/runConfigurations
-.idea/dictionaries
-.idea/codeStyles/
-/gradle-plugins/.idea/
+.idea/
 
 # Include the -parameters compiler option by default in IntelliJ required for serialization.
 !.idea/compiler.xml
