@@ -223,13 +223,7 @@ open class Node @Inject constructor(private val project: Project) : CordformNode
             config = config.withValue("notary", ConfigValueFactory.fromMap(notary))
         }
         if (extraConfig != null) {
-            val extraProperties = ConfigFactory.parseMap(extraConfig)
-            config = if (config.hasPath("custom")) {
-                val customConfig = config.getConfig("custom")
-                config.withValue("custom", customConfig.withFallback(extraProperties).root())
-            } else {
-                config.withValue("custom", extraProperties.root())
-            }
+            config = config.withFallback(ConfigFactory.parseMap(extraConfig))
         }
     }
 
@@ -327,7 +321,6 @@ open class Node @Inject constructor(private val project: Project) : CordformNode
     }
 
     private fun createNodeAndWebServerConfigFiles(config: Config) {
-
         val tmpConfFile = createTempConfigFile(config.toNodeOnly().root(), "node.conf")
         appendOptionalConfig(tmpConfFile)
         project.copy {
@@ -348,7 +341,6 @@ open class Node @Inject constructor(private val project: Project) : CordformNode
     }
 
     private fun Config.toNodeOnly(): Config {
-
         return if (hasPath("webAddress")) {
             withoutPath("webAddress").withoutPath("useHTTPS")
         } else {
@@ -357,7 +349,6 @@ open class Node @Inject constructor(private val project: Project) : CordformNode
     }
 
     private fun Config.toWebServerOnly(): Config {
-
         var config = ConfigFactory.empty()
         config = copyTo("webAddress", config)
         config = copyTo("myLegalName", config)
@@ -377,17 +368,6 @@ open class Node @Inject constructor(private val project: Project) : CordformNode
         config = copyTo("custom", config)
         return config
     }
-
-    private fun Config.copyTo(key: String, target: Config, targetKey: String = key): Config {
-
-        return if (hasPath(key)) {
-            target + (targetKey to getValue(key))
-        } else {
-            target
-        }
-    }
-
-    private operator fun Config.plus(property: Pair<String, Any>) = withValue(property.first, ConfigValueFactory.fromAnyRef(property.second))
 
     /**
      * Appends installed config file with properties from an optional file.
