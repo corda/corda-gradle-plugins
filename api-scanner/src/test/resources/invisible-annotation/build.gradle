@@ -1,0 +1,27 @@
+plugins {
+    id 'java'
+    id 'net.corda.plugins.api-scanner'
+}
+
+description 'Test behaviour of annotation that is annotated as @CordaInternal'
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+sourceSets {
+    main {
+        java {
+            srcDir file("../resources/test/invisible-annotation/java")
+        }
+    }
+}
+
+jar {
+    baseName = "invisible-annotation"
+}
+
+scanApi {
+    verbose = true
+}

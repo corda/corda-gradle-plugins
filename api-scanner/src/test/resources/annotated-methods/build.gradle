@@ -1,0 +1,27 @@
+plugins {
+    id 'java'
+    id 'net.corda.plugins.api-scanner'
+}
+
+description 'Test annotation behaviour on methods'
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+sourceSets {
+    main {
+        java {
+            srcDir file("../resources/test/annotated-methods/java")
+        }
+    }
+}
+
+jar {
+    baseName = "annotated-methods"
+}
+
+scanApi {
+    verbose = true
+}
