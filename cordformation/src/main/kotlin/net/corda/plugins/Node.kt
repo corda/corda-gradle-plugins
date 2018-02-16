@@ -1,5 +1,6 @@
 package net.corda.plugins
 
+import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
 import com.typesafe.config.ConfigObject
 import com.typesafe.config.ConfigRenderOptions
@@ -187,7 +188,6 @@ open class Node @Inject constructor(private val project: Project) : CordformNode
         }
         installAgentJar()
         installCordapps()
-        installConfig()
     }
 
     internal fun buildDocker() {
@@ -223,7 +223,13 @@ open class Node @Inject constructor(private val project: Project) : CordformNode
             config = config.withValue("notary", ConfigValueFactory.fromMap(notary))
         }
         if (extraConfig != null) {
-            config = config.withFallback(ConfigFactory.parseMap(extraConfig))
+            val extraProperties = ConfigFactory.parseMap(extraConfig)
+            config = if (config.hasPath("custom")) {
+                val customConfig = config.getConfig("custom")
+                config.withValue("custom", customConfig.withFallback(extraProperties).root())
+            } else {
+                config.withValue("custom", extraProperties.root())
+            }
         }
     }
 
@@ -273,15 +279,7 @@ open class Node @Inject constructor(private val project: Project) : CordformNode
         }
     }
 
-    private fun installCordappConfigs(cordapps: Collection<ResolvedCordapp>) {
-        val cordappsDir = project.file(File(nodeDir, "cordapps"))
-        cordappsDir.mkdirs()
-        cordapps.filter { it.config != null }
-                .map { Pair<String, String>("${FilenameUtils.removeExtension(it.jarFile.name)}.conf", it.config!!) }
-                .forEach { project.file(File(cordappsDir, it.first)).writeText(it.second) }
-    }
-
-    private fun createTempConfigFile(configObject: ConfigObject): File {
+    private fun createTempConfigFile(configObject: ConfigObject, fileNameTrail: String): File {
         val options = ConfigRenderOptions
                 .defaults()
                 .setOriginComments(false)
@@ -292,10 +290,18 @@ open class Node @Inject constructor(private val project: Project) : CordformNode
         // Need to write a temporary file first to use the project.copy, which resolves directories correctly.
         val tmpDir = File(project.buildDir, "tmp")
         Files.createDirectories(tmpDir.toPath())
-        var fileName = "${nodeDir.name}.conf"
+        val fileName = "${nodeDir.name}_$fileNameTrail"
         val tmpConfFile = File(tmpDir, fileName)
         Files.write(tmpConfFile.toPath(), configFileText, StandardCharsets.UTF_8)
         return tmpConfFile
+    }
+
+     private fun installCordappConfigs(cordapps: Collection<ResolvedCordapp>) {
+        val cordappsDir = project.file(File(nodeDir, "cordapps"))
+        cordappsDir.mkdirs()
+        cordapps.filter { it.config != null }
+                .map { Pair<String, String>("${FilenameUtils.removeExtension(it.jarFile.name)}.conf", it.config!!) }
+                .forEach { project.file(File(cordappsDir, it.first)).writeText(it.second) }
     }
 
     /**
@@ -303,14 +309,7 @@ open class Node @Inject constructor(private val project: Project) : CordformNode
      */
     fun installConfig() {
         configureProperties()
-        val tmpConfFile = createTempConfigFile(config.root())
-        appendOptionalConfig(tmpConfFile)
-        project.copy {
-            it.apply {
-                from(tmpConfFile)
-                into(rootDir)
-            }
-        }
+        createNodeAndWebServerConfigFiles(config)
     }
 
     /**
@@ -323,7 +322,13 @@ open class Node @Inject constructor(private val project: Project) : CordformNode
                 .withValue("rpcSettings.address", ConfigValueFactory.fromAnyRef("$containerName:${rpcSettings.port}"))
                 .withValue("rpcSettings.adminAddress", ConfigValueFactory.fromAnyRef("$containerName:${rpcSettings.adminPort}"))
                 .withValue("detectPublicIp", ConfigValueFactory.fromAnyRef(false))
-        val tmpConfFile = createTempConfigFile(dockerConf.root())
+
+        createNodeAndWebServerConfigFiles(dockerConf)
+    }
+
+    private fun createNodeAndWebServerConfigFiles(config: Config) {
+
+        val tmpConfFile = createTempConfigFile(config.toNodeOnly().root(), "node.conf")
         appendOptionalConfig(tmpConfFile)
         project.copy {
             it.apply {
@@ -331,7 +336,58 @@ open class Node @Inject constructor(private val project: Project) : CordformNode
                 into(rootDir)
             }
         }
+        if (config.hasPath("webAddress")) {
+            val webServerConfigFile = createTempConfigFile(config.toWebServerOnly().root(), "web-server.conf")
+            project.copy {
+                it.apply {
+                    from(webServerConfigFile)
+                    into(rootDir)
+                }
+            }
+        }
     }
+
+    private fun Config.toNodeOnly(): Config {
+
+        return if (hasPath("webAddress")) {
+            withoutPath("webAddress").withoutPath("useHTTPS")
+        } else {
+            this
+        }
+    }
+
+    private fun Config.toWebServerOnly(): Config {
+
+        var config = ConfigFactory.empty()
+        config = copyTo("webAddress", config)
+        config = copyTo("myLegalName", config)
+        if (hasPath("rpcOptions.address") || hasPath("rpcAddress")) {
+            config += "rpcAddress" to if (hasPath("rpcOptions.address")) {
+                getValue("rpcOptions.address")
+            } else {
+                getValue("rpcAddress")
+            }
+        }
+        config = copyTo("rpcUsers", config)
+        config = copyTo("useHTTPS", config)
+        config = copyTo("baseDirectory", config)
+        config = copyTo("keyStorePassword", config)
+        config = copyTo("trustStorePassword", config)
+        config = copyTo("exportJMXto", config)
+        config = copyTo("custom", config)
+        return config
+    }
+
+    private fun Config.copyTo(key: String, target: Config, targetKey: String = key): Config {
+
+        return if (hasPath(key)) {
+            target + (targetKey to getValue(key))
+        } else {
+            target
+        }
+    }
+
+    private operator fun Config.plus(property: Pair<String, Any>) = withValue(property.first, ConfigValueFactory.fromAnyRef(property.second))
 
     /**
      * Appends installed config file with properties from an optional file.
