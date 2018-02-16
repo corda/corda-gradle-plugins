@@ -16,7 +16,7 @@ import static org.junit.Assert.*;
 
 public class BasicInterfaceTest {
     @Rule
-    public TemporaryFolder testProjectDir = new TemporaryFolder();
+    public final TemporaryFolder testProjectDir = new TemporaryFolder();
 
     @Before
     public void setup() throws IOException {

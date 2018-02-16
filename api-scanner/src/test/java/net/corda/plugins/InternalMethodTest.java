@@ -14,7 +14,7 @@ import static org.junit.Assert.*;
 
 public class InternalMethodTest {
     @Rule
-    public TemporaryFolder testProjectDir = new TemporaryFolder();
+    public final TemporaryFolder testProjectDir = new TemporaryFolder();
 
     @Before
     public void setup() throws IOException {
