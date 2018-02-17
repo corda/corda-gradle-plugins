@@ -15,18 +15,18 @@ import java.nio.file.Path;
 
 import static org.junit.Assert.*;
 
-public class InvisibleAnnotationTest {
+public class AnnotatedInterfaceTest {
     @Rule
     public final TemporaryFolder testProjectDir = new TemporaryFolder();
 
     @Before
     public void setup() throws IOException {
         File buildFile = testProjectDir.newFile("build.gradle");
-        CopyUtils.copyResourceTo("invisible-annotation/build.gradle", buildFile);
+        CopyUtils.copyResourceTo("annotated-interface/build.gradle", buildFile);
     }
 
     @Test
-    public void testInvisibleAnnotation() throws IOException {
+    public void testAnnotatedInterface() throws IOException {
         BuildResult result = GradleRunner.create()
             .withProjectDir(testProjectDir.getRoot())
             .withArguments("scanApi", "--info")
@@ -39,12 +39,16 @@ public class InvisibleAnnotationTest {
         assertNotNull(scanApi);
         assertEquals(TaskOutcome.SUCCESS, scanApi.getOutcome());
 
-        Path api = CopyUtils.pathOf(testProjectDir, "build", "api", "invisible-annotation.txt");
+        Path api = CopyUtils.pathOf(testProjectDir, "build", "api", "annotated-interface.txt");
         assertTrue(api.toFile().isFile());
         assertEquals(
-            "public class net.corda.example.WithInvisibleAnnotation extends java.lang.Object\n" +
-            "  public <init>()\n" +
-            "  public void hasInvisibleAnnotation()\n" +
+            "@net.corda.example.NotInherited @net.corda.example.IsInherited public interface net.corda.example.HasInheritedAnnotation\n" +
+            "##\n" +
+            "@net.corda.example.IsInherited public interface net.corda.example.InheritingAnnotations extends net.corda.example.HasInheritedAnnotation\n" +
+            "##\n" +
+            "public @interface net.corda.example.IsInherited\n" +
+            "##\n" +
+            "public @interface net.corda.example.NotInherited\n" +
             "##\n", CopyUtils.toString(api));
     }
 }

@@ -15,18 +15,18 @@ import java.nio.file.Path;
 
 import static org.junit.Assert.*;
 
-public class VisibleAnnotationTest {
+public class ClassWithInternalAnnotationTest {
     @Rule
     public final TemporaryFolder testProjectDir = new TemporaryFolder();
 
     @Before
     public void setup() throws IOException {
         File buildFile = testProjectDir.newFile("build.gradle");
-        CopyUtils.copyResourceTo("visible-annotation/build.gradle", buildFile);
+        CopyUtils.copyResourceTo("class-internal-annotation/build.gradle", buildFile);
     }
 
     @Test
-    public void testVisibleAnnotation() throws IOException {
+    public void testClassWithInternalAnnotation() throws IOException {
         BuildResult result = GradleRunner.create()
             .withProjectDir(testProjectDir.getRoot())
             .withArguments("scanApi", "--info")
@@ -39,14 +39,12 @@ public class VisibleAnnotationTest {
         assertNotNull(scanApi);
         assertEquals(TaskOutcome.SUCCESS, scanApi.getOutcome());
 
-        Path api = CopyUtils.pathOf(testProjectDir, "build", "api", "visible-annotation.txt");
+        assertTrue(output.contains("net.corda.example.InvisibleAnnotation"));
+
+        Path api = CopyUtils.pathOf(testProjectDir, "build", "api", "class-internal-annotation.txt");
         assertTrue(api.toFile().isFile());
-        assertEquals(
-            "public @interface net.corda.example.Visible\n" +
-            "##\n" +
-            "@net.corda.example.Visible public class net.corda.example.WithVisibleAnnotation extends java.lang.Object\n" +
+        assertEquals("public class net.corda.example.AnnotatedClass extends java.lang.Object\n" +
             "  public <init>()\n" +
-            "  @net.corda.example.Visible public void hasVisibleAnnotation()\n" +
             "##\n", CopyUtils.toString(api));
     }
 }

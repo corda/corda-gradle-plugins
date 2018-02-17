@@ -15,18 +15,18 @@ import java.nio.file.Path;
 
 import static org.junit.Assert.*;
 
-public class AnnotatedMethodsTest {
+public class AnnotatedMethodTest {
     @Rule
     public final TemporaryFolder testProjectDir = new TemporaryFolder();
 
     @Before
     public void setup() throws IOException {
         File buildFile = testProjectDir.newFile("build.gradle");
-        CopyUtils.copyResourceTo("annotated-methods/build.gradle", buildFile);
+        CopyUtils.copyResourceTo("annotated-method/build.gradle", buildFile);
     }
 
     @Test
-    public void testAnnotatedMethods() throws IOException {
+    public void testAnnotatedMethod() throws IOException {
         BuildResult result = GradleRunner.create()
             .withProjectDir(testProjectDir.getRoot())
             .withArguments("scanApi", "--info")
@@ -39,11 +39,14 @@ public class AnnotatedMethodsTest {
         assertNotNull(scanApi);
         assertEquals(TaskOutcome.SUCCESS, scanApi.getOutcome());
 
-        Path api = CopyUtils.pathOf(testProjectDir, "build", "api", "annotated-methods.txt");
+        Path api = CopyUtils.pathOf(testProjectDir, "build", "api", "annotated-method.txt");
         assertTrue(api.toFile().isFile());
-        assertEquals("public class net.corda.example.HasVisibleMethod extends java.lang.Object\n" +
+        assertEquals(
+            "public class net.corda.example.HasAnnotatedMethod extends java.lang.Object\n" +
             "  public <init>()\n" +
-            "  public void hasInvisibleAnnotation()\n" +
+            "  @net.corda.example.Visible public void hasAnnotation()\n" +
+            "##\n" +
+            "public @interface net.corda.example.Visible\n" +
             "##\n", CopyUtils.toString(api));
     }
 }

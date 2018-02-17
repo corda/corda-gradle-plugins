@@ -3,7 +3,7 @@ plugins {
     id 'net.corda.plugins.api-scanner'
 }
 
-description 'Test annotation behaviour'
+description 'Test annotation inheritance across classes'
 
 repositories {
     mavenLocal()
@@ -13,13 +13,13 @@ repositories {
 sourceSets {
     main {
         java {
-            srcDir file("../resources/test/visible-annotation/java")
+            srcDir file("../resources/test/annotated-class/java")
         }
     }
 }
 
 jar {
-    baseName = "visible-annotation"
+    baseName = "annotated-class"
 }
 
 scanApi {

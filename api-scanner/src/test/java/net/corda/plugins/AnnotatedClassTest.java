@@ -15,18 +15,18 @@ import java.nio.file.Path;
 
 import static org.junit.Assert.*;
 
-public class AnnotatedInterfacesTest {
+public class AnnotatedClassTest {
     @Rule
     public final TemporaryFolder testProjectDir = new TemporaryFolder();
 
     @Before
     public void setup() throws IOException {
         File buildFile = testProjectDir.newFile("build.gradle");
-        CopyUtils.copyResourceTo("annotated-interfaces/build.gradle", buildFile);
+        CopyUtils.copyResourceTo("annotated-class/build.gradle", buildFile);
     }
 
     @Test
-    public void testAnnotatedInterfaces() throws IOException {
+    public void testAnnotatedClass() throws IOException {
         BuildResult result = GradleRunner.create()
             .withProjectDir(testProjectDir.getRoot())
             .withArguments("scanApi", "--info")
@@ -39,12 +39,14 @@ public class AnnotatedInterfacesTest {
         assertNotNull(scanApi);
         assertEquals(TaskOutcome.SUCCESS, scanApi.getOutcome());
 
-        Path api = CopyUtils.pathOf(testProjectDir, "build", "api", "annotated-interfaces.txt");
+        Path api = CopyUtils.pathOf(testProjectDir, "build", "api", "annotated-class.txt");
         assertTrue(api.toFile().isFile());
         assertEquals(
-            "@net.corda.example.NotInherited @net.corda.example.IsInherited public interface net.corda.example.HasInheritedAnnotation\n" +
+            "@net.corda.example.NotInherited @net.corda.example.IsInherited public class net.corda.example.HasInheritedAnnotation extends java.lang.Object\n" +
+            "  public <init>()\n" +
             "##\n" +
-            "@net.corda.example.IsInherited public interface net.corda.example.InheritingAnnotations extends net.corda.example.HasInheritedAnnotation\n" +
+            "@net.corda.example.IsInherited public class net.corda.example.InheritingAnnotations extends net.corda.example.HasInheritedAnnotation\n" +
+            "  public <init>()\n" +
             "##\n" +
             "public @interface net.corda.example.IsInherited\n" +
             "##\n" +

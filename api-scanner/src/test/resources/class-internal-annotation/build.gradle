@@ -3,7 +3,7 @@ plugins {
     id 'net.corda.plugins.api-scanner'
 }
 
-description 'Test annotation inheritance across classes'
+description 'Test behaviour of internal annotations on classes'
 
 repositories {
     mavenLocal()
@@ -13,13 +13,13 @@ repositories {
 sourceSets {
     main {
         java {
-            srcDir file("../resources/test/annotated-classes/java")
+            srcDir file("../resources/test/class-internal-annotation/java")
         }
     }
 }
 
 jar {
-    baseName = "annotated-classes"
+    baseName = "class-internal-annotation"
 }
 
 scanApi {

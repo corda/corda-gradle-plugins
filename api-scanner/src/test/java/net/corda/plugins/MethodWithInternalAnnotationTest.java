@@ -15,18 +15,18 @@ import java.nio.file.Path;
 
 import static org.junit.Assert.*;
 
-public class AnnotatedClassesTest {
+public class MethodWithInternalAnnotationTest {
     @Rule
     public final TemporaryFolder testProjectDir = new TemporaryFolder();
 
     @Before
     public void setup() throws IOException {
         File buildFile = testProjectDir.newFile("build.gradle");
-        CopyUtils.copyResourceTo("annotated-classes/build.gradle", buildFile);
+        CopyUtils.copyResourceTo("method-internal-annotation/build.gradle", buildFile);
     }
 
     @Test
-    public void testAnnotatedClasses() throws IOException {
+    public void testMethodWithInternalAnnotation() throws IOException {
         BuildResult result = GradleRunner.create()
             .withProjectDir(testProjectDir.getRoot())
             .withArguments("scanApi", "--info")
@@ -39,18 +39,13 @@ public class AnnotatedClassesTest {
         assertNotNull(scanApi);
         assertEquals(TaskOutcome.SUCCESS, scanApi.getOutcome());
 
-        Path api = CopyUtils.pathOf(testProjectDir, "build", "api", "annotated-classes.txt");
+        assertTrue(output.contains("net.corda.example.InvisibleAnnotation"));
+
+        Path api = CopyUtils.pathOf(testProjectDir, "build", "api", "method-internal-annotation.txt");
         assertTrue(api.toFile().isFile());
-        assertEquals(
-            "@net.corda.example.NotInherited @net.corda.example.IsInherited public class net.corda.example.HasInheritedAnnotation extends java.lang.Object\n" +
+        assertEquals("public class net.corda.example.HasVisibleMethod extends java.lang.Object\n" +
             "  public <init>()\n" +
-            "##\n" +
-            "@net.corda.example.IsInherited public class net.corda.example.InheritingAnnotations extends net.corda.example.HasInheritedAnnotation\n" +
-            "  public <init>()\n" +
-            "##\n" +
-            "public @interface net.corda.example.IsInherited\n" +
-            "##\n" +
-            "public @interface net.corda.example.NotInherited\n" +
+            "  public void hasInvisibleAnnotation()\n" +
             "##\n", CopyUtils.toString(api));
     }
 }

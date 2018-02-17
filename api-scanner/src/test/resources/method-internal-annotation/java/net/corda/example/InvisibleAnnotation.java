@@ -10,5 +10,5 @@ import static java.lang.annotation.RetentionPolicy.*;
 @Target({TYPE, METHOD})
 @Retention(CLASS)
 @CordaInternal
-public @interface Invisible {
+public @interface InvisibleAnnotation {
 }

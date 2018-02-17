@@ -3,7 +3,7 @@ plugins {
     id 'net.corda.plugins.api-scanner'
 }
 
-description 'Test annotation inheritance across interfaces'
+description 'Test annotation behaviour for a method'
 
 repositories {
     mavenLocal()
@@ -13,13 +13,13 @@ repositories {
 sourceSets {
     main {
         java {
-            srcDir file("../resources/test/annotated-interfaces/java")
+            srcDir file("../resources/test/annotated-method/java")
         }
     }
 }
 
 jar {
-    baseName = "annotated-interfaces"
+    baseName = "annotated-method"
 }
 
 scanApi {
