@@ -1,8 +1,12 @@
 package net.corda.plugins;
 
 import org.apache.commons.io.IOUtils;
+import org.junit.rules.TemporaryFolder;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public final class CopyUtils {
     private CopyUtils() {}
@@ -16,9 +20,13 @@ public final class CopyUtils {
         }
     }
 
-    public static String toString(File file) throws IOException {
-        try (Reader input = new FileReader(file)) {
+    public static String toString(Path file) throws IOException {
+        try (Reader input = Files.newBufferedReader(file)) {
             return IOUtils.toString(input);
         }
+    }
+
+    public static Path pathOf(TemporaryFolder folder, String... elements) {
+        return Paths.get(folder.getRoot().getAbsolutePath(), elements);
     }
 }

@@ -11,6 +11,7 @@ import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 
 import static org.junit.Assert.*;
 
@@ -40,8 +41,8 @@ public class InternalPackageTest {
 
         assertTrue(output.contains("net.corda.internal.InvisibleClass"));
 
-        File api = new File(testProjectDir.getRoot(), "build/api/internal-package.txt");
-        assertTrue(api.isFile());
+        Path api = CopyUtils.pathOf(testProjectDir, "build", "api", "internal-package.txt");
+        assertTrue(api.toFile().isFile());
         assertEquals(
                 "public class net.corda.VisibleClass extends java.lang.Object\n" +
                         "  public <init>()\n" +

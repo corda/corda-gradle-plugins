@@ -11,6 +11,7 @@ import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 
 import static org.junit.Assert.*;
 
@@ -38,8 +39,8 @@ public class AnnotatedClassesTest {
         assertNotNull(scanApi);
         assertEquals(TaskOutcome.SUCCESS, scanApi.getOutcome());
 
-        File api = new File(testProjectDir.getRoot(), "build/api/annotated-classes.txt");
-        assertTrue(api.isFile());
+        Path api = CopyUtils.pathOf(testProjectDir, "build", "api", "annotated-classes.txt");
+        assertTrue(api.toFile().isFile());
         assertEquals(
             "@net.corda.example.NotInherited @net.corda.example.IsInherited public class net.corda.example.HasInheritedAnnotation extends java.lang.Object\n" +
             "  public <init>()\n" +

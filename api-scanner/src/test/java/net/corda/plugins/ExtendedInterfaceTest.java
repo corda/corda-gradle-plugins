@@ -11,6 +11,7 @@ import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 
 import static org.junit.Assert.*;
 
@@ -38,8 +39,8 @@ public class ExtendedInterfaceTest {
         assertNotNull(scanApi);
         assertEquals(TaskOutcome.SUCCESS, scanApi.getOutcome());
 
-        File api = new File(testProjectDir.getRoot(), "build/api/extended-interface.txt");
-        assertTrue(api.isFile());
+        Path api = CopyUtils.pathOf(testProjectDir, "build", "api", "extended-interface.txt");
+        assertTrue(api.toFile().isFile());
         assertEquals(
             "public interface net.corda.example.ExtendedInterface extends java.util.concurrent.Future\n" +
             "  public abstract String getName()\n" +

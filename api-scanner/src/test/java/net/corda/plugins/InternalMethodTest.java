@@ -10,6 +10,8 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.*;
+import java.nio.file.Path;
+
 import static org.junit.Assert.*;
 
 public class InternalMethodTest {
@@ -36,8 +38,8 @@ public class InternalMethodTest {
         assertNotNull(scanApi);
         assertEquals(TaskOutcome.SUCCESS, scanApi.getOutcome());
 
-        File api = new File(testProjectDir.getRoot(), "build/api/internal-method.txt");
-        assertTrue(api.isFile());
+        Path api = CopyUtils.pathOf(testProjectDir, "build", "api", "internal-method.txt");
+        assertTrue(api.toFile().isFile());
         assertEquals(
             "public class net.corda.example.WithInternalMethod extends java.lang.Object\n" +
             "  public <init>()\n" +

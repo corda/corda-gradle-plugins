@@ -11,6 +11,7 @@ import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 
 import static org.junit.Assert.*;
 
@@ -38,8 +39,8 @@ public class BasicAnnotationTest {
         assertNotNull(scanApi);
         assertEquals(TaskOutcome.SUCCESS, scanApi.getOutcome());
 
-        File api = new File(testProjectDir.getRoot(), "build/api/basic-annotation.txt");
-        assertTrue(api.isFile());
+        Path api = CopyUtils.pathOf(testProjectDir, "build", "api", "basic-annotation.txt");
+        assertTrue(api.toFile().isFile());
         assertEquals(
             "public @interface net.corda.example.BasicAnnotation\n" +
             "##\n", CopyUtils.toString(api));

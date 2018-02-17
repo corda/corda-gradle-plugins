@@ -11,6 +11,7 @@ import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 
 import static org.junit.Assert.*;
 
@@ -40,8 +41,8 @@ public class KotlinLambdasTest {
 
         assertTrue(output.contains("net.corda.example.LambdaExpressions$testing$$inlined$schedule$1"));
 
-        File api = new File(testProjectDir.getRoot(), "build/api/kotlin-lambdas.txt");
-        assertTrue(api.isFile());
+        Path api = CopyUtils.pathOf(testProjectDir, "build", "api", "kotlin-lambdas.txt");
+        assertTrue(api.toFile().isFile());
         assertEquals("public final class net.corda.example.LambdaExpressions extends java.lang.Object\n" +
             "  public <init>()\n" +
             "  public final void testing(kotlin.Unit)\n" +
