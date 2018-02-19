@@ -1,0 +1,42 @@
+buildscript {
+    repositories {
+        mavenLocal()
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version'
+    }
+}
+
+plugins {
+    id 'net.corda.plugins.api-scanner'
+}
+apply plugin: 'kotlin'
+
+description 'Test appearance of Kotlin-specific annotations'
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+sourceSets {
+    main {
+        kotlin {
+            srcDir file("../resources/test/kotlin-lambdas/kotlin")
+        }
+    }
+}
+
+dependencies {
+    compile 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version'
+}
+
+jar {
+    baseName = "kotlin-lambdas"
+}
+
+scanApi {
+    verbose = true
+}
