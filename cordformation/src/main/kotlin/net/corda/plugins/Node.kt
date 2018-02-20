@@ -351,24 +351,24 @@ open class Node @Inject constructor(private val project: Project) : CordformNode
     }
 
     private fun Config.toWebServerOnly(): Config {
-        var config = ConfigFactory.empty()
-        config = copyTo("webAddress", config)
-        config = copyTo("myLegalName", config)
+        var webConfig = ConfigFactory.empty()
+        webConfig = copyTo("webAddress", webConfig)
+        webConfig = copyTo("myLegalName", webConfig)
         if (hasPath("rpcOptions.address") || hasPath("rpcAddress")) {
-            config += "rpcAddress" to if (hasPath("rpcOptions.address")) {
+            webConfig += "rpcAddress" to if (hasPath("rpcOptions.address")) {
                 getValue("rpcOptions.address")
             } else {
                 getValue("rpcAddress")
             }
         }
-        config = copyTo("rpcUsers", config)
-        config = copyTo("useHTTPS", config)
-        config = copyTo("baseDirectory", config)
-        config = copyTo("keyStorePassword", config)
-        config = copyTo("trustStorePassword", config)
-        config = copyTo("exportJMXto", config)
-        config = copyTo("custom", config)
-        return config
+        webConfig = copyTo("rpcUsers", webConfig)
+        webConfig = copyTo("useHTTPS", webConfig)
+        webConfig = copyTo("baseDirectory", webConfig)
+        webConfig = copyTo("keyStorePassword", webConfig)
+        webConfig = copyTo("trustStorePassword", webConfig)
+        webConfig = copyTo("exportJMXto", webConfig)
+        webConfig = copyTo("custom", webConfig)
+        return webConfig
     }
 
     /**
