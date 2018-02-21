@@ -115,7 +115,7 @@ public class ScanApi extends DefaultTask {
     }
 
     private File toTarget(File source) {
-        return new File(outputDir, source.getName().replaceAll(".jar$", ".txt"));
+        return new File(outputDir, source.getName().replaceAll("\\.jar$", ".txt"));
     }
 
     @TaskAction
