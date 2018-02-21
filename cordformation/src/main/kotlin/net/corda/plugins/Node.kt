@@ -1,5 +1,6 @@
 package net.corda.plugins
 
+import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
 import com.typesafe.config.ConfigObject
 import com.typesafe.config.ConfigRenderOptions
@@ -7,6 +8,8 @@ import com.typesafe.config.ConfigValueFactory
 import groovy.lang.Closure
 import net.corda.cordform.CordformNode
 import net.corda.cordform.RpcSettings
+import net.corda.plugins.utils.copyTo
+import net.corda.plugins.utils.plus
 import org.apache.commons.io.FilenameUtils
 import org.gradle.api.GradleException
 import org.gradle.api.Project
@@ -281,15 +284,7 @@ open class Node @Inject constructor(private val project: Project) : CordformNode
         }
     }
 
-    private fun installCordappConfigs(cordapps: Collection<ResolvedCordapp>) {
-        val cordappsDir = project.file(File(nodeDir, "cordapps"))
-        cordappsDir.mkdirs()
-        cordapps.filter { it.config != null }
-                .map { Pair<String, String>("${FilenameUtils.removeExtension(it.jarFile.name)}.conf", it.config!!) }
-                .forEach { project.file(File(cordappsDir, it.first)).writeText(it.second) }
-    }
-
-    private fun createTempConfigFile(configObject: ConfigObject): File {
+    private fun createTempConfigFile(configObject: ConfigObject, fileNameTrail: String): File {
         val options = ConfigRenderOptions
                 .defaults()
                 .setOriginComments(false)
@@ -300,10 +295,18 @@ open class Node @Inject constructor(private val project: Project) : CordformNode
         // Need to write a temporary file first to use the project.copy, which resolves directories correctly.
         val tmpDir = File(project.buildDir, "tmp")
         Files.createDirectories(tmpDir.toPath())
-        var fileName = "${nodeDir.name}.conf"
+        val fileName = "${nodeDir.name}_$fileNameTrail"
         val tmpConfFile = File(tmpDir, fileName)
         Files.write(tmpConfFile.toPath(), configFileText, StandardCharsets.UTF_8)
         return tmpConfFile
+    }
+
+     private fun installCordappConfigs(cordapps: Collection<ResolvedCordapp>) {
+        val cordappsDir = project.file(File(nodeDir, "cordapps"))
+        cordappsDir.mkdirs()
+        cordapps.filter { it.config != null }
+                .map { Pair<String, String>("${FilenameUtils.removeExtension(it.jarFile.name)}.conf", it.config!!) }
+                .forEach { project.file(File(cordappsDir, it.first)).writeText(it.second) }
     }
 
     /**
@@ -311,14 +314,7 @@ open class Node @Inject constructor(private val project: Project) : CordformNode
      */
     fun installConfig() {
         configureProperties()
-        val tmpConfFile = createTempConfigFile(config.root())
-        appendOptionalConfig(tmpConfFile)
-        project.copy {
-            it.apply {
-                from(tmpConfFile)
-                into(rootDir)
-            }
-        }
+        createNodeAndWebServerConfigFiles(config)
     }
 
     /**
@@ -331,7 +327,12 @@ open class Node @Inject constructor(private val project: Project) : CordformNode
                 .withValue("rpcSettings.address", ConfigValueFactory.fromAnyRef("$containerName:${rpcSettings.port}"))
                 .withValue("rpcSettings.adminAddress", ConfigValueFactory.fromAnyRef("$containerName:${rpcSettings.adminPort}"))
                 .withValue("detectPublicIp", ConfigValueFactory.fromAnyRef(false))
-        val tmpConfFile = createTempConfigFile(dockerConf.root())
+
+        createNodeAndWebServerConfigFiles(dockerConf)
+    }
+
+    private fun createNodeAndWebServerConfigFiles(config: Config) {
+        val tmpConfFile = createTempConfigFile(config.toNodeOnly().root(), "node.conf")
         appendOptionalConfig(tmpConfFile)
         project.copy {
             it.apply {
@@ -339,6 +340,44 @@ open class Node @Inject constructor(private val project: Project) : CordformNode
                 into(rootDir)
             }
         }
+        if (config.hasPath("webAddress")) {
+            val webServerConfigFile = createTempConfigFile(config.toWebServerOnly().root(), "web-server.conf")
+            project.copy {
+                it.apply {
+                    from(webServerConfigFile)
+                    into(rootDir)
+                }
+            }
+        }
+    }
+
+    private fun Config.toNodeOnly(): Config {
+        return if (hasPath("webAddress")) {
+            withoutPath("webAddress").withoutPath("useHTTPS")
+        } else {
+            this
+        }
+    }
+
+    private fun Config.toWebServerOnly(): Config {
+        var webConfig = ConfigFactory.empty()
+        webConfig = copyTo("webAddress", webConfig)
+        webConfig = copyTo("myLegalName", webConfig)
+        if (hasPath("rpcOptions.address") || hasPath("rpcAddress")) {
+            webConfig += "rpcAddress" to if (hasPath("rpcOptions.address")) {
+                getValue("rpcOptions.address")
+            } else {
+                getValue("rpcAddress")
+            }
+        }
+        webConfig = copyTo("rpcUsers", webConfig)
+        webConfig = copyTo("useHTTPS", webConfig)
+        webConfig = copyTo("baseDirectory", webConfig)
+        webConfig = copyTo("keyStorePassword", webConfig)
+        webConfig = copyTo("trustStorePassword", webConfig)
+        webConfig = copyTo("exportJMXto", webConfig)
+        webConfig = copyTo("custom", webConfig)
+        return webConfig
     }
 
     /**

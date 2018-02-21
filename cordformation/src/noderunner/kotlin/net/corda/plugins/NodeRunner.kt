@@ -2,7 +2,6 @@ package net.corda.plugins
 
 import java.awt.GraphicsEnvironment
 import java.io.File
-import java.nio.file.Files
 import java.util.*
 
 private val HEADLESS_FLAG = "--headless"
@@ -45,12 +44,12 @@ fun main(args: Array<String>) {
 }
 
 private abstract class JarType(private val jarName: String) {
-    internal abstract fun acceptNodeConf(nodeConf: File): Boolean
+
     internal fun acceptDirAndStartProcess(dir: File, headless: Boolean, javaArgs: List<String>, jvmArgs: List<String>): Process? {
         if (!File(dir, jarName).exists()) {
             return null
         }
-        if (!File(dir, "node.conf").let { it.exists() && acceptNodeConf(it) }) {
+        if (!File(dir, configurationFileName).exists()) {
             return null
         }
         val debugPort = debugPortAlloc.next()
@@ -60,15 +59,18 @@ private abstract class JarType(private val jarName: String) {
         if (os == OS.MACOS) Thread.sleep(1000)
         return process
     }
+
+    internal abstract val configurationFileName: String
 }
 
 private object NodeJarType : JarType("corda.jar") {
-    override fun acceptNodeConf(nodeConf: File) = true
+
+    override val configurationFileName = "node.conf"
 }
 
 private object WebJarType : JarType("corda-webserver.jar") {
-    // TODO: Add a webserver.conf, or use TypeSafe config instead of this hack
-    override fun acceptNodeConf(nodeConf: File) = Files.lines(nodeConf.toPath()).anyMatch { "webAddress" in it }
+
+    override val configurationFileName = "web-server.conf"
 }
 
 private abstract class JavaCommand(
