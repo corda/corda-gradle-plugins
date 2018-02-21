@@ -24,7 +24,7 @@ import javax.inject.Inject
  * Represents a node that will be installed.
  */
 open class Node @Inject constructor(private val project: Project) : CordformNode() {
-    private data class ResolvedCordapp(val jarFile: File, val config: String?)
+    internal data class ResolvedCordapp(val jarFile: File, val config: String?)
 
     companion object {
         @JvmStatic
@@ -221,7 +221,15 @@ open class Node @Inject constructor(private val project: Project) : CordformNode
     }
 
     private fun configureProperties() {
-        config = config.withValue("rpcUsers", ConfigValueFactory.fromIterable(rpcUsers))
+        if (rpcUsers != null) {
+            config = config.withValue("security", ConfigValueFactory.fromMap(mapOf(
+                    "authService" to mapOf(
+                            "dataSource" to mapOf(
+                                    "type" to "INMEMORY",
+                                    "users" to rpcUsers)))))
+
+        }
+
         if (notary != null) {
             config = config.withValue("notary", ConfigValueFactory.fromMap(notary))
         }
@@ -414,7 +422,7 @@ open class Node @Inject constructor(private val project: Project) : CordformNode
      *
      * @return List of this node's cordapps.
      */
-    private fun getCordappList(): Collection<ResolvedCordapp> =
+    internal fun getCordappList(): Collection<ResolvedCordapp> =
             internalCordapps.map { cordapp -> resolveCordapp(cordapp) } + resolveBuiltCordapp()
 
     private fun resolveCordapp(cordapp: Cordapp): ResolvedCordapp {

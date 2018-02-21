@@ -1,0 +1,27 @@
+plugins {
+    id 'java'
+    id 'net.corda.plugins.api-scanner'
+}
+
+description 'Test behaviour of @CordaInternal annotation'
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+sourceSets {
+    main {
+        java {
+            srcDir file("../resources/test/internal-method/java")
+        }
+    }
+}
+
+jar {
+    baseName = "internal-method"
+}
+
+scanApi {
+    verbose = true
+}

@@ -15,6 +15,8 @@ buildscript {
         kotlin_version = constants.getProperty("kotlinVersion")
         artifactory_plugin_version = constants.getProperty('artifactoryPluginVersion')
         snake_yaml_version = constants.getProperty('snakeYamlVersion')
+        commons_io_version = '2.6'
+        junit_version = '4.12'
     }
 
     repositories {
@@ -36,6 +38,11 @@ apply plugin: 'com.jfrog.artifactory'
 allprojects {
     version gradle_plugins_version
     group 'net.corda.plugins'
+
+    tasks.withType(Test) {
+        // Prevent the project from creating temporary files outside of the build directory.
+        systemProperty 'java.io.tmpdir', buildDir.absolutePath
+    }
 }
 
 bintrayConfig {

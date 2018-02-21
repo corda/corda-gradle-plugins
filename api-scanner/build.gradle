@@ -1,4 +1,5 @@
 apply plugin: 'java'
+apply plugin: 'java-gradle-plugin'
 apply plugin: 'net.corda.plugins.publish-utils'
 apply plugin: 'com.jfrog.artifactory'
 
@@ -11,8 +12,20 @@ repositories {
 
 dependencies {
     compile gradleApi()
+
     compile "io.github.lukehutch:fast-classpath-scanner:2.7.0"
-    testCompile "junit:junit:4.12"
+    testCompile "commons-io:commons-io:$commons_io_version"
+    testCompile "junit:junit:$junit_version"
+
+    // This dependency is only to prevent IntelliJ from choking
+    // on the Kotlin classes in the test/resources directory.
+    testCompile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+}
+
+processTestResources {
+    filesMatching('**/kotlin-*/build.gradle') {
+        expand(['kotlin_version': kotlin_version])
+    }
 }
 
 publish {

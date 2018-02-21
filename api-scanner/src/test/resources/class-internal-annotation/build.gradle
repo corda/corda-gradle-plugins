@@ -1,0 +1,27 @@
+plugins {
+    id 'java'
+    id 'net.corda.plugins.api-scanner'
+}
+
+description 'Test behaviour of internal annotations on classes'
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+sourceSets {
+    main {
+        java {
+            srcDir file("../resources/test/class-internal-annotation/java")
+        }
+    }
+}
+
+jar {
+    baseName = "class-internal-annotation"
+}
+
+scanApi {
+    verbose = true
+}
