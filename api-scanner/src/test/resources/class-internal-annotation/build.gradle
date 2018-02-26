@@ -13,7 +13,10 @@ repositories {
 sourceSets {
     main {
         java {
-            srcDir file("../resources/test/class-internal-annotation/java")
+            srcDir files(
+                "../resources/test/class-internal-annotation/java",
+                "../resources/test/common/java"
+            )
         }
     }
 }
