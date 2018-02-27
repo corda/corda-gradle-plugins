@@ -13,7 +13,10 @@ repositories {
 sourceSets {
     main {
         java {
-            srcDir file("../resources/test/internal-method/java")
+            srcDir files(
+                "../resources/test/internal-method/java",
+                "../resources/test/common/java"
+            )
         }
     }
 }

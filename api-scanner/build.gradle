@@ -14,7 +14,6 @@ dependencies {
     compile gradleApi()
 
     compile "io.github.lukehutch:fast-classpath-scanner:2.7.0"
-    testCompile "commons-io:commons-io:$commons_io_version"
     testCompile "junit:junit:$junit_version"
 
     // This dependency is only to prevent IntelliJ from choking
