@@ -8,11 +8,10 @@ description "Generates a summary of the artifact's public API"
 repositories {
     mavenLocal()
     mavenCentral()
+    jcenter()
 }
 
 dependencies {
-    compile gradleApi()
-
     compile "io.github.lukehutch:fast-classpath-scanner:2.7.0"
     testCompile "junit:junit:$junit_version"
 
@@ -30,4 +29,3 @@ processTestResources {
 publish {
     name project.name
 }
-
