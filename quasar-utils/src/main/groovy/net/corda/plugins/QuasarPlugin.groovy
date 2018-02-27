@@ -14,9 +14,9 @@ class QuasarPlugin implements Plugin<Project> {
 //        To add a local .jar dependency:
 
         // If a quasar group has been specified then use it, otherwise default to the included library
-        if (project.rootProject.ext.quasar_group != null) {
+        try {
             project.dependencies.add("quasar", "${project.rootProject.ext.quasar_group}:quasar-core:${project.rootProject.ext.quasar_version}:jdk8@jar")
-        } else {
+        } catch (MissingPropertyException e) {
             project.dependencies.add("quasar", project.files("${project.rootProject.projectDir}/lib/quasar.jar"))
         }
 
