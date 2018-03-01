@@ -3,7 +3,7 @@ package net.corda.plugins;
 import org.gradle.testkit.runner.BuildResult;
 import org.gradle.testkit.runner.BuildTask;
 import org.gradle.testkit.runner.GradleRunner;
-import org.gradle.testkit.runner.TaskOutcome;
+import static org.gradle.testkit.runner.TaskOutcome.*;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -37,7 +37,7 @@ public class KotlinAnnotationsTest {
 
         BuildTask scanApi = result.task(":scanApi");
         assertNotNull(scanApi);
-        assertEquals(TaskOutcome.SUCCESS, scanApi.getOutcome());
+        assertEquals(SUCCESS, scanApi.getOutcome());
 
         Path api = CopyUtils.pathOf(testProjectDir, "build", "api", "kotlin-annotations.txt");
         assertTrue(api.toFile().isFile());
