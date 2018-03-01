@@ -204,14 +204,14 @@ public class ScanApi extends DefaultTask {
 
         private void loadAnnotationCaches(ScanResult result) {
             Set<String> internal = result.getNamesOfAllAnnotationClasses().stream()
-                .filter((s) -> s.endsWith(INTERNAL_ANNOTATION_NAME))
-                .collect(toSet());
+                .filter(s -> s.endsWith(INTERNAL_ANNOTATION_NAME))
+                .collect(toCollection(LinkedHashSet::new));
             internal.add(DEFAULT_INTERNAL_ANNOTATION);
             internalAnnotations = unmodifiableSet(internal);
 
             Set<String> invisible = internalAnnotations.stream()
-                .flatMap((a) -> result.getNamesOfAnnotationsWithMetaAnnotation(a).stream())
-                .collect(toSet());
+                .flatMap(a -> result.getNamesOfAnnotationsWithMetaAnnotation(a).stream())
+                .collect(toCollection(LinkedHashSet::new));
             invisible.addAll(ANNOTATION_BLACKLIST);
             invisible.addAll(internal);
             invisibleAnnotations = unmodifiableSet(invisible);
