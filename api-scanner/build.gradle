@@ -11,6 +11,15 @@ repositories {
     jcenter()
 }
 
+gradlePlugin {
+    plugins {
+        apiScannerPlugin {
+            id = 'net.corda.plugins.api-scanner'
+            implementationClass = 'net.corda.plugins.ApiScanner'
+        }
+    }
+}
+
 dependencies {
     compile "io.github.lukehutch:fast-classpath-scanner:2.7.0"
     testCompile "junit:junit:$junit_version"

@@ -12,21 +12,22 @@ import org.junit.rules.TemporaryFolder;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.regex.Pattern;
 
 import static org.junit.Assert.*;
 
-public class MethodWithInternalAnnotationTest {
+public class InternalAnnotationTest {
     @Rule
     public final TemporaryFolder testProjectDir = new TemporaryFolder();
 
     @Before
     public void setup() throws IOException {
         File buildFile = testProjectDir.newFile("build.gradle");
-        CopyUtils.copyResourceTo("method-internal-annotation/build.gradle", buildFile);
+        CopyUtils.copyResourceTo("internal-annotation/build.gradle", buildFile);
     }
 
     @Test
-    public void testMethodWithInternalAnnotations() throws IOException {
+    public void testInternalAnnotations() throws IOException {
         BuildResult result = GradleRunner.create()
             .withProjectDir(testProjectDir.getRoot())
             .withArguments("scanApi", "--info")
@@ -35,18 +36,15 @@ public class MethodWithInternalAnnotationTest {
         String output = result.getOutput();
         System.out.println(output);
 
+        assertTrue(output.contains("net.corda.core.CordaInternal"));
+        assertTrue(output.contains("net.corda.example.CordaInternal"));
+
         BuildTask scanApi = result.task(":scanApi");
         assertNotNull(scanApi);
         assertEquals(SUCCESS, scanApi.getOutcome());
 
-        assertTrue(output.contains("net.corda.example.InvisibleAnnotation"));
-        assertTrue(output.contains("net.corda.example.LocalInvisibleAnnotation"));
-
-        Path api = CopyUtils.pathOf(testProjectDir, "build", "api", "method-internal-annotation.txt");
+        Path api = CopyUtils.pathOf(testProjectDir, "build", "api", "internal-annotation.txt");
         assertTrue(api.toFile().isFile());
-        assertEquals("public class net.corda.example.HasVisibleMethod extends java.lang.Object\n" +
-            "  public <init>()\n" +
-            "  public void hasInvisibleAnnotations()\n" +
-            "##\n", CopyUtils.toString(api));
+        assertEquals("", CopyUtils.toString(api));
     }
 }

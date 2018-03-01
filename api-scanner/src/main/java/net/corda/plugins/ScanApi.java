@@ -34,12 +34,13 @@ public class ScanApi extends DefaultTask {
     private static final int FIELD_MASK = Modifier.fieldModifiers();
     private static final int VISIBILITY_MASK = Modifier.PUBLIC | Modifier.PROTECTED;
 
-    private static final String CORDA_INTERNAL = "net.corda.core.CordaInternal";
+    private static final String INTERNAL_ANNOTATION_NAME = ".CordaInternal";
+    private static final String DEFAULT_INTERNAL_ANNOTATION = "net.corda.core" + INTERNAL_ANNOTATION_NAME;
     private static final Set<String> ANNOTATION_BLACKLIST;
     static {
        Set<String> blacklist = new LinkedHashSet<>();
        blacklist.add("kotlin.jvm.JvmOverloads");
-       blacklist.add(CORDA_INTERNAL);
+       blacklist.add(DEFAULT_INTERNAL_ANNOTATION);
        ANNOTATION_BLACKLIST = unmodifiableSet(blacklist);
     }
 
@@ -131,6 +132,7 @@ public class ScanApi extends DefaultTask {
         private final URLClassLoader classpathLoader;
         private final Class<? extends Annotation> metadataClass;
         private final Method classTypeMethod;
+        private Collection<String> internalAnnotations;
         private Collection<String> invisibleAnnotations;
 
         @SuppressWarnings("unchecked")
@@ -184,7 +186,7 @@ public class ScanApi extends DefaultTask {
                 .enableFieldInfo()
                 .verbose(verbose)
                 .scan();
-            setInvisibleAnnotations(result);
+            loadAnnotationCaches(result);
             writeApis(writer, result);
         }
 
@@ -200,9 +202,18 @@ public class ScanApi extends DefaultTask {
             return spec;
         }
 
-        private void setInvisibleAnnotations(ScanResult result) {
-            Set<String> invisible = new LinkedHashSet<>(ANNOTATION_BLACKLIST);
-            invisible.addAll(result.getNamesOfAnnotationsWithMetaAnnotation(CORDA_INTERNAL));
+        private void loadAnnotationCaches(ScanResult result) {
+            Set<String> internal = result.getNamesOfAllAnnotationClasses().stream()
+                .filter((s) -> s.endsWith(INTERNAL_ANNOTATION_NAME))
+                .collect(toSet());
+            internal.add(DEFAULT_INTERNAL_ANNOTATION);
+            internalAnnotations = unmodifiableSet(internal);
+
+            Set<String> invisible = internalAnnotations.stream()
+                .flatMap((a) -> result.getNamesOfAnnotationsWithMetaAnnotation(a).stream())
+                .collect(toSet());
+            invisible.addAll(ANNOTATION_BLACKLIST);
+            invisible.addAll(internal);
             invisibleAnnotations = unmodifiableSet(invisible);
         }
 
@@ -300,7 +311,7 @@ public class ScanApi extends DefaultTask {
             for (MethodInfo method : methods) {
                 if (isVisible(method.getAccessFlags()) // Only public and protected methods
                         && isValid(method.getAccessFlags(), METHOD_MASK) // Excludes bridge and synthetic methods
-                        && !hasCordaInternal(method.getAnnotationNames()) // Excludes methods annotated as @CordaInternal
+                        && !hasInternalAnnotation(method.getAnnotationNames()) // Excludes methods annotated as @CordaInternal
                         && !isKotlinInternalScope(method)) {
                     writer.append("  ").println(filterAnnotationsFor(method));
                 }
@@ -376,14 +387,14 @@ public class ScanApi extends DefaultTask {
         private boolean isVisibleAnnotation(String annotationName) {
             return !invisibleAnnotations.contains(annotationName);
         }
+
+        private boolean hasInternalAnnotation(Collection<String> annotationNames) {
+            return annotationNames.stream().anyMatch(internalAnnotations::contains);
+        }
     }
 
     private static boolean isKotlinInternalScope(MethodInfo method) {
         return method.getMethodName().indexOf('$') >= 0;
-    }
-
-    private static boolean hasCordaInternal(Collection<String> annotationNames) {
-        return annotationNames.contains(CORDA_INTERNAL);
     }
 
     private static boolean isValid(int modifiers, int mask) {
