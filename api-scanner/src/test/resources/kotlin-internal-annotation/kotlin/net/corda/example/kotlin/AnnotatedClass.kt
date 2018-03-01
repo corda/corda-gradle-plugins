@@ -1,4 +1,4 @@
-package net.corda.kotlin
+package net.corda.example.kotlin
 
 @InvisibleAnnotation
 class AnnotatedClass

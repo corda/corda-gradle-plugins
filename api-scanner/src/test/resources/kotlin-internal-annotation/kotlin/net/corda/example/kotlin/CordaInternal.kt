@@ -1,9 +1,8 @@
-package net.corda.kotlin
+package net.corda.example.kotlin
 
 import kotlin.annotation.AnnotationRetention.*
 import kotlin.annotation.AnnotationTarget.*
 
-@Target(FILE, CLASS, FUNCTION)
+@Target(FILE, CLASS, FUNCTION, ANNOTATION_CLASS)
 @Retention(BINARY)
-@CordaInternal
-annotation class InvisibleAnnotation
+annotation class CordaInternal
