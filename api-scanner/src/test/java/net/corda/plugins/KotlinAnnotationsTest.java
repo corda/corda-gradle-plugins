@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assert.*;
 
 public class KotlinAnnotationsTest {
@@ -40,24 +41,24 @@ public class KotlinAnnotationsTest {
         assertEquals(SUCCESS, scanApi.getOutcome());
 
         Path api = CopyUtils.pathOf(testProjectDir, "build", "api", "kotlin-annotations.txt");
-        assertTrue(api.toFile().isFile());
+        assertThat(api.toFile()).isFile();
         assertEquals(
-                "public final class net.corda.example.HasJvmStaticFunction extends java.lang.Object\n" +
-                "  public <init>()\n" +
-                "  @kotlin.jvm.JvmStatic public static final void doThing(String)\n" +
-                "  public static final net.corda.example.HasJvmStaticFunction$Companion Companion\n" +
-                "##\n" +
-                "public static final class net.corda.example.HasJvmStaticFunction$Companion extends java.lang.Object\n" +
-                "  @kotlin.jvm.JvmStatic public final void doThing(String)\n" +
-                "##\n" +
-                "public final class net.corda.example.HasOverloadedConstructor extends java.lang.Object\n" +
-                "  public <init>()\n" +
-                "  public <init>(String)\n" +
-                "  public <init>(String, String)\n" +
-                "  public <init>(String, String, int)\n" +
-                "  @org.jetbrains.annotations.NotNull public final String getNotNullable()\n" +
-                "  @org.jetbrains.annotations.Nullable public final String getNullable()\n" +
-                "  public final int getNumber()\n" +
-                "##\n", CopyUtils.toString(api));
+            "public final class net.corda.example.HasJvmStaticFunction extends java.lang.Object\n" +
+            "  public <init>()\n" +
+            "  @kotlin.jvm.JvmStatic public static final void doThing(String)\n" +
+            "  public static final net.corda.example.HasJvmStaticFunction$Companion Companion\n" +
+            "##\n" +
+            "public static final class net.corda.example.HasJvmStaticFunction$Companion extends java.lang.Object\n" +
+            "  @kotlin.jvm.JvmStatic public final void doThing(String)\n" +
+            "##\n" +
+            "public final class net.corda.example.HasOverloadedConstructor extends java.lang.Object\n" +
+            "  public <init>()\n" +
+            "  public <init>(String)\n" +
+            "  public <init>(String, String)\n" +
+            "  public <init>(String, String, int)\n" +
+            "  @org.jetbrains.annotations.NotNull public final String getNotNullable()\n" +
+            "  @org.jetbrains.annotations.Nullable public final String getNullable()\n" +
+            "  public final int getNumber()\n" +
+            "##\n", CopyUtils.toString(api));
     }
 }

@@ -12,8 +12,8 @@ import org.junit.rules.TemporaryFolder;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.regex.Pattern;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assert.*;
 
 public class InternalAnnotationTest {
@@ -36,15 +36,16 @@ public class InternalAnnotationTest {
         String output = result.getOutput();
         System.out.println(output);
 
-        assertTrue(output.contains("net.corda.core.CordaInternal"));
-        assertTrue(output.contains("net.corda.example.CordaInternal"));
+        assertThat(output)
+            .contains("net.corda.core.CordaInternal")
+            .contains("net.corda.example.CordaInternal");
 
         BuildTask scanApi = result.task(":scanApi");
         assertNotNull(scanApi);
         assertEquals(SUCCESS, scanApi.getOutcome());
 
         Path api = CopyUtils.pathOf(testProjectDir, "build", "api", "internal-annotation.txt");
-        assertTrue(api.toFile().isFile());
+        assertThat(api.toFile()).isFile();
         assertEquals("", CopyUtils.toString(api));
     }
 }

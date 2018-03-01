@@ -12,6 +12,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS;
 import static org.junit.Assert.*;
 
@@ -35,14 +36,14 @@ public class KotlinInternalAnnotationTest {
         String output = result.getOutput();
         System.out.println(output);
 
-        assertTrue(output.contains("net.corda.example.kotlin.CordaInternal"));
+        assertThat(output).contains("net.corda.example.kotlin.CordaInternal");
 
         BuildTask scanApi = result.task(":scanApi");
         assertNotNull(scanApi);
         assertEquals(SUCCESS, scanApi.getOutcome());
 
         Path api = CopyUtils.pathOf(testProjectDir, "build", "api", "kotlin-internal-annotation.txt");
-        assertTrue(api.toFile().isFile());
+        assertThat(api.toFile()).isFile();
         assertEquals(
             "public final class net.corda.example.kotlin.AnnotatedClass extends java.lang.Object\n" +
             "  public <init>()\n" +

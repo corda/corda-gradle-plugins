@@ -16,6 +16,7 @@ buildscript {
         artifactory_plugin_version = constants.getProperty('artifactoryPluginVersion')
         snake_yaml_version = constants.getProperty('snakeYamlVersion')
         commons_io_version = '2.6'
+        assertj_version = '3.8.0'
         junit_version = '4.12'
     }
 

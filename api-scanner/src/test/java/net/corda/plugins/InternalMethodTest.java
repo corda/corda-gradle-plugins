@@ -3,7 +3,7 @@ package net.corda.plugins;
 import org.gradle.testkit.runner.BuildResult;
 import org.gradle.testkit.runner.BuildTask;
 import org.gradle.testkit.runner.GradleRunner;
-import org.gradle.testkit.runner.TaskOutcome;
+import static org.gradle.testkit.runner.TaskOutcome.*;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -12,6 +12,7 @@ import org.junit.rules.TemporaryFolder;
 import java.io.*;
 import java.nio.file.Path;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assert.*;
 
 public class InternalMethodTest {
@@ -36,10 +37,10 @@ public class InternalMethodTest {
 
         BuildTask scanApi = result.task(":scanApi");
         assertNotNull(scanApi);
-        assertEquals(TaskOutcome.SUCCESS, scanApi.getOutcome());
+        assertEquals(SUCCESS, scanApi.getOutcome());
 
         Path api = CopyUtils.pathOf(testProjectDir, "build", "api", "internal-method.txt");
-        assertTrue(api.toFile().isFile());
+        assertThat(api.toFile()).isFile();
         assertEquals(
             "public class net.corda.example.WithInternalMethod extends java.lang.Object\n" +
             "  public <init>()\n" +

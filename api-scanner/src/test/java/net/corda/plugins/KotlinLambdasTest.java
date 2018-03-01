@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assert.*;
 
 public class KotlinLambdasTest {
@@ -39,10 +40,10 @@ public class KotlinLambdasTest {
         assertNotNull(scanApi);
         assertEquals(SUCCESS, scanApi.getOutcome());
 
-        assertTrue(output.contains("net.corda.example.LambdaExpressions$testing$$inlined$schedule$1"));
+        assertThat(output).contains("net.corda.example.LambdaExpressions$testing$$inlined$schedule$1");
 
         Path api = CopyUtils.pathOf(testProjectDir, "build", "api", "kotlin-lambdas.txt");
-        assertTrue(api.toFile().isFile());
+        assertThat(api.toFile()).isFile();
         assertEquals("public final class net.corda.example.LambdaExpressions extends java.lang.Object\n" +
             "  public <init>()\n" +
             "  public final void testing(kotlin.Unit)\n" +

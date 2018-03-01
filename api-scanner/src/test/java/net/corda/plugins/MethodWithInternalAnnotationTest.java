@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assert.*;
 
 public class MethodWithInternalAnnotationTest {
@@ -39,11 +40,12 @@ public class MethodWithInternalAnnotationTest {
         assertNotNull(scanApi);
         assertEquals(SUCCESS, scanApi.getOutcome());
 
-        assertTrue(output.contains("net.corda.example.InvisibleAnnotation"));
-        assertTrue(output.contains("net.corda.example.LocalInvisibleAnnotation"));
+        assertThat(output)
+            .contains("net.corda.example.InvisibleAnnotation")
+            .contains("net.corda.example.LocalInvisibleAnnotation");
 
         Path api = CopyUtils.pathOf(testProjectDir, "build", "api", "method-internal-annotation.txt");
-        assertTrue(api.toFile().isFile());
+        assertThat(api.toFile()).isFile();
         assertEquals("public class net.corda.example.HasVisibleMethod extends java.lang.Object\n" +
             "  public <init>()\n" +
             "  public void hasInvisibleAnnotations()\n" +

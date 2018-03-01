@@ -3,7 +3,7 @@ package net.corda.plugins;
 import org.gradle.testkit.runner.BuildResult;
 import org.gradle.testkit.runner.BuildTask;
 import org.gradle.testkit.runner.GradleRunner;
-import org.gradle.testkit.runner.TaskOutcome;
+import static org.gradle.testkit.runner.TaskOutcome.*;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assert.*;
 
 public class InternalPackageTest {
@@ -37,15 +38,15 @@ public class InternalPackageTest {
 
         BuildTask scanApi = result.task(":scanApi");
         assertNotNull(scanApi);
-        assertEquals(TaskOutcome.SUCCESS, scanApi.getOutcome());
+        assertEquals(SUCCESS, scanApi.getOutcome());
 
-        assertTrue(output.contains("net.corda.internal.InvisibleClass"));
+        assertThat(output).contains("net.corda.internal.InvisibleClass");
 
         Path api = CopyUtils.pathOf(testProjectDir, "build", "api", "internal-package.txt");
-        assertTrue(api.toFile().isFile());
+        assertThat(api.toFile()).isFile();
         assertEquals(
-                "public class net.corda.VisibleClass extends java.lang.Object\n" +
-                        "  public <init>()\n" +
-                        "##\n", CopyUtils.toString(api));
+    "public class net.corda.VisibleClass extends java.lang.Object\n" +
+            "  public <init>()\n" +
+            "##\n", CopyUtils.toString(api));
     }
 }
