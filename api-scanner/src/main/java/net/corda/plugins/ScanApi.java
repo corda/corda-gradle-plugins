@@ -27,7 +27,13 @@ import static java.util.stream.Collectors.*;
 public class ScanApi extends DefaultTask {
     private static final int CLASS_MASK = Modifier.classModifiers();
     private static final int INTERFACE_MASK = Modifier.interfaceModifiers() & ~Modifier.ABSTRACT;
-    private static final int METHOD_MASK = Modifier.methodModifiers();
+    /**
+     * The VARARG modifier for methods has the same value as the TRANSIENT modifier for fields.
+     * Unfortunately, {@link Modifier#methodModifiers() methodModifiers} doesn't include this
+     * flag, and so we need to add it back ourselves.
+     * @link https://docs.oracle.com/javase/specs/jls/se8/html/index.html
+     */
+    private static final int METHOD_MASK = Modifier.methodModifiers() | Modifier.TRANSIENT;
     private static final int FIELD_MASK = Modifier.fieldModifiers();
     private static final int VISIBILITY_MASK = Modifier.PUBLIC | Modifier.PROTECTED;
 
