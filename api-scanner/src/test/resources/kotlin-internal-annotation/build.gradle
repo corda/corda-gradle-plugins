@@ -13,7 +13,7 @@ repositories {
 sourceSets {
     main {
         kotlin {
-            srcDir file("../resources/test/kotlin-lambdas/kotlin")
+            srcDir file("../resources/test/kotlin-internal-annotation/kotlin")
         }
     }
 }
@@ -24,7 +24,7 @@ dependencies {
 }
 
 jar {
-    baseName = "kotlin-lambdas"
+    baseName = "kotlin-internal-annotation"
 }
 
 scanApi {

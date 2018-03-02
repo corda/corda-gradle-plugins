@@ -1,10 +1,7 @@
 package net.corda.plugins;
 
 import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner;
-import io.github.lukehutch.fastclasspathscanner.scanner.ClassInfo;
-import io.github.lukehutch.fastclasspathscanner.scanner.FieldInfo;
-import io.github.lukehutch.fastclasspathscanner.scanner.MethodInfo;
-import io.github.lukehutch.fastclasspathscanner.scanner.ScanResult;
+import io.github.lukehutch.fastclasspathscanner.scanner.*;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
@@ -34,12 +31,13 @@ public class ScanApi extends DefaultTask {
     private static final int FIELD_MASK = Modifier.fieldModifiers();
     private static final int VISIBILITY_MASK = Modifier.PUBLIC | Modifier.PROTECTED;
 
-    private static final String CORDA_INTERNAL = "net.corda.core.CordaInternal";
+    private static final String INTERNAL_ANNOTATION_NAME = ".CordaInternal";
+    private static final String DEFAULT_INTERNAL_ANNOTATION = "net.corda.core" + INTERNAL_ANNOTATION_NAME;
     private static final Set<String> ANNOTATION_BLACKLIST;
     static {
        Set<String> blacklist = new LinkedHashSet<>();
        blacklist.add("kotlin.jvm.JvmOverloads");
-       blacklist.add(CORDA_INTERNAL);
+       blacklist.add(DEFAULT_INTERNAL_ANNOTATION);
        ANNOTATION_BLACKLIST = unmodifiableSet(blacklist);
     }
 
@@ -131,6 +129,7 @@ public class ScanApi extends DefaultTask {
         private final URLClassLoader classpathLoader;
         private final Class<? extends Annotation> metadataClass;
         private final Method classTypeMethod;
+        private Collection<String> internalAnnotations;
         private Collection<String> invisibleAnnotations;
 
         @SuppressWarnings("unchecked")
@@ -184,7 +183,7 @@ public class ScanApi extends DefaultTask {
                 .enableFieldInfo()
                 .verbose(verbose)
                 .scan();
-            setInvisibleAnnotations(result);
+            loadAnnotationCaches(result);
             writeApis(writer, result);
         }
 
@@ -200,9 +199,18 @@ public class ScanApi extends DefaultTask {
             return spec;
         }
 
-        private void setInvisibleAnnotations(ScanResult result) {
-            Set<String> invisible = new LinkedHashSet<>(ANNOTATION_BLACKLIST);
-            invisible.addAll(result.getNamesOfAnnotationsWithMetaAnnotation(CORDA_INTERNAL));
+        private void loadAnnotationCaches(ScanResult result) {
+            Set<String> internal = result.getNamesOfAllAnnotationClasses().stream()
+                .filter(s -> s.endsWith(INTERNAL_ANNOTATION_NAME))
+                .collect(toCollection(LinkedHashSet::new));
+            internal.add(DEFAULT_INTERNAL_ANNOTATION);
+            internalAnnotations = unmodifiableSet(internal);
+
+            Set<String> invisible = internalAnnotations.stream()
+                .flatMap(a -> result.getNamesOfAnnotationsWithMetaAnnotation(a).stream())
+                .collect(toCollection(LinkedHashSet::new));
+            invisible.addAll(ANNOTATION_BLACKLIST);
+            invisible.addAll(internal);
             invisibleAnnotations = unmodifiableSet(invisible);
         }
 
@@ -300,7 +308,7 @@ public class ScanApi extends DefaultTask {
             for (MethodInfo method : methods) {
                 if (isVisible(method.getAccessFlags()) // Only public and protected methods
                         && isValid(method.getAccessFlags(), METHOD_MASK) // Excludes bridge and synthetic methods
-                        && !hasCordaInternal(method.getAnnotationNames()) // Excludes methods annotated as @CordaInternal
+                        && !hasInternalAnnotation(method.getAnnotationNames()) // Excludes methods annotated as @CordaInternal
                         && !isKotlinInternalScope(method)) {
                     writer.append("  ").println(filterAnnotationsFor(method));
                 }
@@ -335,7 +343,14 @@ public class ScanApi extends DefaultTask {
                 .map(ClassInfo::toString)
                 .filter(ScanApi::isApplicationClass)
                 .collect(partitioningBy(this::isVisibleAnnotation));
-            return new Names(partitioned.get(true), partitioned.get(false));
+            /*
+             * fast-classpath-scanner implicitly returns the annotations in
+             * a reverse-sorted order, and we're currently depending on this.
+             * This is BAD, and will almost certainly change/break in future
+             * versions of fast-classpath-scanner. However, *for now* we can
+             * make this implicit behaviour explicit.
+             */
+            return new Names(reverseSort(partitioned.get(true)), reverseSort(partitioned.get(false)));
         }
 
         private Set<ClassInfo> readClassAnnotationsFor(ClassInfo classInfo) {
@@ -376,14 +391,14 @@ public class ScanApi extends DefaultTask {
         private boolean isVisibleAnnotation(String annotationName) {
             return !invisibleAnnotations.contains(annotationName);
         }
+
+        private boolean hasInternalAnnotation(Collection<String> annotationNames) {
+            return annotationNames.stream().anyMatch(internalAnnotations::contains);
+        }
     }
 
     private static boolean isKotlinInternalScope(MethodInfo method) {
         return method.getMethodName().indexOf('$') >= 0;
-    }
-
-    private static boolean hasCordaInternal(Collection<String> annotationNames) {
-        return annotationNames.contains(CORDA_INTERNAL);
     }
 
     private static boolean isValid(int modifiers, int mask) {
@@ -392,6 +407,11 @@ public class ScanApi extends DefaultTask {
 
     private static boolean isVisible(int accessFlags) {
         return (accessFlags & VISIBILITY_MASK) != 0;
+    }
+
+    private static <T extends Comparable<? super T>> List<T> reverseSort(List<T> list) {
+        list.sort(reverseOrder());
+        return list;
     }
 
     private static String stringOf(Collection<ClassInfo> items) {

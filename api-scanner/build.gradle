@@ -11,8 +11,18 @@ repositories {
     jcenter()
 }
 
+gradlePlugin {
+    plugins {
+        apiScannerPlugin {
+            id = 'net.corda.plugins.api-scanner'
+            implementationClass = 'net.corda.plugins.ApiScanner'
+        }
+    }
+}
+
 dependencies {
     compile "io.github.lukehutch:fast-classpath-scanner:2.7.0"
+    testCompile "org.assertj:assertj-core:$assertj_version"
     testCompile "junit:junit:$junit_version"
 
     // This dependency is only to prevent IntelliJ from choking

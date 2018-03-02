@@ -3,7 +3,7 @@ package net.corda.plugins;
 import org.gradle.testkit.runner.BuildResult;
 import org.gradle.testkit.runner.BuildTask;
 import org.gradle.testkit.runner.GradleRunner;
-import org.gradle.testkit.runner.TaskOutcome;
+import static org.gradle.testkit.runner.TaskOutcome.*;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -13,6 +13,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 
+import static net.corda.plugins.CopyUtils.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assert.*;
 
 public class AnnotatedClassTest {
@@ -22,14 +24,14 @@ public class AnnotatedClassTest {
     @Before
     public void setup() throws IOException {
         File buildFile = testProjectDir.newFile("build.gradle");
-        CopyUtils.copyResourceTo("annotated-class/build.gradle", buildFile);
+        copyResourceTo("annotated-class/build.gradle", buildFile);
     }
 
     @Test
     public void testAnnotatedClass() throws IOException {
         BuildResult result = GradleRunner.create()
             .withProjectDir(testProjectDir.getRoot())
-            .withArguments("scanApi", "--info")
+            .withArguments(getGradleArguments("scanApi"))
             .withPluginClasspath()
             .build();
         String output = result.getOutput();
@@ -37,10 +39,10 @@ public class AnnotatedClassTest {
 
         BuildTask scanApi = result.task(":scanApi");
         assertNotNull(scanApi);
-        assertEquals(TaskOutcome.SUCCESS, scanApi.getOutcome());
+        assertEquals(SUCCESS, scanApi.getOutcome());
 
-        Path api = CopyUtils.pathOf(testProjectDir, "build", "api", "annotated-class.txt");
-        assertTrue(api.toFile().isFile());
+        Path api = pathOf(testProjectDir, "build", "api", "annotated-class.txt");
+        assertThat(api.toFile()).isFile();
         assertEquals(
             "@net.corda.example.NotInherited @net.corda.example.IsInherited public class net.corda.example.HasInheritedAnnotation extends java.lang.Object\n" +
             "  public <init>()\n" +
