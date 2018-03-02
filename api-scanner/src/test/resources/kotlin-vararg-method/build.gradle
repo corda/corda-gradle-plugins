@@ -3,7 +3,7 @@ plugins {
     id 'org.jetbrains.kotlin.jvm' version '$kotlin_version'
 }
 
-description 'Test appearance of Kotlin lambdas'
+description 'Test appearance of Kotlin vararg functions'
 
 repositories {
     mavenLocal()
@@ -13,7 +13,7 @@ repositories {
 sourceSets {
     main {
         kotlin {
-            srcDir file("../resources/test/kotlin-lambdas/kotlin")
+            srcDir file("../resources/test/kotlin-vararg-method/kotlin")
         }
     }
 }
@@ -24,7 +24,7 @@ dependencies {
 }
 
 jar {
-    baseName = "kotlin-lambdas"
+    baseName = "kotlin-vararg-method"
 }
 
 scanApi {
