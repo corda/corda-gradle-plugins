@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 
+import static net.corda.plugins.CopyUtils.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assert.*;
 
@@ -23,14 +24,14 @@ public class ClassWithInternalAnnotationTest {
     @Before
     public void setup() throws IOException {
         File buildFile = testProjectDir.newFile("build.gradle");
-        CopyUtils.copyResourceTo("class-internal-annotation/build.gradle", buildFile);
+        copyResourceTo("class-internal-annotation/build.gradle", buildFile);
     }
 
     @Test
     public void testClassWithInternalAnnotation() throws IOException {
         BuildResult result = GradleRunner.create()
             .withProjectDir(testProjectDir.getRoot())
-            .withArguments("scanApi", "--info")
+            .withArguments(getGradleArguments("scanApi"))
             .withPluginClasspath()
             .build();
         String output = result.getOutput();
@@ -42,7 +43,7 @@ public class ClassWithInternalAnnotationTest {
 
         assertThat(output).contains("net.corda.example.InvisibleAnnotation");
 
-        Path api = CopyUtils.pathOf(testProjectDir, "build", "api", "class-internal-annotation.txt");
+        Path api = pathOf(testProjectDir, "build", "api", "class-internal-annotation.txt");
         assertThat(api.toFile()).isFile();
         assertEquals("public class net.corda.example.AnnotatedClass extends java.lang.Object\n" +
             "  public <init>()\n" +

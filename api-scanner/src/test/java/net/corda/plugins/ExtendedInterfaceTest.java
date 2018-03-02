@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 
+import static net.corda.plugins.CopyUtils.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assert.*;
 
@@ -23,14 +24,14 @@ public class ExtendedInterfaceTest {
     @Before
     public void setup() throws IOException {
         File buildFile = testProjectDir.newFile("build.gradle");
-        CopyUtils.copyResourceTo("extended-interface/build.gradle", buildFile);
+        copyResourceTo("extended-interface/build.gradle", buildFile);
     }
 
     @Test
     public void testExtendedInterface() throws IOException {
         BuildResult result = GradleRunner.create()
             .withProjectDir(testProjectDir.getRoot())
-            .withArguments("scanApi", "--info")
+            .withArguments(getGradleArguments("scanApi"))
             .withPluginClasspath()
             .build();
         String output = result.getOutput();
@@ -40,7 +41,7 @@ public class ExtendedInterfaceTest {
         assertNotNull(scanApi);
         assertEquals(SUCCESS, scanApi.getOutcome());
 
-        Path api = CopyUtils.pathOf(testProjectDir, "build", "api", "extended-interface.txt");
+        Path api = pathOf(testProjectDir, "build", "api", "extended-interface.txt");
         assertThat(api.toFile()).isFile();
         assertEquals(
             "public interface net.corda.example.ExtendedInterface extends java.util.concurrent.Future\n" +

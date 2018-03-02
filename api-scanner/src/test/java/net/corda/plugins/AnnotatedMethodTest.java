@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 
+import static net.corda.plugins.CopyUtils.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assert.*;
 
@@ -23,14 +24,14 @@ public class AnnotatedMethodTest {
     @Before
     public void setup() throws IOException {
         File buildFile = testProjectDir.newFile("build.gradle");
-        CopyUtils.copyResourceTo("annotated-method/build.gradle", buildFile);
+        copyResourceTo("annotated-method/build.gradle", buildFile);
     }
 
     @Test
     public void testAnnotatedMethod() throws IOException {
         BuildResult result = GradleRunner.create()
             .withProjectDir(testProjectDir.getRoot())
-            .withArguments("scanApi", "--info")
+            .withArguments(getGradleArguments("scanApi"))
             .withPluginClasspath()
             .build();
         String output = result.getOutput();
@@ -40,7 +41,7 @@ public class AnnotatedMethodTest {
         assertNotNull(scanApi);
         assertEquals(SUCCESS, scanApi.getOutcome());
 
-        Path api = CopyUtils.pathOf(testProjectDir, "build", "api", "annotated-method.txt");
+        Path api = pathOf(testProjectDir, "build", "api", "annotated-method.txt");
         assertThat(api.toFile()).isFile();
         assertEquals(
             "public class net.corda.example.HasAnnotatedMethod extends java.lang.Object\n" +

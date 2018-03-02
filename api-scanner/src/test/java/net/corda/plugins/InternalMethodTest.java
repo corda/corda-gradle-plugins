@@ -12,6 +12,7 @@ import org.junit.rules.TemporaryFolder;
 import java.io.*;
 import java.nio.file.Path;
 
+import static net.corda.plugins.CopyUtils.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assert.*;
 
@@ -22,14 +23,14 @@ public class InternalMethodTest {
     @Before
     public void setup() throws IOException {
         File buildFile = testProjectDir.newFile("build.gradle");
-        CopyUtils.copyResourceTo("internal-method/build.gradle", buildFile);
+        copyResourceTo("internal-method/build.gradle", buildFile);
     }
 
     @Test
     public void testInternalMethod() throws IOException {
         BuildResult result = GradleRunner.create()
             .withProjectDir(testProjectDir.getRoot())
-            .withArguments("scanApi", "--info")
+            .withArguments(getGradleArguments("scanApi"))
             .withPluginClasspath()
             .build();
         String output = result.getOutput();
@@ -39,7 +40,7 @@ public class InternalMethodTest {
         assertNotNull(scanApi);
         assertEquals(SUCCESS, scanApi.getOutcome());
 
-        Path api = CopyUtils.pathOf(testProjectDir, "build", "api", "internal-method.txt");
+        Path api = pathOf(testProjectDir, "build", "api", "internal-method.txt");
         assertThat(api.toFile()).isFile();
         assertEquals(
             "public class net.corda.example.WithInternalMethod extends java.lang.Object\n" +

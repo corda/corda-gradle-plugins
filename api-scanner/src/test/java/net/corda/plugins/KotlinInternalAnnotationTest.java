@@ -12,6 +12,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 
+import static net.corda.plugins.CopyUtils.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS;
 import static org.junit.Assert.*;
@@ -23,14 +24,14 @@ public class KotlinInternalAnnotationTest {
     @Before
     public void setup() throws IOException {
         File buildFile = testProjectDir.newFile("build.gradle");
-        CopyUtils.copyResourceTo("kotlin-internal-annotation/build.gradle", buildFile);
+        copyResourceTo("kotlin-internal-annotation/build.gradle", buildFile);
     }
 
     @Test
     public void testKotlinInternalAnnotation() throws IOException {
         BuildResult result = GradleRunner.create()
             .withProjectDir(testProjectDir.getRoot())
-            .withArguments("scanApi", "--info")
+            .withArguments(getGradleArguments("scanApi"))
             .withPluginClasspath()
             .build();
         String output = result.getOutput();
@@ -42,7 +43,7 @@ public class KotlinInternalAnnotationTest {
         assertNotNull(scanApi);
         assertEquals(SUCCESS, scanApi.getOutcome());
 
-        Path api = CopyUtils.pathOf(testProjectDir, "build", "api", "kotlin-internal-annotation.txt");
+        Path api = pathOf(testProjectDir, "build", "api", "kotlin-internal-annotation.txt");
         assertThat(api.toFile()).isFile();
         assertEquals(
             "public final class net.corda.example.kotlin.AnnotatedClass extends java.lang.Object\n" +

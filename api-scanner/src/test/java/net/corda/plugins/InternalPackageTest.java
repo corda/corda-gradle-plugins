@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 
+import static net.corda.plugins.CopyUtils.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assert.*;
 
@@ -23,14 +24,14 @@ public class InternalPackageTest {
     @Before
     public void setup() throws IOException {
         File buildFile = testProjectDir.newFile("build.gradle");
-        CopyUtils.copyResourceTo("internal-package/build.gradle", buildFile);
+        copyResourceTo("internal-package/build.gradle", buildFile);
     }
 
     @Test
     public void testInternalPackageIsIgnored() throws IOException {
         BuildResult result = GradleRunner.create()
             .withProjectDir(testProjectDir.getRoot())
-            .withArguments("scanApi", "--info")
+            .withArguments(getGradleArguments("scanApi"))
             .withPluginClasspath()
             .build();
         String output = result.getOutput();
@@ -42,7 +43,7 @@ public class InternalPackageTest {
 
         assertThat(output).contains("net.corda.internal.InvisibleClass");
 
-        Path api = CopyUtils.pathOf(testProjectDir, "build", "api", "internal-package.txt");
+        Path api = pathOf(testProjectDir, "build", "api", "internal-package.txt");
         assertThat(api.toFile()).isFile();
         assertEquals(
     "public class net.corda.VisibleClass extends java.lang.Object\n" +
