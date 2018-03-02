@@ -1,10 +1,7 @@
 package net.corda.plugins;
 
 import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner;
-import io.github.lukehutch.fastclasspathscanner.scanner.ClassInfo;
-import io.github.lukehutch.fastclasspathscanner.scanner.FieldInfo;
-import io.github.lukehutch.fastclasspathscanner.scanner.MethodInfo;
-import io.github.lukehutch.fastclasspathscanner.scanner.ScanResult;
+import io.github.lukehutch.fastclasspathscanner.scanner.*;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
@@ -346,7 +343,14 @@ public class ScanApi extends DefaultTask {
                 .map(ClassInfo::toString)
                 .filter(ScanApi::isApplicationClass)
                 .collect(partitioningBy(this::isVisibleAnnotation));
-            return new Names(partitioned.get(true), partitioned.get(false));
+            /*
+             * fast-classpath-scanner implicitly returns the annotations in
+             * a reverse-sorted order, and we're currently depending on this.
+             * This is BAD, and will almost certainly change/break in future
+             * versions of fast-classpath-scanner. However, *for now* we can
+             * make this implicit behaviour explicit.
+             */
+            return new Names(reverseSort(partitioned.get(true)), reverseSort(partitioned.get(false)));
         }
 
         private Set<ClassInfo> readClassAnnotationsFor(ClassInfo classInfo) {
@@ -403,6 +407,11 @@ public class ScanApi extends DefaultTask {
 
     private static boolean isVisible(int accessFlags) {
         return (accessFlags & VISIBILITY_MASK) != 0;
+    }
+
+    private static <T extends Comparable<? super T>> List<T> reverseSort(List<T> list) {
+        list.sort(reverseOrder());
+        return list;
     }
 
     private static String stringOf(Collection<ClassInfo> items) {
