@@ -44,11 +44,15 @@ public class AnnotatedMethodTest {
         Path api = pathOf(testProjectDir, "build", "api", "annotated-method.txt");
         assertThat(api.toFile()).isFile();
         assertEquals(
+            "public @interface net.corda.example.A\n" +
+            "##\n" +
+            "public @interface net.corda.example.B\n" +
+            "##\n" +
+            "public @interface net.corda.example.C\n" +
+            "##\n" +
             "public class net.corda.example.HasAnnotatedMethod extends java.lang.Object\n" +
             "  public <init>()\n" +
-            "  @net.corda.example.Visible public void hasAnnotation()\n" +
-            "##\n" +
-            "public @interface net.corda.example.Visible\n" +
+            "  @net.corda.example.A @net.corda.example.B @net.corda.example.C public void hasAnnotation()\n" +
             "##\n", CopyUtils.toString(api));
     }
 }

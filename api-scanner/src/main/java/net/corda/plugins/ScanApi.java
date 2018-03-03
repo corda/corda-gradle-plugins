@@ -389,7 +389,7 @@ public class ScanApi extends DefaultTask {
                 method.getTypeDescriptor(),
                 method.getAnnotationNames().stream()
                     .filter(this::isVisibleAnnotation)
-                    // TODO: Sort these annotations ourselves!
+                    .sorted()
                     .collect(toList())
             );
         }

@@ -8,5 +8,5 @@ import static java.lang.annotation.RetentionPolicy.*;
 
 @Target({TYPE, METHOD})
 @Retention(CLASS)
-public @interface Visible {
+public @interface B {
 }
