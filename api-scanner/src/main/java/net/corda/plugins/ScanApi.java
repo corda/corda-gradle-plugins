@@ -350,13 +350,12 @@ public class ScanApi extends DefaultTask {
                 .filter(ScanApi::isApplicationClass)
                 .collect(partitioningBy(this::isVisibleAnnotation));
             /*
-             * fast-classpath-scanner implicitly returns the annotations in
-             * a reverse-sorted order, and we're currently depending on this.
-             * This is BAD, and will almost certainly change/break in future
-             * versions of fast-classpath-scanner. However, *for now* we can
-             * make this implicit behaviour explicit.
+             * These annotations are returned in an order determined by
+             * fast-classpath-scanner. THIS IS BAD! The ordering here
+             * will almost certainly change/break in future versions.
+             * TODO: Order these annotations ourselves!
              */
-            return new Names(reverseSort(partitioned.get(true)), reverseSort(partitioned.get(false)));
+            return new Names(partitioned.get(true), partitioned.get(false));
         }
 
         private Set<ClassInfo> readClassAnnotationsFor(ClassInfo classInfo) {
@@ -390,6 +389,7 @@ public class ScanApi extends DefaultTask {
                 method.getTypeDescriptor(),
                 method.getAnnotationNames().stream()
                     .filter(this::isVisibleAnnotation)
+                    // TODO: Sort these annotations ourselves!
                     .collect(toList())
             );
         }
@@ -413,11 +413,6 @@ public class ScanApi extends DefaultTask {
 
     private static boolean isVisible(int accessFlags) {
         return (accessFlags & VISIBILITY_MASK) != 0;
-    }
-
-    private static <T extends Comparable<? super T>> List<T> reverseSort(List<T> list) {
-        list.sort(reverseOrder());
-        return list;
     }
 
     private static String stringOf(Collection<ClassInfo> items) {
