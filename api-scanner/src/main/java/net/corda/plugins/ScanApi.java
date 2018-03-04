@@ -18,6 +18,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.StreamSupport;
 
 import static java.util.Collections.*;
@@ -348,14 +349,10 @@ public class ScanApi extends DefaultTask {
             Map<Boolean, List<String>> partitioned = classes.stream()
                 .map(ClassInfo::toString)
                 .filter(ScanApi::isApplicationClass)
-                .collect(partitioningBy(this::isVisibleAnnotation));
-            /*
-             * These annotations are returned in an order determined by
-             * fast-classpath-scanner. THIS IS BAD! The ordering here
-             * will almost certainly change/break in future versions.
-             * TODO: Order these annotations ourselves!
-             */
-            return new Names(partitioned.get(true), partitioned.get(false));
+                .collect(partitioningBy(this::isVisibleAnnotation, toCollection(LinkedList::new)));
+
+            Function<List<String>, List<String>> ordering = list -> { sort(list); return list; };
+            return new Names(ordering.apply(partitioned.get(true)), ordering.apply(partitioned.get(false)));
         }
 
         private Set<ClassInfo> readClassAnnotationsFor(ClassInfo classInfo) {
