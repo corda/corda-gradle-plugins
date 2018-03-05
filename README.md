@@ -26,3 +26,7 @@ To bootstrap this repository you can install the publishing plugins with;
 To install locally for testing a new build against Corda you can run the following from the project root;
 
     ./gradlew install
+
+## Release process
+
+The version number of the "bleeding edge" in `master` is always a `-SNAPSHOT` version. To create a new release, a _maintainer_ must create a new branch off the latest commit in this release, remove the `-SNAPSHOT` from the version number and then run the publish to artifactory task in TeamCity. The version number in `master` is than advanced to the next `-SNAPSHOT` number.
