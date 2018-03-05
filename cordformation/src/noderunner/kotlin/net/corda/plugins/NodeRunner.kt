@@ -55,17 +55,22 @@ private abstract class JarType(private val jarName: String) {
         val debugPort = debugPortAlloc.next()
         val monitoringPort = monitoringPortAlloc.next()
         println("Starting $jarName in $dir on debug port $debugPort")
-        val process = (if (headless) ::HeadlessJavaCommand else ::TerminalWindowJavaCommand)(jarName, dir, debugPort, monitoringPort, javaArgs, jvmArgs).start()
+        val appArgs = javaArgs + (if (headless) headlessArgs else headedArgs)
+        val process = (if (headless) ::HeadlessJavaCommand else ::TerminalWindowJavaCommand)(jarName, dir, debugPort, monitoringPort, appArgs, jvmArgs).start()
         if (os == OS.MACOS) Thread.sleep(1000)
         return process
     }
 
     internal abstract val configurationFileName: String
+    protected open val headlessArgs = listOf<String>()
+    protected open val headedArgs = listOf<String>()
+
 }
 
 private object NodeJarType : JarType("corda.jar") {
 
     override val configurationFileName = "node.conf"
+    override val headlessArgs = listOf("--no-local-shell")
 }
 
 private object WebJarType : JarType("corda-webserver.jar") {
@@ -110,7 +115,7 @@ private abstract class JavaCommand(
 }
 
 private class HeadlessJavaCommand(jarName: String, dir: File, debugPort: Int?, monitoringPort: Int?, args: List<String>, jvmArgs: List<String>)
-    : JavaCommand(jarName, dir, debugPort, monitoringPort, dir.name, { add("--no-local-shell") }, args, jvmArgs) {
+    : JavaCommand(jarName, dir, debugPort, monitoringPort, dir.name, {}, args, jvmArgs) {
     override fun processBuilder(): ProcessBuilder {
         println("Running command: ${command.joinToString(" ")}")
         return ProcessBuilder(command).redirectError(File("error.$nodeName.log")).inheritIO()
