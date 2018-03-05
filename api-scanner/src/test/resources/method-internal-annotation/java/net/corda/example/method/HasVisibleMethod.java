@@ -1,4 +1,4 @@
-package net.corda.example;
+package net.corda.example.method;
 
 public class HasVisibleMethod {
     @InvisibleAnnotation

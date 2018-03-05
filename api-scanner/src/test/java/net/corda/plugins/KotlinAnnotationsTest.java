@@ -31,7 +31,7 @@ public class KotlinAnnotationsTest {
     public void testKotlinAnnotations() throws IOException {
         BuildResult result = GradleRunner.create()
             .withProjectDir(testProjectDir.getRoot())
-            .withArguments(getGradleArguments("scanApi"))
+            .withArguments(getGradleArgsForTasks("scanApi"))
             .withPluginClasspath()
             .build();
         String output = result.getOutput();
@@ -44,6 +44,10 @@ public class KotlinAnnotationsTest {
         Path api = pathOf(testProjectDir, "build", "api", "kotlin-annotations.txt");
         assertThat(api.toFile()).isFile();
         assertEquals(
+            "public final class net.corda.example.HasJvmField extends java.lang.Object\n" +
+            "  public <init>()\n" +
+            "  @org.jetbrains.annotations.NotNull public final String stringValue = \"Hello World\"\n" +
+            "##\n" +
             "public final class net.corda.example.HasJvmStaticFunction extends java.lang.Object\n" +
             "  public <init>()\n" +
             "  @kotlin.jvm.JvmStatic public static final void doThing(String)\n" +

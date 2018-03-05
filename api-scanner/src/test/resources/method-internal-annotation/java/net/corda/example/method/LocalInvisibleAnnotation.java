@@ -1,4 +1,4 @@
-package net.corda.example;
+package net.corda.example.method;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
@@ -8,5 +8,6 @@ import static java.lang.annotation.RetentionPolicy.*;
 
 @Target({TYPE, METHOD})
 @Retention(CLASS)
-public @interface C {
+@CordaInternal
+public @interface LocalInvisibleAnnotation {
 }

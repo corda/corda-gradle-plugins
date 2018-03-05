@@ -31,7 +31,7 @@ public class BasicClassTest {
     public void testBasicClass() throws IOException {
         BuildResult result = GradleRunner.create()
             .withProjectDir(testProjectDir.getRoot())
-            .withArguments(getGradleArguments("scanApi"))
+            .withArguments(getGradleArgsForTasks("scanApi"))
             .withPluginClasspath()
             .build();
         String output = result.getOutput();

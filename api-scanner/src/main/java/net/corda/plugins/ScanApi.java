@@ -42,6 +42,7 @@ public class ScanApi extends DefaultTask {
     private static final Set<String> ANNOTATION_BLACKLIST;
     static {
        Set<String> blacklist = new LinkedHashSet<>();
+       blacklist.add("kotlin.jvm.JvmField");
        blacklist.add("kotlin.jvm.JvmOverloads");
        blacklist.add(DEFAULT_INTERNAL_ANNOTATION);
        ANNOTATION_BLACKLIST = unmodifiableSet(blacklist);
@@ -324,8 +325,10 @@ public class ScanApi extends DefaultTask {
         private void writeFields(PrintWriter output, List<FieldInfo> fields) {
             sort(fields);
             for (FieldInfo field : fields) {
-                if (isVisible(field.getAccessFlags()) && isValid(field.getAccessFlags(), FIELD_MASK)) {
-                    output.append("  ").println(field);
+                if (isVisible(field.getAccessFlags())
+                        && isValid(field.getAccessFlags(), FIELD_MASK)
+                        && !hasInternalAnnotation(field.getAnnotationNames())) {
+                    output.append("  ").println(filterAnnotationsFor(field));
                 }
             }
         }
@@ -382,6 +385,20 @@ public class ScanApi extends DefaultTask {
                 method.getAccessFlags(),
                 method.getTypeDescriptor(),
                 method.getAnnotationNames().stream()
+                    .filter(this::isVisibleAnnotation)
+                    .sorted()
+                    .collect(toList())
+            );
+        }
+
+        private FieldInfo filterAnnotationsFor(FieldInfo field) {
+            return new FieldInfo(
+                field.getClassName(),
+                field.getFieldName(),
+                field.getAccessFlags(),
+                field.getTypeDescriptor(),
+                field.getConstFinalValue(),
+                field.getAnnotationNames().stream()
                     .filter(this::isVisibleAnnotation)
                     .sorted()
                     .collect(toList())

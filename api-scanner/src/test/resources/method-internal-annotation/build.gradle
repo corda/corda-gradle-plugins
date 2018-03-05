@@ -15,7 +15,7 @@ sourceSets {
         java {
             srcDir files(
                 "../resources/test/method-internal-annotation/java",
-                "../resources/test/common/java"
+                "../resources/test/common-internal/java"
             )
         }
     }

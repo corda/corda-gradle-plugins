@@ -11,6 +11,7 @@ import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static net.corda.plugins.CopyUtils.*;
@@ -31,7 +32,7 @@ public class AnnotatedClassTest {
     public void testAnnotatedClass() throws IOException {
         BuildResult result = GradleRunner.create()
             .withProjectDir(testProjectDir.getRoot())
-            .withArguments(getGradleArguments("scanApi"))
+            .withArguments(getGradleArgsForTasks("scanApi"))
             .withPluginClasspath()
             .build();
         String output = result.getOutput();
@@ -43,18 +44,9 @@ public class AnnotatedClassTest {
 
         Path api = pathOf(testProjectDir, "build", "api", "annotated-class.txt");
         assertThat(api.toFile()).isFile();
-        assertEquals(
-            "public @interface net.corda.example.AlsoInherited\n" +
-            "##\n" +
-            "@net.corda.example.AlsoInherited @net.corda.example.IsInherited @net.corda.example.NotInherited public class net.corda.example.HasInheritedAnnotation extends java.lang.Object\n" +
-            "  public <init>()\n" +
-            "##\n" +
-            "@net.corda.example.AlsoInherited @net.corda.example.IsInherited public class net.corda.example.InheritingAnnotations extends net.corda.example.HasInheritedAnnotation\n" +
-            "  public <init>()\n" +
-            "##\n" +
-            "public @interface net.corda.example.IsInherited\n" +
-            "##\n" +
-            "public @interface net.corda.example.NotInherited\n" +
-            "##\n", CopyUtils.toString(api));
+        assertThat(Files.readAllLines(api)).containsOnlyOnce(
+            "@net.corda.example.AlsoInherited @net.corda.example.IsInherited @net.corda.example.NotInherited public class net.corda.example.HasInheritedAnnotation extends java.lang.Object",
+            "@net.corda.example.AlsoInherited @net.corda.example.IsInherited public class net.corda.example.InheritingAnnotations extends net.corda.example.HasInheritedAnnotation"
+        );
     }
 }

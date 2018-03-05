@@ -11,6 +11,7 @@ import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static net.corda.plugins.CopyUtils.*;
@@ -31,7 +32,7 @@ public class AnnotatedMethodTest {
     public void testAnnotatedMethod() throws IOException {
         BuildResult result = GradleRunner.create()
             .withProjectDir(testProjectDir.getRoot())
-            .withArguments(getGradleArguments("scanApi"))
+            .withArguments(getGradleArgsForTasks("scanApi"))
             .withPluginClasspath()
             .build();
         String output = result.getOutput();
@@ -43,16 +44,9 @@ public class AnnotatedMethodTest {
 
         Path api = pathOf(testProjectDir, "build", "api", "annotated-method.txt");
         assertThat(api.toFile()).isFile();
-        assertEquals(
-            "public @interface net.corda.example.A\n" +
-            "##\n" +
-            "public @interface net.corda.example.B\n" +
-            "##\n" +
-            "public @interface net.corda.example.C\n" +
-            "##\n" +
-            "public class net.corda.example.HasAnnotatedMethod extends java.lang.Object\n" +
-            "  public <init>()\n" +
-            "  @net.corda.example.A @net.corda.example.B @net.corda.example.C public void hasAnnotation()\n" +
-            "##\n", CopyUtils.toString(api));
+        assertThat(Files.readAllLines(api)).containsOnlyOnce(
+            "public class net.corda.example.HasAnnotatedMethod extends java.lang.Object",
+            "  @net.corda.example.A @net.corda.example.B @net.corda.example.C public void hasAnnotation()"
+        );
     }
 }
