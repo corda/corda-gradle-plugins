@@ -18,7 +18,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.StreamSupport;
 
 import static java.util.Collections.*;
@@ -350,9 +349,7 @@ public class ScanApi extends DefaultTask {
                 .map(ClassInfo::toString)
                 .filter(ScanApi::isApplicationClass)
                 .collect(partitioningBy(this::isVisibleAnnotation, toCollection(ArrayList::new)));
-
-            Function<List<String>, List<String>> ordering = list -> { sort(list); return list; };
-            return new Names(ordering.apply(partitioned.get(true)), ordering.apply(partitioned.get(false)));
+            return new Names(ordering(partitioned.get(true)), ordering(partitioned.get(false)));
         }
 
         private Set<ClassInfo> readClassAnnotationsFor(ClassInfo classInfo) {
@@ -398,6 +395,11 @@ public class ScanApi extends DefaultTask {
         private boolean hasInternalAnnotation(Collection<String> annotationNames) {
             return annotationNames.stream().anyMatch(internalAnnotations::contains);
         }
+    }
+
+    private static <T extends Comparable<? super T>> List<T> ordering(List<T> list) {
+        sort(list);
+        return list;
     }
 
     private static boolean isKotlinInternalScope(MethodInfo method) {
