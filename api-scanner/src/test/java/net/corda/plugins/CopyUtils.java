@@ -6,12 +6,18 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.StandardCopyOption.*;
 
 public final class CopyUtils {
-    private CopyUtils() {}
+    private static final String testGradleUserHome = System.getProperty("test.gradle.user.home", "");
+
+    private CopyUtils() {
+    }
 
     public static long copyResourceTo(String resourceName, Path target) throws IOException {
         try (InputStream input = CopyUtils.class.getClassLoader().getResourceAsStream(resourceName)) {
@@ -29,5 +35,15 @@ public final class CopyUtils {
 
     public static Path pathOf(TemporaryFolder folder, String... elements) {
         return Paths.get(folder.getRoot().getAbsolutePath(), elements);
+    }
+
+    public static List<String> getGradleArguments(String... taskNames) {
+        List<String> args = new ArrayList<>(taskNames.length + 3);
+        Collections.addAll(args, taskNames);
+        args.add("--info");
+        if (!testGradleUserHome.isEmpty()) {
+            Collections.addAll(args,"-g", testGradleUserHome);
+        }
+        return args;
     }
 }

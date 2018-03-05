@@ -3,7 +3,7 @@ package net.corda.plugins;
 import org.gradle.testkit.runner.BuildResult;
 import org.gradle.testkit.runner.BuildTask;
 import org.gradle.testkit.runner.GradleRunner;
-import org.gradle.testkit.runner.TaskOutcome;
+import static org.gradle.testkit.runner.TaskOutcome.*;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -13,6 +13,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 
+import static net.corda.plugins.CopyUtils.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assert.*;
 
 public class AnnotatedMethodTest {
@@ -22,14 +24,14 @@ public class AnnotatedMethodTest {
     @Before
     public void setup() throws IOException {
         File buildFile = testProjectDir.newFile("build.gradle");
-        CopyUtils.copyResourceTo("annotated-method/build.gradle", buildFile);
+        copyResourceTo("annotated-method/build.gradle", buildFile);
     }
 
     @Test
     public void testAnnotatedMethod() throws IOException {
         BuildResult result = GradleRunner.create()
             .withProjectDir(testProjectDir.getRoot())
-            .withArguments("scanApi", "--info")
+            .withArguments(getGradleArguments("scanApi"))
             .withPluginClasspath()
             .build();
         String output = result.getOutput();
@@ -37,16 +39,20 @@ public class AnnotatedMethodTest {
 
         BuildTask scanApi = result.task(":scanApi");
         assertNotNull(scanApi);
-        assertEquals(TaskOutcome.SUCCESS, scanApi.getOutcome());
+        assertEquals(SUCCESS, scanApi.getOutcome());
 
-        Path api = CopyUtils.pathOf(testProjectDir, "build", "api", "annotated-method.txt");
-        assertTrue(api.toFile().isFile());
+        Path api = pathOf(testProjectDir, "build", "api", "annotated-method.txt");
+        assertThat(api.toFile()).isFile();
         assertEquals(
+            "public @interface net.corda.example.A\n" +
+            "##\n" +
+            "public @interface net.corda.example.B\n" +
+            "##\n" +
+            "public @interface net.corda.example.C\n" +
+            "##\n" +
             "public class net.corda.example.HasAnnotatedMethod extends java.lang.Object\n" +
             "  public <init>()\n" +
-            "  @net.corda.example.Visible public void hasAnnotation()\n" +
-            "##\n" +
-            "public @interface net.corda.example.Visible\n" +
+            "  @net.corda.example.A @net.corda.example.B @net.corda.example.C public void hasAnnotation()\n" +
             "##\n", CopyUtils.toString(api));
     }
 }

@@ -1,6 +1,7 @@
 package net.corda.example;
 
-@IsInherited
 @NotInherited
+@IsInherited
+@AlsoInherited
 public class HasInheritedAnnotation {
 }

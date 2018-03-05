@@ -16,6 +16,7 @@ buildscript {
         artifactory_plugin_version = constants.getProperty('artifactoryPluginVersion')
         snake_yaml_version = constants.getProperty('snakeYamlVersion')
         commons_io_version = '2.6'
+        assertj_version = '3.8.0'
         junit_version = '4.12'
     }
 
@@ -42,6 +43,11 @@ allprojects {
     tasks.withType(Test) {
         // Prevent the project from creating temporary files outside of the build directory.
         systemProperty 'java.io.tmpdir', buildDir.absolutePath
+
+        // Tell the tests where Gradle's current module cache is.
+        // We need the tests to share this module cache to prevent the
+        // Gradle Test-Kit from downloading its own copy of Kotlin etc.
+        systemProperty 'test.gradle.user.home', project.gradle.gradleUserHomeDir
     }
 }
 
