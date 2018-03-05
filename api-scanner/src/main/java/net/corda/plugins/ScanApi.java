@@ -348,14 +348,8 @@ public class ScanApi extends DefaultTask {
             Map<Boolean, List<String>> partitioned = classes.stream()
                 .map(ClassInfo::toString)
                 .filter(ScanApi::isApplicationClass)
-                .collect(partitioningBy(this::isVisibleAnnotation));
-            /*
-             * These annotations are returned in an order determined by
-             * fast-classpath-scanner. THIS IS BAD! The ordering here
-             * will almost certainly change/break in future versions.
-             * TODO: Order these annotations ourselves!
-             */
-            return new Names(partitioned.get(true), partitioned.get(false));
+                .collect(partitioningBy(this::isVisibleAnnotation, toCollection(ArrayList::new)));
+            return new Names(ordering(partitioned.get(true)), ordering(partitioned.get(false)));
         }
 
         private Set<ClassInfo> readClassAnnotationsFor(ClassInfo classInfo) {
@@ -389,7 +383,7 @@ public class ScanApi extends DefaultTask {
                 method.getTypeDescriptor(),
                 method.getAnnotationNames().stream()
                     .filter(this::isVisibleAnnotation)
-                    // TODO: Sort these annotations ourselves!
+                    .sorted()
                     .collect(toList())
             );
         }
@@ -401,6 +395,11 @@ public class ScanApi extends DefaultTask {
         private boolean hasInternalAnnotation(Collection<String> annotationNames) {
             return annotationNames.stream().anyMatch(internalAnnotations::contains);
         }
+    }
+
+    private static <T extends Comparable<? super T>> List<T> ordering(List<T> list) {
+        sort(list);
+        return list;
     }
 
     private static boolean isKotlinInternalScope(MethodInfo method) {

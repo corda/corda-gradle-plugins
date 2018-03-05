@@ -44,10 +44,12 @@ public class AnnotatedClassTest {
         Path api = pathOf(testProjectDir, "build", "api", "annotated-class.txt");
         assertThat(api.toFile()).isFile();
         assertEquals(
-            "@net.corda.example.NotInherited @net.corda.example.IsInherited public class net.corda.example.HasInheritedAnnotation extends java.lang.Object\n" +
+            "public @interface net.corda.example.AlsoInherited\n" +
+            "##\n" +
+            "@net.corda.example.AlsoInherited @net.corda.example.IsInherited @net.corda.example.NotInherited public class net.corda.example.HasInheritedAnnotation extends java.lang.Object\n" +
             "  public <init>()\n" +
             "##\n" +
-            "@net.corda.example.IsInherited public class net.corda.example.InheritingAnnotations extends net.corda.example.HasInheritedAnnotation\n" +
+            "@net.corda.example.AlsoInherited @net.corda.example.IsInherited public class net.corda.example.InheritingAnnotations extends net.corda.example.HasInheritedAnnotation\n" +
             "  public <init>()\n" +
             "##\n" +
             "public @interface net.corda.example.IsInherited\n" +

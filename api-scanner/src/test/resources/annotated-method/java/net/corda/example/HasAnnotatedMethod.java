@@ -1,8 +1,8 @@
 package net.corda.example;
 
 public class HasAnnotatedMethod {
-    @Visible
+    @B @C @A
     public void hasAnnotation() {
-        System.out.println("VISIBLE ANNOTATION");
+        System.out.println("VISIBLE ANNOTATIONS");
     }
 }
