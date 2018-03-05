@@ -349,7 +349,7 @@ public class ScanApi extends DefaultTask {
             Map<Boolean, List<String>> partitioned = classes.stream()
                 .map(ClassInfo::toString)
                 .filter(ScanApi::isApplicationClass)
-                .collect(partitioningBy(this::isVisibleAnnotation, toCollection(LinkedList::new)));
+                .collect(partitioningBy(this::isVisibleAnnotation, toCollection(ArrayList::new)));
 
             Function<List<String>, List<String>> ordering = list -> { sort(list); return list; };
             return new Names(ordering.apply(partitioned.get(true)), ordering.apply(partitioned.get(false)));
