@@ -43,7 +43,7 @@ public class AnnotatedClassTest {
         assertEquals(SUCCESS, scanApi.getOutcome());
 
         Path api = pathOf(testProjectDir, "build", "api", "annotated-class.txt");
-        assertThat(api.toFile()).isFile();
+        assertThat(api).isRegularFile();
         assertThat(Files.readAllLines(api)).containsOnlyOnce(
             "@net.corda.example.AlsoInherited @net.corda.example.IsInherited @net.corda.example.NotInherited public class net.corda.example.HasInheritedAnnotation extends java.lang.Object",
             "@net.corda.example.AlsoInherited @net.corda.example.IsInherited public class net.corda.example.InheritingAnnotations extends net.corda.example.HasInheritedAnnotation"
