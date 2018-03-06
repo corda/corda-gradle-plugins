@@ -1,4 +1,4 @@
-package net.corda.example;
+package net.corda.example.method;
 
 import net.corda.core.CordaInternal;
 import java.lang.annotation.Retention;

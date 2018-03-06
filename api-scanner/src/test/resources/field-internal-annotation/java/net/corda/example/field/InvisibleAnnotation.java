@@ -1,12 +1,14 @@
-package net.corda.core;
+package net.corda.example.field;
 
+import net.corda.core.CordaInternal;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 import static java.lang.annotation.ElementType.*;
 import static java.lang.annotation.RetentionPolicy.*;
 
-@Target({TYPE, METHOD})
+@Target({TYPE, FIELD})
 @Retention(CLASS)
-public @interface CordaInternal {
+@CordaInternal
+public @interface InvisibleAnnotation {
 }

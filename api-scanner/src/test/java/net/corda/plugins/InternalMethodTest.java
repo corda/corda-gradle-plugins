@@ -30,7 +30,7 @@ public class InternalMethodTest {
     public void testInternalMethod() throws IOException {
         BuildResult result = GradleRunner.create()
             .withProjectDir(testProjectDir.getRoot())
-            .withArguments(getGradleArguments("scanApi"))
+            .withArguments(getGradleArgsForTasks("scanApi"))
             .withPluginClasspath()
             .build();
         String output = result.getOutput();

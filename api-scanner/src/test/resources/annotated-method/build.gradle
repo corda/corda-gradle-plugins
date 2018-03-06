@@ -13,7 +13,10 @@ repositories {
 sourceSets {
     main {
         java {
-            srcDir file("../resources/test/annotated-method/java")
+            srcDir files(
+                "../resources/test/annotated-method/java",
+                "../resources/test/common-annotations/java"
+            )
         }
     }
 }

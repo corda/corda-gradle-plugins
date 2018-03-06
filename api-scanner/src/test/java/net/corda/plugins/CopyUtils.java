@@ -37,7 +37,7 @@ public final class CopyUtils {
         return Paths.get(folder.getRoot().getAbsolutePath(), elements);
     }
 
-    public static List<String> getGradleArguments(String... taskNames) {
+    public static List<String> getGradleArgsForTasks(String... taskNames) {
         List<String> args = new ArrayList<>(taskNames.length + 3);
         Collections.addAll(args, taskNames);
         args.add("--info");

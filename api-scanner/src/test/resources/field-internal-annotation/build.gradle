@@ -3,7 +3,7 @@ plugins {
     id 'net.corda.plugins.api-scanner'
 }
 
-description 'Test behaviour of internal annotations on classes'
+description 'Test behaviour of internal annotations on fields'
 
 repositories {
     mavenLocal()
@@ -14,7 +14,7 @@ sourceSets {
     main {
         java {
             srcDir files(
-                "../resources/test/class-internal-annotation/java",
+                "../resources/test/field-internal-annotation/java",
                 "../resources/test/common-internal/java"
             )
         }
@@ -22,7 +22,7 @@ sourceSets {
 }
 
 jar {
-    baseName = "class-internal-annotation"
+    baseName = "field-internal-annotation"
 }
 
 scanApi {
