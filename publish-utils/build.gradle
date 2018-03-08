@@ -1,4 +1,5 @@
 apply plugin: 'groovy'
+apply plugin: 'java-gradle-plugin'
 apply plugin: 'maven-publish'
 apply plugin: 'com.jfrog.bintray'
 apply plugin: 'com.jfrog.artifactory'
@@ -23,15 +24,21 @@ buildscript {
     }
 }
 
-version "$gradle_plugins_version"
-
-dependencies {
-    compile gradleApi()
-    compile localGroovy()
-}
+group 'net.corda.plugins'
+version gradle_plugins_version
 
 repositories {
+    mavenLocal()
     mavenCentral()
+}
+
+gradlePlugin {
+    plugins {
+        publishUtilsPlugin {
+            id = 'net.corda.plugins.publish-utils'
+            implementationClass = 'net.corda.plugins.PublishTasks'
+        }
+    }
 }
 
 task("sourceJar", type: Jar, dependsOn: classes) {
@@ -76,7 +83,7 @@ publishing {
 
             pom.withXml {
                 asNode().children().last() + {
-                    resolveStrategy = Closure.DELEGATE_FIRST
+                    resolveStrategy = DELEGATE_FIRST
                     name 'publish-utils'
                     description 'A small gradle plugin that adds a couple of convenience functions for publishing to Maven'
                     url 'https://github.com/corda/corda'
@@ -106,4 +113,4 @@ publishing {
 }
 
 // Aliasing the publishToMavenLocal for simplicity.
-task(install, dependsOn: 'publishToMavenLocal')
+task install (dependsOn: 'publishToMavenLocal')

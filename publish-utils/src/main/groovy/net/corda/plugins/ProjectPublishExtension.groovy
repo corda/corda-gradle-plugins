@@ -36,4 +36,9 @@ class ProjectPublishExtension {
      * True if publishing sources to remote repositories
      */
     Boolean publishSources = true
+
+    /**
+     * True if publishing javadoc to remote repositories
+     */
+    Boolean publishJavadoc = true
 }
