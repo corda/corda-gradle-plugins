@@ -2,7 +2,6 @@ package net.corda.plugins
 
 import org.gradle.api.*
 import org.gradle.api.tasks.bundling.Jar
-import org.gradle.api.tasks.javadoc.Javadoc
 import org.gradle.api.Project
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.publish.maven.MavenPom
@@ -35,7 +34,7 @@ class PublishTasks implements Plugin<Project> {
      * values set after this call in the DSL will not be configured properly (and will use the default value)
      */
     void setPublishName(String publishName) {
-        project.logger.info("Changing publishing name from ${project.name} to ${publishName}")
+        project.logger.info("Changing publishing name from ${project.name} to $publishName")
         this.publishName = publishName
         checkAndConfigurePublishing()
     }
@@ -49,7 +48,7 @@ class PublishTasks implements Plugin<Project> {
     }
 
     void configurePublishing(BintrayConfigExtension bintrayConfig) {
-        project.logger.info("Configuring bintray for ${publishName}")
+        project.logger.info("Configuring bintray for $publishName")
         configureMavenPublish(bintrayConfig)
         configureBintray(bintrayConfig)
     }
@@ -65,10 +64,13 @@ class PublishTasks implements Plugin<Project> {
                 project.logger.info("Publishing sources for $publishName")
                 artifact project.tasks.sourceJar
             }
-            artifact project.tasks.javadocJar
+            if (publishConfig.publishJavadoc) {
+                project.logger.info("Publishing javadoc for $publishName")
+                artifact project.tasks.javadocJar
+            }
 
             project.configurations.publish.artifacts.each {
-                project.logger.debug("Adding artifact: $it")
+                project.logger.info("Adding artifact: ${it.file}")
                 delegate.artifact it
             }
 
@@ -87,7 +89,7 @@ class PublishTasks implements Plugin<Project> {
     void extendPomForMavenCentral(MavenPom pom, BintrayConfigExtension config) {
         pom.withXml {
             asNode().children().last() + {
-                resolveStrategy = Closure.DELEGATE_FIRST
+                resolveStrategy = DELEGATE_FIRST
                 name publishName
                 description project.description
                 url config.projectUrl
