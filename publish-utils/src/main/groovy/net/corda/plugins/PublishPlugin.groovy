@@ -15,7 +15,7 @@ import net.corda.plugins.bintray.*
  * To use this plugin you can add a new configuration block (extension) to your root build.gradle. See the fields
  * in BintrayConfigExtension.
  */
-class PublishTasks implements Plugin<Project> {
+class PublishPlugin implements Plugin<Project> {
     Project project
     String publishName
     ProjectPublishExtension publishConfig

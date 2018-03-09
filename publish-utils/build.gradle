@@ -36,7 +36,7 @@ gradlePlugin {
     plugins {
         publishUtilsPlugin {
             id = 'net.corda.plugins.publish-utils'
-            implementationClass = 'net.corda.plugins.PublishTasks'
+            implementationClass = 'net.corda.plugins.PublishPlugin'
         }
     }
 }
