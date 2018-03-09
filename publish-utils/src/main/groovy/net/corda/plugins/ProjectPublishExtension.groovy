@@ -1,26 +1,15 @@
 package net.corda.plugins
 
 class ProjectPublishExtension {
-    private PublishTasks task
 
-    void setPublishTask(PublishTasks task) {
-        this.task = task
+    ProjectPublishExtension(String name) {
+        this.name = name
     }
 
     /**
-     * Use a different name from the current project name for publishing.
-     * Set this after all other settings that need to be configured
+     * This is the name that we will publish the module as.
      */
-    void name(String name) {
-        task.setPublishName(name)
-    }
-
-    /**
-     * Get the publishing name for this project.
-     */
-    String name() {
-        return task.getPublishName()
-    }
+    String name
 
     /**
      * True when we do not want to publish default Java components
