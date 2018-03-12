@@ -43,7 +43,9 @@ fun main(args: Array<String>) {
     println("Finished starting nodes")
 }
 
-private abstract class JarType(internal val jarName: String) {
+private abstract class JarType(internal val jarName: String,
+                               internal val requiresJolokia: Boolean = false,
+                               internal val jolokiaLogHandler: String = "") {
     internal fun acceptDirAndStartProcess(dir: File, headless: Boolean, javaArgs: List<String>, jvmArgs: List<String>): Process? {
         if (!File(dir, jarName).exists()) {
             return null
@@ -63,7 +65,8 @@ private abstract class JarType(internal val jarName: String) {
     internal abstract val configurationFileName: String
 }
 
-private object NodeJarType : JarType("corda.jar") {
+
+private object NodeJarType : JarType(jarName = "corda.jar", requiresJolokia = true, jolokiaLogHandler = "net.corda.node.JolokiaSlf4jAdapter") {
     override val headlessArgs = listOf("--no-local-shell")
     override val configurationFileName = "node.conf"
 }
@@ -78,6 +81,8 @@ private abstract class JavaCommand(
         internal val dir: File,
         debugPort: Int?,
         monitoringPort: Int?,
+        needsJolokia: Boolean,
+        jolokiaLogHandler: String,
         internal val nodeName: String,
         args: List<String>,
         jvmArgs: List<String>
@@ -93,8 +98,19 @@ private abstract class JavaCommand(
         addAll(jvmArgs)
         add("-Dname=$nodeName")
         val jvmArgs: MutableList<String> = mutableListOf()
-        null != debugPort && jvmArgs.add("-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=$debugPort")
-        null != monitoringPort && jvmArgs.add("-javaagent:drivers/$jolokiaJar=port=$monitoringPort")
+        if (null != debugPort) {
+            jvmArgs.add("-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=$debugPort")
+        }
+
+        if (needsJolokia && null != monitoringPort) {
+            val jolokiaConfig = java.lang.StringBuilder()
+            jolokiaConfig.append("-javaagent:drivers/$jolokiaJar=port=$monitoringPort")
+            if (jolokiaLogHandler.isNotEmpty()) {
+                jolokiaConfig.append(",logHandlerClass=${jolokiaLogHandler}")
+            }
+            jvmArgs.add(jolokiaConfig.toString())
+        }
+
         if (jvmArgs.isNotEmpty()) {
             add("-Dcapsule.jvm.args=${jvmArgs.joinToString(separator = " ")}")
         }
@@ -109,7 +125,7 @@ private abstract class JavaCommand(
 }
 
 private class HeadlessJavaCommand(jarType: JarType, dir: File, debugPort: Int?, monitoringPort: Int?, args: List<String>, jvmArgs: List<String>)
-    : JavaCommand(jarType.jarName, dir, debugPort, monitoringPort, dir.name, jarType.headlessArgs + args, jvmArgs) {
+    : JavaCommand(jarType.jarName, dir, debugPort, monitoringPort, jarType.requiresJolokia, "", dir.name, jarType.headlessArgs + args, jvmArgs) {
     override fun processBuilder(): ProcessBuilder {
         println("Running command: ${command.joinToString(" ")}")
         return ProcessBuilder(command).redirectError(File("error.$nodeName.log")).inheritIO()
@@ -119,7 +135,7 @@ private class HeadlessJavaCommand(jarType: JarType, dir: File, debugPort: Int?, 
 }
 
 private class TerminalWindowJavaCommand(jarType: JarType, dir: File, debugPort: Int?, monitoringPort: Int?, args: List<String>, jvmArgs: List<String>)
-    : JavaCommand(jarType.jarName, dir, debugPort, monitoringPort, "${dir.name}-${jarType.jarName}", args, jvmArgs) {
+    : JavaCommand(jarType.jarName, dir, debugPort, monitoringPort, jarType.requiresJolokia, jarType.jolokiaLogHandler, "${dir.name}-${jarType.jarName}", args, jvmArgs) {
     override fun processBuilder(): ProcessBuilder {
         val params = when (os) {
             OS.MACOS -> {
