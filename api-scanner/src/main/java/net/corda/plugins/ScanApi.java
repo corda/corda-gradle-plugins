@@ -201,12 +201,10 @@ public class ScanApi extends DefaultTask {
                 .scan();
             inheritedAnnotations = unmodifiableSet(inherited);
             loadAnnotationCaches(result);
-            if (verbose) {
-                getLogger().info("Annotations:");
-                getLogger().info("- Inherited: {}", inheritedAnnotations);
-                getLogger().info("- Internal:  {}", internalAnnotations);
-                getLogger().info("- Invisible: {}", invisibleAnnotations);
-            }
+            getLogger().info("Annotations:");
+            getLogger().info("- Inherited: {}", inheritedAnnotations);
+            getLogger().info("- Internal:  {}", internalAnnotations);
+            getLogger().info("- Invisible: {}", invisibleAnnotations);
             writeApis(writer, result);
         }
 

@@ -4,6 +4,7 @@
 
 ### Version 4.0.7
 
+* `api-scanner`: Handle `@Inherited` annotations from library modules.
 * `publish-utils`: Setting the `name` property no longer triggers configuration. This is now applied after the project has been evaluated.
 * `publish-utils`: Add `publishJavadoc` property so that publishing Javadoc can be optional.
 
