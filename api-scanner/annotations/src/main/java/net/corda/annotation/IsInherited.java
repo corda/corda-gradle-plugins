@@ -1,4 +1,4 @@
-package net.corda.example;
+package net.corda.annotation;
 
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
@@ -10,5 +10,5 @@ import static java.lang.annotation.RetentionPolicy.*;
 @Target({TYPE, METHOD})
 @Retention(CLASS)
 @Inherited
-public @interface AlsoInherited {
+public @interface IsInherited {
 }
