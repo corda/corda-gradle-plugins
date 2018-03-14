@@ -2,6 +2,10 @@
 
 ## Version 4
 
+### Version 4.0.8
+
+* `cordformation`: NodeRunner delegates Corda jolokia logging to slf4j
+
 ### Version 4.0.7
 
 * `api-scanner`: Handle `@Inherited` annotations from library modules.
