@@ -1,4 +1,4 @@
-package net.corda.example;
+package net.corda.annotation;
 
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
