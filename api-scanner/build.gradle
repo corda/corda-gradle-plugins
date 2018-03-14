@@ -29,6 +29,7 @@ dependencies {
     // on the Kotlin classes in the test/resources directory.
     testCompile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     testCompile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
+    testCompile project(':api-scanner:annotations')
 }
 
 processTestResources {

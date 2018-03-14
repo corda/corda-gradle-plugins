@@ -45,8 +45,8 @@ public class AnnotatedClassTest {
         Path api = pathOf(testProjectDir, "build", "api", "annotated-class.txt");
         assertThat(api).isRegularFile();
         assertThat(Files.readAllLines(api)).containsOnlyOnce(
-            "@net.corda.example.AlsoInherited @net.corda.example.IsInherited @net.corda.example.NotInherited public class net.corda.example.HasInheritedAnnotation extends java.lang.Object",
-            "@net.corda.example.AlsoInherited @net.corda.example.IsInherited public class net.corda.example.InheritingAnnotations extends net.corda.example.HasInheritedAnnotation"
+            "@net.corda.annotation.AlsoInherited @net.corda.annotation.IsInherited @net.corda.annotation.NotInherited public class net.corda.example.HasInheritedAnnotation extends java.lang.Object",
+            "@net.corda.annotation.AlsoInherited @net.corda.annotation.IsInherited public class net.corda.example.InheritingAnnotations extends net.corda.example.HasInheritedAnnotation"
         );
     }
 }
