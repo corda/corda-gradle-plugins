@@ -22,6 +22,7 @@ gradlePlugin {
 
 dependencies {
     compile "io.github.lukehutch:fast-classpath-scanner:2.7.0"
+    testCompile project(':api-scanner:annotations')
     testCompile "org.assertj:assertj-core:$assertj_version"
     testCompile "junit:junit:$junit_version"
 
@@ -29,7 +30,6 @@ dependencies {
     // on the Kotlin classes in the test/resources directory.
     testCompile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     testCompile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
-    testCompile project(':api-scanner:annotations')
 }
 
 processTestResources {
