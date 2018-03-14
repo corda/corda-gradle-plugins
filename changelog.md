@@ -2,6 +2,10 @@
 
 ## Version 4
 
+### Version 4.0.8
+
+`publish-utils`: Revert "Setting the `name` property no longer triggers configuration." because it breaks publishing to Artifactory.
+
 ### Version 4.0.7
 
 * `api-scanner`: Handle `@Inherited` annotations from library modules.
