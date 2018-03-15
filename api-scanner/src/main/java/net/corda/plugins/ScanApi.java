@@ -44,6 +44,7 @@ public class ScanApi extends DefaultTask {
        Set<String> blacklist = new LinkedHashSet<>();
        blacklist.add("kotlin.jvm.JvmField");
        blacklist.add("kotlin.jvm.JvmOverloads");
+       blacklist.add("kotlin.jvm.JvmStatic");
        blacklist.add(DEFAULT_INTERNAL_ANNOTATION);
        ANNOTATION_BLACKLIST = unmodifiableSet(blacklist);
     }

@@ -50,11 +50,11 @@ public class KotlinAnnotationsTest {
             "##\n" +
             "public final class net.corda.example.HasJvmStaticFunction extends java.lang.Object\n" +
             "  public <init>()\n" +
-            "  @kotlin.jvm.JvmStatic public static final void doThing(String)\n" +
+            "  public static final void doThing(String)\n" +
             "  public static final net.corda.example.HasJvmStaticFunction$Companion Companion\n" +
             "##\n" +
             "public static final class net.corda.example.HasJvmStaticFunction$Companion extends java.lang.Object\n" +
-            "  @kotlin.jvm.JvmStatic public final void doThing(String)\n" +
+            "  public final void doThing(String)\n" +
             "##\n" +
             "public final class net.corda.example.HasOverloadedConstructor extends java.lang.Object\n" +
             "  public <init>()\n" +
