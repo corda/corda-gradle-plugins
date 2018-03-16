@@ -122,6 +122,8 @@ changes to this list.
 * Shams Asari (R3)
 * Simon Taylor (Barclays)
 * Sofus Mortensen (Digital Asset Holdings)
+* Stefano Franz (R3)
+* Stephen Houston (RIHT LTD)
 * Szymon Sztuka (R3)
 * Stephen Lane-Smith (BMO)
 * Thomas O'Donnell (Macquarie)
