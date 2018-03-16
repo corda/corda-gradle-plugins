@@ -96,7 +96,6 @@ private abstract class JavaCommand(
         add("-Dname=$nodeName")
         val jvmArgs: MutableList<String> = mutableListOf()
 
-
         if (debugPort != null) {
             jvmArgs.add("-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=$debugPort")
         }
