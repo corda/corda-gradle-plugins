@@ -6,7 +6,7 @@ import java.util.*
 
 private val HEADLESS_FLAG = "--headless"
 private val CAPSULE_DEBUG_FLAG = "--capsule-debug"
-private val JOLOKIA_FLAG = "--jolokia"
+private val JOLOKIA_FLAG = "--expose-jolokia"
 
 private val os by lazy {
     val osName = System.getProperty("os.name", "generic").toLowerCase(Locale.ENGLISH)
