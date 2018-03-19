@@ -363,14 +363,14 @@ open class Node @Inject constructor(private val project: Project) : CordformNode
         var webConfig = ConfigFactory.empty()
         webConfig = copyTo("webAddress", webConfig)
         webConfig = copyTo("myLegalName", webConfig)
-        if (hasPath("rpcOptions.address") || hasPath("rpcAddress")) {
-            webConfig += "rpcAddress" to if (hasPath("rpcOptions.address")) {
-                getValue("rpcOptions.address")
+        if (hasPath("rpcSettings.address") || hasPath("rpcAddress")) {
+            webConfig += "rpcAddress" to if (hasPath("rpcSettings.address")) {
+                getValue("rpcSettings.address")
             } else {
                 getValue("rpcAddress")
             }
         }
-        webConfig = copyTo("rpcUsers", webConfig)
+        webConfig = copyTo("security", webConfig)
         webConfig = copyTo("useHTTPS", webConfig)
         webConfig = copyTo("baseDirectory", webConfig)
         webConfig = copyTo("keyStorePassword", webConfig)
