@@ -5,7 +5,8 @@
 ### Version 4.0.9
 
 `api-scanner`: Remove the `@JvmStatic` annotation from the generated output.
-
+`cordformation`: Removed default dependency on jolokia, to provide HTTP JMX monitoring, explicitly depend on jolokia.
+`node-runner`: To expose HTTP JMX monitoring, pass the flag --expose-jolokia to runnodes, as the default is off. 
 ### Version 4.0.8
 
 `publish-utils`: Revert "Setting the `name` property no longer triggers configuration." because it breaks publishing to Artifactory.
