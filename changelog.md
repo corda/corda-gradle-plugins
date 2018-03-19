@@ -9,7 +9,7 @@
 
 ### Version 4.0.8
 
-`publish-utils`: Revert "Setting the `name` property no longer triggers configuration." because it breaks publishing to Artifactory.
+* `publish-utils`: Revert "Setting the `name` property no longer triggers configuration." because it breaks publishing to Artifactory.
 
 ### Version 4.0.7
 
