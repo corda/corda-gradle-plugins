@@ -1,16 +1,12 @@
 package net.corda.plugins
 
-import org.apache.tools.ant.filters.FixCrLfFilter
-import org.gradle.api.DefaultTask
-import org.gradle.api.plugins.JavaPluginConvention
-import org.gradle.api.tasks.SourceSet.MAIN_SOURCE_SET_NAME
 import org.gradle.api.tasks.TaskAction
 import org.yaml.snakeyaml.DumperOptions
-import java.nio.file.Path
-import java.nio.file.Paths
 import org.yaml.snakeyaml.Yaml
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
 
 /**
  * Creates docker-compose file and image definitions based on the configuration of this task in the gradle configuration DSL.
