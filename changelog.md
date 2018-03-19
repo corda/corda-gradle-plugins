@@ -4,7 +4,8 @@
 
 ### Version 4.0.9
 
-`api-scanner`: Remove the `@JvmStatic` annotation from the generated output.
+* `api-scanner`: Remove the `@JvmStatic` annotation from the generated output.
+* `cordformation`: Fix WebServer config file.
 
 ### Version 4.0.8
 
