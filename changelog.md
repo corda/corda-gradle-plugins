@@ -4,11 +4,12 @@
 
 ### Version 4.0.9
 
-`api-scanner`: Remove the `@JvmStatic` annotation from the generated output.
+* `cordformation`: NodeRunner delegates Corda jolokia logging to slf4j
+* `api-scanner`: Remove the `@JvmStatic` annotation from the generated output.
 
 ### Version 4.0.8
 
-`publish-utils`: Revert "Setting the `name` property no longer triggers configuration." because it breaks publishing to Artifactory.
+* `publish-utils`: Revert "Setting the `name` property no longer triggers configuration." because it breaks publishing to Artifactory.
 
 ### Version 4.0.7
 
