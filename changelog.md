@@ -4,8 +4,9 @@
 
 ### Version 4.0.9
 
-* `api-scanner`: Remove the `@JvmStatic` annotation from the generated output.
 * `cordformation`: Fix WebServer config file missing `security` section [CORDA-1231] 
+* `cordformation`: NodeRunner delegates Corda jolokia logging to slf4j
+* `api-scanner`: Remove the `@JvmStatic` annotation from the generated output.
 
 ### Version 4.0.8
 
