@@ -2,6 +2,12 @@
 
 ## Version 4
 
+### Version 4.0.11
+
+### Version 4.0.10
+
+* `cordformation`: Fixes a crash in Dockerform. 
+
 ### Version 4.0.9
 
 * `cordformation`: Fix WebServer config file missing `security` section [CORDA-1231] 
