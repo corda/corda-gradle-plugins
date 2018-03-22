@@ -196,8 +196,8 @@ open class Node @Inject constructor(private val project: Project) : CordformNode
     internal fun buildDocker() {
         project.copy {
             it.apply {
-                from(Cordformation.getPluginFile(project, "net/corda/plugins/Dockerfile"))
-                from(Cordformation.getPluginFile(project, "net/corda/plugins/run-corda.sh"))
+                from(Cordformation.getPluginFile(project, "Dockerfile"))
+                from(Cordformation.getPluginFile(project, "run-corda.sh"))
                 into("$nodeDir/")
             }
         }
