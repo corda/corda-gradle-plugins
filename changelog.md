@@ -7,11 +7,11 @@
 ### Version 4.0.10
 
 * `cordformation`: Fixes a crash in Dockerform. 
+* `cordformation`: NodeRunner delegates Corda jolokia logging to slf4j.
 
 ### Version 4.0.9
 
 * `cordformation`: Fix WebServer config file missing `security` section [CORDA-1231] 
-* `cordformation`: NodeRunner delegates Corda jolokia logging to slf4j
 * `api-scanner`: Remove the `@JvmStatic` annotation from the generated output.
 
 ### Version 4.0.8
