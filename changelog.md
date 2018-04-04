@@ -4,6 +4,8 @@
 
 ### Version 4.0.11
 
+* `quasar-utils`: Add quasar-core to cordaRuntime. This ensures that it is excluded from "fat jar" CorDapps [CORDA-1301].
+
 ### Version 4.0.10
 
 * `cordformation`: Fixes a crash in Dockerform. 

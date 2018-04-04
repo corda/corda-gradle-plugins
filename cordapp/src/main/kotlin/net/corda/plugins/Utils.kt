@@ -1,13 +1,12 @@
 package net.corda.plugins
 
 import org.gradle.api.Project
-import org.gradle.api.Task
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.plugins.ExtraPropertiesExtension
 
 /**
  * Mimics the "project.ext" functionality in groovy which provides a direct
- * accessor to the "ext" extention (See: ExtraPropertiesExtension)
+ * accessor to the "ext" extension (See: ExtraPropertiesExtension)
  */
 @Suppress("UNCHECKED_CAST")
 fun <T : Any> Project.ext(name: String): T = (extensions.findByName("ext") as ExtraPropertiesExtension).get(name) as T
@@ -15,7 +14,6 @@ fun Project.configuration(name: String): Configuration = configurations.single {
 
 class Utils {
     companion object {
-        @JvmStatic
         fun createCompileConfiguration(name: String, project: Project) {
             if(!project.configurations.any { it.name == name }) {
                 val configuration = project.configurations.create(name)
@@ -23,6 +21,9 @@ class Utils {
                 project.configurations.single { it.name == "compile" }.extendsFrom(configuration)
             }
         }
+
+        // This function is called from the groovy quasar-utils plugin.
+        @JvmStatic
         fun createRuntimeConfiguration(name: String, project: Project) {
             if(!project.configurations.any { it.name == name }) {
                 val configuration = project.configurations.create(name)

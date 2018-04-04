@@ -1,5 +1,5 @@
 apply plugin: 'groovy'
-apply plugin: 'maven-publish'
+apply plugin: 'java-gradle-plugin'
 apply plugin: 'net.corda.plugins.publish-utils'
 apply plugin: 'com.jfrog.artifactory'
 
@@ -9,9 +9,17 @@ repositories {
     mavenCentral()
 }
 
+gradlePlugin {
+    plugins {
+        quasarPlugin {
+            id = 'net.corda.plugins.quasar-utils'
+            implementationClass = 'net.corda.plugins.QuasarPlugin'
+        }
+    }
+}
+
 dependencies {
-    compile gradleApi()
-    compile localGroovy()
+    compile project(':cordapp')
 }
 
 publish {
