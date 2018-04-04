@@ -16,10 +16,7 @@ class CordappPlugin : Plugin<Project> {
 
         Utils.createCompileConfiguration("cordapp", project)
         Utils.createCompileConfiguration("cordaCompile", project)
-
-        val configuration: Configuration = project.configurations.create("cordaRuntime")
-        configuration.isTransitive = false
-        project.configurations.single { it.name == "runtime" }.extendsFrom(configuration)
+        Utils.createRuntimeConfiguration("cordaRuntime", project)
 
         configureCordappJar(project)
     }
@@ -64,8 +61,7 @@ class CordappPlugin : Plugin<Project> {
         val directDeps = runtimeConfiguration.allDependencies - excludeDeps
         // We want to filter out anything Corda related or provided by Corda, like kotlin-stdlib and quasar
         val filteredDeps = directDeps.filter { dep ->
-            excludes.none { exclude -> (exclude["name"] == dep.name) && (
-                    (exclude["group"] == dep.group) || dep.group?.startsWith("com.github.corda.") ?: false) }
+            excludes.none { exclude -> (exclude["group"] == dep.group) && (exclude["name"] == dep.name) }
         }
         filteredDeps.forEach {
             // net.corda or com.r3.corda.enterprise may be a core dependency which shouldn't be included in this cordapp so give a warning

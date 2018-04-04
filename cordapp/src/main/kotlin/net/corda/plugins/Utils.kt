@@ -21,6 +21,9 @@ class Utils {
                 project.configurations.single { it.name == "compile" }.extendsFrom(configuration)
             }
         }
+
+        // This function is called from the groovy quasar-utils plugin.
+        @JvmStatic
         fun createRuntimeConfiguration(name: String, project: Project) {
             if(!project.configurations.any { it.name == name }) {
                 val configuration = project.configurations.create(name)
