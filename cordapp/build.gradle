@@ -1,4 +1,5 @@
 apply plugin: 'kotlin'
+apply plugin: 'java-gradle-plugin'
 apply plugin: 'net.corda.plugins.publish-utils'
 apply plugin: 'com.jfrog.artifactory'
 
@@ -9,8 +10,16 @@ repositories {
     jcenter()
 }
 
+gradlePlugin {
+    plugins {
+        cordappPlugin {
+            id = 'net.corda.plugins.cordapp'
+            implementationClass = 'net.corda.plugins.CordappPlugin'
+        }
+    }
+}
+
 dependencies {
-    compile gradleApi()
     compile "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
 }
 

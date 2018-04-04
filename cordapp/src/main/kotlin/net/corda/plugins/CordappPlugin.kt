@@ -9,6 +9,7 @@ import java.io.File
  * The Cordapp plugin will turn a project into a cordapp project which builds cordapp JARs with the correct format
  * and with the information needed to run on Corda.
  */
+@Suppress("UNUSED")
 class CordappPlugin : Plugin<Project> {
     override fun apply(project: Project) {
         project.logger.info("Configuring ${project.name} as a cordapp")
@@ -31,10 +32,16 @@ class CordappPlugin : Plugin<Project> {
         val task = project.task("configureCordappFatJar")
         val jarTask = project.tasks.getByName("jar") as Jar
         task.doLast {
-            jarTask.from(getDirectNonCordaDependencies(project).map { project.zipTree(it)}).apply {
+            jarTask.from(getDirectNonCordaDependencies(project).map {
+                project.logger.info("CorDapp dependency: ${it.name}")
+                project.zipTree(it)
+            }).apply {
                 exclude("META-INF/*.SF")
                 exclude("META-INF/*.DSA")
                 exclude("META-INF/*.RSA")
+                exclude("META-INF/*.MF")
+                exclude("META-INF/LICENSE")
+                exclude("META-INF/NOTICE")
             }
         }
         jarTask.dependsOn(task)
@@ -57,11 +64,12 @@ class CordappPlugin : Plugin<Project> {
         val directDeps = runtimeConfiguration.allDependencies - excludeDeps
         // We want to filter out anything Corda related or provided by Corda, like kotlin-stdlib and quasar
         val filteredDeps = directDeps.filter { dep ->
-            excludes.none { exclude -> (exclude["group"] == dep.group) && (exclude["name"] == dep.name) }
+            excludes.none { exclude -> (exclude["name"] == dep.name) && (
+                    (exclude["group"] == dep.group) || dep.group?.startsWith("com.github.corda.") ?: false) }
         }
         filteredDeps.forEach {
             // net.corda or com.r3.corda.enterprise may be a core dependency which shouldn't be included in this cordapp so give a warning
-            val group = it.group?.toString() ?: ""
+            val group = it.group ?: ""
             if (group.startsWith("net.corda.") || group.startsWith("com.r3.corda.enterprise.")) {
                 project.logger.warn("You appear to have included a Corda platform component ($it) using a 'compile' or 'runtime' dependency." +
                         "This can cause node stability problems. Please use 'corda' instead." +

@@ -4,6 +4,8 @@
 
 ### Version 4.0.11
 
+* `cordapp`: Ensure that jitpack versions of dependencies are also excluded from the "fat jar" [CORDA-1301].
+
 ### Version 4.0.10
 
 * `cordformation`: Fixes a crash in Dockerform. 
