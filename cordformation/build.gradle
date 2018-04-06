@@ -33,9 +33,16 @@ sourceSets {
     }
 }
 
-dependencies {
-    gradleApi()
+gradlePlugin {
+    plugins {
+        cordformationPlugin {
+            id = 'net.corda.plugins.cordformation'
+            implementationClass = 'net.corda.plugins.Cordformation'
+        }
+    }
+}
 
+dependencies {
     compile project(":cordapp")
     compile project(':cordform-common')
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
@@ -44,7 +51,7 @@ dependencies {
     noderunner "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 
     testCompile "junit:junit:$junit_version" // TODO: Unify with core
-    testCompile "org.assertj:assertj-core:3.8.0"
+    testCompile "org.assertj:assertj-core:$assertj_version"
     // Docker-compose file generation
     compile "org.yaml:snakeyaml:$snake_yaml_version"
 }

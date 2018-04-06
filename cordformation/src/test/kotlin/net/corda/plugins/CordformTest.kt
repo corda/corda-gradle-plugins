@@ -1,6 +1,5 @@
 package net.corda.plugins
 
-import org.apache.commons.io.FileUtils
 import org.apache.commons.io.IOUtils
 import org.assertj.core.api.Assertions.*
 import org.junit.Before
@@ -8,9 +7,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import java.io.File
-import java.io.IOException
-import java.nio.charset.StandardCharsets
-import java.nio.file.Files
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
 
@@ -18,12 +14,14 @@ class CordformTest {
     @Rule
     @JvmField
     val testProjectDir = TemporaryFolder()
-    private var buildFile: File? = null
+    private lateinit var buildFile: File
 
     private companion object {
-        val cordaFinanceJarName = "corda-finance-3.0-SNAPSHOT"
-        val localCordappJarName = "locally-built-cordapp"
-        val notaryNodeName = "Notary Service"
+        const val cordaFinanceJarName = "corda-finance-3.0-SNAPSHOT"
+        const val localCordappJarName = "locally-built-cordapp"
+        const val notaryNodeName = "Notary Service"
+
+        private val testGradleUserHome = System.getProperty("test.gradle.user.home", ".")
     }
 
     @Before
@@ -67,11 +65,11 @@ class CordformTest {
         createBuildFile(buildFileResourceName)
         return GradleRunner.create()
                 .withProjectDir(testProjectDir.root)
-                .withArguments("deployNodes", "-s")
+                .withArguments("deployNodes", "-s", "--info", "-g", testGradleUserHome)
                 .withPluginClasspath()
     }
 
-    private fun createBuildFile(buildFileResourceName: String) = IOUtils.copy(javaClass.getResourceAsStream(buildFileResourceName), buildFile!!.outputStream())
+    private fun createBuildFile(buildFileResourceName: String) = IOUtils.copy(javaClass.getResourceAsStream(buildFileResourceName), buildFile.outputStream())
     private fun getNodeCordappJar(nodeName: String, cordappJarName: String) = File(testProjectDir.root, "build/nodes/$nodeName/cordapps/$cordappJarName.jar")
     private fun getNodeCordappConfig(nodeName: String, cordappJarName: String) = File(testProjectDir.root, "build/nodes/$nodeName/cordapps/$cordappJarName.conf")
 }

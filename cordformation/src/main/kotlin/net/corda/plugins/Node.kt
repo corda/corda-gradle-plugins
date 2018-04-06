@@ -27,8 +27,7 @@ open class Node @Inject constructor(private val project: Project) : CordformNode
     internal data class ResolvedCordapp(val jarFile: File, val config: String?)
 
     companion object {
-        @JvmStatic
-        val webJarName = "corda-webserver.jar"
+        const val webJarName = "corda-webserver.jar"
         private val configFileProperty = "configFile"
     }
 
@@ -305,7 +304,7 @@ open class Node @Inject constructor(private val project: Project) : CordformNode
         val cordappsDir = project.file(File(nodeDir, "cordapps"))
         cordappsDir.mkdirs()
         cordapps.filter { it.config != null }
-                .map { Pair<String, String>("${FilenameUtils.removeExtension(it.jarFile.name)}.conf", it.config!!) }
+                .map { Pair("${FilenameUtils.removeExtension(it.jarFile.name)}.conf", it.config!!) }
                 .forEach { project.file(File(cordappsDir, it.first)).writeText(it.second) }
     }
 
