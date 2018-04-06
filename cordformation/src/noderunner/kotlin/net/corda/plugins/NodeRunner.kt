@@ -4,8 +4,8 @@ import java.awt.GraphicsEnvironment
 import java.io.File
 import java.util.*
 
-private val HEADLESS_FLAG = "--headless"
-private val CAPSULE_DEBUG_FLAG = "--capsule-debug"
+private const val HEADLESS_FLAG = "--headless"
+private const val CAPSULE_DEBUG_FLAG = "--capsule-debug"
 
 private val os by lazy {
     val osName = System.getProperty("os.name", "generic").toLowerCase(Locale.ENGLISH)
@@ -32,7 +32,7 @@ fun main(args: Array<String>) {
     val capsuleDebugMode = args.contains(CAPSULE_DEBUG_FLAG)
     val workingDir = File(System.getProperty("user.dir"))
     val javaArgs = args.filter { it != HEADLESS_FLAG && it != CAPSULE_DEBUG_FLAG }
-    val jvmArgs = if (capsuleDebugMode) listOf("-Dcapsule.log=verbose") else emptyList<String>()
+    val jvmArgs = if (capsuleDebugMode) listOf("-Dcapsule.log=verbose") else emptyList()
     println("Starting nodes in $workingDir")
     workingDir.listFiles { file -> file.isDirectory }.forEach { dir ->
         listOf(NodeJarType, WebJarType).forEach { jarType ->
@@ -106,7 +106,7 @@ private abstract class JavaCommand(
             val jolokiaConfig = java.lang.StringBuilder()
             jolokiaConfig.append("-javaagent:drivers/$jolokiaJar=port=$monitoringPort")
             if (jolokiaLogHandler.isNotEmpty()) {
-                jolokiaConfig.append(",logHandlerClass=${jolokiaLogHandler}")
+                jolokiaConfig.append(",logHandlerClass=$jolokiaLogHandler")
             }
             jvmArgs.add(jolokiaConfig.toString())
         }

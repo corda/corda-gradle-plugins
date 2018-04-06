@@ -3,7 +3,6 @@ package net.corda.plugins
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import java.io.File
-import java.io.InputStream
 
 /**
  * The Cordformation plugin deploys nodes to a directory in a state ready to be used by a developer for experimentation,
