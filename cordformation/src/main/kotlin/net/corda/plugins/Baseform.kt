@@ -20,14 +20,14 @@ import java.util.jar.JarInputStream
 @Suppress("unused")
 open class Baseform : DefaultTask() {
     private companion object {
-        val nodeJarName = "corda.jar"
+        const val nodeJarName = "corda.jar"
         private val defaultDirectory: Path = Paths.get("build", "nodes")
     }
 
     /**
      * Optionally the name of a CordformDefinition subclass to which all configuration will be delegated.
      */
-    @Suppress("MemberVisibilityCanPrivate")
+    @Suppress("MemberVisibilityCanBePrivate")
     var definitionClass: String? = null
     var directory = defaultDirectory
     protected val nodes = mutableListOf<Node>()
@@ -115,7 +115,7 @@ open class Baseform : DefaultTask() {
             // If the user has specified their own directory (even if it's the same default path) then let them know
             // it's not used and should just rely on the one in CordformDefinition
             require(directory === defaultDirectory) {
-                project.logger.info("User has used '$directory', default directory is '${defaultDirectory}'")
+                project.logger.info("User has used '$directory', default directory is '$defaultDirectory'")
                 "'directory' cannot be used when 'definitionClass' is specified. Use CordformDefinition.nodesDirectory instead."
             }
             directory = cd.nodesDirectory
@@ -146,7 +146,7 @@ open class Baseform : DefaultTask() {
         // Call NetworkBootstrapper.bootstrap
         try {
             // Create a list of all cordapps used in this network and pass it to the bootstrapper.
-            val allCordapps = nodes.flatMap { it.getCordappList() }.map { it.jarFile }.map { it.absolutePath }
+            val allCordapps = nodes.flatMap { it.getCordappList() }.map { it.jarFile.toString() }
             val rootDir = project.projectDir.toPath().resolve(directory).toAbsolutePath().normalize()
             bootstrapMethod.invoke(networkBootstrapper, rootDir, allCordapps)
         } catch (e: InvocationTargetException) {
