@@ -1,16 +1,12 @@
 package net.corda.plugins
 
-import com.typesafe.config.Config
-import com.typesafe.config.ConfigFactory
-import com.typesafe.config.ConfigObject
-import com.typesafe.config.ConfigRenderOptions
-import com.typesafe.config.ConfigValueFactory
+import com.typesafe.config.*
 import groovy.lang.Closure
 import net.corda.cordform.CordformNode
 import net.corda.cordform.RpcSettings
 import net.corda.plugins.utils.copyTo
 import net.corda.plugins.utils.plus
-import org.apache.commons.io.FilenameUtils
+import org.apache.commons.io.FilenameUtils.removeExtension
 import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ProjectDependency
@@ -24,11 +20,11 @@ import javax.inject.Inject
  * Represents a node that will be installed.
  */
 open class Node @Inject constructor(private val project: Project) : CordformNode() {
-    internal data class ResolvedCordapp(val jarFile: File, val config: String?)
+    internal data class ResolvedCordapp(val jarFile: Path, val config: String?)
 
     companion object {
         const val webJarName = "corda-webserver.jar"
-        private val configFileProperty = "configFile"
+        private const val configFileProperty = "configFile"
     }
 
     /**
@@ -249,7 +245,7 @@ open class Node @Inject constructor(private val project: Project) : CordformNode
             project.logger.info("Using custom webserver: $webserverJar.")
             File(webserverJar)
         }
-        
+
         project.copy {
             it.apply {
                 from(webJar)
@@ -300,12 +296,14 @@ open class Node @Inject constructor(private val project: Project) : CordformNode
         return tmpConfFile
     }
 
-     private fun installCordappConfigs(cordapps: Collection<ResolvedCordapp>) {
-        val cordappsDir = project.file(File(nodeDir, "cordapps"))
-        cordappsDir.mkdirs()
-        cordapps.filter { it.config != null }
-                .map { Pair("${FilenameUtils.removeExtension(it.jarFile.name)}.conf", it.config!!) }
-                .forEach { project.file(File(cordappsDir, it.first)).writeText(it.second) }
+    private fun installCordappConfigs(cordapps: Collection<ResolvedCordapp>) {
+        val configDir = project.file(nodeDir.toPath().resolve("cordapps").resolve("config")).toPath()
+        Files.createDirectories(configDir)
+        for ((jarFile, config) in cordapps) {
+            if (config == null) continue
+            val configFile = configDir.resolve("${removeExtension(jarFile.fileName.toString())}.conf")
+            Files.write(configFile, config.toByteArray())
+        }
     }
 
     /**
@@ -421,8 +419,9 @@ open class Node @Inject constructor(private val project: Project) : CordformNode
      *
      * @return List of this node's cordapps.
      */
-    internal fun getCordappList(): Collection<ResolvedCordapp> =
-            internalCordapps.map { cordapp -> resolveCordapp(cordapp) } + resolveBuiltCordapp()
+    internal fun getCordappList(): Collection<ResolvedCordapp> {
+        return internalCordapps.map { cordapp -> resolveCordapp(cordapp) } + resolveBuiltCordapp()
+    }
 
     private fun resolveCordapp(cordapp: Cordapp): ResolvedCordapp {
         val cordappConfiguration = project.configuration("cordapp")
@@ -443,12 +442,12 @@ open class Node @Inject constructor(private val project: Project) : CordformNode
         return when {
             cordappFile.size == 0 -> throw GradleException("Cordapp $cordappName not found in cordapps configuration.")
             cordappFile.size > 1 -> throw GradleException("Multiple files found for $cordappName")
-            else -> ResolvedCordapp(cordappFile.single(), cordapp.config)
+            else -> ResolvedCordapp(cordappFile.single().toPath(), cordapp.config)
         }
     }
 
     private fun resolveBuiltCordapp(): ResolvedCordapp {
-        val projectCordappFile = project.tasks.getByName("jar").outputs.files.singleFile
+        val projectCordappFile = project.tasks.getByName("jar").outputs.files.singleFile.toPath()
         return ResolvedCordapp(projectCordappFile, builtCordapp.config)
     }
 }
