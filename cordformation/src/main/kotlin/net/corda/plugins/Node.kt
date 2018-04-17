@@ -184,7 +184,7 @@ open class Node @Inject constructor(private val project: Project) : CordformNode
             installWebserverJar()
         }
         installAgentJar()
-        installCordapps()
+        installCordappConfigs()
         installConfig()
     }
 
@@ -197,7 +197,7 @@ open class Node @Inject constructor(private val project: Project) : CordformNode
             }
         }
         installAgentJar()
-        installCordapps()
+        installCordappConfigs()
     }
 
     internal fun rootDir(rootDir: Path) {
@@ -296,7 +296,8 @@ open class Node @Inject constructor(private val project: Project) : CordformNode
         return tmpConfFile
     }
 
-    private fun installCordappConfigs(cordapps: Collection<ResolvedCordapp>) {
+    private fun installCordappConfigs() {
+        val cordapps = getCordappList()
         val configDir = project.file(nodeDir.toPath().resolve("cordapps").resolve("config")).toPath()
         Files.createDirectories(configDir)
         for ((jarFile, config) in cordapps) {
@@ -395,23 +396,6 @@ open class Node @Inject constructor(private val project: Project) : CordformNode
                 confFile.appendBytes(optionalConfig.readBytes())
             }
         }
-    }
-
-
-    /**
-     * Installs the jolokia monitoring agent JAR to the node/drivers directory
-     */
-    private fun installCordapps() {
-        val cordapps = getCordappList()
-        val cordappsDir = File(nodeDir, "cordapps")
-        project.copy {
-            it.apply {
-                from(cordapps.map { it.jarFile })
-                into(project.file(cordappsDir))
-            }
-        }
-
-        installCordappConfigs(cordapps)
     }
 
     /**
