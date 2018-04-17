@@ -4,7 +4,8 @@
 
 ### Version 4.0.13
 
-
+* `cordformation`: No longer copies the CorDapp jars to the nodes' `cordapps` directories. This will instead be done by
+  the network bootstrapper.
 
 ### Version 4.0.12
 
