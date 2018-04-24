@@ -8,7 +8,7 @@ repositories {
 }
 
 dependencies {
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 
     // JSR 305: Nullability annotations
     compile "com.google.code.findbugs:jsr305:$jsr305_version"

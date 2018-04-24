@@ -4,7 +4,7 @@
 
 ### Version 4.0.14
 
-
+* `cordform-common`,`cordapp`: Replace deprecated `kotlin-stdlib-jre8` with `kotlin-stdlib-jdk8`.
 
 ### Version 4.0.13
 

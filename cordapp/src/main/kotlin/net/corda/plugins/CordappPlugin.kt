@@ -49,6 +49,7 @@ class CordappPlugin : Plugin<Project> {
         val excludes = listOf(
                 mapOf("group" to "org.jetbrains.kotlin", "name" to "kotlin-stdlib"),
                 mapOf("group" to "org.jetbrains.kotlin", "name" to "kotlin-stdlib-jre8"),
+                mapOf("group" to "org.jetbrains.kotlin", "name" to "kotlin-stdlib-jdk8"),
                 mapOf("group" to "org.jetbrains.kotlin", "name" to "kotlin-reflect"),
                 mapOf("group" to "co.paralleluniverse", "name" to "quasar-core")
         )
