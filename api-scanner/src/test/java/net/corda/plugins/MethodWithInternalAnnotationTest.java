@@ -12,6 +12,7 @@ import org.junit.rules.TemporaryFolder;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import static net.corda.plugins.CopyUtils.*;
 import static org.assertj.core.api.Assertions.*;
@@ -19,7 +20,7 @@ import static org.junit.Assert.*;
 
 public class MethodWithInternalAnnotationTest {
     @Rule
-    public final TemporaryFolder testProjectDir = new TemporaryFolder();
+    public final TemporaryFolder testProjectDir = new TemporaryFolder(Paths.get("build").toFile());
 
     @Before
     public void setup() throws IOException {
@@ -50,6 +51,6 @@ public class MethodWithInternalAnnotationTest {
         assertEquals("public class net.corda.example.method.HasVisibleMethod extends java.lang.Object\n" +
             "  public <init>()\n" +
             "  public void hasInvisibleAnnotations()\n" +
-            "##\n", CopyUtils.toString(api));
+            "##", CopyUtils.toString(api));
     }
 }

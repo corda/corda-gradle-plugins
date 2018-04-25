@@ -9,11 +9,12 @@ import org.junit.rules.TemporaryFolder
 import java.io.File
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
+import java.nio.file.Paths
 
 class CordformTest {
     @Rule
     @JvmField
-    val testProjectDir = TemporaryFolder()
+    val testProjectDir = TemporaryFolder(Paths.get("build").toFile())
     private lateinit var buildFile: File
 
     private companion object {

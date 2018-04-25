@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import static net.corda.plugins.CopyUtils.*;
 import static org.assertj.core.api.Assertions.*;
@@ -20,7 +21,7 @@ import static org.junit.Assert.*;
 
 public class AnnotatedMethodTest {
     @Rule
-    public final TemporaryFolder testProjectDir = new TemporaryFolder();
+    public final TemporaryFolder testProjectDir = new TemporaryFolder(Paths.get("build").toFile());
 
     @Before
     public void setup() throws IOException {

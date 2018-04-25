@@ -12,6 +12,7 @@ import org.junit.rules.TemporaryFolder;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import static net.corda.plugins.CopyUtils.*;
 import static org.assertj.core.api.Assertions.*;
@@ -19,7 +20,7 @@ import static org.junit.Assert.*;
 
 public class ExtendedClassTest {
     @Rule
-    public final TemporaryFolder testProjectDir = new TemporaryFolder();
+    public final TemporaryFolder testProjectDir = new TemporaryFolder(Paths.get("build").toFile());
 
     @Before
     public void setup() throws IOException {
@@ -46,6 +47,6 @@ public class ExtendedClassTest {
         assertEquals(
             "public class net.corda.example.ExtendedClass extends java.io.FilterInputStream\n" +
             "  public <init>(java.io.InputStream)\n" +
-            "##\n", CopyUtils.toString(api));
+            "##", CopyUtils.toString(api));
     }
 }

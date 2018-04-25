@@ -2,16 +2,18 @@ package net.corda.plugins;
 
 import org.junit.rules.TemporaryFolder;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.nio.file.StandardCopyOption.*;
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 public final class CopyUtils {
     private static final String testGradleUserHome = System.getProperty("test.gradle.user.home", "");
@@ -30,7 +32,8 @@ public final class CopyUtils {
     }
 
     public static String toString(Path file) throws IOException {
-        return new String(Files.readAllBytes(file), UTF_8);
+        return Files.readAllLines(file).stream()
+                .collect(Collectors.joining("\n"));
     }
 
     public static Path pathOf(TemporaryFolder folder, String... elements) {
