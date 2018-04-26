@@ -22,7 +22,6 @@ public class KotlinVarargMethodTest {
     @Before
     public void setup() throws IOException {
         File buildFile = testProjectDir.newFile("build.gradle");
-        System.out.println(System.getProperty("java.io.tmpdir"));
         copyResourceTo("kotlin-vararg-method/build.gradle", buildFile);
     }
 
