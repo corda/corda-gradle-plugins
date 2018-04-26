@@ -18,7 +18,7 @@ import static org.junit.Assert.*;
 
 public class VarargMethodTest {
     @Rule
-    public final TemporaryFolder testProjectDir = new TemporaryFolder(Paths.get("build").toFile());
+    public final TemporaryFolder testProjectDir = new TemporaryFolder();
 
     @Before
     public void setup() throws IOException {

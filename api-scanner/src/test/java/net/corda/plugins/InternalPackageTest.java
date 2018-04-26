@@ -20,7 +20,7 @@ import static org.junit.Assert.*;
 
 public class InternalPackageTest {
     @Rule
-    public final TemporaryFolder testProjectDir = new TemporaryFolder(Paths.get("build").toFile());
+    public final TemporaryFolder testProjectDir = new TemporaryFolder();
 
     @Before
     public void setup() throws IOException {

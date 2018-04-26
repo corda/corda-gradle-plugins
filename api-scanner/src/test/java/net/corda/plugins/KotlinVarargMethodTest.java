@@ -18,11 +18,12 @@ import static org.junit.Assert.*;
 
 public class KotlinVarargMethodTest {
     @Rule
-    public final TemporaryFolder testProjectDir = new TemporaryFolder(Paths.get("build").toFile());
+    public final TemporaryFolder testProjectDir = new TemporaryFolder();
 
     @Before
     public void setup() throws IOException {
         File buildFile = testProjectDir.newFile("build.gradle");
+        System.out.println(System.getProperty("java.io.tmpdir"));
         copyResourceTo("kotlin-vararg-method/build.gradle", buildFile);
     }
 

@@ -14,7 +14,7 @@ import java.nio.file.Paths
 class CordformTest {
     @Rule
     @JvmField
-    val testProjectDir = TemporaryFolder(Paths.get("build").toFile())
+    val testProjectDir = TemporaryFolder()
     private lateinit var buildFile: File
 
     private companion object {
