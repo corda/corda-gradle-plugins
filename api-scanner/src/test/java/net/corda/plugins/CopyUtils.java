@@ -13,6 +13,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 public final class CopyUtils {
@@ -32,7 +33,7 @@ public final class CopyUtils {
     }
 
     public static String toString(Path file) throws IOException {
-        return Files.readAllLines(file).stream()
+        return Files.readAllLines(file, UTF_8).stream()
                 .collect(Collectors.joining("\n"));
     }
 
