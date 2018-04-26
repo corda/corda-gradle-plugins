@@ -50,6 +50,6 @@ public class MethodWithInternalAnnotationTest {
         assertEquals("public class net.corda.example.method.HasVisibleMethod extends java.lang.Object\n" +
             "  public <init>()\n" +
             "  public void hasInvisibleAnnotations()\n" +
-            "##\n", CopyUtils.toString(api));
+            "##", CopyUtils.toString(api));
     }
 }

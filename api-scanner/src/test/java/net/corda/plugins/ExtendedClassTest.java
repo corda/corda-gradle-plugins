@@ -46,6 +46,6 @@ public class ExtendedClassTest {
         assertEquals(
             "public class net.corda.example.ExtendedClass extends java.io.FilterInputStream\n" +
             "  public <init>(java.io.InputStream)\n" +
-            "##\n", CopyUtils.toString(api));
+            "##", CopyUtils.toString(api));
     }
 }

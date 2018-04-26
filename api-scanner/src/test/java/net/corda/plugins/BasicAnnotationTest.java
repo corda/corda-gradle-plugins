@@ -45,6 +45,6 @@ public class BasicAnnotationTest {
         assertThat(api).isRegularFile();
         assertEquals(
             "public @interface net.corda.example.BasicAnnotation\n" +
-            "##\n", CopyUtils.toString(api));
+            "##", CopyUtils.toString(api));
     }
 }

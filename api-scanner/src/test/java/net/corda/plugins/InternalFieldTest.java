@@ -46,6 +46,6 @@ public class InternalFieldTest {
         assertEquals(
             "public class net.corda.example.WithInternalField extends java.lang.Object\n" +
             "  public <init>()\n" +
-            "##\n", CopyUtils.toString(api));
+            "##", CopyUtils.toString(api));
     }
 }

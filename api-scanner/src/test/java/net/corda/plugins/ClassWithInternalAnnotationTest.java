@@ -47,6 +47,6 @@ public class ClassWithInternalAnnotationTest {
         assertThat(api).isRegularFile();
         assertEquals("public class net.corda.example.AnnotatedClass extends java.lang.Object\n" +
             "  public <init>()\n" +
-            "##\n", CopyUtils.toString(api));
+            "##", CopyUtils.toString(api));
     }
 }

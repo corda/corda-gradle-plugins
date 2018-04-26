@@ -48,6 +48,6 @@ public class InternalPackageTest {
         assertEquals(
     "public class net.corda.VisibleClass extends java.lang.Object\n" +
             "  public <init>()\n" +
-            "##\n", CopyUtils.toString(api));
+            "##", CopyUtils.toString(api));
     }
 }

@@ -47,6 +47,6 @@ public class BasicClassTest {
             "public class net.corda.example.BasicClass extends java.lang.Object\n" +
             "  public <init>(String)\n" +
             "  public String getName()\n" +
-            "##\n", CopyUtils.toString(api));
+            "##", CopyUtils.toString(api));
     }
 }

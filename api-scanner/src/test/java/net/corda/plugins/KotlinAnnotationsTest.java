@@ -64,6 +64,6 @@ public class KotlinAnnotationsTest {
             "  @org.jetbrains.annotations.NotNull public final String getNotNullable()\n" +
             "  @org.jetbrains.annotations.Nullable public final String getNullable()\n" +
             "  public final int getNumber()\n" +
-            "##\n", CopyUtils.toString(api));
+            "##", CopyUtils.toString(api));
     }
 }

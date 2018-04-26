@@ -45,6 +45,6 @@ public class InternalMethodTest {
         assertEquals(
             "public class net.corda.example.WithInternalMethod extends java.lang.Object\n" +
             "  public <init>()\n" +
-            "##\n", CopyUtils.toString(api));
+            "##", CopyUtils.toString(api));
     }
 }

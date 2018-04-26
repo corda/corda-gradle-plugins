@@ -43,6 +43,6 @@ public class VarargMethodTest {
         assertThat(api).isRegularFile();
         assertEquals("public interface net.corda.example.VarargMethod\n" +
             "  public abstract void action(Object...)\n" +
-            "##\n", CopyUtils.toString(api));
+            "##", CopyUtils.toString(api));
     }
 }

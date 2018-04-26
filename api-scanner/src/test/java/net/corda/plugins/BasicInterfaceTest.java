@@ -46,6 +46,6 @@ public class BasicInterfaceTest {
         assertEquals(
             "public interface net.corda.example.BasicInterface\n" +
             "  public abstract java.math.BigInteger getBigNumber()\n" +
-            "##\n", CopyUtils.toString(api));
+            "##", CopyUtils.toString(api));
     }
 }

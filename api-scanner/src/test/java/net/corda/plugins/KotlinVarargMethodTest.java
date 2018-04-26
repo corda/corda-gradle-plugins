@@ -43,6 +43,6 @@ public class KotlinVarargMethodTest {
         assertThat(api).isRegularFile();
         assertEquals("public interface net.corda.example.KotlinVarargMethod\n" +
             "  public abstract void action(Object...)\n" +
-            "##\n", CopyUtils.toString(api));
+            "##", CopyUtils.toString(api));
     }
 }
