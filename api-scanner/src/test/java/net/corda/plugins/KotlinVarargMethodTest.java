@@ -9,7 +9,6 @@ import org.junit.rules.TemporaryFolder;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 import static net.corda.plugins.CopyUtils.*;
 import static org.assertj.core.api.Assertions.*;
