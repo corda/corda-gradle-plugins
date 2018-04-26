@@ -45,6 +45,8 @@ public class ScanApi extends DefaultTask {
        blacklist.add("kotlin.jvm.JvmField");
        blacklist.add("kotlin.jvm.JvmOverloads");
        blacklist.add("kotlin.jvm.JvmStatic");
+       blacklist.add("kotlin.Deprecated");
+       blacklist.add("java.lang.Deprecated");
        blacklist.add(DEFAULT_INTERNAL_ANNOTATION);
        ANNOTATION_BLACKLIST = unmodifiableSet(blacklist);
     }

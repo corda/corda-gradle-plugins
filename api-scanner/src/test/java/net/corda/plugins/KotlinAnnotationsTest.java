@@ -3,7 +3,9 @@ package net.corda.plugins;
 import org.gradle.testkit.runner.BuildResult;
 import org.gradle.testkit.runner.BuildTask;
 import org.gradle.testkit.runner.GradleRunner;
+
 import static org.gradle.testkit.runner.TaskOutcome.*;
+
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -30,10 +32,10 @@ public class KotlinAnnotationsTest {
     @Test
     public void testKotlinAnnotations() throws IOException {
         BuildResult result = GradleRunner.create()
-            .withProjectDir(testProjectDir.getRoot())
-            .withArguments(getGradleArgsForTasks("scanApi"))
-            .withPluginClasspath()
-            .build();
+                .withProjectDir(testProjectDir.getRoot())
+                .withArguments(getGradleArgsForTasks("scanApi"))
+                .withPluginClasspath()
+                .build();
         String output = result.getOutput();
         System.out.println(output);
 
@@ -44,6 +46,10 @@ public class KotlinAnnotationsTest {
         Path api = pathOf(testProjectDir, "build", "api", "kotlin-annotations.txt");
         assertThat(api).isRegularFile();
         assertEquals(
+            "public final class net.corda.example.HasDeprecatedFunctions extends java.lang.Object\n" +
+            "  public <init>()\n" +
+            "  @org.jetbrains.annotations.NotNull public final String doSomething()\n" +
+            "##\n" +
             "public final class net.corda.example.HasJvmField extends java.lang.Object\n" +
             "  public <init>()\n" +
             "  @org.jetbrains.annotations.NotNull public final String stringValue = \"Hello World\"\n" +
