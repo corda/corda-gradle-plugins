@@ -48,11 +48,13 @@ public class KotlinAnnotationsTest {
         assertEquals(
             "public final class net.corda.example.HasDeprecatedFunctions extends java.lang.Object\n" +
             "  public <init>()\n" +
-            "  @org.jetbrains.annotations.NotNull public final String doSomething()\n" +
+            "  @NotNull\n" +
+            "  public final String doSomething()\n" +
             "##\n" +
             "public final class net.corda.example.HasJvmField extends java.lang.Object\n" +
             "  public <init>()\n" +
-            "  @org.jetbrains.annotations.NotNull public final String stringValue = \"Hello World\"\n" +
+            "  @NotNull\n" +
+            "  public final String stringValue = \"Hello World\"\n" +
             "##\n" +
             "public final class net.corda.example.HasJvmStaticFunction extends java.lang.Object\n" +
             "  public <init>()\n" +
@@ -67,8 +69,10 @@ public class KotlinAnnotationsTest {
             "  public <init>(String)\n" +
             "  public <init>(String, String)\n" +
             "  public <init>(String, String, int)\n" +
-            "  @org.jetbrains.annotations.NotNull public final String getNotNullable()\n" +
-            "  @org.jetbrains.annotations.Nullable public final String getNullable()\n" +
+            "  @NotNull\n" +
+            "  public final String getNotNullable()\n" +
+            "  @Nullable\n" +
+            "  public final String getNullable()\n" +
             "  public final int getNumber()\n" +
             "##", CopyUtils.toString(api));
     }

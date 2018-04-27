@@ -295,9 +295,9 @@ public class ScanApi extends DefaultTask {
                 /*
                  * Class declaration.
                  */
-                Names annotationNames = toNames(readClassAnnotationsFor(classInfo));
-                if (!annotationNames.visible.isEmpty()) {
-                    writer.append(asAnnotations(annotationNames.visible));
+                List<String> visibleAnnotations = toNames(readClassAnnotationsFor(classInfo)).visible.stream().map(ScanApi::removePackageName).collect(toList());
+                for(String annotation: visibleAnnotations) {
+                    writer.println("@" + annotation);
                 }
                 writer.append(Modifier.toString(modifiers & CLASS_MASK));
                 writer.append(" class ").print(classInfo);
@@ -313,9 +313,9 @@ public class ScanApi extends DefaultTask {
                 /*
                  * Interface declaration.
                  */
-                Names annotationNames = toNames(readInterfaceAnnotationsFor(classInfo));
-                if (!annotationNames.visible.isEmpty()) {
-                    writer.append(asAnnotations(annotationNames.visible));
+                List<String> visibleAnnotations = toNames(readClassAnnotationsFor(classInfo)).visible.stream().map(ScanApi::removePackageName).collect(toList());
+                for(String annotation: visibleAnnotations) {
+                    writer.println("@" + annotation);
                 }
                 writer.append(Modifier.toString(modifiers & INTERFACE_MASK));
                 writer.append(" interface ").print(classInfo);
@@ -334,18 +334,25 @@ public class ScanApi extends DefaultTask {
                         && isValid(method.getAccessFlags(), METHOD_MASK) // Excludes bridge and synthetic methods
                         && !hasInternalAnnotation(method.getAnnotationNames()) // Excludes methods annotated as @CordaInternal
                         && !isKotlinInternalScope(method)) {
-                    writer.append("  ").println(filterAnnotationsFor(method));
+                    for(String annotation: getAnnotationsFor(method)) {
+                        writer.append("  @").println(annotation);
+                    }
+                    writer.append("  ").println(removeAnnotationsFor(method));
                 }
             }
         }
 
-        private void writeFields(PrintWriter output, List<FieldInfo> fields) {
+        private void writeFields(PrintWriter writer, List<FieldInfo> fields) {
             sort(fields);
             for (FieldInfo field : fields) {
                 if (isVisible(field.getAccessFlags())
                         && isValid(field.getAccessFlags(), FIELD_MASK)
                         && !hasInternalAnnotation(field.getAnnotationNames())) {
-                    output.append("  ").println(filterAnnotationsFor(field));
+                    List<String> annotations = getAnnotationsFor(field);
+                    for(String annotation: annotations) {
+                        writer.append("  @").println(annotation);
+                    }
+                    writer.append("  ").println(removeAnnotationsFor(field));
                 }
             }
         }
@@ -395,31 +402,41 @@ public class ScanApi extends DefaultTask {
                 .collect(toList());
         }
 
-        private MethodInfo filterAnnotationsFor(MethodInfo method) {
+        private MethodInfo removeAnnotationsFor(MethodInfo method) {
             return new MethodInfo(
                 method.getClassName(),
                 method.getMethodName(),
                 method.getAccessFlags(),
                 method.getTypeDescriptor(),
-                method.getAnnotationNames().stream()
-                    .filter(this::isVisibleAnnotation)
-                    .sorted()
-                    .collect(toList())
+                emptyList()
             );
         }
 
-        private FieldInfo filterAnnotationsFor(FieldInfo field) {
+        private FieldInfo removeAnnotationsFor(FieldInfo field) {
             return new FieldInfo(
                 field.getClassName(),
                 field.getFieldName(),
                 field.getAccessFlags(),
                 field.getTypeDescriptor(),
                 field.getConstFinalValue(),
-                field.getAnnotationNames().stream()
-                    .filter(this::isVisibleAnnotation)
-                    .sorted()
-                    .collect(toList())
+                emptyList()
             );
+        }
+
+        private List<String> getAnnotationsFor(List<String> annotationNames) {
+            return annotationNames.stream()
+                .filter(this::isVisibleAnnotation)
+                .map(ScanApi::removePackageName)
+                .sorted()
+                .collect(toList());
+        }
+
+        private List<String> getAnnotationsFor(MethodInfo method) {
+            return getAnnotationsFor(method.getAnnotationNames());
+        }
+
+        private List<String> getAnnotationsFor(FieldInfo field) {
+            return getAnnotationsFor(field.getAnnotationNames());
         }
 
         private boolean isVisibleAnnotation(String annotationName) {
@@ -429,6 +446,13 @@ public class ScanApi extends DefaultTask {
         private boolean hasInternalAnnotation(Collection<String> annotationNames) {
             return annotationNames.stream().anyMatch(internalAnnotations::contains);
         }
+    }
+
+    private static String removePackageName(String className) {
+        if (!className.contains(".")) {
+            return className;
+        }
+        return className.substring(className.lastIndexOf(".") + 1);
     }
 
     private static <T extends Comparable<? super T>> List<T> ordering(List<T> list) {
@@ -452,8 +476,8 @@ public class ScanApi extends DefaultTask {
         return items.stream().map(ClassInfo::toString).collect(joining(", "));
     }
 
-    private static String asAnnotations(Collection<String> items) {
-        return items.stream().collect(joining(" @", "@", " "));
+    private static List<String> asAnnotations(Collection<String> items) {
+        return items.stream().map(ScanApi::removePackageName).collect(toList());
     }
 
     private static boolean isApplicationClass(String typeName) {

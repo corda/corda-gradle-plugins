@@ -44,9 +44,20 @@ public class AnnotatedFieldTest {
 
         Path api = pathOf(testProjectDir, "build", "api", "annotated-field.txt");
         assertThat(api).isRegularFile();
-        assertThat(Files.readAllLines(api)).containsOnlyOnce(
-            "public class net.corda.example.HasAnnotatedField extends java.lang.Object",
-            "  @net.corda.example.A @net.corda.example.B @net.corda.example.C public static final String ANNOTATED_FIELD = \"<string-value>\""
-        );
+        assertEquals(
+            "public @interface net.corda.example.A\n" +
+            "##\n" +
+            "public @interface net.corda.example.B\n" +
+            "##\n" +
+            "public @interface net.corda.example.C\n" +
+            "##\n" +
+            "public class net.corda.example.HasAnnotatedField extends java.lang.Object\n" +
+            "  public <init>()\n" +
+            "  @A\n" +
+            "  @B\n" +
+            "  @C\n" +
+            "  public static final String ANNOTATED_FIELD = \"<string-value>\"\n" +
+            "##", CopyUtils.toString(api));
+
     }
 }

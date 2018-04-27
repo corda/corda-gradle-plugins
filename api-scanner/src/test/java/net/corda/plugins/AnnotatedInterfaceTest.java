@@ -44,9 +44,13 @@ public class AnnotatedInterfaceTest {
 
         Path api = pathOf(testProjectDir, "build", "api", "annotated-interface.txt");
         assertThat(api).isRegularFile();
-        assertThat(Files.readAllLines(api)).containsOnlyOnce(
-            "@net.corda.annotation.AlsoInherited @net.corda.annotation.IsInherited @net.corda.annotation.NotInherited public interface net.corda.example.HasInheritedAnnotation",
-            "@net.corda.annotation.AlsoInherited @net.corda.annotation.IsInherited public interface net.corda.example.InheritingAnnotations extends net.corda.example.HasInheritedAnnotation"
-        );
+        assertEquals(
+            "@AlsoInherited\n" +
+            "@IsInherited\n" +
+            "@NotInherited\n" +
+            "public interface net.corda.example.HasInheritedAnnotation\n" +
+            "##\n" +
+            "public interface net.corda.example.InheritingAnnotations extends net.corda.example.HasInheritedAnnotation\n" +
+            "##", CopyUtils.toString(api));
     }
 }

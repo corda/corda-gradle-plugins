@@ -52,7 +52,10 @@ public class AnnotatedMethodTest {
             "##\n" +
             "public class net.corda.example.HasAnnotatedMethod extends java.lang.Object\n" +
             "  public <init>()\n" +
-            "  @net.corda.example.A @net.corda.example.B @net.corda.example.C public void hasAnnotation()\n" +
+            "  @A\n" +
+            "  @B\n" +
+            "  @C\n" +
+            "  public void hasAnnotation()\n" +
             "##\n" +
             "public class net.corda.example.HasDeprecatedMethod extends java.lang.Object\n" +
             "  public <init>()\n" +
