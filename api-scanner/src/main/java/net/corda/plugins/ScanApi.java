@@ -38,6 +38,7 @@ public class ScanApi extends DefaultTask {
     private static final int VISIBILITY_MASK = Modifier.PUBLIC | Modifier.PROTECTED;
 
     private static final String INTERNAL_ANNOTATION_NAME = ".CordaInternal";
+    private static final String DONOTIMPLEMENT_ANNOTATION_NAME = "DoNotImplement";
     private static final String DEFAULT_INTERNAL_ANNOTATION = "net.corda.core" + INTERNAL_ANNOTATION_NAME;
     private static final Set<String> ANNOTATION_BLACKLIST;
     static {
@@ -284,6 +285,18 @@ public class ScanApi extends DefaultTask {
             });
         }
 
+        private void writeClassAnnotations(PrintWriter writer, ClassInfo classInfo) {
+            List<String> visibleAnnotations = toNames(readClassAnnotationsFor(classInfo)).visible.stream().map(ScanApi::removePackageName).collect(toList());
+            if (visibleAnnotations.contains(DONOTIMPLEMENT_ANNOTATION_NAME)) {
+                writer.println("@" + DONOTIMPLEMENT_ANNOTATION_NAME);
+            }
+            for(String annotation: visibleAnnotations) {
+                if (!annotation.equals(DONOTIMPLEMENT_ANNOTATION_NAME)) {
+                    writer.println("@" + annotation);
+                }
+            }
+        }
+
         private void writeClass(PrintWriter writer, ClassInfo classInfo, int modifiers) {
             if (classInfo.isAnnotation()) {
                 /*
@@ -295,10 +308,7 @@ public class ScanApi extends DefaultTask {
                 /*
                  * Class declaration.
                  */
-                List<String> visibleAnnotations = toNames(readClassAnnotationsFor(classInfo)).visible.stream().map(ScanApi::removePackageName).collect(toList());
-                for(String annotation: visibleAnnotations) {
-                    writer.println("@" + annotation);
-                }
+                writeClassAnnotations(writer, classInfo);
                 writer.append(Modifier.toString(modifiers & CLASS_MASK));
                 writer.append(" class ").print(classInfo);
                 Set<ClassInfo> superclasses = classInfo.getDirectSuperclasses();
@@ -313,10 +323,7 @@ public class ScanApi extends DefaultTask {
                 /*
                  * Interface declaration.
                  */
-                List<String> visibleAnnotations = toNames(readClassAnnotationsFor(classInfo)).visible.stream().map(ScanApi::removePackageName).collect(toList());
-                for(String annotation: visibleAnnotations) {
-                    writer.println("@" + annotation);
-                }
+                writeClassAnnotations(writer, classInfo);
                 writer.append(Modifier.toString(modifiers & INTERFACE_MASK));
                 writer.append(" interface ").print(classInfo);
                 Set<ClassInfo> superinterfaces = classInfo.getDirectSuperinterfaces();
