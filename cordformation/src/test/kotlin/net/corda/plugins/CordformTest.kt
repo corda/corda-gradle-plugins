@@ -17,7 +17,7 @@ class CordformTest {
     private lateinit var buildFile: File
 
     private companion object {
-        const val cordaFinanceJarName = "corda-finance-3.1-corda"
+        const val cordaFinanceJarName = "corda-finance-3.0-SNAPSHOT"
         const val localCordappJarName = "locally-built-cordapp"
         const val notaryNodeName = "Notary Service"
 
