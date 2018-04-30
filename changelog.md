@@ -4,6 +4,9 @@
 
 ### Version 4.0.15
 
+ * `cordformation`: added Jolokia fix such that when the Jolokia JVM agent jar file is missing the Node process will still start (and give a warning)
+ * `cordformation`: updated test code and resource plugins to reference 3.1-corda (were still pointing to 3.0-SNAPSHOT).
+
 ### Version 4.0.14
 
 * `cordform-common`,`cordapp`: Replace deprecated `kotlin-stdlib-jre8` with `kotlin-stdlib-jdk8`.
