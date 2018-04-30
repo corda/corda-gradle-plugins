@@ -50,6 +50,8 @@ public class AnnotatedInterfaceTest {
             "@NotInherited\n" +
             "public interface net.corda.example.HasInheritedAnnotation\n" +
             "##\n" +
+            "@AlsoInherited\n" +
+            "@IsInherited\n" +
             "public interface net.corda.example.InheritingAnnotations extends net.corda.example.HasInheritedAnnotation\n" +
             "##", CopyUtils.toString(api));
     }
