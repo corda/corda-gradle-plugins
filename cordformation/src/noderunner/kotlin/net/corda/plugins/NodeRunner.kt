@@ -44,8 +44,7 @@ fun main(args: Array<String>) {
 }
 
 private abstract class JarType(internal val jarName: String,
-                               internal val requiresJolokia: Boolean = false,
-                               internal val jolokiaLogHandler: String = "") {
+                               internal val enableJolokia: Boolean = false) {
     internal fun acceptDirAndStartProcess(dir: File, headless: Boolean, javaArgs: List<String>, jvmArgs: List<String>): Process? {
         if (!File(dir, jarName).exists()) {
             return null
@@ -66,7 +65,7 @@ private abstract class JarType(internal val jarName: String,
 }
 
 
-private object NodeJarType : JarType(jarName = "corda.jar", requiresJolokia = true, jolokiaLogHandler = "net.corda.node.JolokiaSlf4jAdapter") {
+private object NodeJarType : JarType(jarName = "corda.jar", enableJolokia = true) {
     override val headlessArgs = listOf("--no-local-shell")
     override val configurationFileName = "node.conf"
 }
@@ -81,8 +80,7 @@ private abstract class JavaCommand(
         internal val dir: File,
         debugPort: Int?,
         monitoringPort: Int?,
-        needsJolokia: Boolean,
-        jolokiaLogHandler: String,
+        enableJolokia: Boolean,
         internal val nodeName: String,
         args: List<String>,
         jvmArgs: List<String>
@@ -90,7 +88,7 @@ private abstract class JavaCommand(
     private val jolokiaJar by lazy {
         File("$dir/drivers").listFiles { _, filename ->
             filename.matches("jolokia-jvm-.*-agent\\.jar$".toRegex())
-        }.first().name
+        }.firstOrNull()?.name ?: throw RuntimeException("Missing jolokia jar file in $dir/drivers directory")
     }
 
     internal val command: List<String> = mutableListOf<String>().apply {
@@ -102,13 +100,14 @@ private abstract class JavaCommand(
             jvmArgs.add("-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=$debugPort")
         }
 
-        if (needsJolokia && null != monitoringPort) {
-            val jolokiaConfig = java.lang.StringBuilder()
-            jolokiaConfig.append("-javaagent:drivers/$jolokiaJar=port=$monitoringPort")
-            if (jolokiaLogHandler.isNotEmpty()) {
-                jolokiaConfig.append(",logHandlerClass=$jolokiaLogHandler")
+        if (enableJolokia && null != monitoringPort) {
+            try {
+                val jolokiaJvmArgs = "-javaagent:drivers/$jolokiaJar=port=$monitoringPort,logHandlerClass=net.corda.node.JolokiaSlf4jAdapter"
+                jvmArgs.add(jolokiaJvmArgs)
             }
-            jvmArgs.add(jolokiaConfig.toString())
+            catch(e: RuntimeException) {
+                println("${e.message}. Continuing without Jolokia instrumentation ...")
+            }
         }
 
         if (jvmArgs.isNotEmpty()) {
@@ -125,7 +124,7 @@ private abstract class JavaCommand(
 }
 
 private class HeadlessJavaCommand(jarType: JarType, dir: File, debugPort: Int?, monitoringPort: Int?, args: List<String>, jvmArgs: List<String>)
-    : JavaCommand(jarType.jarName, dir, debugPort, monitoringPort, jarType.requiresJolokia, "", dir.name, jarType.headlessArgs + args, jvmArgs) {
+    : JavaCommand(jarType.jarName, dir, debugPort, monitoringPort, jarType.enableJolokia, dir.name, jarType.headlessArgs + args, jvmArgs) {
     override fun processBuilder(): ProcessBuilder {
         println("Running command: ${command.joinToString(" ")}")
         return ProcessBuilder(command).redirectError(File("error.$nodeName.log")).inheritIO()
@@ -135,7 +134,7 @@ private class HeadlessJavaCommand(jarType: JarType, dir: File, debugPort: Int?, 
 }
 
 private class TerminalWindowJavaCommand(jarType: JarType, dir: File, debugPort: Int?, monitoringPort: Int?, args: List<String>, jvmArgs: List<String>)
-    : JavaCommand(jarType.jarName, dir, debugPort, monitoringPort, jarType.requiresJolokia, jarType.jolokiaLogHandler, "${dir.name}-${jarType.jarName}", args, jvmArgs) {
+    : JavaCommand(jarType.jarName, dir, debugPort, monitoringPort, jarType.enableJolokia, "${dir.name}-${jarType.jarName}", args, jvmArgs) {
     override fun processBuilder(): ProcessBuilder {
         val params = when (os) {
             OS.MACOS -> {
