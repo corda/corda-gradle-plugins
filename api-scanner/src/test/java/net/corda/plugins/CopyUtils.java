@@ -13,13 +13,17 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 public final class CopyUtils {
     private static final String testGradleUserHome = System.getProperty("test.gradle.user.home", "");
 
     private CopyUtils() {
+    }
+
+    public static long installResource(TemporaryFolder folder, String resourceName) throws IOException {
+        File buildFile = folder.newFile(resourceName.substring(1 + resourceName.lastIndexOf('/')));
+        return copyResourceTo(resourceName, buildFile);
     }
 
     public static long copyResourceTo(String resourceName, Path target) throws IOException {
@@ -33,7 +37,8 @@ public final class CopyUtils {
     }
 
     public static String toString(Path file) throws IOException {
-        return Files.readAllLines(file, UTF_8).stream()
+        // This uses UTF-8 by default.
+        return Files.readAllLines(file).stream()
                 .collect(Collectors.joining("\n"));
     }
 
