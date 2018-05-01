@@ -1,13 +1,5 @@
 package net.corda.plugins;
 
-<<<<<<< HEAD
-import org.gradle.testkit.runner.BuildResult;
-import org.gradle.testkit.runner.BuildTask;
-import org.gradle.testkit.runner.GradleRunner;
-
-import static org.gradle.testkit.runner.TaskOutcome.*;
-
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.RuleChain;
@@ -16,7 +8,7 @@ import org.junit.rules.TestRule;
 
 import java.io.IOException;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 public class KotlinAnnotationsTest {
     private final TemporaryFolder testProjectDir = new TemporaryFolder();
