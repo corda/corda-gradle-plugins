@@ -21,7 +21,7 @@ gradlePlugin {
 }
 
 dependencies {
-    compile "io.github.lukehutch:fast-classpath-scanner:2.7.0"
+    compile "io.github.lukehutch:fast-classpath-scanner:2.18.2"
     testCompile project(':api-scanner:annotations')
     testCompile "org.assertj:assertj-core:$assertj_version"
     testCompile "junit:junit:$junit_version"

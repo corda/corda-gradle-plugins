@@ -31,29 +31,32 @@ public class ScanApi extends DefaultTask {
      * The VARARG modifier for methods has the same value as the TRANSIENT modifier for fields.
      * Unfortunately, {@link Modifier#methodModifiers() methodModifiers} doesn't include this
      * flag, and so we need to add it back ourselves.
+     *
      * @link https://docs.oracle.com/javase/specs/jls/se8/html/index.html
      */
     private static final int METHOD_MASK = Modifier.methodModifiers() | Modifier.TRANSIENT;
     private static final int FIELD_MASK = Modifier.fieldModifiers();
     private static final int VISIBILITY_MASK = Modifier.PUBLIC | Modifier.PROTECTED;
 
+    private static final String DONOTIMPLEMENT_ANNOTATION_NAME = "net.corda.core.DoNotImplement";
     private static final String INTERNAL_ANNOTATION_NAME = ".CordaInternal";
-    private static final String DONOTIMPLEMENT_ANNOTATION_NAME = "DoNotImplement";
     private static final String DEFAULT_INTERNAL_ANNOTATION = "net.corda.core" + INTERNAL_ANNOTATION_NAME;
     private static final Set<String> ANNOTATION_BLACKLIST;
+
     static {
-       Set<String> blacklist = new LinkedHashSet<>();
-       blacklist.add("kotlin.jvm.JvmField");
-       blacklist.add("kotlin.jvm.JvmOverloads");
-       blacklist.add("kotlin.jvm.JvmStatic");
-       blacklist.add("kotlin.Deprecated");
-       blacklist.add("java.lang.Deprecated");
-       blacklist.add(DEFAULT_INTERNAL_ANNOTATION);
-       ANNOTATION_BLACKLIST = unmodifiableSet(blacklist);
+        Set<String> blacklist = new LinkedHashSet<>();
+        blacklist.add("kotlin.jvm.JvmField");
+        blacklist.add("kotlin.jvm.JvmOverloads");
+        blacklist.add("kotlin.jvm.JvmStatic");
+        blacklist.add("kotlin.Deprecated");
+        blacklist.add("java.lang.Deprecated");
+        blacklist.add(DEFAULT_INTERNAL_ANNOTATION);
+        ANNOTATION_BLACKLIST = unmodifiableSet(blacklist);
     }
 
     /**
      * This information has been lifted from:
+     *
      * @link <a href="https://github.com/JetBrains/kotlin/blob/master/core/runtime.jvm/src/kotlin/Metadata.kt">Metadata.kt</a>
      */
     private static final String KOTLIN_METADATA = "kotlin.Metadata";
@@ -106,9 +109,9 @@ public class ScanApi extends DefaultTask {
     @OutputFiles
     public FileCollection getTargets() {
         return getProject().files(
-            StreamSupport.stream(sources.spliterator(), false)
-                .map(this::toTarget)
-                .collect(toList())
+                StreamSupport.stream(sources.spliterator(), false)
+                        .map(this::toTarget)
+                        .collect(toList())
         );
     }
 
@@ -178,8 +181,8 @@ public class ScanApi extends DefaultTask {
             File target = toTarget(source);
             getLogger().info("API file: {}", target.getAbsolutePath());
             try (
-                URLClassLoader appLoader = new URLClassLoader(new URL[]{ toURL(source) }, classpathLoader);
-                PrintWriter writer = new PrintWriter(target, "UTF-8")
+                    URLClassLoader appLoader = new URLClassLoader(new URL[]{toURL(source)}, classpathLoader);
+                    ApiPrintWriter writer = new ApiPrintWriter(target, "UTF-8")
             ) {
                 scan(writer, appLoader);
             } catch (IOException e) {
@@ -187,22 +190,22 @@ public class ScanApi extends DefaultTask {
             }
         }
 
-        void scan(PrintWriter writer, ClassLoader appLoader) {
+        void scan(ApiPrintWriter writer, ClassLoader appLoader) {
             Set<String> inherited = new HashSet<>();
             ScanResult result = new FastClasspathScanner(getScanSpecification())
-                .matchAllAnnotationClasses(annotation -> {
-                    if (annotation.isAnnotationPresent(Inherited.class)) {
-                        inherited.add(annotation.getName());
-                    }
-                })
-                .overrideClassLoaders(appLoader)
-                .ignoreParentClassLoaders()
-                .ignoreMethodVisibility()
-                .ignoreFieldVisibility()
-                .enableMethodInfo()
-                .enableFieldInfo()
-                .verbose(verbose)
-                .scan();
+                    .matchAllAnnotationClasses(annotation -> {
+                        if (annotation.isAnnotationPresent(Inherited.class)) {
+                            inherited.add(annotation.getName());
+                        }
+                    })
+                    .overrideClassLoaders(appLoader)
+                    .ignoreParentClassLoaders()
+                    .ignoreMethodVisibility()
+                    .ignoreFieldVisibility()
+                    .enableMethodInfo()
+                    .enableFieldInfo()
+                    .verbose(verbose)
+                    .scan();
             inheritedAnnotations = unmodifiableSet(inherited);
             loadAnnotationCaches(result);
             getLogger().info("Annotations:");
@@ -226,20 +229,20 @@ public class ScanApi extends DefaultTask {
 
         private void loadAnnotationCaches(ScanResult result) {
             Set<String> internal = result.getNamesOfAllAnnotationClasses().stream()
-                .filter(s -> s.endsWith(INTERNAL_ANNOTATION_NAME))
-                .collect(toCollection(LinkedHashSet::new));
+                    .filter(s -> s.endsWith(INTERNAL_ANNOTATION_NAME))
+                    .collect(toCollection(LinkedHashSet::new));
             internal.add(DEFAULT_INTERNAL_ANNOTATION);
             internalAnnotations = unmodifiableSet(internal);
 
             Set<String> invisible = internalAnnotations.stream()
-                .flatMap(a -> result.getNamesOfAnnotationsWithMetaAnnotation(a).stream())
-                .collect(toCollection(LinkedHashSet::new));
+                    .flatMap(a -> result.getNamesOfAnnotationsWithMetaAnnotation(a).stream())
+                    .collect(toCollection(LinkedHashSet::new));
             invisible.addAll(ANNOTATION_BLACKLIST);
             invisible.addAll(internal);
             invisibleAnnotations = unmodifiableSet(invisible);
         }
 
-        private void writeApis(PrintWriter writer, ScanResult result) {
+        private void writeApis(ApiPrintWriter writer, ScanResult result) {
             Map<String, ClassInfo> allInfo = result.getClassNameToClassInfo();
             result.getNamesOfAllClasses().forEach(className -> {
                 if (className.contains(".internal.")) {
@@ -278,88 +281,42 @@ public class ScanApi extends DefaultTask {
                     return;
                 }
 
-                writeClass(writer, classInfo, javaClass.getModifiers());
+                writeClass(writer, classInfo);
                 writeMethods(writer, classInfo.getMethodAndConstructorInfo());
                 writeFields(writer, classInfo.getFieldInfo());
                 writer.println("##");
             });
         }
 
-        private void writeClassAnnotations(PrintWriter writer, ClassInfo classInfo) {
-            List<String> visibleAnnotations = toNames(readClassAnnotationsFor(classInfo)).visible.stream().map(ScanApi::removePackageName).collect(toList());
-            if (visibleAnnotations.contains(DONOTIMPLEMENT_ANNOTATION_NAME)) {
-                writer.println("@" + DONOTIMPLEMENT_ANNOTATION_NAME);
-            }
-            for(String annotation: visibleAnnotations) {
-                if (!annotation.equals(DONOTIMPLEMENT_ANNOTATION_NAME)) {
-                    writer.println("@" + annotation);
-                }
-            }
-        }
-
-        private void writeClass(PrintWriter writer, ClassInfo classInfo, int modifiers) {
+        private void writeClass(ApiPrintWriter writer, ClassInfo classInfo) {
             if (classInfo.isAnnotation()) {
-                /*
-                 * Annotation declaration.
-                 */
-                writer.append(Modifier.toString(modifiers & INTERFACE_MASK));
-                writer.append(" @interface ").print(classInfo);
+                writer.println(classInfo, classInfo.getClassRef().getModifiers() & INTERFACE_MASK, new ArrayList<>());
             } else if (classInfo.isStandardClass()) {
-                /*
-                 * Class declaration.
-                 */
-                writeClassAnnotations(writer, classInfo);
-                writer.append(Modifier.toString(modifiers & CLASS_MASK));
-                writer.append(" class ").print(classInfo);
-                Set<ClassInfo> superclasses = classInfo.getDirectSuperclasses();
-                if (!superclasses.isEmpty()) {
-                    writer.append(" extends ").print(stringOf(superclasses));
-                }
-                Set<ClassInfo> interfaces = classInfo.getDirectlyImplementedInterfaces();
-                if (!interfaces.isEmpty()) {
-                    writer.append(" implements ").print(stringOf(interfaces));
-                }
+                writer.println(classInfo, classInfo.getClassRef().getModifiers() & CLASS_MASK, toNames(readClassAnnotationsFor(classInfo)).visible);
             } else {
-                /*
-                 * Interface declaration.
-                 */
-                writeClassAnnotations(writer, classInfo);
-                writer.append(Modifier.toString(modifiers & INTERFACE_MASK));
-                writer.append(" interface ").print(classInfo);
-                Set<ClassInfo> superinterfaces = classInfo.getDirectSuperinterfaces();
-                if (!superinterfaces.isEmpty()) {
-                    writer.append(" extends ").print(stringOf(superinterfaces));
-                }
+                writer.println(classInfo, classInfo.getClassRef().getModifiers() & INTERFACE_MASK, toNames(readInterfaceAnnotationsFor(classInfo)).visible);
             }
-            writer.println();
         }
 
-        private void writeMethods(PrintWriter writer, List<MethodInfo> methods) {
+        private void writeMethods(ApiPrintWriter writer, List<MethodInfo> methods) {
             sort(methods);
             for (MethodInfo method : methods) {
-                if (isVisible(method.getAccessFlags()) // Only public and protected methods
-                        && isValid(method.getAccessFlags(), METHOD_MASK) // Excludes bridge and synthetic methods
+                if (isVisible(method.getModifiers()) // Only public and protected methods
+                        && isValid(method.getModifiers(), METHOD_MASK) // Excludes bridge and synthetic methods
                         && !hasInternalAnnotation(method.getAnnotationNames()) // Excludes methods annotated as @CordaInternal
                         && !isKotlinInternalScope(method)) {
-                    for(String annotation: getAnnotationsFor(method)) {
-                        writer.append("  @").println(annotation);
-                    }
-                    writer.append("  ").println(removeAnnotationsFor(method));
+                    writer.println(filterAnnotationsFor(method), "  ");
                 }
             }
         }
 
-        private void writeFields(PrintWriter writer, List<FieldInfo> fields) {
+        private void writeFields(ApiPrintWriter writer, List<FieldInfo> fields) {
             sort(fields);
             for (FieldInfo field : fields) {
-                if (isVisible(field.getAccessFlags())
-                        && isValid(field.getAccessFlags(), FIELD_MASK)
+                if (isVisible(field.getModifiers())
+                        && isValid(field.getModifiers(), FIELD_MASK)
                         && !hasInternalAnnotation(field.getAnnotationNames())) {
-                    List<String> annotations = getAnnotationsFor(field);
-                    for(String annotation: annotations) {
-                        writer.append("  @").println(annotation);
-                    }
-                    writer.append("  ").println(removeAnnotationsFor(field));
+                    writer.println(filterAnnotationsFor(field), "  ");
                 }
             }
         }
@@ -380,10 +337,18 @@ public class ScanApi extends DefaultTask {
 
         private Names toNames(Collection<ClassInfo> classes) {
             Map<Boolean, List<String>> partitioned = classes.stream()
-                .map(ClassInfo::toString)
-                .filter(ScanApi::isApplicationClass)
-                .collect(partitioningBy(this::isVisibleAnnotation, toCollection(ArrayList::new)));
-            return new Names(ordering(partitioned.get(true)), ordering(partitioned.get(false)));
+                    .map(ClassInfo::getClassName)
+                    .filter(ScanApi::isApplicationClass)
+                    .collect(partitioningBy(this::isVisibleAnnotation, toCollection(ArrayList::new)));
+            List<String> visible = partitioned.get(true);
+            int idx = visible.indexOf(DONOTIMPLEMENT_ANNOTATION_NAME);
+            if (idx != -1) {
+                swap(visible, 0, idx);
+                sort(visible.subList(1, visible.size()));
+            } else {
+                sort(visible);
+            }
+            return new Names(visible, ordering(partitioned.get(false)));
         }
 
         private Set<ClassInfo> readClassAnnotationsFor(ClassInfo classInfo) {
@@ -404,62 +369,55 @@ public class ScanApi extends DefaultTask {
          */
         private List<ClassInfo> selectInheritedAnnotations(Collection<ClassInfo> classes) {
             return classes.stream()
-                .flatMap(cls -> cls.getAnnotations().stream())
-                .filter(ann -> inheritedAnnotations.contains(ann.getClassName()))
-                .collect(toList());
+                    .flatMap(cls -> cls.getAnnotations().stream())
+                    .filter(ann -> inheritedAnnotations.contains(ann.getClassName()))
+                    .collect(toList());
         }
 
-        private MethodInfo removeAnnotationsFor(MethodInfo method) {
+        private MethodInfo filterAnnotationsFor(MethodInfo method) {
             return new MethodInfo(
                 method.getClassName(),
                 method.getMethodName(),
-                method.getAccessFlags(),
-                method.getTypeDescriptor(),
-                emptyList()
+                method.getAnnotationInfo()
+                    .stream()
+                    .filter(this::isVisibleAnnotation)
+                    .sorted()
+                    .collect(toList()),
+                method.getModifiers(),
+                method.getTypeDescriptorStr(),
+                method.getTypeSignatureStr(),
+                method.getParameterNames(),
+                method.getParameterModifiers(),
+                method.getParameterAnnotationInfo()
             );
         }
 
-        private FieldInfo removeAnnotationsFor(FieldInfo field) {
+        private FieldInfo filterAnnotationsFor(FieldInfo field) {
             return new FieldInfo(
                 field.getClassName(),
                 field.getFieldName(),
-                field.getAccessFlags(),
-                field.getTypeDescriptor(),
+                field.getModifiers(),
+                field.getTypeDescriptorStr(),
+                field.getTypeSignatureStr(),
                 field.getConstFinalValue(),
-                emptyList()
+                field.getAnnotationInfo().stream()
+                    .filter(this::isVisibleAnnotation)
+                    .sorted()
+                    .collect(toList())
             );
         }
 
-        private List<String> getAnnotationsFor(List<String> annotationNames) {
-            return annotationNames.stream()
-                .filter(this::isVisibleAnnotation)
-                .map(ScanApi::removePackageName)
-                .sorted()
-                .collect(toList());
+        private boolean isVisibleAnnotation(AnnotationInfo annotation) {
+            return isVisibleAnnotation(annotation.getAnnotationName());
         }
 
-        private List<String> getAnnotationsFor(MethodInfo method) {
-            return getAnnotationsFor(method.getAnnotationNames());
-        }
-
-        private List<String> getAnnotationsFor(FieldInfo field) {
-            return getAnnotationsFor(field.getAnnotationNames());
-        }
-
-        private boolean isVisibleAnnotation(String annotationName) {
-            return !invisibleAnnotations.contains(annotationName);
+        private boolean isVisibleAnnotation(String className) {
+            return !invisibleAnnotations.contains(className);
         }
 
         private boolean hasInternalAnnotation(Collection<String> annotationNames) {
             return annotationNames.stream().anyMatch(internalAnnotations::contains);
         }
-    }
-
-    private static String removePackageName(String className) {
-        if (!className.contains(".")) {
-            return className;
-        }
-        return className.substring(className.lastIndexOf(".") + 1);
     }
 
     private static <T extends Comparable<? super T>> List<T> ordering(List<T> list) {
@@ -483,10 +441,6 @@ public class ScanApi extends DefaultTask {
         return items.stream().map(ClassInfo::toString).collect(joining(", "));
     }
 
-    private static List<String> asAnnotations(Collection<String> items) {
-        return items.stream().map(ScanApi::removePackageName).collect(toList());
-    }
-
     private static boolean isApplicationClass(String typeName) {
         return !typeName.startsWith("java.") && !typeName.startsWith("kotlin.");
     }
@@ -506,7 +460,8 @@ public class ScanApi extends DefaultTask {
 
 class Names {
     List<String> visible;
-    @SuppressWarnings("WeakerAccess") List<String> hidden;
+    @SuppressWarnings("WeakerAccess")
+    List<String> hidden;
 
     Names(List<String> visible, List<String> hidden) {
         this.visible = unmodifiable(visible);

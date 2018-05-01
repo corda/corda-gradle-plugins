@@ -45,6 +45,7 @@ public class AnnotatedClassTest {
         Path api = pathOf(testProjectDir, "build", "api", "annotated-class.txt");
         assertThat(api).isRegularFile();
         assertEquals(
+            "@DoNotImplement\n" +
             "@AlsoInherited\n" +
             "@IsInherited\n" +
             "@NotInherited\n" +
