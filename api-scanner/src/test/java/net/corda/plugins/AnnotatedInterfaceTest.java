@@ -6,12 +6,10 @@ import org.junit.rules.RuleChain;
 import org.junit.rules.TemporaryFolder;
 import org.junit.rules.TestRule;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
 
 public class AnnotatedInterfaceTest {
     private final TemporaryFolder testProjectDir = new TemporaryFolder();
