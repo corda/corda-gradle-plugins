@@ -20,7 +20,7 @@ public class KotlinVarargMethodTest {
     @Test
     public void testKotlinVarargMethod() throws IOException {
         assertEquals("public interface net.corda.example.KotlinVarargMethod\n" +
-            "  public abstract void action(Object...)\n" +
+            "  public abstract void action(String[]...)\n" +
             "##", CopyUtils.toString(testProject.getApi()));
     }
 }
