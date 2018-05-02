@@ -43,7 +43,7 @@ processTestResources {
         expand(['kotlin_version': kotlin_version])
     }
     filesMatching('gradle.properties') {
-        expand(['jacocoAgent': configurations.jacocoRuntime.asPath,
+        expand(['jacocoAgent': configurations.jacocoRuntime.asPath.replace('\\', '/'),
                 'buildDir': buildDir])
     }
 }
