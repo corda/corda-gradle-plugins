@@ -6,6 +6,5 @@ import net.corda.core.*;
 @NotInherited
 @IsInherited
 @AlsoInherited
-@DoNotImplement
 public interface HasInheritedAnnotation {
 }

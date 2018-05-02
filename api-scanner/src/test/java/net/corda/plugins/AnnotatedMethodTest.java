@@ -25,6 +25,12 @@ public class AnnotatedMethodTest {
                 "  @A",
                 "  @B",
                 "  @C",
-                "  public void hasAnnotation()");
+                "  public void hasAnnotation()")
+            //Should not include @Deprecated annotation
+            .containsSequence(
+                "public class net.corda.example.HasDeprecatedMethod extends java.lang.Object",
+                "  public <init>()",
+                "  public void isDeprecated()"
+            );
     }
 }

@@ -22,7 +22,6 @@ public class AnnotatedClassTest {
     public void testAnnotatedClass() throws IOException {
         assertThat(Files.readAllLines(testProject.getApi()))
             .containsSequence(
-                "@DoNotImplement",
                 "@AlsoInherited",
                 "@IsInherited",
                 "@NotInherited",
@@ -30,6 +29,10 @@ public class AnnotatedClassTest {
             .containsSequence(
                 "@AlsoInherited",
                 "@IsInherited",
-                "public class net.corda.example.InheritingAnnotations extends net.corda.example.HasInheritedAnnotation");
+                "public class net.corda.example.InheritingAnnotations extends net.corda.example.HasInheritedAnnotation")
+            .containsSequence(
+                "@DoNotImplement",
+                "@AnAnnotation",
+                "public class net.corda.example.DoNotImplementAnnotation extends java.lang.Object");
     }
 }
