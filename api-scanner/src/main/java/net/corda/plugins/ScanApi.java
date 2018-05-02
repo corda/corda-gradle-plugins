@@ -289,11 +289,11 @@ public class ScanApi extends DefaultTask {
 
         private void writeClass(ApiPrintWriter writer, ClassInfo classInfo) {
             if (classInfo.isAnnotation()) {
-                writer.println(classInfo, classInfo.getClassRef().getModifiers() & INTERFACE_MASK, new ArrayList<>());
+                writer.println(classInfo, INTERFACE_MASK, emptyList());
             } else if (classInfo.isStandardClass()) {
-                writer.println(classInfo, classInfo.getClassRef().getModifiers() & CLASS_MASK, toNames(readClassAnnotationsFor(classInfo)).visible);
+                writer.println(classInfo, CLASS_MASK, toNames(readClassAnnotationsFor(classInfo)).visible);
             } else {
-                writer.println(classInfo, classInfo.getClassRef().getModifiers() & INTERFACE_MASK, toNames(readInterfaceAnnotationsFor(classInfo)).visible);
+                writer.println(classInfo, INTERFACE_MASK, toNames(readInterfaceAnnotationsFor(classInfo)).visible);
             }
         }
 
