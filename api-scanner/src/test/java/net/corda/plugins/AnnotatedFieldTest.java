@@ -7,7 +7,9 @@ import org.junit.rules.TemporaryFolder;
 import org.junit.rules.TestRule;
 
 import java.io.IOException;
+import java.nio.file.Files;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 
 public class AnnotatedFieldTest {
@@ -19,19 +21,11 @@ public class AnnotatedFieldTest {
 
     @Test
     public void testAnnotatedField() throws IOException {
-        assertEquals(
-            "public @interface net.corda.example.A\n" +
-            "##\n" +
-            "public @interface net.corda.example.B\n" +
-            "##\n" +
-            "public @interface net.corda.example.C\n" +
-            "##\n" +
-            "public class net.corda.example.HasAnnotatedField extends java.lang.Object\n" +
-            "  public <init>()\n" +
-            "  @A\n" +
-            "  @B\n" +
-            "  @C\n" +
-            "  public static final String ANNOTATED_FIELD = \"<string-value>\"\n" +
-            "##", testProject.getApi());
+        assertThat(Files.readAllLines(testProject.getApi()))
+            .containsSequence(
+                "  @A",
+                "  @B",
+                "  @C",
+                "  public static final String ANNOTATED_FIELD = \"<string-value>\"");
     }
 }

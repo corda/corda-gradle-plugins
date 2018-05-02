@@ -36,6 +36,6 @@ public class AnnotatedMethodTest {
             "public class net.corda.example.HasDeprecatedMethod extends java.lang.Object\n" +
             "  public <init>()\n" +
             "  public void isDeprecated()\n" +
-            "##", testProject.getApi());
+            "##", CopyUtils.toString(testProject.getApi()));
     }
 }

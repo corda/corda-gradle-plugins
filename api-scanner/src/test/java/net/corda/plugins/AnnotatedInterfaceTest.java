@@ -6,8 +6,11 @@ import org.junit.rules.RuleChain;
 import org.junit.rules.TemporaryFolder;
 import org.junit.rules.TestRule;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 
 public class AnnotatedInterfaceTest {
@@ -19,16 +22,17 @@ public class AnnotatedInterfaceTest {
 
     @Test
     public void testAnnotatedInterface() throws IOException {
-        assertEquals(
-            "@DoNotImplement\n" +
-            "@AlsoInherited\n" +
-            "@IsInherited\n" +
-            "@NotInherited\n" +
-            "public interface net.corda.example.HasInheritedAnnotation\n" +
-            "##\n" +
-            "@AlsoInherited\n" +
-            "@IsInherited\n" +
-            "public interface net.corda.example.InheritingAnnotations extends net.corda.example.HasInheritedAnnotation\n" +
-            "##", testProject.getApi());
+        assertThat(Files.readAllLines(testProject.getApi()))
+            .containsSequence(
+                "@DoNotImplement",
+                "@AlsoInherited",
+                "@IsInherited",
+                "@NotInherited",
+                "public interface net.corda.example.HasInheritedAnnotation")
+            .containsSequence(
+                "@AlsoInherited",
+                "@IsInherited",
+                "public interface net.corda.example.InheritingAnnotations extends net.corda.example.HasInheritedAnnotation"
+            );
     }
 }

@@ -7,7 +7,9 @@ import org.junit.rules.TemporaryFolder;
 import org.junit.rules.TestRule;
 
 import java.io.IOException;
+import java.nio.file.Files;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 
 public class AnnotatedClassTest {
@@ -19,18 +21,16 @@ public class AnnotatedClassTest {
 
     @Test
     public void testAnnotatedClass() throws IOException {
-        assertEquals(
-            "@DoNotImplement\n" +
-            "@AlsoInherited\n" +
-            "@IsInherited\n" +
-            "@NotInherited\n" +
-            "public class net.corda.example.HasInheritedAnnotation extends java.lang.Object\n" +
-            "  public <init>()\n" +
-            "##\n" +
-            "@AlsoInherited\n" +
-            "@IsInherited\n" +
-            "public class net.corda.example.InheritingAnnotations extends net.corda.example.HasInheritedAnnotation\n" +
-            "  public <init>()\n" +
-            "##", testProject.getApi());
+        assertThat(Files.readAllLines(testProject.getApi()))
+            .containsSequence(
+                "@DoNotImplement",
+                "@AlsoInherited",
+                "@IsInherited",
+                "@NotInherited",
+                "public class net.corda.example.HasInheritedAnnotation extends java.lang.Object")
+            .containsSequence(
+                "@AlsoInherited",
+                "@IsInherited",
+                "public class net.corda.example.InheritingAnnotations extends net.corda.example.HasInheritedAnnotation");
     }
 }
