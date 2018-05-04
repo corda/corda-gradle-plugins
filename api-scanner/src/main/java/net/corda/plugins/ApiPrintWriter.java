@@ -24,49 +24,49 @@ public class ApiPrintWriter extends PrintWriter {
     }
 
     public void println(ClassInfo classInfo, int modifierMask, List<String> filteredAnnotations) {
-        super.append(asAnnotations(filteredAnnotations, ""));
-        super.append(Modifier.toString(classInfo.getClassRef().getModifiers() & modifierMask));
+        append(asAnnotations(filteredAnnotations, ""));
+        append(Modifier.toString(classInfo.getClassRef().getModifiers() & modifierMask));
         if (classInfo.isAnnotation()) {
             /*
              * Annotation declaration.
              */
-            super.append(" @interface ").print(classInfo.getClassName());
+            append(" @interface ").print(classInfo.getClassName());
         } else if (classInfo.isStandardClass()) {
             /*
              * Class declaration.
              */
-            super.append(" class ").print(classInfo.getClassName());
+            append(" class ").print(classInfo.getClassName());
             Set<ClassInfo> superclasses = classInfo.getDirectSuperclasses();
             if (!superclasses.isEmpty()) {
-                super.append(" extends ").print(stringOf(superclasses));
+                append(" extends ").print(stringOf(superclasses));
             }
             Set<ClassInfo> interfaces = classInfo.getDirectlyImplementedInterfaces();
             if (!interfaces.isEmpty()) {
-                super.append(" implements ").print(stringOf(interfaces));
+                append(" implements ").print(stringOf(interfaces));
             }
         } else {
             /*
              * Interface declaration.
              */
-            super.append(" interface ").print(classInfo.getClassName());
+            append(" interface ").print(classInfo.getClassName());
             Set<ClassInfo> superinterfaces = classInfo.getDirectSuperinterfaces();
             if (!superinterfaces.isEmpty()) {
-                super.append(" extends ").print(stringOf(superinterfaces));
+                append(" extends ").print(stringOf(superinterfaces));
             }
         }
-        super.println();
+        println();
     }
 
     public void println(MethodInfo method, String indentation) {
-        super.append(asAnnotations(method.getAnnotationNames(), indentation));
-        super.append(indentation);
+        append(asAnnotations(method.getAnnotationNames(), indentation));
+        append(indentation);
         if (method.getModifiersStr() != null) {
-            super.append(method.getModifiersStr()).append(' ');
+            append(method.getModifiersStr()).append(' ');
         }
         if (!method.isConstructor()) {
-            super.append(removeQualifierFromBaseTypes(method.getResultTypeStr())).append(' ');
+            append(removeQualifierFromBaseTypes(method.getResultTypeStr())).append(' ');
         }
-        super.append(method.getMethodName()).append('(');
+        append(method.getMethodName()).append('(');
         LinkedList<String> paramTypes = method
             .getTypeSignature()
             .getParameterTypeSignatures()
@@ -78,29 +78,29 @@ public class ApiPrintWriter extends PrintWriter {
             String vararg = paramTypes.removeLast();
             paramTypes.add(vararg.substring(0, vararg.length() - 2) + "...");
         }
-        super.append(paramTypes.stream().collect(joining(", ")));
-        super.println(')');
+        append(paramTypes.stream().collect(joining(", ")));
+        println(')');
     }
 
     public void println(FieldInfo field, String indentation) {
-        super.append(asAnnotations(field.getAnnotationNames(), indentation));
-        super.append(indentation)
+        append(asAnnotations(field.getAnnotationNames(), indentation));
+        append(indentation)
             .append(field.getModifierStr())
             .append(' ')
             .append(removeQualifierFromBaseTypes(field.getTypeStr()))
             .append(' ');
-        super.append(field.getFieldName());
+        append(field.getFieldName());
         if (field.getConstFinalValue() != null) {
-            super.append(" = ");
+            append(" = ");
             if (field.getConstFinalValue() instanceof String) {
-                super.append('"').append(field.getConstFinalValue().toString()).append('"');
+                append('"').append(field.getConstFinalValue().toString()).append('"');
             } else if (field.getConstFinalValue() instanceof Character) {
-                super.append('\'').append(field.getConstFinalValue().toString()).append('\'');
+                append('\'').append(field.getConstFinalValue().toString()).append('\'');
             } else {
-                super.append(field.getConstFinalValue().toString());
+                append(field.getConstFinalValue().toString());
             }
         }
-        super.println();
+        println();
     }
 
     private static String asAnnotations(Collection<String> items, String indentation) {
