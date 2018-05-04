@@ -9,7 +9,7 @@ import org.junit.rules.TestRule;
 import java.io.IOException;
 import java.nio.file.Files;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class AnnotatedFieldTest {
     private final TemporaryFolder testProjectDir = new TemporaryFolder();
@@ -20,9 +20,11 @@ public class AnnotatedFieldTest {
 
     @Test
     public void testAnnotatedField() throws IOException {
-        assertThat(Files.readAllLines(testProject.getApi())).containsOnlyOnce(
-            "public class net.corda.example.HasAnnotatedField extends java.lang.Object",
-            "  @net.corda.example.A @net.corda.example.B @net.corda.example.C public static final String ANNOTATED_FIELD = \"<string-value>\""
-        );
+        assertThat(Files.readAllLines(testProject.getApi()))
+            .containsSequence(
+                "  @A",
+                "  @B",
+                "  @C",
+                "  public static final String ANNOTATED_FIELD = \"<string-value>\"");
     }
 }

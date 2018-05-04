@@ -9,7 +9,7 @@ import org.junit.rules.TestRule;
 import java.io.IOException;
 import java.nio.file.Files;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class AnnotatedInterfaceTest {
     private final TemporaryFolder testProjectDir = new TemporaryFolder();
@@ -20,9 +20,20 @@ public class AnnotatedInterfaceTest {
 
     @Test
     public void testAnnotatedInterface() throws IOException {
-        assertThat(Files.readAllLines(testProject.getApi())).containsOnlyOnce(
-            "@net.corda.annotation.AlsoInherited @net.corda.annotation.IsInherited @net.corda.annotation.NotInherited public interface net.corda.example.HasInheritedAnnotation",
-            "@net.corda.annotation.AlsoInherited @net.corda.annotation.IsInherited public interface net.corda.example.InheritingAnnotations extends net.corda.example.HasInheritedAnnotation"
-        );
+        assertThat(Files.readAllLines(testProject.getApi()))
+            .containsSequence(
+                "@AlsoInherited",
+                "@IsInherited",
+                "@NotInherited",
+                "public interface net.corda.example.HasInheritedAnnotation")
+            .containsSequence(
+                "@AlsoInherited",
+                "@IsInherited",
+                "public interface net.corda.example.InheritingAnnotations extends net.corda.example.HasInheritedAnnotation")
+            .containsSequence(
+                "@DoNotImplement",
+                "@AnAnnotation",
+                "public interface net.corda.example.DoNotImplementAnnotation"
+            );
     }
 }

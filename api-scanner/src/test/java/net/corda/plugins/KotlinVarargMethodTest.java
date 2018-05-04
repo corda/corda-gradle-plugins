@@ -1,21 +1,15 @@
 package net.corda.plugins;
 
-import org.gradle.testkit.runner.*;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.RuleChain;
 import org.junit.rules.TemporaryFolder;
 import org.junit.rules.TestRule;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
+import java.nio.file.Files;
 
-import static net.corda.plugins.CopyUtils.*;
-import static org.assertj.core.api.Assertions.*;
-import static org.gradle.testkit.runner.TaskOutcome.SUCCESS;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class KotlinVarargMethodTest {
     private final TemporaryFolder testProjectDir = new TemporaryFolder();
@@ -24,10 +18,22 @@ public class KotlinVarargMethodTest {
     @Rule
     public TestRule rules = RuleChain.outerRule(testProjectDir).around(testProject);
 
+    private static final String[] expectedInterfaceWithVarargMethod = {
+        "public interface net.corda.example.KotlinVarargMethod",
+        "  public abstract void action(int...)",
+        "##"
+    };
+
+    private static final String[] expectedInterfaceWithArrayVarargMethod = {
+            "public interface net.corda.example.KotlinVarargArrayMethod",
+            "  public abstract void action(String[]...)",
+            "##"
+    };
+
     @Test
     public void testKotlinVarargMethod() throws IOException {
-        assertEquals("public interface net.corda.example.KotlinVarargMethod\n" +
-            "  public abstract void action(Object...)\n" +
-            "##", CopyUtils.toString(testProject.getApi()));
+        assertThat(Files.readAllLines(testProject.getApi()))
+            .containsSequence(expectedInterfaceWithVarargMethod)
+            .containsSequence(expectedInterfaceWithArrayVarargMethod);
     }
 }

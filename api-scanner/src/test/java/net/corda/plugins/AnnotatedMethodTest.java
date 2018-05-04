@@ -9,7 +9,7 @@ import org.junit.rules.TestRule;
 import java.io.IOException;
 import java.nio.file.Files;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class AnnotatedMethodTest {
     private final TemporaryFolder testProjectDir = new TemporaryFolder();
@@ -20,9 +20,17 @@ public class AnnotatedMethodTest {
 
     @Test
     public void testAnnotatedMethod() throws IOException {
-        assertThat(Files.readAllLines(testProject.getApi())).containsOnlyOnce(
-            "public class net.corda.example.HasAnnotatedMethod extends java.lang.Object",
-            "  @net.corda.example.A @net.corda.example.B @net.corda.example.C public void hasAnnotation()"
-        );
+        assertThat(Files.readAllLines(testProject.getApi()))
+            .containsSequence(
+                "  @A",
+                "  @B",
+                "  @C",
+                "  public void hasAnnotation()")
+            //Should not include @Deprecated annotation
+            .containsSequence(
+                "public class net.corda.example.HasDeprecatedMethod extends java.lang.Object",
+                "  public <init>()",
+                "  public void isDeprecated()"
+            );
     }
 }
