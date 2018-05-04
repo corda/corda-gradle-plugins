@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
 
 public class KotlinVarargMethodTest {
     private final TemporaryFolder testProjectDir = new TemporaryFolder();
