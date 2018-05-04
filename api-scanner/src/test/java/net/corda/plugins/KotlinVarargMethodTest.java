@@ -20,15 +20,15 @@ public class KotlinVarargMethodTest {
     public TestRule rules = RuleChain.outerRule(testProjectDir).around(testProject);
 
     private static final String[] expectedInterfaceWithVarargMethod = {
-        "public interface net.corda.example.KotlinVarargArrayMethod",
-        "  public abstract void action(String[]...)",
+        "public interface net.corda.example.KotlinVarargMethod",
+        "  public abstract void action(int...)",
         "##"
     };
 
     private static final String[] expectedInterfaceWithArrayVarargMethod = {
-        "public interface net.corda.example.KotlinVarargMethod",
-        "  public abstract void action(int...)",
-        "##"
+            "public interface net.corda.example.KotlinVarargArrayMethod",
+            "  public abstract void action(String[]...)",
+            "##"
     };
 
     @Test
