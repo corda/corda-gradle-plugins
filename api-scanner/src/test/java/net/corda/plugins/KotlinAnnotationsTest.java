@@ -8,10 +8,8 @@ import org.junit.rules.TestRule;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
 
 public class KotlinAnnotationsTest {
     private final TemporaryFolder testProjectDir = new TemporaryFolder();
@@ -20,7 +18,7 @@ public class KotlinAnnotationsTest {
     @Rule
     public TestRule rules = RuleChain.outerRule(testProjectDir).around(testProject);
 
-    private String[] expectedClassWithDeprecatedFunctions = new String[] {
+    private static final String[] expectedClassWithDeprecatedFunctions = {
         "public final class net.corda.example.HasDeprecatedFunctions extends java.lang.Object",
         "  public <init>()",
         "  @NotNull",
@@ -28,7 +26,7 @@ public class KotlinAnnotationsTest {
         "##"
     };
 
-    private String[] expectedClassWithJvmField = new String[] {
+    private static final String[] expectedClassWithJvmField = {
         "public final class net.corda.example.HasJvmField extends java.lang.Object",
         "  public <init>()",
         "  @NotNull",
@@ -36,7 +34,7 @@ public class KotlinAnnotationsTest {
         "##"
     };
 
-    private String[] expectedClassWithJvmStaticFunction = new String[]{
+    private static final String[] expectedClassWithJvmStaticFunction = {
         "public final class net.corda.example.HasJvmStaticFunction extends java.lang.Object",
         "  public <init>()",
         "  public static final void doThing(String)",
@@ -44,13 +42,13 @@ public class KotlinAnnotationsTest {
         "##"
     };
 
-    private String[] expectedClassWithJvmStaticFunctionCompanion = new String[] {
+    private static final String[] expectedClassWithJvmStaticFunctionCompanion = {
         "public static final class net.corda.example.HasJvmStaticFunction$Companion extends java.lang.Object",
         "  public final void doThing(String)",
         "##"
     };
 
-    private String[] expectedClassWithOverloadedConstructor = new String[] {
+    private static final String[] expectedClassWithOverloadedConstructor = {
         "public final class net.corda.example.HasOverloadedConstructor extends java.lang.Object",
         "  public <init>()",
         "  public <init>(String)",

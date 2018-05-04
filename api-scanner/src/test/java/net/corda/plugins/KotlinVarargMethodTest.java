@@ -7,7 +7,9 @@ import org.junit.rules.TemporaryFolder;
 import org.junit.rules.TestRule;
 
 import java.io.IOException;
+import java.nio.file.Files;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 
 public class KotlinVarargMethodTest {
@@ -17,10 +19,22 @@ public class KotlinVarargMethodTest {
     @Rule
     public TestRule rules = RuleChain.outerRule(testProjectDir).around(testProject);
 
+    private static final String[] expectedInterfaceWithVarargMethod = {
+        "public interface net.corda.example.KotlinVarargArrayMethod",
+        "  public abstract void action(String[]...)",
+        "##"
+    };
+
+    private static final String[] expectedInterfaceWithArrayVarargMethod = {
+        "public interface net.corda.example.KotlinVarargMethod",
+        "  public abstract void action(int...)",
+        "##"
+    };
+
     @Test
     public void testKotlinVarargMethod() throws IOException {
-        assertEquals("public interface net.corda.example.KotlinVarargMethod\n" +
-            "  public abstract void action(String[]...)\n" +
-            "##", CopyUtils.toString(testProject.getApi()));
+        assertThat(Files.readAllLines(testProject.getApi()))
+            .containsSequence(expectedInterfaceWithVarargMethod)
+            .containsSequence(expectedInterfaceWithArrayVarargMethod);
     }
 }
