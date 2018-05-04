@@ -83,13 +83,13 @@ public class ApiPrintWriter extends PrintWriter {
     }
 
     public void println(FieldInfo field, String indentation) {
-        append(asAnnotations(field.getAnnotationNames(), indentation));
-        append(indentation)
+        append(asAnnotations(field.getAnnotationNames(), indentation))
+            .append(indentation)
             .append(field.getModifierStr())
             .append(' ')
             .append(removeQualifierFromBaseTypes(field.getTypeStr()))
-            .append(' ');
-        append(field.getFieldName());
+            .append(' ')
+            .append(field.getFieldName());
         if (field.getConstFinalValue() != null) {
             append(" = ");
             if (field.getConstFinalValue() instanceof String) {
