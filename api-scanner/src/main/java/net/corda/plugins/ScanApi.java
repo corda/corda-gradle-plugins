@@ -453,7 +453,7 @@ public class ScanApi extends DefaultTask {
         for (File file : files) {
             urls.add(toURL(file));
         }
-        return urls.toArray(new URL[urls.size()]);
+        return urls.toArray(new URL[0]);
     }
 }
 
