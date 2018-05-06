@@ -23,6 +23,13 @@ dependencies {
     compile 'org.jetbrains.kotlin:kotlin-reflect:$kotlin_version'
 }
 
+compileKotlin {
+    kotlinOptions {
+        jvmTarget = "1.8"
+        freeCompilerArgs = ['-Xenable-jvm-default']
+    }
+}
+
 jar {
     baseName = "kotlin-annotations"
 }

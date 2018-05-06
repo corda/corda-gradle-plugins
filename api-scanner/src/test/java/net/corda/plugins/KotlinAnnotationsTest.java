@@ -1,6 +1,6 @@
 package net.corda.plugins;
 
-import org.junit.Rule;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.RuleChain;
 import org.junit.rules.TemporaryFolder;
@@ -12,11 +12,11 @@ import java.nio.file.Files;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class KotlinAnnotationsTest {
-    private final TemporaryFolder testProjectDir = new TemporaryFolder();
-    private final GradleProject testProject = new GradleProject(testProjectDir, "kotlin-annotations");
+    private static final TemporaryFolder testProjectDir = new TemporaryFolder();
+    private static final GradleProject testProject = new GradleProject(testProjectDir, "kotlin-annotations");
 
-    @Rule
-    public TestRule rules = RuleChain.outerRule(testProjectDir).around(testProject);
+    @ClassRule
+    public static final TestRule rules = RuleChain.outerRule(testProjectDir).around(testProject);
 
     private static final String[] expectedClassWithDeprecatedFunctions = {
         "public final class net.corda.example.HasDeprecatedFunctions extends java.lang.Object",
@@ -63,12 +63,37 @@ public class KotlinAnnotationsTest {
     };
 
     @Test
-    public void testKotlinAnnotations() throws IOException {
+    public void testDeprecatedAnnotation() throws IOException {
         assertThat(Files.readAllLines(testProject.getApi()))
-            .containsSequence(expectedClassWithDeprecatedFunctions)
-            .containsSequence(expectedClassWithJvmField)
+            .containsSequence(expectedClassWithDeprecatedFunctions);
+    }
+
+    @Test
+    public void testJvmFieldAnnotation() throws IOException {
+        assertThat(Files.readAllLines(testProject.getApi()))
+            .containsSequence(expectedClassWithJvmField);
+    }
+
+    @Test
+    public void testJvmStaticAnnotation() throws IOException {
+        assertThat(Files.readAllLines(testProject.getApi()))
             .containsSequence(expectedClassWithJvmStaticFunction)
-            .containsSequence(expectedClassWithJvmStaticFunctionCompanion)
+            .containsSequence(expectedClassWithJvmStaticFunctionCompanion);
+    }
+
+    @Test
+    public void testJvmOverloadedAnnotation() throws IOException {
+        assertThat(Files.readAllLines(testProject.getApi()))
             .containsSequence(expectedClassWithOverloadedConstructor);
+    }
+
+    @Test
+    public void testJvmDefaultAnnotation() throws IOException {
+        assertThat(Files.readAllLines(testProject.getApi()))
+            .containsSequence(
+                "public interface net.corda.example.HasDefaultMethod",
+                 "  public void doSomething(String)",
+                 "##"
+            );
     }
 }

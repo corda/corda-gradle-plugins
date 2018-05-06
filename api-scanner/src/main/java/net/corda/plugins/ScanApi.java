@@ -48,6 +48,7 @@ public class ScanApi extends DefaultTask {
         blacklist.add("kotlin.jvm.JvmField");
         blacklist.add("kotlin.jvm.JvmOverloads");
         blacklist.add("kotlin.jvm.JvmStatic");
+        blacklist.add("kotlin.jvm.JvmDefault");
         blacklist.add("kotlin.Deprecated");
         blacklist.add("java.lang.Deprecated");
         blacklist.add(DEFAULT_INTERNAL_ANNOTATION);
@@ -57,7 +58,8 @@ public class ScanApi extends DefaultTask {
     /**
      * This information has been lifted from:
      *
-     * @link <a href="https://github.com/JetBrains/kotlin/blob/master/core/runtime.jvm/src/kotlin/Metadata.kt">Metadata.kt</a>
+     * @link <a href="https://github.com/JetBrains/kotlin/blob/master/core/descriptors.jvm/src/org/jetbrains/kotlin/load/kotlin/header/KotlinClassHeader.kt">KotlinClassHeader.Kind</a>
+     * @link <a href="https://github.com/JetBrains/kotlin/blob/master/core/descriptors.jvm/src/org/jetbrains/kotlin/load/java/JvmAnnotationNames.java">JvmAnnotationNames</a>
      */
     private static final String KOTLIN_METADATA = "kotlin.Metadata";
     private static final String KOTLIN_CLASSTYPE_METHOD = "k";
@@ -109,9 +111,9 @@ public class ScanApi extends DefaultTask {
     @OutputFiles
     public FileCollection getTargets() {
         return getProject().files(
-                StreamSupport.stream(sources.spliterator(), false)
-                        .map(this::toTarget)
-                        .collect(toList())
+            StreamSupport.stream(sources.spliterator(), false)
+                .map(this::toTarget)
+                .collect(toList())
         );
     }
 
@@ -181,8 +183,8 @@ public class ScanApi extends DefaultTask {
             File target = toTarget(source);
             getLogger().info("API file: {}", target.getAbsolutePath());
             try (
-                    URLClassLoader appLoader = new URLClassLoader(new URL[]{toURL(source)}, classpathLoader);
-                    ApiPrintWriter writer = new ApiPrintWriter(target, "UTF-8")
+                URLClassLoader appLoader = new URLClassLoader(new URL[]{toURL(source)}, classpathLoader);
+                ApiPrintWriter writer = new ApiPrintWriter(target, "UTF-8")
             ) {
                 scan(writer, appLoader);
             } catch (IOException e) {
@@ -193,19 +195,19 @@ public class ScanApi extends DefaultTask {
         void scan(ApiPrintWriter writer, ClassLoader appLoader) {
             Set<String> inherited = new HashSet<>();
             ScanResult result = new FastClasspathScanner(getScanSpecification())
-                    .matchAllAnnotationClasses(annotation -> {
-                        if (annotation.isAnnotationPresent(Inherited.class)) {
-                            inherited.add(annotation.getName());
-                        }
-                    })
-                    .overrideClassLoaders(appLoader)
-                    .ignoreParentClassLoaders()
-                    .ignoreMethodVisibility()
-                    .ignoreFieldVisibility()
-                    .enableMethodInfo()
-                    .enableFieldInfo()
-                    .verbose(verbose)
-                    .scan();
+                .matchAllAnnotationClasses(annotation -> {
+                    if (annotation.isAnnotationPresent(Inherited.class)) {
+                        inherited.add(annotation.getName());
+                    }
+                })
+                .overrideClassLoaders(appLoader)
+                .ignoreParentClassLoaders()
+                .ignoreMethodVisibility()
+                .ignoreFieldVisibility()
+                .enableMethodInfo()
+                .enableFieldInfo()
+                .verbose(verbose)
+                .scan();
             inheritedAnnotations = unmodifiableSet(inherited);
             loadAnnotationCaches(result);
             getLogger().info("Annotations:");
@@ -229,14 +231,14 @@ public class ScanApi extends DefaultTask {
 
         private void loadAnnotationCaches(ScanResult result) {
             Set<String> internal = result.getNamesOfAllAnnotationClasses().stream()
-                    .filter(s -> s.endsWith(INTERNAL_ANNOTATION_NAME))
-                    .collect(toCollection(LinkedHashSet::new));
+                .filter(s -> s.endsWith(INTERNAL_ANNOTATION_NAME))
+                .collect(toCollection(LinkedHashSet::new));
             internal.add(DEFAULT_INTERNAL_ANNOTATION);
             internalAnnotations = unmodifiableSet(internal);
 
             Set<String> invisible = internalAnnotations.stream()
-                    .flatMap(a -> result.getNamesOfAnnotationsWithMetaAnnotation(a).stream())
-                    .collect(toCollection(LinkedHashSet::new));
+                .flatMap(a -> result.getNamesOfAnnotationsWithMetaAnnotation(a).stream())
+                .collect(toCollection(LinkedHashSet::new));
             invisible.addAll(ANNOTATION_BLACKLIST);
             invisible.addAll(internal);
             invisibleAnnotations = unmodifiableSet(invisible);
@@ -336,9 +338,9 @@ public class ScanApi extends DefaultTask {
 
         private Names toNames(Collection<ClassInfo> classes) {
             Map<Boolean, List<String>> partitioned = classes.stream()
-                    .map(ClassInfo::getClassName)
-                    .filter(ScanApi::isApplicationClass)
-                    .collect(partitioningBy(this::isVisibleAnnotation, toCollection(ArrayList::new)));
+                .map(ClassInfo::getClassName)
+                .filter(ScanApi::isApplicationClass)
+                .collect(partitioningBy(this::isVisibleAnnotation, toCollection(ArrayList::new)));
             List<String> visible = partitioned.get(true);
             int idx = visible.indexOf(DONOTIMPLEMENT_ANNOTATION_NAME);
             if (idx != -1) {
@@ -368,9 +370,9 @@ public class ScanApi extends DefaultTask {
          */
         private List<ClassInfo> selectInheritedAnnotations(Collection<ClassInfo> classes) {
             return classes.stream()
-                    .flatMap(cls -> cls.getAnnotations().stream())
-                    .filter(ann -> inheritedAnnotations.contains(ann.getClassName()))
-                    .collect(toList());
+                .flatMap(cls -> cls.getAnnotations().stream())
+                .filter(ann -> inheritedAnnotations.contains(ann.getClassName()))
+                .collect(toList());
         }
 
         private MethodInfo filterAnnotationsFor(MethodInfo method) {
