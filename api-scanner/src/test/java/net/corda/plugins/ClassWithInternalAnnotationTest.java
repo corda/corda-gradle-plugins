@@ -23,6 +23,6 @@ public class ClassWithInternalAnnotationTest {
         assertThat(testProject.getOutput()).contains("net.corda.example.InvisibleAnnotation");
         assertEquals("public class net.corda.example.AnnotatedClass extends java.lang.Object\n" +
             "  public <init>()\n" +
-            "##", CopyUtils.toString(testProject.getApi()));
+            "##", testProject.getApiText());
     }
 }

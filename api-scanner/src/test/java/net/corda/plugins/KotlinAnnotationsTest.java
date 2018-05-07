@@ -7,7 +7,6 @@ import org.junit.rules.TemporaryFolder;
 import org.junit.rules.TestRule;
 
 import java.io.IOException;
-import java.nio.file.Files;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -64,32 +63,32 @@ public class KotlinAnnotationsTest {
 
     @Test
     public void testDeprecatedAnnotation() throws IOException {
-        assertThat(Files.readAllLines(testProject.getApi()))
+        assertThat(testProject.getApiLines())
             .containsSequence(expectedClassWithDeprecatedFunctions);
     }
 
     @Test
     public void testJvmFieldAnnotation() throws IOException {
-        assertThat(Files.readAllLines(testProject.getApi()))
+        assertThat(testProject.getApiLines())
             .containsSequence(expectedClassWithJvmField);
     }
 
     @Test
     public void testJvmStaticAnnotation() throws IOException {
-        assertThat(Files.readAllLines(testProject.getApi()))
+        assertThat(testProject.getApiLines())
             .containsSequence(expectedClassWithJvmStaticFunction)
             .containsSequence(expectedClassWithJvmStaticFunctionCompanion);
     }
 
     @Test
     public void testJvmOverloadedAnnotation() throws IOException {
-        assertThat(Files.readAllLines(testProject.getApi()))
+        assertThat(testProject.getApiLines())
             .containsSequence(expectedClassWithOverloadedConstructor);
     }
 
     @Test
     public void testJvmDefaultAnnotation() throws IOException {
-        assertThat(Files.readAllLines(testProject.getApi()))
+        assertThat(testProject.getApiLines())
             .containsSequence(
                 "public interface net.corda.example.HasDefaultMethod",
                  "  public void doSomething(String)",

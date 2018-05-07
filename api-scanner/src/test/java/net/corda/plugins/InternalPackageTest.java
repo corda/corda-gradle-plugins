@@ -22,8 +22,8 @@ public class InternalPackageTest {
     public void testInternalPackageIsIgnored() throws IOException {
         assertThat(testProject.getOutput()).contains("net.corda.internal.InvisibleClass");
         assertEquals(
-    "public class net.corda.VisibleClass extends java.lang.Object\n" +
+            "public class net.corda.VisibleClass extends java.lang.Object\n" +
             "  public <init>()\n" +
-            "##", CopyUtils.toString(testProject.getApi()));
+            "##", testProject.getApiText());
     }
 }

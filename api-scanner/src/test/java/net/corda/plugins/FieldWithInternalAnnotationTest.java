@@ -26,6 +26,6 @@ public class FieldWithInternalAnnotationTest {
         assertEquals("public class net.corda.example.field.HasVisibleField extends java.lang.Object\n" +
             "  public <init>()\n" +
             "  public String hasInvisibleAnnotations\n" +
-            "##", CopyUtils.toString(testProject.getApi()));
+            "##", testProject.getApiText());
     }
 }

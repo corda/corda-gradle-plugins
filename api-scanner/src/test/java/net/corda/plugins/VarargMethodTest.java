@@ -21,6 +21,6 @@ public class VarargMethodTest {
     public void testVarargMethod() throws IOException {
         assertEquals("public interface net.corda.example.VarargMethod\n" +
             "  public abstract void action(Object...)\n" +
-            "##", CopyUtils.toString(testProject.getApi()));
+            "##", testProject.getApiText());
     }
 }

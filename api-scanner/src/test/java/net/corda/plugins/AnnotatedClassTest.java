@@ -7,7 +7,6 @@ import org.junit.rules.TemporaryFolder;
 import org.junit.rules.TestRule;
 
 import java.io.IOException;
-import java.nio.file.Files;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -20,7 +19,7 @@ public class AnnotatedClassTest {
 
     @Test
     public void testAnnotatedClass() throws IOException {
-        assertThat(Files.readAllLines(testProject.getApi()))
+        assertThat(testProject.getApiLines())
             .containsSequence(
                 "@AlsoInherited",
                 "@IsInherited",
