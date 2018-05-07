@@ -438,10 +438,6 @@ public class ScanApi extends DefaultTask {
         return (accessFlags & VISIBILITY_MASK) != 0;
     }
 
-    private static String stringOf(Collection<ClassInfo> items) {
-        return items.stream().map(ClassInfo::toString).collect(joining(", "));
-    }
-
     private static boolean isApplicationClass(String typeName) {
         return !typeName.startsWith("java.") && !typeName.startsWith("kotlin.");
     }
