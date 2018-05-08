@@ -24,6 +24,6 @@ public class KotlinInternalAnnotationTest {
         assertEquals(
             "public final class net.corda.example.kotlin.AnnotatedClass extends java.lang.Object\n" +
             "  public <init>()\n" +
-            "##", CopyUtils.toString(testProject.getApi()));
+            "##", testProject.getApiText());
     }
 }

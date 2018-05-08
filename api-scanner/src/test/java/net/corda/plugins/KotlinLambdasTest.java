@@ -24,6 +24,6 @@ public class KotlinLambdasTest {
         assertEquals("public final class net.corda.example.LambdaExpressions extends java.lang.Object\n" +
             "  public <init>()\n" +
             "  public final void testing(kotlin.Unit)\n" +
-            "##", CopyUtils.toString(testProject.getApi()));
+            "##", testProject.getApiText());
     }
 }

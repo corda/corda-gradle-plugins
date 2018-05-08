@@ -21,6 +21,6 @@ public class BasicAnnotationTest {
     public void testBasicAnnotation() throws IOException {
         assertEquals(
             "public @interface net.corda.example.BasicAnnotation\n" +
-            "##", CopyUtils.toString(testProject.getApi()));
+            "##", testProject.getApiText());
     }
 }

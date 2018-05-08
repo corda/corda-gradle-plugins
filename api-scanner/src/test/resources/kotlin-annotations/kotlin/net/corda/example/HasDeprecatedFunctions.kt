@@ -1,3 +1,4 @@
+@file:Suppress("UNUSED")
 package net.corda.example
 
 class HasDeprecatedFunctions @Deprecated("Dont use this anymore!") constructor () {

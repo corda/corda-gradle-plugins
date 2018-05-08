@@ -23,6 +23,6 @@ public class InternalAnnotationTest {
         assertThat(testProject.getOutput())
             .contains("net.corda.core.CordaInternal")
             .contains("net.corda.example.CordaInternal");
-        assertEquals("", CopyUtils.toString(testProject.getApi()));
+        assertEquals("", testProject.getApiText());
     }
 }

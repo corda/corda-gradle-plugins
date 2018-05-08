@@ -23,6 +23,6 @@ public class ExtendedInterfaceTest {
             "public interface net.corda.example.ExtendedInterface extends java.util.concurrent.Future\n" +
             "  public abstract String getName()\n" +
             "  public abstract void setName(String)\n" +
-            "##", CopyUtils.toString(testProject.getApi()));
+            "##", testProject.getApiText());
     }
 }

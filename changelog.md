@@ -2,6 +2,11 @@
 
 ## Version 4
 
+### Version 4.0.16
+
+ * `api-scanner`: Write each annotation on a new line and remove its package name; remove `@Deprecated` annotations from the generated output.
+ * `api-scanner`: Remove the `@JvmDefault` annotation from the generated output.
+
 ### Version 4.0.15
 
  * `cordformation`: added Jolokia fix such that when the Jolokia JVM agent jar file is missing the Node process will still start (and give a warning)
