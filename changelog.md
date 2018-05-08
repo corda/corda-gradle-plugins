@@ -2,6 +2,8 @@
 
 ## Version 4
 
+### Version 4.0.17
+
 ### Version 4.0.16
 
  * `api-scanner`: Write each annotation on a new line and remove its package name; remove `@Deprecated` annotations from the generated output.
