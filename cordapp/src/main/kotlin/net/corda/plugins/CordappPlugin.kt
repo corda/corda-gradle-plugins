@@ -11,12 +11,24 @@ import java.io.File
  */
 @Suppress("UNUSED")
 class CordappPlugin : Plugin<Project> {
+    private companion object {
+        private const val UNKNOWN = "Unknown"
+    }
+
+    /**
+     * CorDapp's distribution information.
+     */
+    lateinit var cordappInfo: CordappInfoExtension
+
     override fun apply(project: Project) {
         project.logger.info("Configuring ${project.name} as a cordapp")
 
         Utils.createCompileConfiguration("cordapp", project)
         Utils.createCompileConfiguration("cordaCompile", project)
         Utils.createRuntimeConfiguration("cordaRuntime", project)
+
+        cordappInfo = project.extensions.create("cordappInfo", CordappInfoExtension::class.java)
+        cordappInfo.setProject(project)
 
         configureCordappJar(project)
     }
@@ -28,6 +40,15 @@ class CordappPlugin : Plugin<Project> {
         // Note: project.afterEvaluate did not have full dependency resolution completed, hence a task is used instead
         val task = project.task("configureCordappFatJar")
         val jarTask = project.tasks.getByName("jar") as Jar
+        jarTask.doFirst {
+            val attributes = jarTask.manifest.attributes
+            attributes["Name"] = cordappInfo.name ?: "${project.group}.${jarTask.baseName}"
+            attributes["Implementation-Version"] = cordappInfo.version ?: project.version
+            attributes["Implementation-Vendor"] = cordappInfo.vendor ?: UNKNOWN
+            if (attributes["Implementation-Vendor"] == UNKNOWN) {
+                project.logger.warn("CordApp's vendor is \"$UNKNOWN\". Please specify it in \"cordappInfo.vendor\".")
+            }
+        }
         task.doLast {
             jarTask.from(getDirectNonCordaDependencies(project).map {
                 project.logger.info("CorDapp dependency: ${it.name}")
