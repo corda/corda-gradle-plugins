@@ -15,7 +15,7 @@ jar {
 }
 
 cordappInfo {
-    name 'test cordapp'
-    version '3.2.1'
-    vendor 'test vendor'
+    name name_info_arg
+    version version_info_arg
+    vendor vendor_info_arg
 }

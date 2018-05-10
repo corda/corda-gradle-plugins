@@ -30,10 +30,12 @@ class CordappTest {
 
     @Test
     fun `a cordapp with a cordappInfo block`() {
-        val jarTaskRunner = jarTaskRunner("CorDappWithInfo.gradle")
         val expectedName = "test cordapp"
         val expectedVersion = "3.2.1"
         val expectedVendor = "test vendor"
+
+        val extraArgs = listOf("-Pname_info_arg=$expectedName", "-Pversion_info_arg=$expectedVersion", "-Pvendor_info_arg=$expectedVendor")
+        val jarTaskRunner = jarTaskRunner("CorDappWithInfo.gradle", extraArgs)
 
         val result = jarTaskRunner.build()
 
@@ -51,11 +53,11 @@ class CordappTest {
         }
     }
 
-    private fun jarTaskRunner(buildFileResourceName: String): GradleRunner {
+    private fun jarTaskRunner(buildFileResourceName: String, extraArgs: List<String> = emptyList()): GradleRunner {
         createBuildFile(buildFileResourceName)
         return GradleRunner.create()
                 .withProjectDir(testProjectDir.root)
-                .withArguments("jar", "-s", "--info", "-g", testGradleUserHome)
+                .withArguments(listOf("jar", "-s", "--info", "-g", testGradleUserHome) + extraArgs)
                 .withPluginClasspath()
     }
 
