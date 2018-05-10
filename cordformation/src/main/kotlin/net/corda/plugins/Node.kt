@@ -95,6 +95,15 @@ open class Node @Inject constructor(private val project: Project) : CordformNode
     }
 
     /**
+     * Sets devMode
+     *
+     * @param devMode The value
+     */
+    fun devMode(devMode: Boolean) {
+        config = config.withValue("devMode", ConfigValueFactory.fromAnyRef(devMode))
+    }
+
+    /**
      * Install a cordapp to this node
      *
      * @param coordinates The coordinates of the [Cordapp]
@@ -350,11 +359,10 @@ open class Node @Inject constructor(private val project: Project) : CordformNode
     }
 
     private fun Config.toNodeOnly(): Config {
-        return if (hasPath("webAddress")) {
-            withoutPath("webAddress").withoutPath("useHTTPS")
-        } else {
-            this
-        }
+        var cfg = this
+        cfg = if (hasPath("webAddress")) { cfg.withoutPath("webAddress").withoutPath("useHTTPS") } else cfg
+        cfg = if (!hasPath("devMode")) { cfg.withValue("devMode", ConfigValueFactory.fromAnyRef(true)) } else cfg
+        return cfg
     }
 
     private fun Config.toWebServerOnly(): Config {
