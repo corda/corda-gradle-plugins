@@ -2,6 +2,10 @@
 
 ## Version 4
 
+### Version 4.0.18
+
+* `cordformation`: Set `devMode=true` by default, and set option to set it
+
 ### Version 4.0.17
 
 * `cordapp`: Added `CordappInfoExtension`, supporting specification of CorDapp information "name", "vendor" and "version".
