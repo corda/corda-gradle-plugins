@@ -1,0 +1,21 @@
+plugins {
+    id 'java'
+    id 'net.corda.plugins.cordapp'
+}
+
+repositories {
+    mavenCentral()
+    maven { url 'https://ci-artifactory.corda.r3cev.com/artifactory/corda-dev' }
+    maven { url 'https://ci-artifactory.corda.r3cev.com/artifactory/corda-releases' }
+    maven { url 'https://jitpack.io' }
+}
+
+jar {
+    baseName 'test-cordapp'
+}
+
+cordappInfo {
+    name name_info_arg
+    version version_info_arg
+    vendor vendor_info_arg
+}

@@ -4,6 +4,8 @@
 
 ### Version 4.0.17
 
+* `cordapp`: Added `CordappInfoExtension`, supporting specification of CorDapp information "name", "vendor" and "version".
+
 ### Version 4.0.16
 
  * `api-scanner`: Write each annotation on a new line and remove its package name; remove `@Deprecated` annotations from the generated output.
