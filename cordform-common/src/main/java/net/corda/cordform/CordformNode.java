@@ -107,8 +107,9 @@ public class CordformNode implements NodeDefinition {
     }
 
     /**
+     * Enable/disable the development mode
      *
-     * @param devMode -
+     * @param devMode - true if devMode is enabled
      */
     public void devMode(Boolean devMode) {
         setValue("devMode", devMode);
