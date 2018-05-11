@@ -95,15 +95,6 @@ open class Node @Inject constructor(private val project: Project) : CordformNode
     }
 
     /**
-     * Sets devMode
-     *
-     * @param devMode The value
-     */
-    fun devMode(devMode: Boolean) {
-        config = config.withValue("devMode", ConfigValueFactory.fromAnyRef(devMode))
-    }
-
-    /**
      * Install a cordapp to this node
      *
      * @param coordinates The coordinates of the [Cordapp]

@@ -107,6 +107,14 @@ public class CordformNode implements NodeDefinition {
     }
 
     /**
+     *
+     * @param devMode -
+     */
+    public void devMode(Boolean devMode) {
+        setValue("devMode", devMode);
+    }
+
+    /**
      * Returns the RPC address for this node, or null if one hasn't been specified.
      */
     @Nullable
