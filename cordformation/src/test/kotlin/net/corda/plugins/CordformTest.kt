@@ -65,7 +65,7 @@ class CordformTest {
         createBuildFile(buildFileResourceName)
         return GradleRunner.create()
                 .withProjectDir(testProjectDir.root)
-                .withArguments("deployNodes", "-s", "--info", "-g", testGradleUserHome)
+                .withArguments("deployNodes", "-s", "--getInfo", "-g", testGradleUserHome)
                 .withPluginClasspath()
     }
 
