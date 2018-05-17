@@ -4,6 +4,8 @@
 
 ### Version 4.0.20
 
+* `cordformation`: Use default parent classpath when loading `NetworkBootstrapper` to stop node picking up plugin dependencies.  
+
 ### Version 4.0.19
 
 ### Version 4.0.18
@@ -18,6 +20,7 @@
 
  * `api-scanner`: Write each annotation on a new line and remove its package name; remove `@Deprecated` annotations from the generated output.
  * `api-scanner`: Remove the `@JvmDefault` annotation from the generated output.
+ * `api-scanner`: Add generic parameters to the api scanner output
 
 ### Version 4.0.15
 
