@@ -1,7 +1,6 @@
 package net.corda.plugins
 
 import org.gradle.api.*
-import org.gradle.api.artifacts.*
 import org.gradle.jvm.tasks.Jar
 import java.io.File
 
@@ -16,9 +15,9 @@ class CordappPlugin : Plugin<Project> {
     }
 
     /**
-     * CorDapp's distribution information.
+     * CorDapp's information.
      */
-    lateinit var cordappInfo: CordappInfoExtension
+    lateinit var cordapp: CordappExtension
 
     override fun apply(project: Project) {
         project.logger.info("Configuring ${project.name} as a cordapp")
@@ -27,8 +26,8 @@ class CordappPlugin : Plugin<Project> {
         Utils.createCompileConfiguration("cordaCompile", project)
         Utils.createRuntimeConfiguration("cordaRuntime", project)
 
-        cordappInfo = project.extensions.create("cordappInfo", CordappInfoExtension::class.java)
-        cordappInfo.setProject(project)
+        cordapp = project.extensions.create("cordapp", CordappExtension::class.java)
+        cordapp.setProject(project)
 
         configureCordappJar(project)
     }
@@ -42,11 +41,11 @@ class CordappPlugin : Plugin<Project> {
         val jarTask = project.tasks.getByName("jar") as Jar
         jarTask.doFirst {
             val attributes = jarTask.manifest.attributes
-            attributes["Name"] = cordappInfo.name ?: "${project.group}.${jarTask.baseName}"
-            attributes["Implementation-Version"] = cordappInfo.version ?: project.version
-            attributes["Implementation-Vendor"] = cordappInfo.vendor ?: UNKNOWN
+            attributes["Name"] = cordapp.info?.name ?: "${project.group}.${jarTask.baseName}"
+            attributes["Implementation-Version"] = cordapp.info?.version ?: project.version
+            attributes["Implementation-Vendor"] = cordapp.info?.vendor ?: UNKNOWN
             if (attributes["Implementation-Vendor"] == UNKNOWN) {
-                project.logger.warn("CordApp's vendor is \"$UNKNOWN\". Please specify it in \"cordappInfo.vendor\".")
+                project.logger.warn("CordApp's vendor is \"$UNKNOWN\". Please specify it in \"cordapp.info.vendor\".")
             }
         }
         task.doLast {

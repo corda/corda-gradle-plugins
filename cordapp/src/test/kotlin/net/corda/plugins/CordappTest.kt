@@ -29,7 +29,7 @@ class CordappTest {
     }
 
     @Test
-    fun `a cordapp with a cordappInfo block`() {
+    fun `a cordapp with a cordapp info block`() {
         val expectedName = "test cordapp"
         val expectedVersion = "3.2.1"
         val expectedVendor = "test vendor"

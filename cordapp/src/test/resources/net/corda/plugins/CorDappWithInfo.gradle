@@ -14,8 +14,10 @@ jar {
     baseName 'test-cordapp'
 }
 
-cordappInfo {
-    name name_info_arg
-    version version_info_arg
-    vendor vendor_info_arg
+cordapp {
+    info {
+        name name_info_arg
+        version version_info_arg
+        vendor vendor_info_arg
+    }
 }
