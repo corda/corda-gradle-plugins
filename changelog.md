@@ -5,6 +5,7 @@
 ### Version 4.0.20
 
 * `cordformation`: Use default parent classpath when loading `NetworkBootstrapper` to stop node picking up plugin dependencies.  
+* `cordformation`: Ensure that subclasses of `CordformDefinition` cannot access anything on the Gradle plugins classpath.
 
 ### Version 4.0.19
 

@@ -5,8 +5,10 @@ import net.corda.cordform.CordformDefinition
 import org.gradle.api.DefaultTask
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.tasks.SourceSet.MAIN_SOURCE_SET_NAME
+import org.slf4j.Logger
 import java.io.File
 import java.lang.reflect.InvocationTargetException
+import java.net.URL
 import java.net.URLClassLoader
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -78,7 +80,7 @@ open class Baseform : DefaultTask() {
         val plugin = project.convention.getPlugin(JavaPluginConvention::class.java)
         val classpath = plugin.sourceSets.getByName(MAIN_SOURCE_SET_NAME).runtimeClasspath
         val urls = classpath.files.map { it.toURI().toURL() }.toTypedArray()
-        return URLClassLoader(urls, CordformDefinition::class.java.classLoader)
+        return CordformClassLoader(urls, logger)
                 .loadClass(definitionClass)
                 .asSubclass(CordformDefinition::class.java)
                 .newInstance()
@@ -170,6 +172,38 @@ open class Baseform : DefaultTask() {
                 }
             }
             return false
+        }
+    }
+
+    /**
+     * This classloader ensures that classes in the Gradle project cannot access anything on
+     * the Gradle plugins classpath. The only exceptions to this are the net.corda.cordform.*
+     * classes and their dependencies (Kotlin and Typesafe Config), because these classes
+     * exist on both the project and the plugins classpaths.
+     *
+     * This plugin MUST load every net.corda.cordform.* class from the same classloader to
+     * ensure consistency. E.g. two [CordformDefinition] classes are assignment-incompatible
+     * if they have different classloaders.
+     *
+     * Note that this classloader's parent is the system classloader.
+     */
+    class CordformClassLoader(
+        urls: Array<URL>,
+        private val logger: Logger,
+        cordform: Class<*> = CordformDefinition::class.java // parameterised for testing
+)   : URLClassLoader(urls) {
+        private val pluginClassloader: ClassLoader = cordform.classLoader
+        private val prefixes: List<String>
+                      = listOf(cordform.`package`.name + '.', "com.typesafe.config.", "org.jetbrains.kotlin.")
+
+        override fun loadClass(name: String, resolve: Boolean): Class<*> {
+            synchronized(getClassLoadingLock(name)) {
+                if (prefixes.any { name.startsWith(it) }) {
+                    logger.debug("-- load from plugins --> {}", name)
+                    return pluginClassloader.loadClass(name)
+                }
+                return super.loadClass(name, resolve)
+            }
         }
     }
 }
