@@ -2,8 +2,6 @@ package net.corda.plugins
 
 import org.apache.tools.ant.filters.FixCrLfFilter
 import org.gradle.api.tasks.TaskAction
-import java.nio.file.Path
-import java.nio.file.Paths
 
 /**
  * Creates nodes based on the configuration of this task in the gradle configuration DSL.
@@ -13,7 +11,7 @@ import java.nio.file.Paths
 @Suppress("unused")
 open class Cordform : Baseform() {
     internal companion object {
-        val nodeJarName = "corda.jar"
+        const val nodeJarName = "corda.jar"
     }
 
     /**
