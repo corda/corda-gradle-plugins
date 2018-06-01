@@ -2,6 +2,12 @@
 
 ## Version 4
 
+### Version 4.0.23
+
+### Version 4.0.22
+
+* `cordformation`,`cordapp`: `ENT-1871 Rebrand R3Corda to Corda Enterprise
+
 ### Version 4.0.21
 
 ### Version 4.0.20
