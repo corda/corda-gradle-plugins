@@ -4,9 +4,11 @@
 
 ### Version 4.0.23
 
+* `publish-utils`: CORDA-1576 Support publishing non-default JAR artifacts.
+
 ### Version 4.0.22
 
-* `cordformation`,`cordapp`: `ENT-1871 Rebrand R3Corda to Corda Enterprise
+* `cordformation`,`cordapp`: ENT-1871 Rebrand R3Corda to Corda Enterprise.
 
 ### Version 4.0.21
 

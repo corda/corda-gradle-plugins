@@ -1,5 +1,7 @@
 package net.corda.plugins
 
+import org.gradle.api.artifacts.Configuration
+
 class ProjectPublishExtension {
     private PublishTasks task
 
@@ -41,4 +43,24 @@ class ProjectPublishExtension {
      * True if publishing javadoc to remote repositories
      */
     Boolean publishJavadoc = true
+
+    /**
+     * The Gradle configuration that defines this artifact's dependencies.
+     * This overrides the dependencies that would otherwise be derived
+     * from "components.java" or "components.web".
+     * Implies both "disableDefaultJar=true" and "publishWar=false"
+     *
+     * <pre>
+     * {@code
+     * publish {
+     *     dependenciesFrom configurations.runtimeArtifacts
+     * }
+     * }
+     * </pre>
+     *
+     * @param dependencies
+     */
+    void dependenciesFrom(Configuration dependencies) {
+        task.publishDependencies = dependencies
+    }
 }

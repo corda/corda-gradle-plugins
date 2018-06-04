@@ -1,8 +1,9 @@
 package net.corda.plugins
 
 import org.gradle.api.*
+import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.ResolvedConfiguration
 import org.gradle.api.tasks.bundling.Jar
-import org.gradle.api.Project
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.publish.maven.MavenPom
 import net.corda.plugins.bintray.*
@@ -18,6 +19,7 @@ import net.corda.plugins.bintray.*
 class PublishTasks implements Plugin<Project> {
     Project project
     String publishName
+    Configuration publishDependencies
     ProjectPublishExtension publishConfig
 
     void apply(Project project) {
@@ -42,7 +44,7 @@ class PublishTasks implements Plugin<Project> {
     void checkAndConfigurePublishing() {
         project.logger.info("Checking whether to publish $publishName")
         def bintrayConfig = project.rootProject.extensions.findByType(BintrayConfigExtension.class)
-        if((bintrayConfig != null) && (bintrayConfig.publications) && (bintrayConfig.publications.findAll { it == publishName }.size() > 0)) {
+        if ((bintrayConfig != null) && (bintrayConfig.publications) && (bintrayConfig.publications.any { it == publishName })) {
             configurePublishing(bintrayConfig)
         }
     }
@@ -74,7 +76,9 @@ class PublishTasks implements Plugin<Project> {
                 delegate.artifact it
             }
 
-            if (!publishConfig.disableDefaultJar && !publishConfig.publishWar) {
+            if (publishDependencies != null) {
+                fromConfiguration(pom, publishDependencies.resolvedConfiguration)
+            } else if (!publishConfig.disableDefaultJar && !publishConfig.publishWar) {
                 from project.components.java
             } else if (publishConfig.publishWar) {
                 from project.components.web
@@ -83,6 +87,25 @@ class PublishTasks implements Plugin<Project> {
             extendPomForMavenCentral(pom, bintrayConfig)
         }
         project.task("install", dependsOn: "publishToMavenLocal")
+    }
+
+    void fromConfiguration(MavenPom pom, ResolvedConfiguration configuration) {
+        pom.withXml {
+            // Ensure that we use these artifacts' published names, because
+            // these aren't necessarily the same as their internal names.
+            def artifactDependencies = configuration.resolvedArtifacts.collectEntries {
+                [ (it.moduleVersion.id):it.name ]
+            }
+            def dependenciesNode = asNode().appendNode('dependencies')
+
+            configuration.firstLevelModuleDependencies.each {
+                def dependencyNode = dependenciesNode.appendNode('dependency')
+                dependencyNode.appendNode('groupId', it.moduleGroup)
+                dependencyNode.appendNode('artifactId', artifactDependencies[it.module.id])
+                dependencyNode.appendNode('version', it.moduleVersion)
+                dependencyNode.appendNode('scope', 'runtime')
+            }
+        }
     }
 
     // Maven central requires all of the below fields for this to be a valid POM
