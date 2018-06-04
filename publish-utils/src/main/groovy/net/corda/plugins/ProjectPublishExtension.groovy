@@ -50,6 +50,14 @@ class ProjectPublishExtension {
      * from "components.java" or "components.web".
      * Implies both "disableDefaultJar=true" and "publishWar=false"
      *
+     * <pre>
+     * {@code
+     * publish {
+     *     dependenciesFrom configurations.runtimeArtifacts
+     * }
+     * }
+     * </pre>
+     *
      * @param dependencies
      */
     void dependenciesFrom(Configuration dependencies) {
