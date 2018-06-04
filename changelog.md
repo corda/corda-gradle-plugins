@@ -2,6 +2,8 @@
 
 ## Version 4
 
+### Version 4.0.24
+
 ### Version 4.0.23
 
 * `publish-utils`: CORDA-1576 Support publishing non-default JAR artifacts.
