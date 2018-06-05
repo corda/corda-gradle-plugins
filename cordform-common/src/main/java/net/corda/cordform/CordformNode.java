@@ -61,6 +61,11 @@ public class CordformNode implements NodeDefinition {
 
     public Map<String, Object> extraConfig = null;
 
+    /**
+     * Copy files into the node relative directory './drivers'.
+     */
+    public List<String> drivers = null;
+
     protected Config config = ConfigFactory.empty();
 
     public Config getConfig() {
