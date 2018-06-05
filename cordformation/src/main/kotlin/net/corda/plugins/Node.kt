@@ -318,6 +318,7 @@ open class Node @Inject constructor(private val project: Project) : CordformNode
             Files.write(configFile, config.toByteArray())
         }
     }
+
     /**
      * Installs the configuration file to the root directory and detokenises it.
      */
