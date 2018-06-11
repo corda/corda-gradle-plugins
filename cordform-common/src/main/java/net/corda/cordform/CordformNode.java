@@ -186,8 +186,14 @@ public class CordformNode implements NodeDefinition {
      * @param configFile The file path.
      */
     public void configFile(String configFile) {
-        setValue("configFile", configFile);
+        this.configFile = configFile;
     }
+
+    public String getConfigFile() {
+        return configFile;
+    }
+
+    private String configFile = null;
 
     private String getOptionalString(String path) {
         return config.hasPath(path) ? config.getString(path) : null;
