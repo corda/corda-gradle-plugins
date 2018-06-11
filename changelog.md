@@ -4,6 +4,8 @@
 
 ### Version 4.0.24
 
+* `cordformation`,  The `node` entry has a new optional element `drivers`, which is a list of JAR files to be copied to the `./driver` subdirectory relative to node directory (ENT-2035).
+
 ### Version 4.0.23
 
 * `publish-utils`: CORDA-1576 Support publishing non-default JAR artifacts.
