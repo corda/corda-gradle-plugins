@@ -185,13 +185,19 @@ public class CordformNode implements NodeDefinition {
         config = settings.addTo("rpcSettings", config);
     }
 
+    private String configFile;
+
     /**
      * Set the path to a file with optional properties, which are appended to the generated node.conf file.
      *
      * @param configFile The file path.
      */
     public void configFile(String configFile) {
-        setValue("configFile", configFile);
+        this.configFile = configFile;
+    }
+
+    public String getConfigFile() {
+        return configFile;
     }
 
     private String getOptionalString(String path) {
