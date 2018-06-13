@@ -384,7 +384,7 @@ open class Node @Inject constructor(private val project: Project) : CordformNode
         val optionalConfig: File? = when {
             project.findProperty(configFileProperty) != null -> //provided by -PconfigFile command line property when running Gradle task
                 File(project.findProperty(configFileProperty) as String)
-            config.hasPath(configFileProperty) -> File(config.getString(configFileProperty))
+            configFile != null -> File(configFile)
             else -> null
         }
 

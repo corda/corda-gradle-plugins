@@ -4,6 +4,8 @@
 
 ### Version 4.0.24
 
+* `cordformation`: ENT-2059 The optional `configFile` element of the `node` entry ìs no longer added to `node.conf` as it was never used by the node and it's used internally by `cordformation` only.
+
 ### Version 4.0.23
 
 * `publish-utils`: CORDA-1576 Support publishing non-default JAR artifacts.
