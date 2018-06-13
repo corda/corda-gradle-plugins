@@ -4,6 +4,8 @@
 
 ### Version 4.0.24
 
+* `cordformation`: The `node` entry has a new optional element `drivers`, which is a list of JAR files to be copied to the `./driver` subdirectory relative to node directory (ENT-2035).
+
 * `cordformation`: ENT-2059 The optional `configFile` element of the `node` entry ìs no longer added to `node.conf` as it was never used by the node and it's used internally by `cordformation` only.
 
 ### Version 4.0.23

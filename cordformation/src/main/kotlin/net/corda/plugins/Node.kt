@@ -184,6 +184,7 @@ open class Node @Inject constructor(private val project: Project) : CordformNode
             installWebserverJar()
         }
         installAgentJar()
+        installDrivers()
         installCordappConfigs()
         installConfig()
     }
@@ -268,11 +269,22 @@ open class Node @Inject constructor(private val project: Project) : CordformNode
             // TODO: revisit when classifier attribute is added. eg && (it.classifier = "agent")
         }.first()  // should always be the jolokia agent fat jar: eg. jolokia-jvm-1.3.7-agent.jar
         project.logger.info("Jolokia agent jar: $agentJar")
-        if (agentJar.isFile) {
+        copyToDriversDir(agentJar)
+    }
+
+    internal fun installDrivers() {
+        drivers?.let {
+            project.logger.info("Copy $it to './drivers' directory")
+            it.forEach { path ->  copyToDriversDir(File(path)) }
+        }
+    }
+
+    private fun copyToDriversDir(file: File) {
+        if (file.isFile) {
             val driversDir = File(nodeDir, "drivers")
             project.copy {
                 it.apply {
-                    from(agentJar)
+                    from(file)
                     into(driversDir)
                 }
             }
