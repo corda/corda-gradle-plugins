@@ -73,30 +73,27 @@ configure(publishProjects) { subproject ->
                 artifact tasks.sourceJar
                 artifact tasks.javadocJar
 
-                pom.withXml {
-                    asNode().children().last() + {
-                        resolveStrategy = DELEGATE_FIRST
-                        name subproject.name
-                        description description
-                        url 'https://github.com/corda/corda'
-                        scm {
-                            url 'https://github.com/corda/corda'
-                        }
+                pom {
+                    name = subproject.name
+                    description = subproject.description
+                    url = 'https://github.com/corda/corda'
+                    scm {
+                        url = 'https://github.com/corda/corda'
+                    }
 
-                        licenses {
-                            license {
-                                name 'Apache-2.0'
-                                url 'https://www.apache.org/licenses/LICENSE-2.0'
-                                distribution 'repo'
-                            }
+                    licenses {
+                        license {
+                            name = 'Apache-2.0'
+                            url = 'https://www.apache.org/licenses/LICENSE-2.0'
+                            distribution = 'repo'
                         }
+                    }
 
-                        developers {
-                            developer {
-                                id 'R3'
-                                name 'R3'
-                                email 'dev@corda.net'
-                            }
+                    developers {
+                        developer {
+                            id = 'R3'
+                            name = 'R3'
+                            email = 'dev@corda.net'
                         }
                     }
                 }
@@ -137,7 +134,7 @@ artifactory {
         }
 
         defaults {
-            if(publishProjects.contains(project)) {
+            if (publishProjects.contains(project)) {
                 publications(project.name)
             }
         }
