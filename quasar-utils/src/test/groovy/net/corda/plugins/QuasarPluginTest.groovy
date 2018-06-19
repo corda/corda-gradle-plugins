@@ -17,17 +17,10 @@ class QuasarPluginTest {
 
     @Test
     void checkIsRuntime() {
-        def quasarVersion = "0.7.9"
+        def quasarVersion = "0.7.10"
 
         def buildFile = testProjectDir.newFile("build.gradle")
         buildFile.text = """
-buildscript {
-    ext {
-        quasar_group = 'co.paralleluniverse'
-        quasar_version = '$quasarVersion'
-    }
-}
-
 plugins {
     id 'java'
     id 'net.corda.plugins.quasar-utils' apply false
