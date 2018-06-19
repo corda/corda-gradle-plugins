@@ -10,8 +10,6 @@ buildscript {
 
 apply plugin: 'kotlin'
 apply plugin: 'java-gradle-plugin'
-apply plugin: 'net.corda.plugins.publish-utils'
-apply plugin: 'com.jfrog.artifactory'
 
 description 'A small gradle plugin for adding some basic Quasar tasks and configurations to reduce build.gradle bloat.'
 
@@ -63,10 +61,6 @@ task createNodeRunner(type: Jar) {
     classifier = 'fatjar'
     from { configurations.noderunner.collect { it.isDirectory() ? it : zipTree(it) } }
     from sourceSets.runnodes.output
-}
-
-publish {
-    name project.name
 }
 
 processResources {

@@ -1,7 +1,5 @@
 apply plugin: 'java'
 apply plugin: 'kotlin'
-apply plugin: 'net.corda.plugins.publish-utils'
-apply plugin: 'com.jfrog.artifactory'
 
 description "These classes are the interface between Corda and Cordformation"
 // If you modify the contents of this Gradle module then you must also check
@@ -23,6 +21,3 @@ dependencies {
     compile "com.typesafe:config:$typesafe_config_version"
 }
 
-publish {
-    name project.name
-}

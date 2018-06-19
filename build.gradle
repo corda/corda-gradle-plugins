@@ -1,6 +1,3 @@
-// This script exists just to allow bootstrapping the gradle plugins if maven central or jcenter are unavailable
-// or if you are developing these plugins. See the readme for more information.
-
 buildscript {
     // For sharing constants between builds
     Properties constants = new Properties()
@@ -26,14 +23,12 @@ buildscript {
     }
 
     dependencies {
-        classpath "net.corda.plugins:publish-utils:$gradle_plugins_version"
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.3'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath "org.jfrog.buildinfo:build-info-extractor-gradle:$artifactory_plugin_version"
     }
 }
 
-apply plugin: 'net.corda.plugins.publish-utils'
 apply plugin: 'com.jfrog.artifactory'
 
 allprojects {
@@ -51,30 +46,86 @@ allprojects {
     }
 }
 
-bintrayConfig {
-    user = System.getenv('CORDA_BINTRAY_USER')
-    key = System.getenv('CORDA_BINTRAY_KEY')
-    repo = 'corda'
-    org = 'r3'
-    licenses = ['Apache-2.0']
-    vcsUrl = 'https://github.com/corda/corda'
-    projectUrl = 'https://github.com/corda/corda'
-    gpgSign = true
-    gpgPassphrase = System.getenv('CORDA_BINTRAY_GPG_PASSPHRASE')
-    publications = ['cordformation', 'quasar-utils', 'cordform-common', 'api-scanner', 'cordapp']
-    license {
-        name = 'Apache-2.0'
-        url = 'https://www.apache.org/licenses/LICENSE-2.0'
-        distribution = 'repo'
+subprojects { subproject ->
+    apply plugin: 'java'
+    apply plugin: 'maven-publish'
+    apply plugin: 'com.jfrog.bintray'
+    apply plugin: 'com.jfrog.artifactory'
+
+    task sourceJar(type: Jar, dependsOn: subproject.classes) {
+        classifier = 'sources'
+        from sourceSets.main.allSource
     }
-    developer {
-        id = 'R3'
-        name = 'R3'
-        email = 'dev@corda.net'
+
+    task javadocJar(type: Jar, dependsOn: subproject.javadoc) {
+        classifier = 'javadoc'
+        from javadoc.destinationDir
     }
+
+    publishing {
+        publications {
+            mavenPublish(MavenPublication) {
+                from components.java
+                groupId subproject.group
+                artifactId subproject.name
+                artifact tasks.sourceJar
+                artifact tasks.javadocJar
+
+                pom.withXml {
+                    asNode().children().last() + {
+                        resolveStrategy = DELEGATE_FIRST
+                        name subproject.name
+                        description description
+                        url 'https://github.com/corda/corda'
+                        scm {
+                            url 'https://github.com/corda/corda'
+                        }
+
+                        licenses {
+                            license {
+                                name 'Apache-2.0'
+                                url 'https://www.apache.org/licenses/LICENSE-2.0'
+                                distribution 'repo'
+                            }
+                        }
+
+                        developers {
+                            developer {
+                                id 'R3'
+                                name 'R3'
+                                email 'dev@corda.net'
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    bintray {
+        user = System.getenv('CORDA_BINTRAY_USER') || System.getProperty('corda.bintray.user')
+        key = System.getenv('CORDA_BINTRAY_KEY') || System.getPropert('corda.bintray.key')
+        publications = [subproject.name]
+        dryRun = (System.getenv('CORDA_BINTRAY_DRYRUN') != null || System.getProperty('corda.bintray.dryrun') != null)
+        pkg {
+            repo = 'corda'
+            name = subproject.name
+            userOrg = 'r3'
+            licenses = ['Apache-2.0']
+
+            version {
+                gpg {
+                    sign = true
+                    passphrase = System.getenv('CORDA_BINTRAY_GPG_PASSPHRASE')
+                }
+            }
+        }
+    }
+
+    task install(dependsOn: 'publishToMavenLocal')
 }
 
-artifactory {
+/*artifactory {
     publish {
         contextUrl = 'https://ci-artifactory.corda.r3cev.com/artifactory'
         repository {
@@ -84,17 +135,10 @@ artifactory {
         }
 
         defaults {
-            // Publish utils does not have a publish block because it would be circular for it to apply it's own
-            // extensions to itself
-            if(project.name == 'publish-utils') {
-                publications('publishUtils')
-            // Root project applies the plugin (for this block) but does not need to be published
-            } else if(project != rootProject) {
-                publications(project.extensions.publish.name())
-            }
+            publications(mavenPublish)
         }
     }
-}
+}*/
 
 wrapper {
     gradleVersion = "4.4.1"

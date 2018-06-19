@@ -1,7 +1,5 @@
 apply plugin: 'groovy'
 apply plugin: 'java-gradle-plugin'
-apply plugin: 'net.corda.plugins.publish-utils'
-apply plugin: 'com.jfrog.artifactory'
 
 description 'A small gradle plugin for adding some basic Quasar tasks and configurations to reduce build.gradle bloat.'
 
@@ -22,8 +20,4 @@ dependencies {
     compile project(':cordapp')
     testCompile "junit:junit:$junit_version"
     testCompile "org.assertj:assertj-core:$assertj_version"
-}
-
-publish {
-    name project.name
 }
