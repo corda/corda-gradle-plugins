@@ -2,11 +2,7 @@
 
 ## Version 4
 
-### Version 4.0.26
-
 ### Version 4.0.25
-
-* `quasar-utils': The plugin now does not require projects to specify `quasar_group` and `quasar_version` properties.
 
 ### Version 4.0.24
 
