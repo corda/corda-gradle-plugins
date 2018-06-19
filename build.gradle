@@ -46,7 +46,9 @@ allprojects {
     }
 }
 
-subprojects { subproject ->
+def publishProjects = project.subprojects - project('api-scanner:annotations')
+
+configure(publishProjects) { subproject ->
     apply plugin: 'java'
     apply plugin: 'maven-publish'
     apply plugin: 'com.jfrog.bintray'
@@ -64,7 +66,7 @@ subprojects { subproject ->
 
     publishing {
         publications {
-            mavenPublish(MavenPublication) {
+            create(subproject.name, MavenPublication) {
                 from components.java
                 groupId subproject.group
                 artifactId subproject.name
@@ -125,20 +127,22 @@ subprojects { subproject ->
     task install(dependsOn: 'publishToMavenLocal')
 }
 
-/*artifactory {
+artifactory {
     publish {
         contextUrl = 'https://ci-artifactory.corda.r3cev.com/artifactory'
         repository {
             repoKey = 'corda-dev'
-            username = 'teamcity'
+            username = System.getenv('CORDA_ARTIFACTORY_USERNAME')
             password = System.getenv('CORDA_ARTIFACTORY_PASSWORD')
         }
 
         defaults {
-            publications(mavenPublish)
+            if(publishProjects.contains(project)) {
+                publications(project.name)
+            }
         }
     }
-}*/
+}
 
 wrapper {
     gradleVersion = "4.4.1"
