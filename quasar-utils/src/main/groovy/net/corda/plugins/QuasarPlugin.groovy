@@ -10,8 +10,8 @@ import org.gradle.api.tasks.JavaExec
  */
 class QuasarPlugin implements Plugin<Project> {
 
-    private defaultGroup = "co.paralleluniverse"
-    private defaultVersion = "0.7.10"
+    static defaultGroup = "co.paralleluniverse"
+    static defaultVersion = "0.7.10"
 
     @Override
     void apply(Project project) {
