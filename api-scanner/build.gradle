@@ -17,6 +17,7 @@ gradlePlugin {
             implementationClass = 'net.corda.plugins.ApiScanner'
         }
     }
+    automatedPublishing = false
 }
 
 configurations {

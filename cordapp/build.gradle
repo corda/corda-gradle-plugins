@@ -15,6 +15,7 @@ gradlePlugin {
             implementationClass = 'net.corda.plugins.CordappPlugin'
         }
     }
+    automatedPublishing = false
 }
 
 dependencies {

@@ -14,6 +14,7 @@ gradlePlugin {
             implementationClass = 'net.corda.plugins.QuasarPlugin'
         }
     }
+    automatedPublishing = false
 }
 
 dependencies {

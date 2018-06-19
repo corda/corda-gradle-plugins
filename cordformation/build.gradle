@@ -38,6 +38,7 @@ gradlePlugin {
             implementationClass = 'net.corda.plugins.Cordformation'
         }
     }
+    automatedPublishing = false
 }
 
 dependencies {

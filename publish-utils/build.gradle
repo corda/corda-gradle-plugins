@@ -13,4 +13,5 @@ gradlePlugin {
             implementationClass = 'net.corda.plugins.PublishTasks'
         }
     }
+    automatedPublishing = false
 }
