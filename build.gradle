@@ -5,13 +5,13 @@ buildscript {
 
     // If you bump this version you must re-bootstrap the codebase. See the README for more information.
     ext {
-        gradle_plugins_version = constants.getProperty("gradlePluginsVersion")
-        bouncycastle_version = constants.getProperty("bouncycastleVersion")
-        typesafe_config_version = constants.getProperty("typesafeConfigVersion")
-        jsr305_version = constants.getProperty("jsr305Version")
-        kotlin_version = constants.getProperty("kotlinVersion")
-        artifactory_plugin_version = constants.getProperty('artifactoryPluginVersion')
-        snake_yaml_version = constants.getProperty('snakeYamlVersion')
+        gradle_plugins_version = '4.0.26-SNAPSHOT'
+        bouncycastle_version = '1.57'
+        typesafe_config_version = '1.3.1'
+        jsr305_version = '3.0.2'
+        kotlin_version = '1.2.41'
+        artifactory_plugin_version = '4.7.3'
+        snake_yaml_version = '1.19'
         commons_io_version = '2.6'
         assertj_version = '3.8.0'
         junit_version = '4.12'
@@ -103,7 +103,7 @@ configure(publishProjects) { subproject ->
 
     bintray {
         user = System.getenv('CORDA_BINTRAY_USER') || System.getProperty('corda.bintray.user')
-        key = System.getenv('CORDA_BINTRAY_KEY') || System.getPropert('corda.bintray.key')
+        key = System.getenv('CORDA_BINTRAY_KEY') || System.getProperty('corda.bintray.key')
         publications = [subproject.name]
         dryRun = (System.getenv('CORDA_BINTRAY_DRYRUN') != null || System.getProperty('corda.bintray.dryrun') != null)
         pkg {
