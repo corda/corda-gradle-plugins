@@ -59,6 +59,8 @@ configure(publishProjects) { subproject ->
         from javadoc.destinationDir
     }
 
+    task install(dependsOn: 'publishToMavenLocal')e
+
     publishing {
         publications {
             create(subproject.name, MavenPublication) {
@@ -115,8 +117,6 @@ configure(publishProjects) { subproject ->
             }
         }
     }
-
-    task install(dependsOn: 'publishToMavenLocal')
 }
 
 artifactory {
