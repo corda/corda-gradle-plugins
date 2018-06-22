@@ -9,17 +9,13 @@ belong in this repository.
 
 ## Version number
 
-
-To modify the version number edit constants.properties in the project root. 
+To modify the version number edit the root build.gradle.
 
 The version number should track the Corda version number it is built for. Eg; Corda `4.0` should be built as `4.0.x`.
 
 ## Getting started
 
-To bootstrap this repository you can install the publishing plugins with;
-
-    cd publish-utils
-    ../gradlew -u install
+You will need JVM 8 installed and on the path to run and install these plugins.
 
 ## Installing locally
 
