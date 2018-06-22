@@ -59,7 +59,7 @@ configure(publishProjects) { subproject ->
         from javadoc.destinationDir
     }
 
-    task install(dependsOn: 'publishToMavenLocal')e
+    task install(dependsOn: 'publishToMavenLocal')
 
     publishing {
         publications {
@@ -137,6 +137,6 @@ artifactory {
 }
 
 wrapper {
-    gradleVersion = "4.8"
+    gradleVersion = "4.8.1"
     distributionType = Wrapper.DistributionType.ALL
 }
