@@ -90,8 +90,7 @@ open class Node @Inject constructor(private val project: Project) : CordformNode
      * @param sshdPort The port for SSH server to listen on
      */
     fun sshdPort(sshdPort: Int) {
-        config = config.withValue("sshdAddress",
-                ConfigValueFactory.fromAnyRef("$DEFAULT_HOST:$sshdPort"))
+        config = config.withValue("sshd.port", ConfigValueFactory.fromAnyRef(sshdPort))
     }
 
     /**
