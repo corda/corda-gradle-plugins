@@ -43,6 +43,13 @@ public class CordformNode implements NodeDefinition {
 
     public int getRpcPort() { return rpcPort; }
 
+    private Integer sshdPort;
+
+    public Integer getSshdPort() { return sshdPort; }
+
+    public void setSshdPort(int sshdPort) {
+        this.sshdPort = sshdPort;
+    }
     /**
      * Set the RPC users for this node. This configuration block allows arbitrary configuration.
      * The recommended current structure is:

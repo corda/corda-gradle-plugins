@@ -51,10 +51,10 @@ open class Dockerform : Baseform() {
 
 
         // Transform nodes path the absolute ones
-        val services = nodes.map { it.containerName to mapOf(
+        val services = nodes.map {
+            it.containerName to mapOf(
                 "build" to directoryPath.resolve(it.nodeDir.name).toAbsolutePath().toString(),
-                "ports" to listOf(it.rpcPort)) }.toMap()
-
+                "ports" to listOf(it.rpcPort, it.sshdPort).filterNotNull()) }.toMap()
 
         val dockerComposeObject = mapOf(
                 "version" to dockerComposeFileVersion,
