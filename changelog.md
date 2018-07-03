@@ -2,7 +2,7 @@
 
 ## Version 4
 
-### Version 4.0.27
+### Version 4.0.26
 
 * `cordformation`: The `sshd` port entry in `node` produces an entry in `node.conf` that matches the config API.
 
