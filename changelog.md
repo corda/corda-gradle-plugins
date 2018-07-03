@@ -6,6 +6,8 @@
 
 * `cordformation`: The `sshd` port entry in `node` produces an entry in `node.conf` that matches the config API.
 
+* The Dockerform task exposes the sshdPort in docker-compose.yml
+
 ### Version 4.0.26
 
 ### Version 4.0.25
