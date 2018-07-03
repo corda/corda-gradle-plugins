@@ -4,6 +4,10 @@
 
 ### Version 4.0.26
 
+* `cordformation`: The `sshd` port entry in `node` produces an entry in `node.conf` that matches the config API.
+
+### Version 4.0.26
+
 ### Version 4.0.25
 
 * `quasar-utils': The plugin now does not require projects to specify `quasar_group` and `qauas
