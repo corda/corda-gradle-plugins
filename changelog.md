@@ -4,6 +4,7 @@
 
 ### Version 4.0.26
 
+* `cordformation`: Use latest version of jolokia, when version not found in project settings.
 * `cordformation`: The `sshd` port entry in `node` produces an entry in `node.conf` that matches the config API.
 
 ### Version 4.0.26
