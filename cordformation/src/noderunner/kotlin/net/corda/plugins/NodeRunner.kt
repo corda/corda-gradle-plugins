@@ -155,8 +155,7 @@ public fun getCommandAsPerOS(dir: File,command:List<String>,nodeName:String): Li
             val command = "${unixCommand(command)}; [ $? -eq 0 -o $? -eq 143 ] || sh"
             println("is this tmux " + isTmux());
             if (isTmux()) {
-                println("this is the command " + command);
-                listOf("tmux", "new-window", "-n", nodeName, command)
+             listOf("tmux", "new-window", "-n", nodeName, command)
             } else {
                 listOf("xterm", "-T", nodeName, "-e", command)
             }
