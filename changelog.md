@@ -4,10 +4,9 @@
 
 ### Version 4.0.26
 
+* `cordapp`: Remove `cordaCompile` and `cordaRuntime` dependencies from the CorDapp's transitive dependencies.
 * `cordformation`: Use latest version of jolokia, when version not found in project settings.
 * `cordformation`: The `sshd` port entry in `node` produces an entry in `node.conf` that matches the config API.
-
-### Version 4.0.26
 
 ### Version 4.0.25
 
