@@ -126,7 +126,7 @@ private class HeadlessJavaCommand(jarType: JarType, dir: File, debugPort: Int?, 
     : JavaCommand(jarType.jarName, dir, debugPort, monitoringPort, jarType.enableJolokia, dir.name, if(isTmux()) args else jarType.headlessArgs + args, jvmArgs) {
     override fun processBuilder(): ProcessBuilder {
         println("Running command: ${command.joinToString(" ")}")
-        return if (isTmux())
+        return if (isTmux() && os == OS.LINUX)
             ProcessBuilder(getCommandAsPerOS(dir,command,nodeName))
         else
             ProcessBuilder(command).redirectError(File("error.$nodeName.log")).inheritIO()
