@@ -2,6 +2,8 @@
 
 ## Version 4
 
+### Version 4.0.27
+
 ### Version 4.0.26
 
 * `cordapp`: Remove `cordaCompile` and `cordaRuntime` dependencies from the CorDapp's transitive dependencies.
