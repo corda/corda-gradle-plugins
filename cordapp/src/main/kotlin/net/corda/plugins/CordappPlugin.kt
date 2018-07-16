@@ -1,6 +1,8 @@
 package net.corda.plugins
 
 import org.gradle.api.*
+import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.Dependency
 import org.gradle.jvm.tasks.Jar
 import java.io.File
 
@@ -95,6 +97,10 @@ class CordappPlugin : Plugin<Project> {
                 project.logger.info("Including dependency in CorDapp JAR: $it")
             }
         }
-        return filteredDeps.map { runtimeConfiguration.files(it) }.flatten().toSet()
+        return filteredDeps.toUniqueFiles(runtimeConfiguration) - excludeDeps.toUniqueFiles(runtimeConfiguration)
+    }
+
+    private fun Iterable<Dependency>.toUniqueFiles(configuration: Configuration): Set<File> {
+        return map { configuration.files(it) }.flatten().toSet()
     }
 }
