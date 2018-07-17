@@ -5,6 +5,9 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.jvm.tasks.Jar
 import java.io.File
+import java.io.FileInputStream
+import java.util.*
+import java.util.regex.Pattern
 
 /**
  * The Cordapp plugin will turn a project into a cordapp project which builds cordapp JARs with the correct format
@@ -24,6 +27,8 @@ class CordappPlugin : Plugin<Project> {
     override fun apply(project: Project) {
         project.logger.info("Configuring ${project.name} as a cordapp")
 
+        verifyGradleVersion(project)
+
         Utils.createCompileConfiguration("cordapp", project)
         Utils.createCompileConfiguration("cordaCompile", project)
         Utils.createRuntimeConfiguration("cordaRuntime", project)
@@ -32,6 +37,34 @@ class CordappPlugin : Plugin<Project> {
         cordapp.setProject(project)
 
         configureCordappJar(project)
+    }
+
+    /**
+     * Verifies that the version of Gradle the project is built with matches gradle-wrapper config if one exists
+     */
+    private fun verifyGradleVersion(project: Project) {
+        val gradleWrapperConfig = File(project.rootProject.projectDir!!.absolutePath + "/gradle/wrapper/gradle-wrapper.properties")
+        if (gradleWrapperConfig.exists()) {
+            val props = Properties()
+            props.load(FileInputStream(gradleWrapperConfig))
+            val distributionUrl = props.getProperty("distributionUrl")
+            if (distributionUrl != null) {
+                val matcher = Pattern.compile(".*-(.*?)-[a-zA-Z]+.zip").matcher(distributionUrl)!!
+                if (matcher.matches() && matcher.groupCount() == 1) {
+                    val gradleWrapperVersion = matcher.group(1)!!
+                    val gradleProjectVersion = project.gradle.gradleVersion!!
+                    if (gradleWrapperVersion != gradleProjectVersion) {
+                        throw GradleException("Invalid Gradle version. Expected $gradleWrapperVersion but was $gradleProjectVersion. Please use ./gradlew to build the project. More information can be found here: https://docs.corda.net/cordapp-build-systems.html")
+                    }
+                } else {
+                    project.logger.warn("Couldn't determine Gradle version from the distributionUrl=$distributionUrl. Skipping Gradle version check.")
+                }
+            } else {
+                project.logger.warn("distributionUrl was not found in Gradle wrapper configuration. Skipping Gradle version check.")
+            }
+        } else {
+            project.logger.warn("Gradle wrapper configuration was not found in ${gradleWrapperConfig.path}. Skipping Gradle version check.")
+        }
     }
 
     /**
