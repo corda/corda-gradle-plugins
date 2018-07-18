@@ -159,7 +159,7 @@ task metafix(type: MetaFixerTask) {
 You can generate a JaCoCo code coverage report for the unit tests using:
 ```bash
 $ cd buildSrc
-$ ../gradlew jarfilter:jacocoTestReport
+$ ../gradlew jar-filter:jacocoTestReport
 ```
 
 ### Kotlin Metadata
@@ -186,7 +186,7 @@ Although ProtoBuf generates functions for both reading and writing the data buff
 Kotlin Reflection artifact only contains the functions for reading. This is almost certainly
 because the writing functionality has been removed from the `kotlin-reflect` JAR using
 ProGuard. However, the complete set of generated ProtoBuf classes is still available in the
-`kotlin-compiler-embeddable` JAR. The `jarfilter:kotlin-metadata` module uses ProGuard to
+`kotlin-compiler-embeddable` JAR. The `jar-filter:kotlin-metadata` module uses ProGuard to
 extracts these classes into a new `kotlin-metdata` JAR, discarding any classes that the
 ProtoBuf ones do not need and obfuscating any other ones that they do.
 

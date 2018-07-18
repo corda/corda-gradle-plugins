@@ -5,20 +5,20 @@ plugins {
 description "Kotlin's metadata-handling classes"
 
 repositories {
-    mavenLocal()
+    mavenCentral()
     jcenter()
 }
 
 configurations {
     proguard
-    runtime
-    configurations.default.extendsFrom runtime
+    runtimeOnly
+    configurations.default.extendsFrom runtimeOnly
 }
 
 dependencies {
     proguard "org.jetbrains.kotlin:kotlin-compiler-embeddable:$kotlin_version"
     proguard "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
-    runtime "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+    runtimeOnly "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 }
 
 def javaHome = System.getProperty('java.home')
@@ -38,6 +38,7 @@ task metadata(type: ProGuardTask) {
     }
 
     keepattributes '*'
+    dontobfuscate
     dontoptimize
     verbose
 
@@ -60,7 +61,7 @@ def metadataJar = metadata.outputs.files.singleFile
 task validate(type: ProGuardTask) {
     injars metadataJar
     libraryjars "$javaHome/lib/rt.jar"
-    configurations.runtime.forEach {
+    configurations.runtimeOnly.forEach {
         libraryjars it.path, filter: '!META-INF/versions/**'
     }
 
