@@ -6,7 +6,7 @@ type aliases that have been deleted. This prevents the Kotlin compiler from succ
 any elements which no longer exist.
 
 We use this plugin together with ProGuard to generate Corda's `core-deterministic` and `serialization-deterministic`
-modules. See [here](../../docs/source/deterministic-modules.rst) for more information.
+modules. See [here](https://github.com/corda/corda/blob/master/docs/source/deterministic-modules.rst) for more information.
 
 ## Usage
 This plugin is automatically available on Gradle's classpath since it lives in Corda's `buildSrc` directory.
