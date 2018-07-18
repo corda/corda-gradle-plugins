@@ -2,6 +2,8 @@
 
 ## Version 4
 
+### Version 4.0.28
+
 ### Version 4.0.27
 
 * `jar-filter`: Initial import from Corda.
