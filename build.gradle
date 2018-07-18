@@ -44,7 +44,9 @@ allprojects {
     }
 }
 
-// Only the top-level projects are plugins.
+// Only the top-level projects are plugins, so only publish these ones.
+// The "child projects" are the immediate children of the root. Any
+// "grandchild" project is considered to be internal to its parent.
 def publishProjects = project.childProjects.values()
 
 configure(publishProjects) { subproject ->
