@@ -1,0 +1,100 @@
+plugins {
+    id 'com.github.johnrengelman.shadow' version '2.0.4' apply false
+    id 'java-gradle-plugin'
+    id 'jacoco'
+}
+apply plugin: 'kotlin'
+
+description 'Deletes or stubs out unwanted elements from Java/Kotlin byte-code.'
+
+repositories {
+    mavenCentral()
+    jcenter()
+}
+
+gradlePlugin {
+    plugins {
+        jarFilterPlugin {
+            id = 'net.corda.plugins.jar-filter'
+            implementationClass = 'net.corda.gradle.jarfilter.JarFilterPlugin'
+        }
+    }
+    automatedPublishing = false
+}
+
+configurations {
+    plugin
+    shadow
+    jacocoRuntime
+}
+
+processTestResources {
+    filesMatching('**/build.gradle') {
+        expand(['kotlin_version': kotlin_version])
+    }
+    filesMatching('gradle.properties') {
+        expand(['jacocoAgent': configurations.jacocoRuntime.asPath.replace('\\', '/'),
+                'buildDir': buildDir])
+    }
+}
+
+dependencies {
+    shadow gradleApi()
+    shadow localGroovy()
+    shadow "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+    shadow "org.ow2.asm:asm:$asm_version"
+    implementation configurations.shadow
+    implementation project(':jar-filter:kotlin-metadata')
+    plugin configurations.runtimeClasspath - configurations.shadow
+
+    testImplementation "org.jetbrains.kotlin:kotlin-test-junit"
+    testImplementation "org.jetbrains.kotlin:kotlin-reflect"
+    testImplementation "org.assertj:assertj-core:$assertj_version"
+    testImplementation "junit:junit:$junit_version"
+    testImplementation project(':jar-filter:unwanteds')
+
+    jacocoRuntime "org.jacoco:org.jacoco.agent:${jacoco.toolVersion}:runtime"
+}
+
+jar {
+    classifier 'ignore'
+}
+
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+task shadowJar(type: ShadowJar) {
+    configurations = [project.configurations.plugin]
+    from jar
+
+    relocate('org.jetbrains.kotlin', 'net.corda.gradle.jarfilter.org.jetbrains.kotlin') {
+        exclude 'org.jetbrains.kotlin.com.google.**'
+    }
+    relocate 'org.jetbrains.kotlin.com.google', 'net.corda.gradle.jarfilter.com.google'
+    relocate 'one.util.streamex', 'net.corda.gradle.jarfilter.one.util.streamex'
+    relocate 'javaslang', 'net.corda.gradle.jarfilter.javaslang'
+}
+jar.finalizedBy shadowJar
+
+artifacts {
+    shadow shadowJar
+}
+
+// We need to modify how the publish task works.
+ext {
+    mavenArtifacts = {
+        it.artifact shadowJar
+    }
+
+    mavenPom = {
+        it.name = 'Jar Filter'
+        it.withXml {
+            def dependenciesNode = asNode().appendNode('dependencies')
+            configurations.shadow.resolvedConfiguration.firstLevelModuleDependencies.forEach {
+                def dependency = dependenciesNode.appendNode('dependency')
+                dependency.appendNode('groupId', it.moduleGroup)
+                dependency.appendNode('artifactId', it.moduleName)
+                dependency.appendNode('version', it.moduleVersion)
+                dependency.appendNode('scope', 'runtime')
+            }
+        }
+    }
+}
