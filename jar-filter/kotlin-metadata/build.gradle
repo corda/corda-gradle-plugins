@@ -27,13 +27,13 @@ def originalJar = configurations.proguard.files.find { it.name.startsWith("kotli
 import proguard.gradle.ProGuardTask
 task metadata(type: ProGuardTask) {
     injars originalJar, filter: 'META-INF/MANIFEST.MF,META-INF/metadata*.kotlin_module,**.class'
-    outjars "$buildDir/libs/${project.name}-${kotlin_version}.jar"
+    outjars file("$buildDir/libs/${project.name}-${kotlin_version}.jar")
 
-    libraryjars "$javaHome/lib/rt.jar"
-    libraryjars "$javaHome/../lib/tools.jar"
+    libraryjars file("$javaHome/lib/rt.jar")
+    libraryjars file("$javaHome/../lib/tools.jar")
     configurations.proguard.forEach {
         if (originalJar != it) {
-            libraryjars it.path, filter: '!META-INF/versions/**'
+            libraryjars it, filter: '!META-INF/versions/**'
         }
     }
 
@@ -60,9 +60,9 @@ def metadataJar = metadata.outputs.files.singleFile
 
 task validate(type: ProGuardTask) {
     injars metadataJar
-    libraryjars "$javaHome/lib/rt.jar"
+    libraryjars file("$javaHome/lib/rt.jar")
     configurations.runtimeOnly.forEach {
-        libraryjars it.path, filter: '!META-INF/versions/**'
+        libraryjars it, filter: '!META-INF/versions/**'
     }
 
     keepattributes '*'
