@@ -11,14 +11,14 @@ repositories {
 
 configurations {
     proguard
-    runtimeOnly
-    configurations.default.extendsFrom runtimeOnly
+    runtimeClasspath
+    configurations.default.extendsFrom runtimeClasspath
 }
 
 dependencies {
     proguard "org.jetbrains.kotlin:kotlin-compiler-embeddable:$kotlin_version"
     proguard "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
-    runtimeOnly "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+    runtimeClasspath "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 }
 
 def javaHome = System.getProperty('java.home')
@@ -61,7 +61,7 @@ def metadataJar = metadata.outputs.files.singleFile
 task validate(type: ProGuardTask) {
     injars metadataJar
     libraryjars file("$javaHome/lib/rt.jar")
-    configurations.runtimeOnly.forEach {
+    configurations.runtimeClasspath.forEach {
         libraryjars it, filter: '!META-INF/versions/**'
     }
 
