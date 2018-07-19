@@ -28,7 +28,7 @@ private object monitoringPortAlloc {
 
 fun main(args: Array<String>) {
     val startedProcesses = mutableListOf<Process>()
-    val headless = GraphicsEnvironment.isHeadless() || args.contains(HEADLESS_FLAG)
+    val headless = ((!isTmux() && GraphicsEnvironment.isHeadless()) || args.contains(HEADLESS_FLAG))
     val capsuleDebugMode = args.contains(CAPSULE_DEBUG_FLAG)
     val workingDir = File(System.getProperty("user.dir"))
     val javaArgs = args.filter { it != HEADLESS_FLAG && it != CAPSULE_DEBUG_FLAG }
@@ -104,7 +104,8 @@ private abstract class JavaCommand(
             try {
                 val jolokiaJvmArgs = "-javaagent:drivers/$jolokiaJar=port=$monitoringPort,logHandlerClass=net.corda.node.JolokiaSlf4jAdapter"
                 jvmArgs.add(jolokiaJvmArgs)
-            } catch (e: RuntimeException) {
+            }
+            catch(e: RuntimeException) {
                 println("${e.message}. Continuing without Jolokia instrumentation ...")
             }
         }
@@ -123,59 +124,52 @@ private abstract class JavaCommand(
 }
 
 private class HeadlessJavaCommand(jarType: JarType, dir: File, debugPort: Int?, monitoringPort: Int?, args: List<String>, jvmArgs: List<String>)
-    : JavaCommand(jarType.jarName, dir, debugPort, monitoringPort, jarType.enableJolokia, dir.name, if(isTmux()) args else jarType.headlessArgs + args, jvmArgs) {
+    : JavaCommand(jarType.jarName, dir, debugPort, monitoringPort, jarType.enableJolokia, dir.name, jarType.headlessArgs + args, jvmArgs) {
     override fun processBuilder(): ProcessBuilder {
         println("Running command: ${command.joinToString(" ")}")
-        return if (isTmux() && os == OS.LINUX)
-            ProcessBuilder(getCommandAsPerOS(dir,command,nodeName))
-        else
-            ProcessBuilder(command).redirectError(File("error.$nodeName.log")).inheritIO()
+        return ProcessBuilder(command).redirectError(File("error.$nodeName.log")).inheritIO()
     }
 
     override fun getJavaPath() = File(File(System.getProperty("java.home"), "bin"), "java").path
 }
 
-
-public fun getCommandAsPerOS(dir: File,command:List<String>,nodeName:String): List<String> {
-    val params = when (os) {
-        OS.MACOS -> {
-            listOf("osascript", "-e", """tell app "Terminal"
-        activate
-        delay 0.5
-        tell app "System Events" to tell process "Terminal" to keystroke "t" using command down
-        delay 0.5
-        do script "bash -c 'cd \"$dir\" ; \"${command.joinToString("""\" \"""")}\" && exit'" in selected tab of the front window
-    end tell""")
-        }
-        OS.WINDOWS -> {
-            listOf("cmd", "/C", "start ${command.joinToString(" ") { windowsSpaceEscape(it) }}")
-        }
-        OS.LINUX -> {
-            // Start shell to keep window open unless java terminated normally or due to SIGTERM:
-            val command = "${unixCommand(command)}; [ $? -eq 0 -o $? -eq 143 ] || sh"
-            println("is this tmux " + isTmux());
-            if (isTmux()) {
-             listOf("tmux", "new-window", "-n", nodeName, command)
-            } else {
-                listOf("xterm", "-T", nodeName, "-e", command)
-            }
-        }
-    }
-    return params
-}
 private class TerminalWindowJavaCommand(jarType: JarType, dir: File, debugPort: Int?, monitoringPort: Int?, args: List<String>, jvmArgs: List<String>)
     : JavaCommand(jarType.jarName, dir, debugPort, monitoringPort, jarType.enableJolokia, "${dir.name}-${jarType.jarName}", args, jvmArgs) {
     override fun processBuilder(): ProcessBuilder {
-        val params = getCommandAsPerOS(dir,command,nodeName)
+        val params = when (os) {
+            OS.MACOS -> {
+                listOf("osascript", "-e", """tell app "Terminal"
+    activate
+    delay 0.5
+    tell app "System Events" to tell process "Terminal" to keystroke "t" using command down
+    delay 0.5
+    do script "bash -c 'cd \"$dir\" ; \"${command.joinToString("""\" \"""")}\" && exit'" in selected tab of the front window
+end tell""")
+            }
+            OS.WINDOWS -> {
+                listOf("cmd", "/C", "start ${command.joinToString(" ") { windowsSpaceEscape(it) }}")
+            }
+            OS.LINUX -> {
+                // Start shell to keep window open unless java terminated normally or due to SIGTERM:
+                val command = "${unixCommand()}; [ $? -eq 0 -o $? -eq 143 ] || sh"
+                if (isTmux()) {
+                    listOf("tmux", "new-window", "-n", nodeName, command)
+                } else {
+                    listOf("xterm", "-T", nodeName, "-e", command)
+                }
+            }
+        }
         println("Running command: ${params.joinToString(" ")}")
         return ProcessBuilder(params)
     }
+
+    private fun unixCommand() = command.map(::quotedFormOf).joinToString(" ")
     override fun getJavaPath(): String = File(File(System.getProperty("java.home"), "bin"), "java").path
 
+    // Replace below is to fix an issue with spaces in paths on Windows.
+    // Quoting the entire path does not work, only the space or directory within the path.
+    private fun windowsSpaceEscape(s:String) = s.replace(" ", "\" \"")
 }
-// Replace below is to fix an issue with spaces in paths on Windows.
-// Quoting the entire path does not work, only the space or directory within the path.
-private fun windowsSpaceEscape(s: String) = s.replace(" ", "\" \"")
-private fun unixCommand(command:List<String>) = command.map(::quotedFormOf).joinToString(" ")
+
 private fun quotedFormOf(text: String) = "'${text.replace("'", "'\\''")}'" // Suitable for UNIX shells.
 private fun isTmux() = System.getenv("TMUX")?.isNotEmpty() ?: false
