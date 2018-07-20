@@ -28,7 +28,7 @@ private object monitoringPortAlloc {
 
 fun main(args: Array<String>) {
     val startedProcesses = mutableListOf<Process>()
-    val headless = GraphicsEnvironment.isHeadless() || args.contains(HEADLESS_FLAG)
+    val headless = ((!isTmux() && GraphicsEnvironment.isHeadless()) || args.contains(HEADLESS_FLAG))
     val capsuleDebugMode = args.contains(CAPSULE_DEBUG_FLAG)
     val workingDir = File(System.getProperty("user.dir"))
     val javaArgs = args.filter { it != HEADLESS_FLAG && it != CAPSULE_DEBUG_FLAG }
