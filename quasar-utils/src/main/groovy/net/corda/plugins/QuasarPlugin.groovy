@@ -10,27 +10,29 @@ import org.gradle.api.tasks.JavaExec
  */
 class QuasarPlugin implements Plugin<Project> {
 
-    static defaultGroup = "co.paralleluniverse"
-    static defaultVersion = "0.7.10"
+    static final defaultGroup = "co.paralleluniverse"
+    static final defaultVersion = "0.7.10"
 
     @Override
     void apply(Project project) {
         Utils.createRuntimeConfiguration("cordaRuntime", project)
-
         project.configurations.create("quasar")
 
-        def quasarGroup = project.rootProject.hasProperty("quasar_group") ? project.rootProject.ext.quasar_group : defaultGroup
-        def quasarVersion = project.rootProject.hasProperty("quasar_version") ? project.rootProject.ext.quasar_version : defaultVersion
-//        To add a local .jar dependency:
-//        project.dependencies.add("quasar", project.files("${project.rootProject.projectDir}/lib/quasar.jar"))
-        project.dependencies.add("quasar", "${quasarGroup}:quasar-core:${quasarVersion}:jdk8@jar")
-        project.dependencies.add("cordaRuntime", project.configurations.getByName("quasar"))
+        def rootProject = project.rootProject
+        def quasarGroup = rootProject.hasProperty("quasar_group") ? rootProject.ext.quasar_group : defaultGroup
+        def quasarVersion = rootProject.hasProperty("quasar_version") ? rootProject.ext.quasar_version : defaultVersion
+        def quasarDependency = "${quasarGroup}:quasar-core:${quasarVersion}:jdk8@jar"
+        project.dependencies.add("quasar", quasarDependency)
+        project.dependencies.add("cordaRuntime", quasarDependency) {
+            // Ensure that Quasar's transitive dependencies are available at runtime (only).
+            it.transitive = true
+        }
 
-        project.tasks.withType(Test) {
+        project.tasks.withType(Test).all {
             jvmArgs "-javaagent:${project.configurations.quasar.singleFile}"
             jvmArgs "-Dco.paralleluniverse.fibers.verifyInstrumentation"
         }
-        project.tasks.withType(JavaExec) {
+        project.tasks.withType(JavaExec).all {
             jvmArgs "-javaagent:${project.configurations.quasar.singleFile}"
             jvmArgs "-Dco.paralleluniverse.fibers.verifyInstrumentation"
         }
