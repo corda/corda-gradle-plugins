@@ -2,6 +2,8 @@
 
 ## Version 4
 
+### Version 4.0.29
+
 ### Version 4.0.28
 
 * `quasar-utils`: Add `quasar-core` to the `compileClasspath` configuration, and its transitive dependencies to the `runtimeClasspath` configuration.
