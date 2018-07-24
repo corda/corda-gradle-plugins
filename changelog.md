@@ -4,6 +4,8 @@
 
 ### Version 4.0.28
 
+* `quasar-utils`: Add `quasar-core` to the `compileClasspath` configuration, and its transitive dependencies to the `runtimeClasspath` configuration.
+
 ### Version 4.0.27
 
 * `jar-filter`: Initial import from Corda.

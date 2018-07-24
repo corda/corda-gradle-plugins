@@ -15,9 +15,10 @@ fun Project.configuration(name: String): Configuration = configurations.single {
 class Utils {
     companion object {
         fun createCompileConfiguration(name: String, project: Project) {
-            if(!project.configurations.any { it.name == name }) {
-                val configuration = project.configurations.create(name)
-                configuration.isTransitive = false
+            if (project.configurations.none { it.name == name }) {
+                val configuration = project.configurations.create(name) {
+                    it.isTransitive = false
+                }
                 project.configurations.single { it.name == "compile" }.extendsFrom(configuration)
             }
         }
@@ -25,9 +26,10 @@ class Utils {
         // This function is called from the groovy quasar-utils plugin.
         @JvmStatic
         fun createRuntimeConfiguration(name: String, project: Project) {
-            if(!project.configurations.any { it.name == name }) {
-                val configuration = project.configurations.create(name)
-                configuration.isTransitive = false
+            if (project.configurations.none { it.name == name }) {
+                val configuration = project.configurations.create(name) {
+                    it.isTransitive = false
+                }
                 project.configurations.single { it.name == "runtime" }.extendsFrom(configuration)
             }
         }
