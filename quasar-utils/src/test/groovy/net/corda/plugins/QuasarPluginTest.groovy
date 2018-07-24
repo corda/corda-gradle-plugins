@@ -35,21 +35,17 @@ jar {
     enabled = false
 }
 
-configurations.quasar.forEach {
-    println "quasar: \${it.name}"
-}
-
-configurations.cordaRuntime.forEach {
-    println "cordaRuntime: \${it.name}"
-}
-
-configurations.compileClasspath.forEach {
-    println "compileClasspath: \${it.name}"
+def configs = configurations.matching { it.name in ['quasar', 'cordaRuntime', 'compileOnly', 'compileClasspath'] }
+configs.collectEntries { [(it.name):it] }.forEach { name, files ->
+    files.forEach { file ->
+        println "\$name: \${file.name}"
+    }
 }
 """
         assertThat(output).containsOnlyOnce(
             "quasar: quasar-core-$QUASAR_VERSION-jdk8.jar".toString(),
             "cordaRuntime: quasar-core-$QUASAR_VERSION-jdk8.jar".toString(),
+            "compileOnly: quasar-core-$QUASAR_VERSION-jdk8.jar".toString(),
             "compileClasspath: quasar-core-$QUASAR_VERSION-jdk8.jar".toString()
         )
     }
@@ -84,21 +80,17 @@ jar {
     enabled = false
 }
 
-configurations.quasar.forEach {
-    println "quasar: \${it.name}"
-}
-
-configurations.cordaRuntime.forEach {
-    println "cordaRuntime: \${it.name}"
-}
-
-configurations.compileClasspath.forEach {
-    println "compileClasspath: \${it.name}"
+def configs = configurations.matching { it.name in ['quasar', 'cordaRuntime', 'compileOnly', 'compileClasspath'] }
+configs.collectEntries { [(it.name):it] }.forEach { name, files ->
+    files.forEach { file ->
+        println "\$name: \${file.name}"
+    }
 }
 """
         assertThat(output).containsOnlyOnce(
             "quasar: quasar-core-$quasarVersion-jdk8.jar".toString(),
             "cordaRuntime: quasar-core-$quasarVersion-jdk8.jar".toString(),
+            "compileOnly: quasar-core-$quasarVersion-jdk8.jar".toString(),
             "compileClasspath: quasar-core-$quasarVersion-jdk8.jar".toString()
         )
     }
@@ -123,24 +115,16 @@ jar {
     enabled = false
 }
 
-configurations.quasar.forEach {
-    println "quasar: \${it.name}"
-}
-
-configurations.cordaRuntime.forEach {
-    println "cordaRuntime: \${it.name}"
-}
-
-configurations.compileClasspath.forEach {
-    println "compileClasspath: \${it.name}"
-}
-
-configurations.runtimeClasspath.forEach {
-    println "runtimeClasspath: \${it.name}"
+def configs = configurations.matching { it.name in ['quasar', 'cordaRuntime', 'compileClasspath', 'compileOnly', 'runtimeClasspath'] }
+configs.collectEntries { [(it.name):it] }.forEach { name, files ->
+    files.forEach { file ->
+        println "\$name: \${file.name}"
+    }
 }
 """
         assertThat(output.findAll { it.startsWith("quasar:") }).hasSize(1)
         assertThat(output.findAll { it.startsWith("cordaRuntime:") }).hasSize(1)
+        assertThat(output.findAll { it.startsWith("compileOnly:") }).hasSize(1)
         assertThat(output.findAll { it.startsWith("compileClasspath:") }).hasSize(1)
         assertThat(output.findAll { it.startsWith("runtimeClasspath:") }.size()).isGreaterThan(1)
     }
