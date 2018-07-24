@@ -4,7 +4,7 @@
 
 ### Version 4.0.28
 
-* `quasar-utils`: Ensure that `quasar-core`'s transitive dependencies are added to the `runtimeClasspath` configuration.
+* `quasar-utils`: Add `quasar-core` to the `compileClasspath` configuration, and its transitive dependencies to the `runtimeClasspath` configuration.
 
 ### Version 4.0.27
 

@@ -16,7 +16,7 @@ class QuasarPlugin implements Plugin<Project> {
     @Override
     void apply(Project project) {
         Utils.createRuntimeConfiguration("cordaRuntime", project)
-        project.configurations.create("quasar")
+        def quasar = project.configurations.create("quasar")
 
         def rootProject = project.rootProject
         def quasarGroup = rootProject.hasProperty("quasar_group") ? rootProject.ext.quasar_group : defaultGroup
@@ -27,6 +27,8 @@ class QuasarPlugin implements Plugin<Project> {
             // Ensure that Quasar's transitive dependencies are available at runtime (only).
             it.transitive = true
         }
+        // This adds Quasar to the compile classpath WITHOUT any of its transitive dependencies.
+        project.dependencies.add("compileOnly", quasar)
 
         project.tasks.withType(Test).all {
             jvmArgs "-javaagent:${project.configurations.quasar.singleFile}"

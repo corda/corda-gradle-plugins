@@ -42,10 +42,15 @@ configurations.quasar.forEach {
 configurations.cordaRuntime.forEach {
     println "cordaRuntime: \${it.name}"
 }
+
+configurations.compileClasspath.forEach {
+    println "compileClasspath: \${it.name}"
+}
 """
         assertThat(output).containsOnlyOnce(
             "quasar: quasar-core-$QUASAR_VERSION-jdk8.jar".toString(),
-            "cordaRuntime: quasar-core-$QUASAR_VERSION-jdk8.jar".toString()
+            "cordaRuntime: quasar-core-$QUASAR_VERSION-jdk8.jar".toString(),
+            "compileClasspath: quasar-core-$QUASAR_VERSION-jdk8.jar".toString()
         )
     }
 
@@ -86,12 +91,16 @@ configurations.quasar.forEach {
 configurations.cordaRuntime.forEach {
     println "cordaRuntime: \${it.name}"
 }
+
+configurations.compileClasspath.forEach {
+    println "compileClasspath: \${it.name}"
+}
 """
         assertThat(output).containsOnlyOnce(
             "quasar: quasar-core-$quasarVersion-jdk8.jar".toString(),
-            "cordaRuntime: quasar-core-$quasarVersion-jdk8.jar".toString()
+            "cordaRuntime: quasar-core-$quasarVersion-jdk8.jar".toString(),
+            "compileClasspath: quasar-core-$quasarVersion-jdk8.jar".toString()
         )
-
     }
 
     @Test
@@ -122,12 +131,17 @@ configurations.cordaRuntime.forEach {
     println "cordaRuntime: \${it.name}"
 }
 
+configurations.compileClasspath.forEach {
+    println "compileClasspath: \${it.name}"
+}
+
 configurations.runtimeClasspath.forEach {
     println "runtimeClasspath: \${it.name}"
 }
 """
         assertThat(output.findAll { it.startsWith("quasar:") }).hasSize(1)
         assertThat(output.findAll { it.startsWith("cordaRuntime:") }).hasSize(1)
+        assertThat(output.findAll { it.startsWith("compileClasspath:") }).hasSize(1)
         assertThat(output.findAll { it.startsWith("runtimeClasspath:") }.size()).isGreaterThan(1)
     }
 
