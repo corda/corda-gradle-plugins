@@ -1,6 +1,9 @@
 package net.corda.plugins
 
-import org.gradle.api.*
+import net.corda.plugins.Utils.Companion.compareVersions
+import org.gradle.api.GradleException
+import org.gradle.api.Plugin
+import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.jvm.tasks.Jar
@@ -14,6 +17,7 @@ import java.io.File
 class CordappPlugin : Plugin<Project> {
     private companion object {
         private const val UNKNOWN = "Unknown"
+        private const val MIN_GRADLE_VERSION = "4.0"
     }
 
     /**
@@ -23,6 +27,10 @@ class CordappPlugin : Plugin<Project> {
 
     override fun apply(project: Project) {
         project.logger.info("Configuring ${project.name} as a cordapp")
+
+        if (compareVersions(project.gradle.gradleVersion, MIN_GRADLE_VERSION) < 0) {
+            throw GradleException("Gradle version ${project.gradle.gradleVersion} is below the supported minimum version $MIN_GRADLE_VERSION. Please update Gradle or consider using Gradle wrapper if it is provided with the project. More information about CorDapp build system can be found here: https://docs.corda.net/cordapp-build-systems.html")
+        }
 
         Utils.createCompileConfiguration("cordapp", project)
         Utils.createCompileConfiguration("cordaCompile", project)
