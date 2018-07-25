@@ -129,6 +129,7 @@ changes to this list.
 * Thomas Schroeter (R3)
 * Tom Menner (R3)
 * Tudor Malene (R3)
+* Tushar Singh Bora (Accenture)
 * Tim Swanson (R3)
 * Timothy Smith (Credit Suisse)
 * Tommy Lillehagen (R3)
