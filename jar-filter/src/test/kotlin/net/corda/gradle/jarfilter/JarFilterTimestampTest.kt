@@ -61,9 +61,9 @@ task jarFilter(type: JarFilterTask) {
                     output = result.output
                     println(output)
 
-                    val metafix = result.task(":jarFilter")
+                    val jarFilter = result.task(":jarFilter")
                         ?: throw AssertionError("No outcome for jarFilter task")
-                    assertEquals(SUCCESS, metafix.outcome)
+                    assertEquals(SUCCESS, jarFilter.outcome)
 
                     filteredJar = testProjectDir.pathOf("build", "filtered-libs", "timestamps-filtered.jar")
                     assertThat(filteredJar).isRegularFile()
@@ -90,12 +90,10 @@ task jarFilter(type: JarFilterTask) {
                 assertThat(entry.lastAccessTime).isNull()
                 assertThat(entry.creationTime).isNull()
 
-                if (entry.isDirectory) {
-                    ++directoryCount
-                } else if (entry.name.endsWith(".class")) {
-                    ++classCount
-                } else {
-                    ++otherCount
+                when {
+                    entry.isDirectory -> ++directoryCount
+                    entry.name.endsWith(".class") -> ++classCount
+                    else -> ++otherCount
                 }
             }
         }

@@ -91,12 +91,10 @@ task metafix(type: MetaFixerTask) {
                 assertThat(entry.lastAccessTime).isNull()
                 assertThat(entry.creationTime).isNull()
 
-                if (entry.isDirectory) {
-                    ++directoryCount
-                } else if (entry.name.endsWith(".class")) {
-                    ++classCount
-                } else {
-                    ++otherCount
+                when {
+                    entry.isDirectory -> ++directoryCount
+                    entry.name.endsWith(".class") -> ++classCount
+                    else -> ++otherCount
                 }
             }
         }
