@@ -22,20 +22,19 @@ gradlePlugin {
     automatedPublishing = false
 }
 
+allprojects {
+    tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
+        kotlinOptions {
+            jvmTarget = "1.8"
+            freeCompilerArgs = ['-Xjvm-default=enable']
+        }
+    }
+}
+
 configurations {
     plugin
     shadow
     jacocoRuntime
-}
-
-processTestResources {
-    filesMatching('**/build.gradle') {
-        expand(['kotlin_version': kotlin_version])
-    }
-    filesMatching('gradle.properties') {
-        expand(['jacocoAgent': configurations.jacocoRuntime.asPath.replace('\\', '/'),
-                'buildDir': buildDir])
-    }
 }
 
 dependencies {
@@ -54,6 +53,16 @@ dependencies {
     testImplementation project(':jar-filter:unwanteds')
 
     jacocoRuntime "org.jacoco:org.jacoco.agent:${jacoco.toolVersion}:runtime"
+}
+
+processTestResources {
+    filesMatching('**/build.gradle') {
+        expand(['kotlin_version': kotlin_version])
+    }
+    filesMatching('gradle.properties') {
+        expand(['jacocoAgent': configurations.jacocoRuntime.asPath.replace('\\', '/'),
+                'buildDir': buildDir])
+    }
 }
 
 jar {
