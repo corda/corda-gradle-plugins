@@ -68,13 +68,11 @@ private class MethodMatcher(
             return false
         }
 
-        var i = 0
-        method.parameterTypes.forEach { param ->
+        for ((i, param) in method.parameterTypes.withIndex()) {
             if (!parameters[i].matches(param)) {
                 mismatch.appendText("parameter[").appendValue(i).appendText("] is ").appendValue(param)
                 return false
             }
-            ++i
         }
         return true
     }

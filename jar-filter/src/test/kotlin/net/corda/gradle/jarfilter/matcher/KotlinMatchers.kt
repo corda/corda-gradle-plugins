@@ -94,13 +94,11 @@ private class KFunctionMatcher(
             return false
         }
 
-        var i = 0
-        function.valueParameters.forEach { param ->
+        for ((i, param) in function.valueParameters.withIndex()) {
             if (!parameters[i].matches(param)) {
                 mismatch.appendText("parameter[").appendValue(i).appendText("] is ").appendValue(param)
                 return false
             }
-            ++i
         }
         return true
     }
