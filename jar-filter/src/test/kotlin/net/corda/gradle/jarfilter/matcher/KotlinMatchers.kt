@@ -12,23 +12,23 @@ import kotlin.reflect.KProperty
 import kotlin.reflect.full.valueParameters
 import kotlin.reflect.jvm.jvmName
 
-fun isFunction(name: Matcher<in String>, returnType: Matcher<in String>, vararg parameters: Matcher<in KParameter>): Matcher<KFunction<*>> {
+fun isFunction(name: Matcher<in String>, returnType: Matcher<in String>, vararg parameters: Matcher<in KParameter>): Matcher<in KFunction<*>> {
     return KFunctionMatcher(name, returnType, *parameters)
 }
 
-fun isFunction(name: String, returnType: KClass<*>, vararg parameters: KClass<*>): Matcher<KFunction<*>> {
+fun isFunction(name: String, returnType: KClass<*>, vararg parameters: KClass<*>): Matcher<in KFunction<*>> {
     return isFunction(equalTo(name), matches(returnType), *parameters.toMatchers())
 }
 
-fun isConstructor(returnType: Matcher<in String>, vararg parameters: Matcher<in KParameter>): Matcher<KFunction<*>> {
+fun isConstructor(returnType: Matcher<in String>, vararg parameters: Matcher<in KParameter>): Matcher<in KFunction<*>> {
     return KFunctionMatcher(equalTo("<init>"), returnType, *parameters)
 }
 
-fun isConstructor(returnType: KClass<*>, vararg parameters: KClass<*>): Matcher<KFunction<*>> {
+fun isConstructor(returnType: KClass<*>, vararg parameters: KClass<*>): Matcher<in KFunction<*>> {
     return isConstructor(matches(returnType), *parameters.toMatchers())
 }
 
-fun isConstructor(returnType: String, vararg parameters: KClass<*>): Matcher<KFunction<*>> {
+fun isConstructor(returnType: String, vararg parameters: KClass<*>): Matcher<in KFunction<*>> {
     return isConstructor(equalTo(returnType), *parameters.toMatchers())
 }
 
@@ -36,11 +36,11 @@ fun hasParam(type: Matcher<in String>): Matcher<KParameter> = KParameterMatcher(
 
 fun hasParam(type: KClass<*>): Matcher<KParameter> = hasParam(matches(type))
 
-fun isProperty(name: String, type: KClass<*>): Matcher<KProperty<*>> = isProperty(equalTo(name), matches(type))
+fun isProperty(name: String, type: KClass<*>): Matcher<in KProperty<*>> = isProperty(equalTo(name), matches(type))
 
-fun isProperty(name: Matcher<in String>, type: Matcher<in String>): Matcher<KProperty<*>> = KPropertyMatcher(name, type)
+fun isProperty(name: Matcher<in String>, type: Matcher<in String>): Matcher<in KProperty<*>> = KPropertyMatcher(name, type)
 
-fun isClass(name: String): Matcher<KClass<*>> = KClassMatcher(equalTo(name))
+fun isKClass(name: String): Matcher<in KClass<*>> = KClassMatcher(equalTo(name))
 
 fun matches(type: KClass<*>): Matcher<in String> = equalTo(type.qualifiedName)
 
@@ -59,15 +59,15 @@ private class KFunctionMatcher(
     override fun describeTo(description: Description) {
         description.appendText("KFunction[name as ").appendDescriptionOf(name)
             .appendText(", returnType as ").appendDescriptionOf(returnType)
-            .appendText(", parameters as '")
+            .appendText(", parameters as (")
         if (parameters.isNotEmpty()) {
             val param = parameters.iterator()
-            description.appendValue(param.next())
+            description.appendDescriptionOf(param.next())
             while (param.hasNext()) {
-                description.appendText(",").appendValue(param.next())
+                description.appendText(",").appendDescriptionOf(param.next())
             }
         }
-        description.appendText("']")
+        description.appendText(")]")
     }
 
     override fun matches(obj: Any?, mismatch: Description): Boolean {
@@ -77,26 +77,28 @@ private class KFunctionMatcher(
         }
 
         val function: KFunction<*> = obj as? KFunction<*> ?: return false
+        mismatch.appendText("name is ").appendValue(function.name)
         if (!name.matches(function.name)) {
-            mismatch.appendText("name is ").appendValue(function.name)
             return false
         }
         function.returnType.toString().apply {
             if (!returnType.matches(this)) {
-                mismatch.appendText("returnType is ").appendValue(this)
+                mismatch.appendText(" with returnType ").appendValue(this)
                 return false
             }
         }
 
-        if (function.valueParameters.size != parameters.size) {
-            mismatch.appendText("number of parameters is ").appendValue(function.valueParameters.size)
-                .appendText(", parameters=").appendValueList("[", ",", "]", function.valueParameters)
+        val parameterCount = function.valueParameters.size
+        if (parameterCount != parameters.size) {
+            mismatch.appendText(" with ")
+                .appendValue(parameterCount).appendText(" parameter").appendText(if (parameterCount == 1) " " else "s ")
+                .appendValueList("(", ",", ")", function.valueParameters.map(KParameter::type))
             return false
         }
 
         for ((i, param) in function.valueParameters.withIndex()) {
             if (!parameters[i].matches(param)) {
-                mismatch.appendText("parameter[").appendValue(i).appendText("] is ").appendValue(param)
+                mismatch.appendText(" where parameter").appendValue(i).appendText(" has type ").appendValue(param.type)
                 return false
             }
         }
@@ -152,13 +154,13 @@ private class KPropertyMatcher(
         }
 
         val property: KProperty<*> = obj as? KProperty<*> ?: return false
+        mismatch.appendText("name is ").appendValue(property.name)
         if (!name.matches(property.name)) {
-            mismatch.appendText("name is ").appendValue(property.name)
             return false
         }
         property.returnType.toString().apply {
             if (!type.matches(this)) {
-                mismatch.appendText("type is ").appendValue(this)
+                mismatch.appendText(" and type is ").appendValue(this)
                 return false
             }
         }
