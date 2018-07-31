@@ -131,6 +131,8 @@ class DeleteAndStubTests {
                     }
                 }
                 assertThat("unwantedVar not found", kotlin.declaredMemberProperties, hasItem(unwantedVar))
+                assertThat("getUnwantedVar() not found", kotlin.javaDeclaredMethods, hasItem(getUnwantedVar))
+                assertThat("setUnwantedVar() not found", kotlin.javaDeclaredMethods, hasItem(setUnwantedVar))
                 assertThat("stringData() not found", kotlin.declaredMemberFunctions, hasItem(stringData))
             }
         }
@@ -156,6 +158,7 @@ class DeleteAndStubTests {
                     assertEquals(MESSAGE, (obj as HasUnwantedVal).unwantedVal)
                 }
                 assertThat("unwantedVal not found", kotlin.declaredMemberProperties, hasItem(unwantedVal))
+                assertThat("getUnwantedVal() not found", kotlin.javaDeclaredMethods, hasItem(getUnwantedVal))
                 assertThat("stringData() not found", kotlin.declaredMemberFunctions, hasItem(stringData))
             }
         }

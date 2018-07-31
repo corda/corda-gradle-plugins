@@ -78,7 +78,7 @@ public class ApiPrintWriter extends PrintWriter {
             String vararg = paramTypes.removeLast();
             paramTypes.add(vararg.substring(0, vararg.length() - 2) + "...");
         }
-        append(paramTypes.stream().collect(joining(", ")));
+        append(String.join(", ", paramTypes));
         println(')');
     }
 

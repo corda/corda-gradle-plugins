@@ -17,7 +17,6 @@ import java.util.Collections;
 import java.util.List;
 
 import static java.util.Collections.emptyList;
-import static java.util.stream.Collectors.joining;
 import static net.corda.plugins.CopyUtils.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.gradle.testkit.runner.TaskOutcome.*;
@@ -51,7 +50,7 @@ public class GradleProject implements TestRule {
     }
 
     public String getApiText() throws IOException {
-        return getApiLines().stream().collect(joining("\n"));
+        return String.join("\n", getApiLines());
     }
 
     public String getOutput() {
@@ -64,6 +63,8 @@ public class GradleProject implements TestRule {
             @Override
             public void evaluate() throws Throwable {
                 installResource(projectDir, name + "/build.gradle");
+                installResource(projectDir, "repositories.gradle");
+                installResource(projectDir, "settings.gradle");
                 installResource(projectDir, "gradle.properties");
 
                 BuildResult result = GradleRunner.create()

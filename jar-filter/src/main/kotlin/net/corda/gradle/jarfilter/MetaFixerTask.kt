@@ -58,7 +58,7 @@ open class MetaFixerTask : DefaultTask() {
     fun fixMetadata() {
         logger.info("Fixing Kotlin @Metadata")
         try {
-            jars.forEach { jar ->
+            for (jar in jars) {
                 logger.info("Reading from {}", jar)
                 MetaFix(jar).use { it.run() }
             }

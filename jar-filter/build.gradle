@@ -28,16 +28,6 @@ configurations {
     jacocoRuntime
 }
 
-processTestResources {
-    filesMatching('**/build.gradle') {
-        expand(['kotlin_version': kotlin_version])
-    }
-    filesMatching('gradle.properties') {
-        expand(['jacocoAgent': configurations.jacocoRuntime.asPath.replace('\\', '/'),
-                'buildDir': buildDir])
-    }
-}
-
 dependencies {
     shadow gradleApi()
     shadow localGroovy()
@@ -54,6 +44,16 @@ dependencies {
     testImplementation project(':jar-filter:unwanteds')
 
     jacocoRuntime "org.jacoco:org.jacoco.agent:${jacoco.toolVersion}:runtime"
+}
+
+processTestResources {
+    filesMatching('**/build.gradle') {
+        expand(['kotlin_version': kotlin_version])
+    }
+    filesMatching('gradle.properties') {
+        expand(['jacocoAgent': configurations.jacocoRuntime.asPath.replace('\\', '/'),
+                'buildDir': buildDir])
+    }
 }
 
 jar {

@@ -1,7 +1,7 @@
 package net.corda.gradle.jarfilter
 
 import net.corda.gradle.jarfilter.asm.classMetadata
-import net.corda.gradle.jarfilter.matcher.isClass
+import net.corda.gradle.jarfilter.matcher.isKClass
 import org.assertj.core.api.Assertions.*
 import org.hamcrest.core.IsCollectionContaining.hasItem
 import org.hamcrest.core.IsNot.not
@@ -23,10 +23,10 @@ class DeleteNestedClassTest {
         private const val WANTED_SUBCLASS = "$SEALED_CLASS\$Wanted"
         private const val UNWANTED_SUBCLASS = "$SEALED_CLASS\$Unwanted"
 
-        private val keptClass = isClass(KEPT_CLASS)
-        private val deletedClass = isClass(DELETED_CLASS)
-        private val wantedSubclass = isClass(WANTED_SUBCLASS)
-        private val unwantedSubclass = isClass(UNWANTED_SUBCLASS)
+        private val keptClass = isKClass(KEPT_CLASS)
+        private val deletedClass = isKClass(DELETED_CLASS)
+        private val wantedSubclass = isKClass(WANTED_SUBCLASS)
+        private val unwantedSubclass = isKClass(UNWANTED_SUBCLASS)
 
         private val testProjectDir = TemporaryFolder()
         private val testProject = JarFilterProject(testProjectDir, "delete-nested-class")

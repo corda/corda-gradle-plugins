@@ -5,7 +5,6 @@ apply plugin: 'java-gradle-plugin'
 description "Generates a summary of the artifact's public API"
 
 repositories {
-    mavenLocal()
     mavenCentral()
     jcenter()
 }

@@ -2,13 +2,9 @@ plugins {
     id 'java'
     id 'net.corda.plugins.api-scanner'
 }
+apply from: 'repositories.gradle'
 
 description 'Test behaviour of internal annotations on methods'
-
-repositories {
-    mavenLocal()
-    mavenCentral()
-}
 
 sourceSets {
     main {

@@ -98,7 +98,7 @@ open class JarFilterTask : DefaultTask() {
         }
         checkDistinctAnnotations()
         try {
-            jars.forEach { jar ->
+            for (jar in jars) {
                 logger.info("Filtering {}", jar)
                 Filter(jar).run()
             }

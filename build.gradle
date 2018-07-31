@@ -33,6 +33,17 @@ allprojects {
     version gradle_plugins_version
     group 'net.corda.plugins'
 
+    tasks.withType(JavaCompile).all {
+        options.encoding = 'UTF-8'
+    }
+
+    tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
+        kotlinOptions {
+            jvmTarget = "1.8"
+            freeCompilerArgs = ['-Xjvm-default=enable']
+        }
+    }
+
     tasks.withType(Test) {
         // Prevent the project from creating temporary files outside of the build directory.
         systemProperty 'java.io.tmpdir', buildDir.absolutePath

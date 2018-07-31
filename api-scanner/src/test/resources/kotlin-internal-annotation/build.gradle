@@ -2,13 +2,9 @@ plugins {
     id 'net.corda.plugins.api-scanner'
     id 'org.jetbrains.kotlin.jvm' version '$kotlin_version'
 }
+apply from: 'repositories.gradle'
 
 description 'Test appearance of internal Corda annotations in Kotlin'
-
-repositories {
-    mavenLocal()
-    mavenCentral()
-}
 
 sourceSets {
     main {
