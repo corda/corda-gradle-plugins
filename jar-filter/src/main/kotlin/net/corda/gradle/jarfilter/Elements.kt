@@ -8,6 +8,7 @@ import org.jetbrains.kotlin.metadata.deserialization.TypeTable
 import org.jetbrains.kotlin.metadata.deserialization.returnType
 import org.jetbrains.kotlin.metadata.jvm.JvmProtoBuf
 import org.jetbrains.kotlin.metadata.jvm.deserialization.ClassMapperLite
+import org.jetbrains.kotlin.metadata.jvm.deserialization.JvmMemberSignature
 import org.jetbrains.kotlin.metadata.jvm.deserialization.JvmProtoBufUtil
 import org.objectweb.asm.Opcodes.ACC_SYNTHETIC
 import java.util.*
@@ -117,6 +118,8 @@ internal fun JvmProtoBuf.JvmPropertySignature.toSetter(nameResolver: NameResolve
 
 internal fun JvmProtoBuf.JvmMethodSignature.toMethodElement(nameResolver: NameResolver)
     = MethodElement(nameResolver.getString(name), nameResolver.getString(desc))
+
+internal fun JvmMemberSignature.Method.toMethodElement() = MethodElement(name, desc)
 
 /**
  * This logic is based heavily on [JvmProtoBufUtil.getJvmFieldSignature].

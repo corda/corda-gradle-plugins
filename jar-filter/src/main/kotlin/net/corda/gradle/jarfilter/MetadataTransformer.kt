@@ -104,8 +104,8 @@ internal abstract class MetadataTransformer<out T : MessageLite>(
 
         for (idx in 0 until constructors.size) {
             val constructor = constructors[idx]
-            val signature = JvmProtoBufUtil.getJvmConstructorSignature(constructor, nameResolver, typeTable)
-            if (signature == deleted.signature) {
+            val signature = JvmProtoBufUtil.getJvmConstructorSignature(constructor, nameResolver, typeTable)?.toMethodElement()
+            if (signature == deleted) {
                 if (IS_SECONDARY.get(constructor.flags)) {
                     logger.info("-- removing constructor: {}", deleted.signature)
                 } else {
@@ -113,7 +113,7 @@ internal abstract class MetadataTransformer<out T : MessageLite>(
                 }
                 constructors.removeAt(idx)
                 return true
-            } else if (signature == deletedPrimary?.signature) {
+            } else if (signature == deletedPrimary) {
                 constructors[idx] = constructor.toBuilder()
                     .updateValueParameters(ProtoBuf.ValueParameter::clearDeclaresDefaultValue)
                     .build()
@@ -130,8 +130,8 @@ internal abstract class MetadataTransformer<out T : MessageLite>(
         for (idx in 0 until functions.size) {
             val function = functions[idx]
             if (nameResolver.getString(function.name) == deleted.name) {
-                val signature = JvmProtoBufUtil.getJvmMethodSignature(function, nameResolver, typeTable)
-                if (signature == deleted.signature) {
+                val signature = JvmProtoBufUtil.getJvmMethodSignature(function, nameResolver, typeTable)?.toMethodElement()
+                if (signature == deleted) {
                     logger.info("-- removing function: {}", deleted.signature)
                     functions.removeAt(idx)
                     return true

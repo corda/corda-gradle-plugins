@@ -49,8 +49,8 @@ class SanitisingTransformer(visitor: ClassVisitor, logger: Logger, private val u
         for (constructor in message.constructorList) {
             if (!IS_SECONDARY.get(constructor.flags)) {
                 val signature = getJvmConstructorSignature(constructor, nameResolver, typeTable) ?: break
-                primaryConstructor = MethodElement("<init>", signature.drop("<init>".length))
-                logger.log(level, "Class {} has primary constructor {}", className, signature)
+                primaryConstructor = signature.toMethodElement()
+                logger.log(level, "Class {} has primary constructor {}", className, signature.asString())
                 break
             }
         }

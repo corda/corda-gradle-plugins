@@ -96,7 +96,7 @@ internal abstract class MetaFixerTransformer<out T : MessageLite>(
         var idx = 0
         removed@ while (idx < functions.size) {
             val function = functions[idx]
-            val signature = JvmProtoBufUtil.getJvmMethodSignature(function, nameResolver, typeTable)
+            val signature = JvmProtoBufUtil.getJvmMethodSignature(function, nameResolver, typeTable)?.asString()
             if (signature != null) {
                 if (!actualMethods.contains(signature)) {
                     logger.info("-- removing method: {}", signature)
@@ -122,7 +122,7 @@ internal abstract class MetaFixerTransformer<out T : MessageLite>(
         var idx = 0
         removed@ while (idx < constructors.size) {
             val constructor = constructors[idx]
-            val signature = JvmProtoBufUtil.getJvmConstructorSignature(constructor, nameResolver, typeTable)
+            val signature = JvmProtoBufUtil.getJvmConstructorSignature(constructor, nameResolver, typeTable)?.asString()
             if (signature != null) {
                 if (!actualMethods.contains(signature)) {
                     logger.info("-- removing constructor: {}", signature)
