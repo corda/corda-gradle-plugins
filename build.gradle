@@ -11,7 +11,7 @@ buildscript {
         commons_io_version = '2.6'
         assertj_version = '3.9.1'
         junit_version = '4.12'
-        asm_version = '6.2'
+        asm_version = '6.2.1'
     }
 
     repositories {
