@@ -5,6 +5,7 @@ import net.corda.cordform.CordformDefinition
 import org.gradle.api.DefaultTask
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.SourceSet.MAIN_SOURCE_SET_NAME
 import org.slf4j.Logger
 import java.io.File
@@ -32,7 +33,11 @@ open class Baseform : DefaultTask() {
      */
     @Suppress("MemberVisibilityCanBePrivate")
     var definitionClass: String? = null
+
+    @OutputDirectory
     var directory = defaultDirectory
+
+    @Input
     protected val nodes = mutableListOf<Node>()
 
     /**
@@ -42,6 +47,16 @@ open class Baseform : DefaultTask() {
      */
     fun directory(directory: String) {
         this.directory = Paths.get(directory)
+    }
+
+    /**
+     * Sets the directory to install nodes into.
+     * This provides a Gradle-friendly [File] interface.
+     *
+     * @param directory The directory the nodes will be installed into.
+     */
+    fun directory(directory: File) {
+        this.directory = directory.toPath()
     }
 
     /**
