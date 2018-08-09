@@ -42,7 +42,6 @@ task metadata(type: ProGuardTask) {
     dontoptimize
     verbose
 
-    dontwarn 'com.sun.jna.**'
     dontwarn 'org.jetbrains.annotations.**'
     dontwarn 'org.jetbrains.kotlin.com.intellij.**'
     dontwarn 'org.jetbrains.kotlin.com.google.j2objc.annotations.**'
