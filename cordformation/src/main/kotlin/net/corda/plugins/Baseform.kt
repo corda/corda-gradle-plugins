@@ -4,6 +4,7 @@ import groovy.lang.Closure
 import net.corda.cordform.CordformDefinition
 import org.gradle.api.DefaultTask
 import org.gradle.api.plugins.JavaPluginConvention
+import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.SourceSet.MAIN_SOURCE_SET_NAME
 import org.slf4j.Logger
 import java.io.File
@@ -42,6 +43,12 @@ open class Baseform : DefaultTask() {
     fun directory(directory: String) {
         this.directory = Paths.get(directory)
     }
+
+    /**
+     * Should we also include this project itself as another CorDapp?
+     */
+    @Input
+    var useProjectAsCordapp: Boolean = true
 
     /**
      * Add a node configuration.
@@ -124,13 +131,13 @@ open class Baseform : DefaultTask() {
             deleteRootDir()
             val cordapps = cd.cordappDependencies
             cd.nodeConfigurers.forEach {
-                val node = node { }
+                val node = node(::configure)
                 it.accept(node)
-                cordapps.forEach {
-                    if (it.mavenCoordinates != null) {
-                        node.cordapp(project.project(it.mavenCoordinates!!))
+                cordapps.forEach { app ->
+                    if (app.mavenCoordinates != null) {
+                        node.cordapp(project.project(app.mavenCoordinates!!))
                     } else {
-                        node.cordapp(it.projectName!!)
+                        node.cordapp(app.projectName!!)
                     }
                 }
                 node.rootDir(directory)
@@ -142,6 +149,10 @@ open class Baseform : DefaultTask() {
                 it.rootDir(directory)
             }
         }
+    }
+
+    private fun configure(node: Node) {
+        node.useProjectAsCordapp = useProjectAsCordapp
     }
 
     private fun deleteRootDir() {

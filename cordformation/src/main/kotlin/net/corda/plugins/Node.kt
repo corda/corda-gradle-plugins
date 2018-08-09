@@ -34,14 +34,20 @@ open class Node @Inject constructor(private val project: Project) : CordformNode
      * @note Your app will be installed by default and does not need to be included here.
      * @note Type is any due to gradle's use of "GStrings" - each value will have "toString" called on it
      */
-    var cordapps: MutableList<Any>
-        get() = internalCordapps as MutableList<Any>
+    var cordapps: MutableList<out Any>
+        get() = internalCordapps
         @Deprecated("Use cordapp instead - setter will be removed by Corda V4.0")
         set(value) {
             value.forEach {
                 cordapp(it.toString())
             }
         }
+
+    /**
+     * We may be running cordformation from a Gradle project that does
+     * not create a CorDapp of its own. Do not install a jar in this case.
+     */
+    var useProjectAsCordapp: Boolean = true
 
     private val internalCordapps = mutableListOf<Cordapp>()
     private val builtCordapp = Cordapp(project)
@@ -413,8 +419,10 @@ open class Node @Inject constructor(private val project: Project) : CordformNode
      *
      * @return List of this node's cordapps.
      */
-    internal fun getCordappList(): Collection<ResolvedCordapp> {
-        return internalCordapps.map { cordapp -> resolveCordapp(cordapp) } + resolveBuiltCordapp()
+    internal fun getCordappList(): List<ResolvedCordapp> {
+        return internalCordapps.map(::resolveCordapp).also {
+            if (useProjectAsCordapp) it + resolveBuiltCordapp()
+        }
     }
 
     private fun resolveCordapp(cordapp: Cordapp): ResolvedCordapp {
