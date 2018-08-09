@@ -12,6 +12,9 @@ repositories {
 }
 
 dependencies {
+    // *Only* for Gradle's task annotations!
+    compileOnly gradleApi()
+
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 
     // JSR 305: Nullability annotations

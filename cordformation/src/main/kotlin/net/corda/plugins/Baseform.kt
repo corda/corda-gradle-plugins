@@ -4,8 +4,7 @@ import groovy.lang.Closure
 import net.corda.cordform.CordformDefinition
 import org.gradle.api.DefaultTask
 import org.gradle.api.plugins.JavaPluginConvention
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.*
 import org.gradle.api.tasks.SourceSet.MAIN_SOURCE_SET_NAME
 import org.slf4j.Logger
 import java.io.File
@@ -34,9 +33,9 @@ open class Baseform : DefaultTask() {
     @Suppress("MemberVisibilityCanBePrivate")
     var definitionClass: String? = null
 
-    @OutputDirectory
     var directory = defaultDirectory
 
+    @Nested
     @Input
     protected val nodes = mutableListOf<Node>()
 
@@ -60,10 +59,12 @@ open class Baseform : DefaultTask() {
     }
 
     /**
-     * Should we also include this project itself as another CorDapp?
+     * Default configuration values that are applied to every node.
      */
+    @Optional
+    @Nested
     @Input
-    var useProjectAsCordapp: Boolean = true
+    var nodeDefaults: Closure<in Node>? = null
 
     /**
      * Add a node configuration.
@@ -72,7 +73,10 @@ open class Baseform : DefaultTask() {
      */
     @Suppress("MemberVisibilityCanPrivate")
     fun node(configureClosure: Closure<in Node>) {
-        nodes += project.configure(Node(project), configureClosure) as Node
+        val newNode = configureDefaults(Node(project))
+        (project.configure(newNode, configureClosure) as Node).also { node ->
+            nodes += node
+        }
     }
 
     /**
@@ -82,9 +86,10 @@ open class Baseform : DefaultTask() {
      */
     @Suppress("MemberVisibilityCanPrivate")
     fun node(configureFunc: Node.() -> Any?): Node {
-        val node = Node(project).apply { configureFunc() }
-        nodes += node
-        return node
+        return configureDefaults(Node(project)).also { node ->
+            node.configureFunc()
+            nodes += node
+        }
     }
 
     /**
@@ -146,7 +151,7 @@ open class Baseform : DefaultTask() {
             deleteRootDir()
             val cordapps = cd.cordappDependencies
             cd.nodeConfigurers.forEach {
-                val node = node(::configure)
+                val node = node(::configureDefaults)
                 it.accept(node)
                 cordapps.forEach { app ->
                     if (app.mavenCoordinates != null) {
@@ -166,8 +171,8 @@ open class Baseform : DefaultTask() {
         }
     }
 
-    private fun configure(node: Node) {
-        node.useProjectAsCordapp = useProjectAsCordapp
+    private fun configureDefaults(node: Node): Node {
+        return nodeDefaults?.let { project.configure(node, it) as Node } ?: node
     }
 
     private fun deleteRootDir() {
@@ -179,7 +184,7 @@ open class Baseform : DefaultTask() {
         val networkBootstrapperClass = loadNetworkBootstrapperClass()
         val networkBootstrapper = networkBootstrapperClass.newInstance()
         val bootstrapMethod = networkBootstrapperClass.getMethod("bootstrap", Path::class.java, List::class.java).apply { isAccessible = true }
-        val allCordapps = nodes.flatMap { it.getCordappList() }.map { it.jarFile }.distinct()
+        val allCordapps = nodes.flatMap(Node::getCordappList).map { it.jarFile }.distinct()
         val rootDir = project.projectDir.toPath().resolve(directory).toAbsolutePath().normalize()
         try {
             // Call NetworkBootstrapper.bootstrap

@@ -3,6 +3,7 @@ package net.corda.cordform;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigValueFactory;
+import org.gradle.api.tasks.Input;
 
 public final class RpcSettings {
 
@@ -11,10 +12,12 @@ public final class RpcSettings {
     private int port = 10003;
     private int adminPort = 10005;
 
+    @Input
     public int getPort() {
         return port;
     }
 
+    @Input
     public int getAdminPort() {
         return adminPort;
     }
