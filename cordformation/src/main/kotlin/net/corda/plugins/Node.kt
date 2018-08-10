@@ -10,6 +10,8 @@ import org.apache.commons.io.FilenameUtils.removeExtension
 import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ProjectDependency
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Nested
 import java.io.File
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
@@ -34,8 +36,8 @@ open class Node @Inject constructor(private val project: Project) : CordformNode
      * @note Your app will be installed by default and does not need to be included here.
      * @note Type is any due to gradle's use of "GStrings" - each value will have "toString" called on it
      */
-    var cordapps: MutableList<Any>
-        get() = internalCordapps as MutableList<Any>
+    var cordapps: MutableList<out Any>
+        @Nested @Input get() = internalCordapps
         @Deprecated("Use cordapp instead - setter will be removed by Corda V4.0")
         set(value) {
             value.forEach {
@@ -274,7 +276,7 @@ open class Node @Inject constructor(private val project: Project) : CordformNode
     internal fun installDrivers() {
         drivers?.let {
             project.logger.info("Copy $it to './drivers' directory")
-            it.forEach { path ->  copyToDriversDir(File(path)) }
+            it.forEach { path -> copyToDriversDir(File(path)) }
         }
     }
 
@@ -413,11 +415,17 @@ open class Node @Inject constructor(private val project: Project) : CordformNode
      *
      * @return List of this node's cordapps.
      */
-    internal fun getCordappList(): Collection<ResolvedCordapp> {
-        return internalCordapps.map { cordapp -> resolveCordapp(cordapp) } + resolveBuiltCordapp()
+    internal fun getCordappList(): List<ResolvedCordapp> {
+        return internalCordapps.mapNotNull(::resolveCordapp).let {
+            if (builtCordapp.deploy) (it + resolveBuiltCordapp()) else it
+        }
     }
 
-    private fun resolveCordapp(cordapp: Cordapp): ResolvedCordapp {
+    private fun resolveCordapp(cordapp: Cordapp): ResolvedCordapp? {
+        if (!cordapp.deploy) {
+            return null
+        }
+
         val cordappConfiguration = project.configuration("cordapp")
         val cordappName = if (cordapp.project != null) cordapp.project.name else cordapp.coordinates
         val cordappFile = cordappConfiguration.files {

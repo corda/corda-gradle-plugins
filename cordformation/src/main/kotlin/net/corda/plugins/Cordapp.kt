@@ -1,14 +1,27 @@
 package net.corda.plugins
 
 import org.gradle.api.Project
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Optional
 import java.io.File
 
-open class Cordapp private constructor(val coordinates: String?, val project: Project?) {
+open class Cordapp private constructor(
+    @get:[Optional Input] val coordinates: String?,
+    @get:[Optional Input] val project: Project?
+) {
     constructor(coordinates: String) : this(coordinates, null)
     constructor(cordappProject: Project) : this(null, cordappProject)
 
     // The configuration text that will be written
+    @Optional
+    @Input
     internal var config: String? = null
+
+    /**
+     * Determines whether or not CordFormation will deploy this CorDapp into Corda.
+     */
+    @Input
+    var deploy: Boolean = true
 
     /**
      * Set the configuration text that will be written to the cordapp's configuration file

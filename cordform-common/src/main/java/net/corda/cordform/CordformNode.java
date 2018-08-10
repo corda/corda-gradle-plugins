@@ -3,6 +3,8 @@ package net.corda.cordform;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigValueFactory;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Optional;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -25,6 +27,7 @@ public class CordformNode implements NodeDefinition {
      */
     private String name;
 
+    @Input
     public String getName() {
         return name;
     }
@@ -51,12 +54,15 @@ public class CordformNode implements NodeDefinition {
      *
      * Incorrect configurations will not cause a DSL error.
      */
+    @Input
     public List<Map<String, Object>> rpcUsers = emptyList();
 
     /**
      * Apply the notary configuration if this node is a notary. The map is the config structure of
      * net.corda.node.services.config.NotaryConfig
      */
+    @Optional
+    @Input
     public Map<String, Object> notary = null;
 
     public Map<String, Object> extraConfig = null;
@@ -64,6 +70,8 @@ public class CordformNode implements NodeDefinition {
     /**
      * Copy files into the node relative directory './drivers'.
      */
+    @Optional
+    @Input
     public List<String> drivers = null;
 
     protected Config config = ConfigFactory.empty();
@@ -88,6 +96,7 @@ public class CordformNode implements NodeDefinition {
      * @return This node's P2P address.
      */
     @Nonnull
+    @Input
     public String getP2pAddress() {
         return config.getString("p2pAddress");
     }
@@ -124,6 +133,8 @@ public class CordformNode implements NodeDefinition {
      * Returns the RPC address for this node, or null if one hasn't been specified.
      */
     @Nullable
+    @Optional
+    @Input
     public String getRpcAddress() {
         if (config.hasPath("rpcSettings.address")) {
             return config.getConfig("rpcSettings").getString("address");
@@ -158,6 +169,8 @@ public class CordformNode implements NodeDefinition {
      * Returns the address of the web server that will connect to the node, or null if one hasn't been specified.
      */
     @Nullable
+    @Optional
+    @Input
     public String getWebAddress() {
         return getOptionalString("webAddress");
     }
@@ -196,6 +209,8 @@ public class CordformNode implements NodeDefinition {
         this.configFile = configFile;
     }
 
+    @Optional
+    @Input
     public String getConfigFile() {
         return configFile;
     }

@@ -4,6 +4,8 @@
 
 ### Version 4.0.29
 
+* `cordformation`: Allow us not to deploy cordformation's project as another cordapp to all nodes.
+
 ### Version 4.0.28
 
 * `quasar-utils`: Add `quasar-core` to the `compileClasspath` configuration, and its transitive dependencies to the `runtimeClasspath` configuration.
