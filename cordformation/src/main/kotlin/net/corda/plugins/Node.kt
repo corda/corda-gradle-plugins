@@ -2,8 +2,6 @@ package net.corda.plugins
 
 import com.typesafe.config.*
 import groovy.lang.Closure
-import net.corda.cordform.CordformNode
-import net.corda.cordform.RpcSettings
 import net.corda.plugins.utils.copyTo
 import net.corda.plugins.utils.plus
 import org.apache.commons.io.FilenameUtils.removeExtension
