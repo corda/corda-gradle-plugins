@@ -61,6 +61,7 @@ open class Cordform : Baseform() {
         initializeConfiguration()
         nodes.forEach(Node::installConfig)
         installCordaJar()
+        signCordappJar()
         installRunScript()
         nodes.forEach(Node::installDrivers)
         bootstrapNetwork()

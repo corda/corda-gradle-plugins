@@ -1,6 +1,7 @@
 package net.corda.plugins
 
 import groovy.lang.Closure
+import org.gradle.api.AntBuilder
 import org.gradle.api.DefaultTask
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.tasks.Input
@@ -60,6 +61,13 @@ open class Baseform : DefaultTask() {
     @Optional
     @Internal
     var nodeDefaults: Closure<in Node>? = null
+
+    @Input
+    var jarSignOptions: MutableMap<String,String> = mutableMapOf()
+
+    fun jarSignOptions(map: Map<String,String> ) {
+        this.jarSignOptions.putAll(map)
+    }
 
     /**
      * Add a node configuration.
@@ -134,6 +142,14 @@ open class Baseform : DefaultTask() {
     private fun deleteRootDir() {
         project.logger.info("Deleting $directory")
         project.delete(directory)
+    }
+
+    protected fun signCordappJar() {
+        if (jarSignOptions.isEmpty())
+            return
+        val projectCordappFile = "jar" to project.tasks.getByName("jar").outputs.files.singleFile.toPath()
+        project.ant.lifecycleLogLevel = AntBuilder.AntMessagePriority.ERROR
+        project.ant.invokeMethod("signjar", jarSignOptions + projectCordappFile)
     }
 
     protected fun bootstrapNetwork() {
