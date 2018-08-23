@@ -15,7 +15,6 @@ import java.io.File
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
-import java.util.*
 import javax.inject.Inject
 
 /**
@@ -50,15 +49,15 @@ open class Node @Inject constructor(private val project: Project) {
     private val builtCordapp = Cordapp(project)
     internal lateinit var nodeDir: File
         private set
-    internal lateinit var rootDir: File
-        private set
+    private lateinit var rootDir: File
     internal lateinit var containerName: String
         private set
-    internal var rpcSettings: RpcSettings = RpcSettings()
+    private var rpcSettings: RpcSettings = RpcSettings()
+    private var webserverJar: String? = null
+    private var p2pPort = 10002
+    internal var rpcPort = 10003
         private set
-    internal var webserverJar: String? = null
-        private set
-
+    private var config = ConfigFactory.empty()
 
     /**
      * Name of the node. Node will be placed in directory based on this name - all lowercase with whitespaces removed.
@@ -69,18 +68,6 @@ open class Node @Inject constructor(private val project: Project) {
         private set
 
     /**
-     * p2p Port.
-     */
-    var p2pPort = 10002
-        private set
-
-    /**
-     * RPC Port.
-     */
-    var rpcPort = 10003
-        private set
-
-    /**
      * Set the RPC users for this node. This configuration block allows arbitrary configuration.
      * The recommended current structure is:
      * [[['username': "username_here", 'password': "password_here", 'permissions': ["permissions_here"]]]
@@ -88,8 +75,9 @@ open class Node @Inject constructor(private val project: Project) {
      *
      * Incorrect configurations will not cause a DSL error.
      */
+    @Optional
     @Input
-    var rpcUsers = Collections.emptyList<Map<String, Any>>()
+    var rpcUsers: List<Map<String, Any>> = emptyList()
 
     /**
      * Apply the notary configuration if this node is a notary. The map is the config structure of
@@ -97,9 +85,11 @@ open class Node @Inject constructor(private val project: Project) {
      */
     @Optional
     @Input
-    var notary: Map<String, Any>? = null
+    var notary: Map<String, Any> = emptyMap()
 
-    var extraConfig: Map<String, Any>? = null
+    @Optional
+    @Input
+    var extraConfig: Map<String, Any> = emptyMap()
 
     /**
      * Copy files into the node relative directory './drivers'.
@@ -107,9 +97,6 @@ open class Node @Inject constructor(private val project: Project) {
     @Optional
     @Input
     var drivers: List<String>? = null
-
-    var config = ConfigFactory.empty()
-        protected set
 
     /**
      * Get the artemis address for this node.
@@ -126,9 +113,13 @@ open class Node @Inject constructor(private val project: Project) {
     val rpcAddress: String?
         @Optional
         @Input
-        get() = if (config.hasPath("rpcSettings.address")) {
-            config.getConfig("rpcSettings").getString("address")
-        } else getOptionalString("rpcAddress")
+        get() {
+            return if (config.hasPath("rpcSettings.address")) {
+                config.getConfig("rpcSettings").getString("address")
+            } else {
+                getOptionalString("rpcAddress")
+            }
+        }
 
     /**
      * Returns the address of the web server that will connect to the node, or null if one hasn't been specified.
@@ -186,7 +177,7 @@ open class Node @Inject constructor(private val project: Project) {
      *
      * @param rpcPort The Artemis RPC queue port.
      */
-    @Deprecated("Use {@link CordformNode#rpcSettings(RpcSettings)} instead.")
+    @Deprecated("Use {@link CordformNode#rpcSettings(RpcSettings)} instead. Will be removed by Corda V5.0.")
     fun rpcPort(rpcPort: Int) {
         rpcAddress(DEFAULT_HOST + ':'.toString() + rpcPort)
         this.rpcPort = rpcPort
@@ -197,7 +188,7 @@ open class Node @Inject constructor(private val project: Project) {
      *
      * @param rpcAddress The Artemis RPC queue host and port.
      */
-    @Deprecated("Use {@link CordformNode#rpcSettings(RpcSettings)} instead.")
+    @Deprecated("Use {@link CordformNode#rpcSettings(RpcSettings)} instead. . Will be removed by Corda V5.0.")
     fun rpcAddress(rpcAddress: String) {
         setValue("rpcAddress", rpcAddress)
     }
@@ -394,19 +385,18 @@ open class Node @Inject constructor(private val project: Project) {
     }
 
     private fun configureProperties() {
-        if (rpcUsers != null) {
+        if(!rpcUsers.isEmpty()) {
             config = config.withValue("security", ConfigValueFactory.fromMap(mapOf(
                     "authService" to mapOf(
                             "dataSource" to mapOf(
                                     "type" to "INMEMORY",
                                     "users" to rpcUsers)))))
-
         }
 
-        if (notary != null) {
+        if (!notary.isEmpty()) {
             config = config.withValue("notary", ConfigValueFactory.fromMap(notary))
         }
-        if (extraConfig != null) {
+        if (!extraConfig.isEmpty()) {
             config = config.withFallback(ConfigFactory.parseMap(extraConfig))
         }
     }
@@ -438,7 +428,11 @@ open class Node @Inject constructor(private val project: Project) {
      */
     private fun installAgentJar() {
         // TODO: improve how we re-use existing declared external variables from root gradle.build
-        val jolokiaVersion = try { project.rootProject.ext<String>("jolokia_version") } catch (e: Exception) { "1.6.0" }
+        val jolokiaVersion = try {
+            project.rootProject.ext<String>("jolokia_version")
+        } catch (e: Exception) {
+            "1.6.0"
+        }
         val agentJar = project.configuration("runtime").files {
             (it.group == "org.jolokia") &&
                     (it.name == "jolokia-jvm") &&
@@ -499,7 +493,7 @@ open class Node @Inject constructor(private val project: Project) {
     /**
      * Installs the configuration file to the root directory and detokenises it.
      */
-    fun installConfig() {
+    internal fun installConfig() {
         configureProperties()
         createNodeAndWebServerConfigFiles(config)
     }
@@ -540,8 +534,12 @@ open class Node @Inject constructor(private val project: Project) {
 
     private fun Config.toNodeOnly(): Config {
         var cfg = this
-        cfg = if (hasPath("webAddress")) { cfg.withoutPath("webAddress").withoutPath("useHTTPS") } else cfg
-        cfg = if (!hasPath("devMode")) { cfg.withValue("devMode", ConfigValueFactory.fromAnyRef(true)) } else cfg
+        cfg = if (hasPath("webAddress")) {
+            cfg.withoutPath("webAddress").withoutPath("useHTTPS")
+        } else cfg
+        cfg = if (!hasPath("devMode")) {
+            cfg.withValue("devMode", ConfigValueFactory.fromAnyRef(true))
+        } else cfg
         return cfg
     }
 
