@@ -207,9 +207,9 @@ open class Node @Inject constructor(private val project: Project) : CordformNode
         }
         // Parsing O= part directly because importing BouncyCastle provider in Cordformation causes problems
         // with loading our custom X509EdDSAEngine.
-        val organizationName = name.trim().split(",").firstOrNull { it.startsWith("O=") }?.substringAfter("=")
+        val organizationName = name!!.trim().split(",").firstOrNull { it.startsWith("O=") }?.substringAfter("=")
         val dirName = organizationName ?: name
-        containerName = dirName.replace("\\s+".toRegex(), "-").toLowerCase()
+        containerName = dirName!!.replace("\\s+".toRegex(), "-").toLowerCase()
         this.rootDir = rootDir.toFile()
         nodeDir = File(this.rootDir, dirName.replace("\\s", ""))
         Files.createDirectories(nodeDir.toPath())
