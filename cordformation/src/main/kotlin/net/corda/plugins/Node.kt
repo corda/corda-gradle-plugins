@@ -2,8 +2,8 @@ package net.corda.plugins
 
 import com.typesafe.config.*
 import groovy.lang.Closure
+import net.corda.plugins.utils.copyKeysTo
 import net.corda.plugins.utils.copyTo
-import net.corda.plugins.utils.plus
 import org.apache.commons.io.FilenameUtils.removeExtension
 import org.gradle.api.GradleException
 import org.gradle.api.Project
@@ -385,7 +385,7 @@ open class Node @Inject constructor(private val project: Project) {
     }
 
     private fun configureProperties() {
-        if(!rpcUsers.isEmpty()) {
+        if (!rpcUsers.isEmpty()) {
             config = config.withValue("security", ConfigValueFactory.fromMap(mapOf(
                     "authService" to mapOf(
                             "dataSource" to mapOf(
@@ -398,6 +398,9 @@ open class Node @Inject constructor(private val project: Project) {
         }
         if (!extraConfig.isEmpty()) {
             config = config.withFallback(ConfigFactory.parseMap(extraConfig))
+        }
+        if(!config.hasPath("devMode")) {
+            config = config.withValue("devMode", ConfigValueFactory.fromAnyRef(true))
         }
     }
 
@@ -513,7 +516,7 @@ open class Node @Inject constructor(private val project: Project) {
     }
 
     private fun createNodeAndWebServerConfigFiles(config: Config) {
-        val tmpConfFile = createTempConfigFile(config.toNodeOnly().root(), "node.conf")
+        val tmpConfFile = createTempConfigFile(createNodeConfig().root(), "node.conf")
         appendOptionalConfig(tmpConfFile)
         project.copy {
             it.apply {
@@ -522,7 +525,7 @@ open class Node @Inject constructor(private val project: Project) {
             }
         }
         if (config.hasPath("webAddress")) {
-            val webServerConfigFile = createTempConfigFile(config.toWebServerOnly().root(), "web-server.conf")
+            val webServerConfigFile = createTempConfigFile(createWebserverConfig().root(), "web-server.conf")
             project.copy {
                 it.apply {
                     from(webServerConfigFile)
@@ -532,36 +535,19 @@ open class Node @Inject constructor(private val project: Project) {
         }
     }
 
-    private fun Config.toNodeOnly(): Config {
-        var cfg = this
-        cfg = if (hasPath("webAddress")) {
-            cfg.withoutPath("webAddress").withoutPath("useHTTPS")
-        } else cfg
-        cfg = if (!hasPath("devMode")) {
-            cfg.withValue("devMode", ConfigValueFactory.fromAnyRef(true))
-        } else cfg
-        return cfg
-    }
+    private fun createNodeConfig() = config.withoutPath("webAddress").withoutPath("useHTTPS")
 
-    private fun Config.toWebServerOnly(): Config {
-        var webConfig = ConfigFactory.empty()
-        webConfig = copyTo("webAddress", webConfig)
-        webConfig = copyTo("myLegalName", webConfig)
-        if (hasPath("rpcSettings.address") || hasPath("rpcAddress")) {
-            webConfig += "rpcAddress" to if (hasPath("rpcSettings.address")) {
-                getValue("rpcSettings.address")
-            } else {
-                getValue("rpcAddress")
-            }
+    private fun createWebserverConfig(): Config {
+        val webConfig = config.copyKeysTo(ConfigFactory.empty(),
+                listOf("webAddress", "myLegalName", "security", "useHTTPS", "baseDirectory",
+                        "keyStorePassword", "trustStorePassword", "exportJMXto", "custom", "devMode")
+        )
+
+        return when {
+            config.hasPath("rpcSettings.address") -> config.copyTo("rpcAddress", webConfig, "rpcSettings.address")
+            config.hasPath("rpcAddress") -> config.copyTo("rpcAddress", webConfig)
+            else -> webConfig
         }
-        webConfig = copyTo("security", webConfig)
-        webConfig = copyTo("useHTTPS", webConfig)
-        webConfig = copyTo("baseDirectory", webConfig)
-        webConfig = copyTo("keyStorePassword", webConfig)
-        webConfig = copyTo("trustStorePassword", webConfig)
-        webConfig = copyTo("exportJMXto", webConfig)
-        webConfig = copyTo("custom", webConfig)
-        return webConfig
     }
 
     /**

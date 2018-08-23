@@ -11,4 +11,11 @@ internal fun Config.copyTo(key: String, target: Config, targetKey: String = key)
     }
 }
 
+internal fun Config.copyKeysTo(target: Config, keys: Iterable<String>): Config {
+    for(key in keys) {
+        this.copyTo(key, target)
+    }
+    return target
+}
+
 internal operator fun Config.plus(property: Pair<String, Any>): Config = withValue(property.first, ConfigValueFactory.fromAnyRef(property.second))
