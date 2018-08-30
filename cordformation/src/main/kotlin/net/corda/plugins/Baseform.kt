@@ -63,6 +63,9 @@ open class Baseform : DefaultTask() {
     @Internal
     var nodeDefaults: Closure<in Node>? = null
 
+    /**
+     * Optional parameters for ant keyGen and signJar tasks to sing Cordapps
+     */
     @Input
     var signCordapps: MutableMap<String,String> = mutableMapOf()
 
@@ -70,8 +73,9 @@ open class Baseform : DefaultTask() {
         this.signCordapps.putAll(map)
     }
 
-
-
+    /**
+     * Optional list of classes to be included in "exclude_whitelist.txt"  file for network-bootstrapper.
+     */
     @Input
     var excludeWhitelist: MutableList<String> = mutableListOf()
 
