@@ -12,6 +12,7 @@ import org.gradle.api.tasks.SourceSet.MAIN_SOURCE_SET_NAME
 import java.io.File
 import java.lang.reflect.InvocationTargetException
 import java.net.URLClassLoader
+import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 
@@ -63,10 +64,19 @@ open class Baseform : DefaultTask() {
     var nodeDefaults: Closure<in Node>? = null
 
     @Input
-    var jarSignOptions: MutableMap<String,String> = mutableMapOf()
+    var signCordapps: MutableMap<String,String> = mutableMapOf()
 
-    fun jarSignOptions(map: Map<String,String> ) {
-        this.jarSignOptions.putAll(map)
+    fun signCordapps(map: Map<String,String> ) {
+        this.signCordapps.putAll(map)
+    }
+
+
+
+    @Input
+    var excludeWhitelist: MutableList<String> = mutableListOf()
+
+    fun excludeWhitelist(map: List<String> ) {
+        this.excludeWhitelist.addAll(map)
     }
 
     /**
@@ -144,12 +154,54 @@ open class Baseform : DefaultTask() {
         project.delete(directory)
     }
 
-    protected fun signCordappJar() {
-        if (jarSignOptions.isEmpty())
+    protected fun generateExcludedWhitelist() {
+        if (excludeWhitelist.isNotEmpty()) {
+            val rootDir = Paths.get(project.projectDir.toPath().resolve(directory).resolve("exclude_whitelist.txt").toAbsolutePath().normalize().toString())
+            Files.write(rootDir, excludeWhitelist)
+         }
+    }
+
+    // invokes ant tasks GenKey to generate keyStore  (optionally) and SignJar to sing generated Cordapp and (optionally) other Cordapps
+    protected fun generateKeystoreAndSignCordappJar() {
+        if (signCordapps["enabled"] != "true")
             return
-        val projectCordappFile = "jar" to project.tasks.getByName("jar").outputs.files.singleFile.toPath()
         project.ant.lifecycleLogLevel = AntBuilder.AntMessagePriority.ERROR
-        project.ant.invokeMethod("signjar", jarSignOptions + projectCordappFile)
+
+        val generateKeystore = signCordapps["generateKeystore"] == "true"
+        val signAllCordapps = signCordapps["all"] == "true"
+
+        val antOnlyOptions = signCordapps.toMutableMap()
+        with (antOnlyOptions) {
+            remove("enabled")
+            remove("all")
+            remove("generateKeystore")
+            putIfAbsent("keystore", project.projectDir.toPath().resolve(directory).resolve("jarSingerKeyStore").toAbsolutePath().normalize().toString())
+            putIfAbsent("storetype", "jks")
+            putIfAbsent("alias", "cordapp-signer")
+            putIfAbsent("storepass", "secret")
+        }
+        if (generateKeystore) {
+            Files.deleteIfExists(Paths.get(antOnlyOptions["keystore"]))
+            val genKeyTaskOptions = antOnlyOptions.toMutableMap()
+            genKeyTaskOptions["keyalg"] = "RSA" //required by Corda
+            genKeyTaskOptions.putIfAbsent("dname", "OU=Dummy Cordapp Distributor, O=Corda, L=London, C=GB")
+            project.ant.invokeMethod("genkey", genKeyTaskOptions)
+            project.logger.info("Generated keystore to sing Cordapps ${genKeyTaskOptions["keystore"]}")
+        }
+
+        val signJarTaskOptions = antOnlyOptions.toMutableMap()
+        signJarTaskOptions["jar"] = project.tasks.getByName("jar").outputs.files.singleFile.toPath().toString()
+        project.ant.invokeMethod("signjar", signJarTaskOptions)
+        project.logger.info("Singed Cordapp ${project.tasks.getByName("jar").outputs.files.singleFile.name}")
+
+        if (signAllCordapps) {
+            val allCordapps = nodes.flatMap(Node::getCordappList).map { it.jarFile }.distinct()
+            allCordapps.forEach {
+                signJarTaskOptions["jar"] = it.toString()
+                project.ant.invokeMethod("signjar", signJarTaskOptions)
+                project.logger.info("Singed Cordapp ${it.fileName}")
+            }
+        }
     }
 
     protected fun bootstrapNetwork() {
