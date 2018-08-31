@@ -48,7 +48,6 @@ fun main(args: Array<String>) {
 }
 
 private fun startNode(nodeDir: File, headless: Boolean, jvmArgs: List<String>, javaArgs: List<String>): Process? {
-    val debugPort = DebugPortAlloc.next()
     val jarFile = nodeDir.resolve(CORDA_JAR_NAME)
     return if(!jarFile.isFile) {
         println("No file $CORDA_JAR_NAME found in $nodeDir")
@@ -57,6 +56,7 @@ private fun startNode(nodeDir: File, headless: Boolean, jvmArgs: List<String>, j
         println("Node conf file $CORDA_CONFIG_NAME not found in $nodeDir")
         null
     } else {
+        val debugPort = DebugPortAlloc.next()
         println("Starting $CORDA_JAR_NAME in $nodeDir on debug port $debugPort")
         startJar(jarFile, headless, jvmArgs + getDebugArgs(debugPort) + getJolokiaArgs(nodeDir), javaArgs)
     }
