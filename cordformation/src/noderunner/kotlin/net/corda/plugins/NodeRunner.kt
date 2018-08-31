@@ -6,6 +6,11 @@ import java.util.*
 
 private const val HEADLESS_FLAG = "--headless"
 private const val CAPSULE_DEBUG_FLAG = "--capsule-debug"
+private const val CORDA_JAR_NAME = "corda.jar"
+private const val CORDA_WEBSERVER_JAR_NAME = "corda-webserver.jar"
+private const val CORDA_CONFIG_NAME = "node.conf"
+private const val CORDA_WEBSERVER_CONFIG_NAME = "web-server.conf"
+private val HEADLESS_ARGS = listOf("--no-local-shell")
 
 private val os by lazy {
     val osName = System.getProperty("os.name", "generic").toLowerCase(Locale.ENGLISH)
@@ -16,12 +21,12 @@ private val os by lazy {
 
 private enum class OS { MACOS, WINDOWS, LINUX }
 
-private object debugPortAlloc {
+private object DebugPortAlloc {
     private var basePort = 5005
     internal fun next() = basePort++
 }
 
-private object monitoringPortAlloc {
+private object MonitoringPortAlloc {
     private var basePort = 7005
     internal fun next() = basePort++
 }
@@ -35,141 +40,112 @@ fun main(args: Array<String>) {
     val jvmArgs = if (capsuleDebugMode) listOf("-Dcapsule.log=verbose") else emptyList()
     println("Starting nodes in $workingDir")
     workingDir.listFiles { file -> file.isDirectory }.forEach { dir ->
-        listOf(NodeJarType, WebJarType).forEach { jarType ->
-            jarType.acceptDirAndStartProcess(dir, headless, javaArgs, jvmArgs)?.let { startedProcesses += it }
-        }
+        startNode(dir, headless, jvmArgs, javaArgs)
+        startWebserver(dir, headless, jvmArgs, javaArgs)
     }
     println("Started ${startedProcesses.size} processes")
     println("Finished starting nodes")
 }
 
-private abstract class JarType(internal val jarName: String,
-                               internal val enableJolokia: Boolean = false) {
-    internal fun acceptDirAndStartProcess(dir: File, headless: Boolean, javaArgs: List<String>, jvmArgs: List<String>): Process? {
-        if (!File(dir, jarName).exists()) {
-            return null
-        }
-        if (!File(dir, configurationFileName).exists()) {
-            return null
-        }
-        val debugPort = debugPortAlloc.next()
-        val monitoringPort = monitoringPortAlloc.next()
-        println("Starting $jarName in $dir on debug port $debugPort")
-        val process = (if (headless) ::HeadlessJavaCommand else ::TerminalWindowJavaCommand)(this, dir, debugPort, monitoringPort, javaArgs, jvmArgs).start()
-        if (os == OS.MACOS) Thread.sleep(1000)
-        return process
+private fun startNode(nodeDir: File, headless: Boolean, jvmArgs: List<String>, javaArgs: List<String>): Process? {
+    val debugPort = DebugPortAlloc.next()
+    val jarFile = nodeDir.resolve(CORDA_JAR_NAME)
+    return if(!jarFile.isFile) {
+        println("No file $CORDA_JAR_NAME found in $nodeDir")
+        null
+    } else if(!nodeDir.resolve(CORDA_CONFIG_NAME).isFile) {
+        println("Node conf file $CORDA_CONFIG_NAME not found in $nodeDir")
+        null
+    } else {
+        println("Starting $CORDA_JAR_NAME in $nodeDir on debug port $debugPort")
+        startJar(jarFile, headless, jvmArgs + getDebugArgs(debugPort) + getJolokiaArgs(nodeDir), javaArgs)
     }
-
-    internal abstract val headlessArgs: List<String>
-    internal abstract val configurationFileName: String
 }
 
-
-private object NodeJarType : JarType(jarName = "corda.jar", enableJolokia = true) {
-    override val headlessArgs = listOf("--no-local-shell")
-    override val configurationFileName = "node.conf"
-}
-
-private object WebJarType : JarType("corda-webserver.jar") {
-    override val headlessArgs = emptyList<String>()
-    override val configurationFileName = "web-server.conf"
-}
-
-private abstract class JavaCommand(
-        jarName: String,
-        internal val dir: File,
-        debugPort: Int?,
-        monitoringPort: Int?,
-        enableJolokia: Boolean,
-        internal val nodeName: String,
-        args: List<String>,
-        jvmArgs: List<String>
-) {
-    private val jolokiaJar by lazy {
-        File("$dir/drivers").listFiles { _, filename ->
-            filename.matches("jolokia-jvm-.*-agent\\.jar$".toRegex())
-        }.firstOrNull()?.name ?: throw RuntimeException("Missing jolokia jar file in $dir/drivers directory")
+private fun startWebserver(nodeDir: File, headless: Boolean, jvmArgs: List<String>, javaArgs: List<String>): Process? {
+    val jarFile = nodeDir.resolve(CORDA_WEBSERVER_JAR_NAME)
+    return if(!jarFile.isFile) {
+        null
+    } else if(!nodeDir.resolve(CORDA_WEBSERVER_CONFIG_NAME).isFile) {
+        println("Webserver conf file $CORDA_WEBSERVER_CONFIG_NAME not found in $nodeDir")
+        null
+    } else {
+        println("Starting $CORDA_WEBSERVER_JAR_NAME in $nodeDir")
+        startJar(jarFile, headless, jvmArgs, javaArgs)
     }
-
-    internal val command: List<String> = mutableListOf<String>().apply {
-        add(getJavaPath())
-        addAll(jvmArgs)
-        add("-Dname=$nodeName")
-        val jvmArgs: MutableList<String> = mutableListOf()
-        if (null != debugPort) {
-            jvmArgs.add("-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=$debugPort")
-        }
-
-        if (enableJolokia && null != monitoringPort) {
-            try {
-                val jolokiaJvmArgs = "-javaagent:drivers/$jolokiaJar=port=$monitoringPort,logHandlerClass=net.corda.node.JolokiaSlf4jAdapter"
-                jvmArgs.add(jolokiaJvmArgs)
-            }
-            catch(e: RuntimeException) {
-                println("${e.message}. Continuing without Jolokia instrumentation ...")
-            }
-        }
-
-        if (jvmArgs.isNotEmpty()) {
-            add("-Dcapsule.jvm.args=${jvmArgs.joinToString(separator = " ")}")
-        }
-        add("-jar")
-        add(jarName)
-        addAll(args)
-    }
-
-    internal abstract fun processBuilder(): ProcessBuilder
-    internal fun start() = processBuilder().directory(dir).start()
-    internal abstract fun getJavaPath(): String
 }
 
-private class HeadlessJavaCommand(jarType: JarType, dir: File, debugPort: Int?, monitoringPort: Int?, args: List<String>, jvmArgs: List<String>)
-    : JavaCommand(jarType.jarName, dir, debugPort, monitoringPort, jarType.enableJolokia, dir.name, jarType.headlessArgs + args, jvmArgs) {
-    override fun processBuilder(): ProcessBuilder {
-        println("Running command: ${command.joinToString(" ")}")
-        return ProcessBuilder(command).redirectError(File("error.$nodeName.log")).inheritIO()
-    }
-
-    override fun getJavaPath() = File(File(System.getProperty("java.home"), "bin"), "java").path
+fun startJar(jar: File, headless: Boolean, jvmArgs: List<String>, javaArgs: List<String>): Process {
+    val workingDir = jar.parentFile
+    val nodeName = workingDir.name
+    val command = getBaseCommand(jvmArgs, nodeName) + listOf("-jar", jar.absolutePath) + javaArgs
+    val process = (if (headless) ::startHeadless else ::startWindowed)(command, workingDir, nodeName)
+    if (os == OS.MACOS) Thread.sleep(1000)
+    return process
 }
 
-private class TerminalWindowJavaCommand(jarType: JarType, dir: File, debugPort: Int?, monitoringPort: Int?, args: List<String>, jvmArgs: List<String>)
-    : JavaCommand(jarType.jarName, dir, debugPort, monitoringPort, jarType.enableJolokia, "${dir.name}-${jarType.jarName}", args, jvmArgs) {
-    override fun processBuilder(): ProcessBuilder {
-        val params = when (os) {
-            OS.MACOS -> {
-                listOf("osascript", "-e", """tell app "Terminal"
+private fun startHeadless(command: List<String>, workingDir: File, nodeName: String): Process {
+    println("Running command: ${command.joinToString(" ")}")
+    return ProcessBuilder(command + HEADLESS_ARGS).redirectError(File("error.$nodeName.log")).inheritIO().directory(workingDir).start()
+}
+
+private fun startWindowed(command: List<String>, workingDir: File, nodeName: String): Process {
+    val params = when (os) {
+        OS.MACOS -> {
+            listOf("osascript", "-e", """tell app "Terminal"
     activate
     delay 0.5
     tell app "System Events" to tell process "Terminal" to keystroke "t" using command down
     delay 0.5
-    do script "bash -c 'cd \"$dir\" ; \"${command.joinToString("""\" \"""")}\" && exit'" in selected tab of the front window
+    do script "bash -c 'cd \"$workingDir\" ; \"${command.joinToString("""\" \"""")}\" && exit'" in selected tab of the front window
 end tell""")
-            }
-            OS.WINDOWS -> {
-                listOf("cmd", "/C", "start ${command.joinToString(" ") { windowsSpaceEscape(it) }}")
-            }
-            OS.LINUX -> {
-                // Start shell to keep window open unless java terminated normally or due to SIGTERM:
-                val command = "${unixCommand()}; [ $? -eq 0 -o $? -eq 143 ] || sh"
-                if (isTmux()) {
-                    listOf("tmux", "new-window", "-n", nodeName, command)
-                } else {
-                    listOf("xterm", "-T", nodeName, "-e", command)
-                }
+        }
+        OS.WINDOWS -> {
+            listOf("cmd", "/C", "start ${command.joinToString(" ") { windowsSpaceEscape(it) }}")
+        }
+        OS.LINUX -> {
+            // Start shell to keep window open unless java terminated normally or due to SIGTERM:
+            val unixCommand = "${unixCommand(command)}; [ $? -eq 0 -o $? -eq 143 ] || sh"
+            if (isTmux()) {
+                listOf("tmux", "new-window", "-n", nodeName, unixCommand)
+            } else {
+                listOf("xterm", "-T", nodeName, "-e", unixCommand)
             }
         }
-        println("Running command: ${params.joinToString(" ")}")
-        return ProcessBuilder(params)
     }
+    println("Running command: ${params.joinToString(" ")}")
+    return ProcessBuilder(params).directory(workingDir).start()
+}
 
-    private fun unixCommand() = command.map(::quotedFormOf).joinToString(" ")
-    override fun getJavaPath(): String = File(File(System.getProperty("java.home"), "bin"), "java").path
+private fun getBaseCommand(baseJvmArgs: List<String>, nodeName: String): List<String> {
+    val jvmArgs = if (baseJvmArgs.isNotEmpty()) {
+        baseJvmArgs + listOf("-Dcapsule.jvm.args=${baseJvmArgs.joinToString(separator = " ")}")
+    } else {
+        baseJvmArgs
+    }
+    return listOf(getJavaPath()) + jvmArgs + listOf("-Dname=$nodeName")
+}
 
-    // Replace below is to fix an issue with spaces in paths on Windows.
-    // Quoting the entire path does not work, only the space or directory within the path.
-    private fun windowsSpaceEscape(s:String) = s.replace(" ", "\" \"")
+private fun getDebugArgs(debugPort: Int) = listOf("-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=$debugPort")
+private fun getJolokiaArgs(dir: File): List<String> {
+    val jolokiaJar = File("$dir/drivers").listFiles { _, filename ->
+        filename.matches("jolokia-jvm-.*-agent\\.jar$".toRegex())
+    }.firstOrNull()
+
+    return if(jolokiaJar != null) {
+        val monitoringPort = MonitoringPortAlloc.next()
+        println("Node will expose jolokia monitoring port on $monitoringPort")
+
+        listOf("-javaagent:drivers/$jolokiaJar=port=$monitoringPort,logHandlerClass=net.corda.node.JolokiaSlf4jAdapter")
+    } else {
+        emptyList()
+    }
 }
 
 private fun quotedFormOf(text: String) = "'${text.replace("'", "'\\''")}'" // Suitable for UNIX shells.
 private fun isTmux() = System.getenv("TMUX")?.isNotEmpty() ?: false
+// Replace below is to fix an issue with spaces in paths on Windows.
+// Quoting the entire path does not work, only the space or directory within the path.
+private fun windowsSpaceEscape(s:String) = s.replace(" ", "\" \"")
+private fun unixCommand(command: List<String>) = command.map(::quotedFormOf).joinToString(" ")
+private fun getJavaPath(): String = File(File(System.getProperty("java.home"), "bin"), "java").path
