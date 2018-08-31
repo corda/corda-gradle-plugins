@@ -66,5 +66,4 @@ open class Cordform : Baseform() {
         bootstrapNetwork()
         nodes.forEach(Node::build)
     }
-
 }

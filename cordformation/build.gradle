@@ -33,9 +33,9 @@ gradlePlugin {
 
 dependencies {
     compile project(":cordapp")
-    compile project(':cordform-common')
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     compile "commons-io:commons-io:$commons_io_version"
+    compile "com.typesafe:config:$typesafe_config_version"
 
     noderunner "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 
