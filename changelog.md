@@ -4,6 +4,8 @@
 
 ### Version 4.0.30
 
+* `cordformation`: Removed experimental feature `CordformDefinition`
+
 ### Version 4.0.29
 
 * `cordformation`: Allow us not to deploy cordformation's project as another cordapp to all nodes.
