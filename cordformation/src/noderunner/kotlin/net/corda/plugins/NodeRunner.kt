@@ -40,8 +40,8 @@ fun main(args: Array<String>) {
     val jvmArgs = if (capsuleDebugMode) listOf("-Dcapsule.log=verbose") else emptyList()
     println("Starting nodes in $workingDir")
     workingDir.listFiles { file -> file.isDirectory }.forEach { dir ->
-        startNode(dir, headless, jvmArgs, javaArgs)
-        startWebserver(dir, headless, jvmArgs, javaArgs)
+        startNode(dir, headless, jvmArgs, javaArgs)?.let { startedProcesses += it }
+        startWebserver(dir, headless, jvmArgs, javaArgs)?.let { startedProcesses += it }
     }
     println("Started ${startedProcesses.size} processes")
     println("Finished starting nodes")
