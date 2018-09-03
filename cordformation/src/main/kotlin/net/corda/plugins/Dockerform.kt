@@ -1,5 +1,6 @@
 package net.corda.plugins
 
+import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.TaskAction
 import org.yaml.snakeyaml.DumperOptions
 import java.nio.file.Path
@@ -16,21 +17,22 @@ import java.nio.file.Files
 @Suppress("unused")
 open class Dockerform : Baseform() {
     private companion object {
-        val nodeJarName = "corda.jar"
+        const val nodeJarName = "corda.jar"
         private val defaultDirectory: Path = Paths.get("build", "docker")
 
-        private val dockerComposeFileVersion = "3"
+        private const val dockerComposeFileVersion = "3"
 
-        private val  yamlOptions = DumperOptions().apply {
+        private val yamlOptions = DumperOptions().apply {
             indent = 2
             defaultFlowStyle = DumperOptions.FlowStyle.BLOCK
         }
         private val yaml = Yaml(yamlOptions)
     }
 
-    private val directoryPath = project.projectDir.toPath().resolve(directory)
+    private val directoryPath: Path = project.projectDir.toPath().resolve(directory)
 
-    val dockerComposePath = directoryPath.resolve("docker-compose.yml")
+    @InputFile
+    val dockerComposePath: Path = directoryPath.resolve("docker-compose.yml")
 
     /**
      * This task action will create and install the nodes based on the node configurations added.

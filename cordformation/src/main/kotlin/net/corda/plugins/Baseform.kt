@@ -4,6 +4,7 @@ import groovy.lang.Closure
 import org.gradle.api.DefaultTask
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.SourceSet.MAIN_SOURCE_SET_NAME
@@ -25,10 +26,10 @@ open class Baseform : DefaultTask() {
         private val defaultDirectory: Path = Paths.get("build", "nodes")
     }
 
+    @Input
     var directory = defaultDirectory
 
     @Nested
-    @Input
     protected val nodes = mutableListOf<Node>()
 
     /**
@@ -52,10 +53,12 @@ open class Baseform : DefaultTask() {
 
     /**
      * Default configuration values that are applied to every node.
+     * This should ideally be a [Nested] property, but Gradle doesn't
+     * support this for a [Closure]. However, these defaults are
+     * applied to every node anyway so [Internal] should be fine.
      */
     @Optional
-    @Nested
-    @Input
+    @Internal
     var nodeDefaults: Closure<in Node>? = null
 
     /**
