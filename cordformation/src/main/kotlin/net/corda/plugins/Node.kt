@@ -8,8 +8,7 @@ import org.apache.commons.io.FilenameUtils.removeExtension
 import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ProjectDependency
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.Nested
+import org.gradle.api.tasks.*
 import org.gradle.api.tasks.Optional
 import java.io.File
 import java.nio.charset.StandardCharsets
@@ -37,7 +36,7 @@ open class Node @Inject constructor(private val project: Project) {
      * @note Type is any due to gradle's use of "GStrings" - each value will have "toString" called on it
      */
     var cordapps: MutableList<out Any>
-        @Nested @Input get() = internalCordapps
+        @Nested get() = internalCordapps
         @Deprecated("Use cordapp instead - setter will be removed by Corda V4.0")
         set(value) {
             value.forEach {
@@ -48,14 +47,17 @@ open class Node @Inject constructor(private val project: Project) {
     private val internalCordapps = mutableListOf<Cordapp>()
     private val builtCordapp = Cordapp(project)
     internal lateinit var nodeDir: File
+        @Internal get
         private set
     private lateinit var rootDir: File
     internal lateinit var containerName: String
+        @Internal get
         private set
     private var rpcSettings: RpcSettings = RpcSettings()
     private var webserverJar: String? = null
     private var p2pPort = 10002
     internal var rpcPort = 10003
+        @Input get
         private set
     private var config = ConfigFactory.empty()
 
@@ -63,8 +65,8 @@ open class Node @Inject constructor(private val project: Project) {
      * Name of the node. Node will be placed in directory based on this name - all lowercase with whitespaces removed.
      * Actual node name inside node.conf will be as set here.
      */
-    @get:Input
     var name: String? = null
+        @Input get
         private set
 
     /**
@@ -129,9 +131,8 @@ open class Node @Inject constructor(private val project: Project) {
         @Input
         get() = getOptionalString("webAddress")
 
-    @get:Optional
-    @get:Input
     var configFile: String? = null
+        @Optional @Input get
         private set
 
     /**
@@ -575,6 +576,7 @@ open class Node @Inject constructor(private val project: Project) {
      *
      * @return List of this node's cordapps.
      */
+    @Internal
     internal fun getCordappList(): List<ResolvedCordapp> {
         return internalCordapps.mapNotNull(::resolveCordapp).let {
             if (builtCordapp.deploy) (it + resolveBuiltCordapp()) else it
