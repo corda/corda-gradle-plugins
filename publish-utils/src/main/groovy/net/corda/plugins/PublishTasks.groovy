@@ -103,7 +103,12 @@ class PublishTasks implements Plugin<Project> {
                 dependencyNode.appendNode('groupId', it.moduleGroup)
                 dependencyNode.appendNode('artifactId', artifactDependencies[it.module.id])
                 dependencyNode.appendNode('version', it.moduleVersion)
-                dependencyNode.appendNode('scope', 'runtime')
+                /*
+                 * Ideally, I would like to be able to select one of "compile", "runtime"
+                 * or "provided" based on the value of each ResolvedDependency.configuration
+                 * field. However, this isn't providing me with enough information (yet?).
+                 */
+                dependencyNode.appendNode('scope', publishConfig.dependencyConfig.defaultScope)
             }
         }
     }
@@ -179,11 +184,10 @@ class PublishTasks implements Plugin<Project> {
     }
 
     void createExtensions() {
-        if(project == project.rootProject) {
+        if (project == project.rootProject) {
             project.extensions.create("bintrayConfig", BintrayConfigExtension)
         }
-        publishConfig = project.extensions.create("publish", ProjectPublishExtension)
-        publishConfig.setPublishTask(this)
+        publishConfig = project.extensions.create("publish", ProjectPublishExtension, this)
     }
 
     void createConfigurations() {
