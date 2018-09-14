@@ -10,7 +10,7 @@ private const val CORDA_JAR_NAME = "corda.jar"
 private const val CORDA_WEBSERVER_JAR_NAME = "corda-webserver.jar"
 private const val CORDA_CONFIG_NAME = "node.conf"
 private const val CORDA_WEBSERVER_CONFIG_NAME = "web-server.conf"
-private val HEADLESS_ARGS = listOf("--no-local-shell")
+private val CORDA_HEADLESS_ARGS = listOf("--no-local-shell")
 
 private val os by lazy {
     val osName = System.getProperty("os.name", "generic").toLowerCase(Locale.ENGLISH)
@@ -58,7 +58,7 @@ private fun startNode(nodeDir: File, headless: Boolean, jvmArgs: List<String>, j
     } else {
         val debugPort = DebugPortAlloc.next()
         println("Starting $CORDA_JAR_NAME in $nodeDir on debug port $debugPort")
-        startJar(jarFile, headless, jvmArgs + getDebugArgs(debugPort) + getJolokiaArgs(nodeDir), javaArgs)
+        startJar(jarFile, headless, jvmArgs + getDebugArgs(debugPort) + getJolokiaArgs(nodeDir), javaArgs, CORDA_HEADLESS_ARGS)
     }
 }
 
@@ -75,18 +75,18 @@ private fun startWebserver(nodeDir: File, headless: Boolean, jvmArgs: List<Strin
     }
 }
 
-fun startJar(jar: File, headless: Boolean, jvmArgs: List<String>, javaArgs: List<String>): Process {
+fun startJar(jar: File, headless: Boolean, jvmArgs: List<String>, javaArgs: List<String>, headlessArgs: List<String> = emptyList()): Process {
     val workingDir = jar.parentFile
     val nodeName = workingDir.name
     val command = getBaseCommand(jvmArgs, nodeName) + listOf("-jar", jar.absolutePath) + javaArgs
-    val process = (if (headless) ::startHeadless else ::startWindowed)(command, workingDir, nodeName)
+    val process = if (headless) startHeadless(command, workingDir, nodeName, headlessArgs) else startWindowed(command, workingDir, nodeName)
     if (os == OS.MACOS) Thread.sleep(1000)
     return process
 }
 
-private fun startHeadless(command: List<String>, workingDir: File, nodeName: String): Process {
+private fun startHeadless(command: List<String>, workingDir: File, nodeName: String, headlessArgs: List<String> = emptyList()): Process {
     println("Running command: ${command.joinToString(" ")}")
-    return ProcessBuilder(command + HEADLESS_ARGS).redirectError(File("error.$nodeName.log")).inheritIO().directory(workingDir).start()
+    return ProcessBuilder(command + headlessArgs).redirectError(File("error.$nodeName.log")).inheritIO().directory(workingDir).start()
 }
 
 private fun startWindowed(command: List<String>, workingDir: File, nodeName: String): Process {
@@ -119,9 +119,9 @@ end tell""")
 
 private fun getBaseCommand(baseJvmArgs: List<String>, nodeName: String): List<String> {
     val jvmArgs = if (baseJvmArgs.isNotEmpty()) {
-        baseJvmArgs + listOf("-Dcapsule.jvm.args=${baseJvmArgs.joinToString(separator = " ")}")
+        listOf("-Dcapsule.jvm.args=${baseJvmArgs.joinToString(separator = " ")}")
     } else {
-        baseJvmArgs
+        emptyList()
     }
     return listOf(getJavaPath()) + jvmArgs + listOf("-Dname=$nodeName")
 }
@@ -130,7 +130,7 @@ private fun getDebugArgs(debugPort: Int) = listOf("-agentlib:jdwp=transport=dt_s
 private fun getJolokiaArgs(dir: File): List<String> {
     val jolokiaJar = File("$dir/drivers").listFiles { _, filename ->
         filename.matches("jolokia-jvm-.*-agent\\.jar$".toRegex())
-    }.firstOrNull()
+    }.firstOrNull()?.name
 
     return if(jolokiaJar != null) {
         val monitoringPort = MonitoringPortAlloc.next()
