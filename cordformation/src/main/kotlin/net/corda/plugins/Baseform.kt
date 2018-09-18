@@ -139,7 +139,7 @@ open class Baseform : DefaultTask() {
     protected fun bootstrapNetwork() {
         val networkBootstrapperClass = loadNetworkBootstrapperClass()
         val networkBootstrapper = networkBootstrapperClass.newInstance()
-        val bootstrapMethod = networkBootstrapperClass.getMethod("bootstrap", Path::class.java, List::class.java).apply { isAccessible = true }
+        val bootstrapMethod = networkBootstrapperClass.getMethod("bootstrapCordform", Path::class.java, List::class.java).apply { isAccessible = true }
         val allCordapps = nodes.flatMap(Node::getCordappList).map { it.jarFile }.distinct()
         val rootDir = project.projectDir.toPath().resolve(directory).toAbsolutePath().normalize()
         try {
