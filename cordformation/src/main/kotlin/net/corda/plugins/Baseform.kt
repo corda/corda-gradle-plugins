@@ -1,7 +1,6 @@
 package net.corda.plugins
 
 import groovy.lang.Closure
-import org.gradle.api.AntBuilder
 import org.gradle.api.DefaultTask
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.tasks.Input
@@ -67,10 +66,10 @@ open class Baseform : DefaultTask() {
      * Optional parameters for ant keyGen and signJar tasks to sing Cordapps
      */
     @Input
-    var signCordapps: MutableMap<String,String> = mutableMapOf()
+    var signing: Signing = Signing()
 
-    fun signCordapps(map: Map<String,String> ) {
-        this.signCordapps.putAll(map)
+    fun signing(configureClosure: Closure<in Signing>) {
+        signing = project.configure(Signing(), configureClosure) as Signing
     }
 
     /**
@@ -165,38 +164,33 @@ open class Baseform : DefaultTask() {
          }
     }
 
-    // invokes ant tasks GenKey to generate keyStore  (optionally) and SignJar to sing generated Cordapp and (optionally) other Cordapps
+    /** invokes ANT tasks GenKey to generate keyStore (optionally) and SignJar task to sign the generated Cordapp/optionally other Cordapps deployed to nodes */
     protected fun generateKeystoreAndSignCordappJar() {
-        if (signCordapps["enabled"] != "true")
+        if (!signing.enabled)
             return
 
-        with(signCordapps) {
-            putIfAbsent("keystore", project.projectDir.toPath().resolve(directory).resolve("cordappsingerkeystore.jks").toAbsolutePath().normalize().toString())
-            putIfAbsent("storetype", "jks")
-            putIfAbsent("alias", "cordapp-signer")
-            putIfAbsent("storepass", "secret")
-            putIfAbsent("dname", "OU=Dummy Cordapp Distributor, O=Corda, L=London, C=GB")
-            put("keyalg", "RSA") //required by Corda
-        }
+        val baseKeystoreDir = project.projectDir.toPath().resolve(directory)
 
-        if (signCordapps["generateKeystore"] == "true") {
-            Files.deleteIfExists(Paths.get(signCordapps["keystore"]))
-            val allowedGenKeyOptions = setOf("alias", "storepass", "keystore", "storetype", "keypass", "sigalg", "keyalg", "verbose", "dname", "validity", "keysize")
-            val genKeyTaskOptions = signCordapps.filterKeys { allowedGenKeyOptions.contains(it) }
-            project.logger.info("Generating keystore to sign Cordapps: ${genKeyTaskOptions["keystore"]}") //added extra logging as ant logger doesn't print key store name and path
+        if (signing.generateKeystore) {
+            val genKeyTaskOptions = signing.genKeyTaskOptions(baseKeystoreDir)
+            Files.deleteIfExists(Paths.get(genKeyTaskOptions["keystore"]))
+
+            if (signing.hasDefaultKeystoreOptions(baseKeystoreDir)) {
+                project.logger.warn("Generating default keystore to sign Cordapps '${genKeyTaskOptions["keystore"]}'. " +
+                        "To use custom keystore provide keystore details, see documentation at https://docs.corda.net/generating-a-node.html.")
+            } else {
+                project.logger.warn("Generating keystore to sign Cordapps '${genKeyTaskOptions["keystore"]}'")
+            }
             project.ant.invokeMethod("genkey", genKeyTaskOptions)
         }
 
-        val allowedSignJarOptions = setOf("jar", "alias", "storepass", "keystore", "storetype", "keypass", "sigfile", "signedjar", "verbose", "strict", "internalsf", "sectionsonly",
-                "lazy", "maxmemory", "preservelastmodified", "tsaurl", "tsacert", "tsaproxyhost", "tsaproxyport", "executable", "force", "sigalg", "digestalg", "tsadigestalg")
-        val signJarTaskOptions = signCordapps.filterKeys { allowedSignJarOptions.contains(it) }.toMutableMap()
-        signJarTaskOptions["jar"] = project.tasks.getByName("jar").outputs.files.singleFile.toPath().toString()
+        val signJarTaskOptions = signing.singJarTaskOptions(baseKeystoreDir, project.tasks.getByName("jar").outputs.files.singleFile.toPath())
         project.ant.invokeMethod("signjar", signJarTaskOptions)
 
-        if (signCordapps["all"] == "true") {
+        if (signing.all) {
             val allCordapps = nodes.flatMap(Node::getCordappList).map { it.jarFile }.distinct()
             allCordapps.forEach {
-                signJarTaskOptions["jar"] = it.toString()
+                val signJarTaskOptions = signing.singJarTaskOptions(baseKeystoreDir, it)
                 project.ant.invokeMethod("signjar", signJarTaskOptions)
             }
         }
