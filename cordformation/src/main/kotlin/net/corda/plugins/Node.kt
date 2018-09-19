@@ -354,6 +354,7 @@ open class Node @Inject constructor(private val project: Project) {
         }
         installAgentJar()
         installDrivers()
+        installCordapps()
         installCordappConfigs()
         installConfig()
     }
@@ -368,6 +369,19 @@ open class Node @Inject constructor(private val project: Project) {
         }
         installAgentJar()
         installCordappConfigs()
+    }
+
+    internal fun installCordapps() {
+        val cordappsDir = nodeDir.toPath().resolve("cordapps")
+        val nodeCordapps = getCordappList().map { it.jarFile }.distinct()
+        nodeCordapps.map { nodeCordapp ->
+            project.copy {
+                it.apply {
+                    from (nodeCordapp)
+                    into (cordappsDir)
+                }
+            }
+        }
     }
 
     internal fun rootDir(rootDir: Path) {
@@ -484,8 +498,9 @@ open class Node @Inject constructor(private val project: Project) {
     }
 
     private fun installCordappConfigs() {
+        val cordappsDir = nodeDir.toPath().resolve("cordapps")
         val cordapps = getCordappList()
-        val configDir = project.file(nodeDir.toPath().resolve("cordapps").resolve("config")).toPath()
+        val configDir = project.file(cordappsDir.resolve("config")).toPath()
         Files.createDirectories(configDir)
         for ((jarFile, config) in cordapps) {
             if (config == null) continue

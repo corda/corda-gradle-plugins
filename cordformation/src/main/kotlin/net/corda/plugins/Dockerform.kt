@@ -45,6 +45,7 @@ open class Dockerform : Baseform() {
         installCordaJar()
         nodes.forEach(Node::installDrivers)
         bootstrapNetwork()
+        nodes.forEach(Node::installCordapps)
         nodes.forEach(Node::buildDocker)
 
 
