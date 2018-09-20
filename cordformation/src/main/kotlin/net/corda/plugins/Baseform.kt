@@ -63,7 +63,7 @@ open class Baseform : DefaultTask() {
     var nodeDefaults: Closure<in Node>? = null
 
     /**
-     * Optional parameters for ant keyGen and signJar tasks to sing Cordapps
+     * Optional parameters for ant keyGen and signJar tasks to sign Cordapps
      */
     @Input
     var signing: Signing = Signing()
@@ -173,15 +173,22 @@ open class Baseform : DefaultTask() {
 
         if (signing.generateKeystore) {
             val genKeyTaskOptions = signing.genKeyTaskOptions(baseKeystoreDir)
-            Files.deleteIfExists(Paths.get(genKeyTaskOptions["keystore"]))
-
-            if (signing.hasDefaultKeystoreOptions(baseKeystoreDir)) {
-                project.logger.warn("Generating default keystore to sign Cordapps '${genKeyTaskOptions["keystore"]}'. " +
-                        "To use custom keystore provide keystore details, see documentation at https://docs.corda.net/generating-a-node.html.")
+            val hasDefaultOptions = signing.hasDefaultKeystoreOptions(baseKeystoreDir)
+            if (Files.exists(Paths.get(genKeyTaskOptions["keystore"]))) {
+                val msg = "Skipping keystore generation to sign Cordapps, the keystore already exists at '${genKeyTaskOptions["keystore"]}'."
+                if (hasDefaultOptions) {
+                    project.logger.info(msg)
+                } else {
+                    project.logger.warn(msg) //warn when non default options beacuse the keystore reuse may be not intended
+                }
             } else {
-                project.logger.warn("Generating keystore to sign Cordapps '${genKeyTaskOptions["keystore"]}'")
+                if (hasDefaultOptions) {
+                    project.logger.info("Generating keystore to sign Cordapps with default options: ${genKeyTaskOptions.entries.map { "${it.key}=\"${it.value}\"" }.joinToString()}.")
+                } else {
+                    project.logger.info("Generating keystore to sign Cordapps '${genKeyTaskOptions["keystore"]}'.")
+                }
+                project.ant.invokeMethod("genkey", genKeyTaskOptions)
             }
-            project.ant.invokeMethod("genkey", genKeyTaskOptions)
         }
 
         val signJarTaskOptions = signing.singJarTaskOptions(baseKeystoreDir, project.tasks.getByName("jar").outputs.files.singleFile.toPath())

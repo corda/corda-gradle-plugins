@@ -6,11 +6,18 @@ import java.nio.file.Path
 //contains union of properties for ANT tasks "genkey" and "signjar" as most of them are shared by both tasks
 class Signing {
 
-    var defaultKeyStoreFileName = "jarSignKeystore.jks"
-    var defaultStoretype = "jks"
+    var defaultKeyStoreFileName = "jarSignKeystore.p12"
+    var defaultStoretype = "PKCS12"
     var defaultStorepass = "secret1!"
     var defaultAlias = "cordapp-signer"
     var defaultDname = "OU=Dummy Cordapp Distributor, O=Corda, L=London, C=GB"
+    var defautKeyalg = "RSA"
+
+    private val defaultValues = mutableMapOf("storetype" to defaultStoretype,
+            "alias" to defaultAlias,
+            "storepass" to defaultStorepass,
+            "dname" to defaultDname,
+            "keyalg" to defautKeyalg)
 
     @get:Input
     var all: Boolean = false
@@ -22,11 +29,7 @@ class Signing {
     var generateKeystore: Boolean = true
         private set
 
-    private var opts = mutableMapOf("storetype" to defaultStoretype,
-            "alias" to defaultAlias,
-            "storepass" to defaultStorepass,
-            "dname" to defaultDname,
-            "keyalg" to "RSA") //required by Corda
+    private var opts = defaultValues.toMutableMap()
         set(value) {
             opts.putAll(value)
         }
@@ -51,8 +54,9 @@ class Signing {
     }
 
     fun hasDefaultKeystoreOptions(baseDirectory: Path) =
-        opts["alias"] == defaultAlias && opts["storepass"] == defaultStorepass
-                && opts["keystore"] == baseDirectory.resolve(defaultKeyStoreFileName).toAbsolutePath().normalize().toString()
+            opts.size == defaultValues.size + 1 /* for keystore */
+                    && opts["storetype"] == defaultStoretype && opts["alias"] == defaultAlias && opts["storepass"] == defaultStorepass
+                    && opts["keyalg"] == defautKeyalg && opts["keystore"] == baseDirectory.resolve(defaultKeyStoreFileName).toAbsolutePath().normalize().toString()
 
     fun singJarTaskOptions(baseDirectory: Path, jarToSign: Path): Map<String, String> {
         opts.putIfAbsent("keystore", baseDirectory.resolve(defaultKeyStoreFileName).toAbsolutePath().normalize().toString())
