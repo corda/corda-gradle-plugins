@@ -1,69 +1,32 @@
 package net.corda.plugins
 
+import groovy.lang.Closure
+import org.gradle.api.Project
 import org.gradle.api.tasks.Input
-import java.nio.file.Path
+import javax.inject.Inject
 
-//contains union of properties for ANT tasks "genkey" and "signjar" as most of them are shared by both tasks
-class Signing {
-
-    var defaultKeyStoreFileName = "jarSignKeystore.p12"
-    var defaultStoretype = "PKCS12"
-    var defaultStorepass = "secret1!"
-    var defaultAlias = "cordapp-signer"
-    var defaultDname = "OU=Dummy Cordapp Distributor, O=Corda, L=London, C=GB"
-    var defautKeyalg = "RSA"
-
-    private val defaultValues = mutableMapOf("storetype" to defaultStoretype,
-            "alias" to defaultAlias,
-            "storepass" to defaultStorepass,
-            "dname" to defaultDname,
-            "keyalg" to defautKeyalg)
+/** JAR sign, keystore generation and overall signing control options. */
+class Signing @Inject constructor(private val project: Project){
 
     @get:Input
-    var all: Boolean = false
+    var all: Boolean = true
         private set
+    fun all(value: Boolean) { all = value }
+
     @get:Input
     var enabled: Boolean = true
         private set
+    fun enabled(value: Boolean) { enabled = value }
+
     @get:Input
     var generateKeystore: Boolean = true
         private set
+    fun generateKeystore(value: Boolean) { generateKeystore = value }
 
-    private var opts = defaultValues.toMutableMap()
-        set(value) {
-            opts.putAll(value)
-        }
-
-    fun all(value: Boolean) {
-        all = value
-    }
-
-    fun enabled(value: Boolean) {
-        enabled = value
-    }
-
-    fun generateKeystore(value: Boolean) {
-        generateKeystore = value
-    }
-
-    fun genKeyTaskOptions(baseDirectory: Path): Map<String, String> {
-        opts.putIfAbsent("keystore", baseDirectory.resolve(defaultKeyStoreFileName).toAbsolutePath().normalize().toString())
-        val allowedGenKeyTaskOptions = setOf("alias", "storepass", "keystore", "storetype", "keypass", "sigalg", "keyalg",
-                "verbose", "dname", "validity", "keysize")
-        return opts.filterKeys { allowedGenKeyTaskOptions.contains(it) }
-    }
-
-    fun hasDefaultKeystoreOptions(baseDirectory: Path) =
-            opts.size == defaultValues.size + 1 /* for keystore */
-                    && opts["storetype"] == defaultStoretype && opts["alias"] == defaultAlias && opts["storepass"] == defaultStorepass
-                    && opts["keyalg"] == defautKeyalg && opts["keystore"] == baseDirectory.resolve(defaultKeyStoreFileName).toAbsolutePath().normalize().toString()
-
-    fun singJarTaskOptions(baseDirectory: Path, jarToSign: Path): Map<String, String> {
-        opts.putIfAbsent("keystore", baseDirectory.resolve(defaultKeyStoreFileName).toAbsolutePath().normalize().toString())
-        opts["jar"] = jarToSign.toString()
-        val allowedSignJarTaskOptions = setOf("jar", "alias", "storepass", "keystore", "storetype", "keypass", "sigfile",
-                "signedjar", "verbose", "strict", "internalsf", "sectionsonly", "lazy", "maxmemory", "preservelastmodified",
-                "tsaurl", "tsacert", "tsaproxyhost", "tsaproxyport", "executable", "force", "sigalg", "digestalg", "tsadigestalg")
-        return opts.filterKeys { allowedSignJarTaskOptions.contains(it) }
+    @get:Input
+    var options: SigningOptions = SigningOptions()
+        private set
+    fun options(configureClosure: Closure<in SigningOptions>) {
+        options = project.configure(SigningOptions(), configureClosure) as SigningOptions
     }
 }
