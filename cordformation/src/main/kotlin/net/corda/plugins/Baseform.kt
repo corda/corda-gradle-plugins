@@ -67,10 +67,10 @@ open class Baseform : DefaultTask() {
      * by default all Cordapps are signed with default keyStore options.
      */
     @Input
-    var signing: Signing = Signing(project)
+    var signing: KeyGenAndSigning = KeyGenAndSigning()
 
-    fun signing(configureClosure: Closure<in Signing>) {
-        signing = project.configure(Signing(project), configureClosure) as Signing
+    fun signing(configureClosure: Closure<in KeyGenAndSigning>) {
+        signing = project.configure(KeyGenAndSigning(), configureClosure) as KeyGenAndSigning
     }
 
     /**
