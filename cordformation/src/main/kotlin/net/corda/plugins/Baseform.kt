@@ -159,16 +159,32 @@ open class Baseform : DefaultTask() {
         project.delete(directory)
     }
 
+    /**
+     * Generates exclude_whitelist.txt.
+     * If excludeWhitelist is empty and all Cordapp JARs will be signed, adds Finance App contract classes to exclude_whitelist.txt.
+     */
     protected fun generateExcludedWhitelist() {
+        if (signing.enabled && excludeWhitelist.isEmpty()) {
+            if (signing.all) {
+                // If user didn't specified exclude whitelist and signs all Cordapps (so potentially corda-finance/Finance app)
+                // then allow contracts from Finance app to work with signature constraints and not whitelisting by default.
+                excludeWhitelist = listOf("net.corda.finance.contracts.asset.Cash", "net.corda.finance.contracts.asset.CommercialPaper",
+                        "net.corda.finance.contracts.CommercialPaper", "net.corda.finance.contracts.JavaCommercialPaper")
+                logger.warn("Signing Cordapp JARs but no contract classes are excluded from whitelisting " +
+                        "and signature constraints will not be used for contract classes except ones from corda-finance JAR.")
+            } else {
+                logger.warn("Signing Cordapp JAR but no contract classes are excluded from whitelisting " +
+                        "and signature constraints will not be used for contract classes.")
+            }
+        }
         if (excludeWhitelist.isNotEmpty()) {
             val rootDir = Paths.get(project.projectDir.toPath().resolve(directory).resolve("exclude_whitelist.txt").toAbsolutePath().normalize().toString())
             Files.write(rootDir, excludeWhitelist)
-         }
+        }
     }
 
     /**
      * Optionally generate keyStore and sign the generated Cordapp/other Cordapps deployed to nodes.
-     * If no contracts were excluded from whitelisting and all Cordapp JAR are signed, adds Finance App contract for whitelist exclusion.
      */
     protected fun generateKeystoreAndSignCordappJar() {
         if (!signing.enabled)
@@ -197,17 +213,6 @@ open class Baseform : DefaultTask() {
         jarsToSign.forEach {
             signJarOptions["jar"] = it.toString()
             project.ant.invokeMethod("signjar", signJarOptions)
-        }
-
-        if (excludeWhitelist.isEmpty()) {
-            logger.warn("Cordapp JAR is signed but no contract classes has been excluded from whitelisting " +
-                    "and signature constraints will be not used for contract classes except ones from corda-finance JAR.")
-        }
-        // If user didn't specified exclude whitelist and signs all Cordapps (so potentially corda-finance/Finance app)
-        // then allow contracts from Finance app to work with signature constraints and not whitelisting by default.
-        if (signing.all && excludeWhitelist.isEmpty()) {
-            excludeWhitelist = listOf("net.corda.finance.contracts.asset.Cash", "net.corda.finance.contracts.asset.CommercialPaper",
-                    "net.corda.finance.contracts.CommercialPaper", "net.corda.finance.contracts.JavaCommercialPaper")
         }
     }
 
