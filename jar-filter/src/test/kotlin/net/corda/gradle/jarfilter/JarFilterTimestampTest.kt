@@ -43,16 +43,16 @@ class JarFilterTimestampTest {
                 override fun evaluate() {
                     testProjectDir.installResource("gradle.properties")
                     testProjectDir.newFile("build.gradle").writeText("""
-plugins {
-    id 'net.corda.plugins.jar-filter'
-}
-
-import net.corda.gradle.jarfilter.JarFilterTask
-task jarFilter(type: JarFilterTask) {
-    jars file("${sourceJar.path.toUri()}")
-    preserveTimestamps = false
-}
-""")
+                        |plugins {
+                        |    id 'net.corda.plugins.jar-filter'
+                        |}
+                        |
+                        |import net.corda.gradle.jarfilter.JarFilterTask
+                        |task jarFilter(type: JarFilterTask) {
+                        |    jars file("${sourceJar.path.toUri()}")
+                        |    preserveTimestamps = false
+                        |}
+                        |""".trimMargin())
                     val result = GradleRunner.create()
                         .withProjectDir(testProjectDir.root)
                         .withArguments(getGradleArgsForTasks("jarFilter"))

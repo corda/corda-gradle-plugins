@@ -26,14 +26,14 @@ class MetaFixConfigurationTests {
     @Test
     fun checkNoJarMeansNoSource() {
         val result = gradleProject("""
-plugins {
-    id 'java'
-    id 'net.corda.plugins.jar-filter'
-}
-
-import net.corda.gradle.jarfilter.MetaFixerTask
-task metafix(type: MetaFixerTask)
-""").build()
+            |plugins {
+            |    id 'java'
+            |    id 'net.corda.plugins.jar-filter'
+            |}
+            |
+            |import net.corda.gradle.jarfilter.MetaFixerTask
+            |task metafix(type: MetaFixerTask)
+            |""".trimMargin()).build()
         output = result.output
         println(output)
 
@@ -44,15 +44,15 @@ task metafix(type: MetaFixerTask)
     @Test
     fun checkWithMissingJar() {
         val result = gradleProject("""
-plugins {
-    id 'net.corda.plugins.jar-filter'
-}
-
-import net.corda.gradle.jarfilter.MetaFixerTask
-task metafix(type: MetaFixerTask) {
-    jars = file('does-not-exist.jar')
-}
-""").buildAndFail()
+            |plugins {
+            |    id 'net.corda.plugins.jar-filter'
+            |}
+            |
+            |import net.corda.gradle.jarfilter.MetaFixerTask
+            |task metafix(type: MetaFixerTask) {
+            |    jars = file('does-not-exist.jar')
+            |}
+            |""".trimMargin()).buildAndFail()
         output = result.output
         println(output)
 
