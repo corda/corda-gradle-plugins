@@ -33,18 +33,18 @@ class JarFilterConfigurationTest {
     @Test
     fun checkNoJarMeansNoSource() {
         val result = gradleProject("""
-plugins {
-    id 'java'
-    id 'net.corda.plugins.jar-filter'
-}
-
-import net.corda.gradle.jarfilter.JarFilterTask
-task jarFilter(type: JarFilterTask) {
-    annotations {
-        forDelete = ["$DELETE"]
-    }
-}
-""").build()
+            |plugins {
+            |    id 'java'
+            |    id 'net.corda.plugins.jar-filter'
+            |}
+            |
+            |import net.corda.gradle.jarfilter.JarFilterTask
+            |task jarFilter(type: JarFilterTask) {
+            |    annotations {
+            |        forDelete = ["$DELETE"]
+            |    }
+            |}
+            |""".trimMargin()).build()
         output = result.output
         println(output)
 
@@ -55,15 +55,15 @@ task jarFilter(type: JarFilterTask) {
     @Test
     fun checkWithMissingJar() {
         val result = gradleProject("""
-plugins {
-    id 'net.corda.plugins.jar-filter'
-}
-
-import net.corda.gradle.jarfilter.JarFilterTask
-task jarFilter(type: JarFilterTask) {
-    jars = file('does-not-exist.jar')
-}
-""").buildAndFail()
+            |plugins {
+            |    id 'net.corda.plugins.jar-filter'
+            |}
+            |
+            |import net.corda.gradle.jarfilter.JarFilterTask
+            |task jarFilter(type: JarFilterTask) {
+            |    jars = file('does-not-exist.jar')
+            |}
+            |""".trimMargin()).buildAndFail()
         output = result.output
         println(output)
 
@@ -79,20 +79,20 @@ task jarFilter(type: JarFilterTask) {
     @Test
     fun checkSameAnnotationForRemoveAndDelete() {
         val result = gradleProject("""
-plugins {
-    id 'java'
-    id 'net.corda.plugins.jar-filter'
-}
-
-import net.corda.gradle.jarfilter.JarFilterTask
-task jarFilter(type: JarFilterTask) {
-    jars = jar
-    annotations {
-        forDelete = ["$AMBIGUOUS"]
-        forRemove = ["$AMBIGUOUS"]
-    }
-}
-""").buildAndFail()
+            |plugins {
+            |    id 'java'
+            |    id 'net.corda.plugins.jar-filter'
+            |}
+            |
+            |import net.corda.gradle.jarfilter.JarFilterTask
+            |task jarFilter(type: JarFilterTask) {
+            |    jars = jar
+            |    annotations {
+            |        forDelete = ["$AMBIGUOUS"]
+            |        forRemove = ["$AMBIGUOUS"]
+            |    }
+            |}
+            |""".trimMargin()).buildAndFail()
         output = result.output
         println(output)
 
@@ -107,20 +107,20 @@ task jarFilter(type: JarFilterTask) {
     @Test
     fun checkSameAnnotationForRemoveAndStub() {
         val result = gradleProject("""
-plugins {
-    id 'java'
-    id 'net.corda.plugins.jar-filter'
-}
-
-import net.corda.gradle.jarfilter.JarFilterTask
-task jarFilter(type: JarFilterTask) {
-    jars = jar
-    annotations {
-        forStub = ["$AMBIGUOUS"]
-        forRemove = ["$AMBIGUOUS"]
-    }
-}
-""").buildAndFail()
+            |plugins {
+            |    id 'java'
+            |    id 'net.corda.plugins.jar-filter'
+            |}
+            |
+            |import net.corda.gradle.jarfilter.JarFilterTask
+            |task jarFilter(type: JarFilterTask) {
+            |    jars = jar
+            |    annotations {
+            |        forStub = ["$AMBIGUOUS"]
+            |        forRemove = ["$AMBIGUOUS"]
+            |    }
+            |}
+            |""".trimMargin()).buildAndFail()
         output = result.output
         println(output)
 
@@ -135,20 +135,20 @@ task jarFilter(type: JarFilterTask) {
     @Test
     fun checkSameAnnotationForStubAndDelete() {
         val result = gradleProject("""
-plugins {
-    id 'java'
-    id 'net.corda.plugins.jar-filter'
-}
-
-import net.corda.gradle.jarfilter.JarFilterTask
-task jarFilter(type: JarFilterTask) {
-    jars = jar
-    annotations {
-        forStub = ["$AMBIGUOUS"]
-        forDelete = ["$AMBIGUOUS"]
-    }
-}
-""").buildAndFail()
+            |plugins {
+            |    id 'java'
+            |    id 'net.corda.plugins.jar-filter'
+            |}
+            |
+            |import net.corda.gradle.jarfilter.JarFilterTask
+            |task jarFilter(type: JarFilterTask) {
+            |    jars = jar
+            |    annotations {
+            |        forStub = ["$AMBIGUOUS"]
+            |        forDelete = ["$AMBIGUOUS"]
+            |    }
+            |}
+            |""".trimMargin()).buildAndFail()
         output = result.output
         println(output)
 
@@ -163,21 +163,21 @@ task jarFilter(type: JarFilterTask) {
     @Test
     fun checkSameAnnotationForStubAndDeleteAndRemove() {
         val result = gradleProject("""
-plugins {
-    id 'java'
-    id 'net.corda.plugins.jar-filter'
-}
-
-import net.corda.gradle.jarfilter.JarFilterTask
-task jarFilter(type: JarFilterTask) {
-    jars = jar
-    annotations {
-        forStub = ["$AMBIGUOUS"]
-        forDelete = ["$AMBIGUOUS"]
-        forRemove = ["$AMBIGUOUS"]
-    }
-}
-""").buildAndFail()
+            |plugins {
+            |    id 'java'
+            |    id 'net.corda.plugins.jar-filter'
+            |}
+            |
+            |import net.corda.gradle.jarfilter.JarFilterTask
+            |task jarFilter(type: JarFilterTask) {
+            |    jars = jar
+            |    annotations {
+            |        forStub = ["$AMBIGUOUS"]
+            |        forDelete = ["$AMBIGUOUS"]
+            |        forRemove = ["$AMBIGUOUS"]
+            |    }
+            |}
+            |""".trimMargin()).buildAndFail()
         output = result.output
         println(output)
 
@@ -192,19 +192,19 @@ task jarFilter(type: JarFilterTask) {
     @Test
     fun checkRepeatedAnnotationForDelete() {
         val result = gradleProject("""
-plugins {
-    id 'java'
-    id 'net.corda.plugins.jar-filter'
-}
-
-import net.corda.gradle.jarfilter.JarFilterTask
-task jarFilter(type: JarFilterTask) {
-    jars = jar
-    annotations {
-        forDelete = ["$DELETE", "$DELETE"]
-    }
-}
-""").build()
+            |plugins {
+            |    id 'java'
+            |    id 'net.corda.plugins.jar-filter'
+            |}
+            |
+            |import net.corda.gradle.jarfilter.JarFilterTask
+            |task jarFilter(type: JarFilterTask) {
+            |    jars = jar
+            |    annotations {
+            |        forDelete = ["$DELETE", "$DELETE"]
+            |    }
+            |}
+            |""".trimMargin()).build()
         output = result.output
         println(output)
 
@@ -215,19 +215,19 @@ task jarFilter(type: JarFilterTask) {
     @Test
     fun checkRepeatedAnnotationForStub() {
         val result = gradleProject("""
-plugins {
-    id 'java'
-    id 'net.corda.plugins.jar-filter'
-}
-
-import net.corda.gradle.jarfilter.JarFilterTask
-task jarFilter(type: JarFilterTask) {
-    jars = jar
-    annotations {
-        forStub = ["$STUB", "$STUB"]
-    }
-}
-""").build()
+            |plugins {
+            |    id 'java'
+            |    id 'net.corda.plugins.jar-filter'
+            |}
+            |
+            |import net.corda.gradle.jarfilter.JarFilterTask
+            |task jarFilter(type: JarFilterTask) {
+            |    jars = jar
+            |    annotations {
+            |        forStub = ["$STUB", "$STUB"]
+            |    }
+            |}
+            |""".trimMargin()).build()
         output = result.output
         println(output)
 
@@ -238,19 +238,19 @@ task jarFilter(type: JarFilterTask) {
     @Test
     fun checkRepeatedAnnotationForRemove() {
         val result = gradleProject("""
-plugins {
-    id 'java'
-    id 'net.corda.plugins.jar-filter'
-}
-
-import net.corda.gradle.jarfilter.JarFilterTask
-task jarFilter(type: JarFilterTask) {
-    jars = jar
-    annotations {
-        forRemove = ["$REMOVE", "$REMOVE"]
-    }
-}
-""").build()
+            |plugins {
+            |    id 'java'
+            |    id 'net.corda.plugins.jar-filter'
+            |}
+            |
+            |import net.corda.gradle.jarfilter.JarFilterTask
+            |task jarFilter(type: JarFilterTask) {
+            |    jars = jar
+            |    annotations {
+            |        forRemove = ["$REMOVE", "$REMOVE"]
+            |    }
+            |}
+            |""".trimMargin()).build()
         output = result.output
         println(output)
 

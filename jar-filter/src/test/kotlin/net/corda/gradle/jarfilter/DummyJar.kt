@@ -89,8 +89,8 @@ class DummyJar(
 
                     // One uncompressed text file
                     val text = """Jar: ${_path.toAbsolutePath()}
-Class: ${testClass.name}
-""".toByteArray()
+                                 |Class: ${testClass.name}
+                                 |""".trimMargin().toByteArray()
                     jar.putNextEntry(uncompressed("comment.txt", text))
                     jar.write(text)
                 }
