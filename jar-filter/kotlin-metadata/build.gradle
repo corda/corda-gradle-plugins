@@ -42,10 +42,11 @@ task metadata(type: ProGuardTask) {
     dontoptimize
     verbose
 
-    dontwarn 'org.jetbrains.annotations.**'
+    dontwarn 'kotlin.annotations.jvm.**'
     dontwarn 'org.jetbrains.kotlin.com.intellij.**'
     dontwarn 'org.jetbrains.kotlin.com.google.j2objc.annotations.**'
     dontwarn 'org.jetbrains.kotlin.com.google.errorprone.annotations.**'
+    dontwarn 'org.checkerframework.checker.**'
     dontnote
 
     keep 'class org.jetbrains.kotlin.load.java.JvmAnnotationNames { *; }'
@@ -71,6 +72,7 @@ task validate(type: ProGuardTask) {
     verbose
 
     dontwarn 'org.jetbrains.kotlin.com.google.errorprone.annotations.**'
+    dontwarn 'org.checkerframework.checker.**'
     dontnote
 
     keep 'class *'
