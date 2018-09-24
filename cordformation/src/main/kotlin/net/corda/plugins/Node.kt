@@ -377,8 +377,8 @@ open class Node @Inject constructor(private val project: Project) {
         nodeCordapps.map { nodeCordapp ->
             project.copy {
                 it.apply {
-                    from (nodeCordapp)
-                    into (cordappsDir)
+                    from(nodeCordapp)
+                    into(cordappsDir)
                 }
             }
         }
@@ -414,8 +414,14 @@ open class Node @Inject constructor(private val project: Project) {
         if (!extraConfig.isEmpty()) {
             config = config.withFallback(ConfigFactory.parseMap(extraConfig))
         }
-        if(!config.hasPath("devMode")) {
+        if (!config.hasPath("devMode")) {
             config = config.withValue("devMode", ConfigValueFactory.fromAnyRef(true))
+        }
+
+        if (flowOverrides.isNotEmpty()) {
+            val mapToParse = mapOf("overrides" to
+                    flowOverrides.map { pair -> mapOf("initiator" to pair.first, "responder" to pair.second) })
+            config = config.withValue("flowOverrides", ConfigValueFactory.fromMap(mapToParse))
         }
     }
 
@@ -637,4 +643,10 @@ open class Node @Inject constructor(private val project: Project) {
     private fun setValue(path: String, value: Any?) {
         config = config.withValue(path, ConfigValueFactory.fromAnyRef(value))
     }
+
+    fun flowOverride(initiator: String, responder: String) {
+        flowOverrides.add(initiator to responder)
+    }
+
+    val flowOverrides: MutableList<Pair<String, String>> = mutableListOf()
 }
