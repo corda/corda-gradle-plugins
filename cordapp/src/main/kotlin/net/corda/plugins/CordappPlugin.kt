@@ -72,6 +72,16 @@ class CordappPlugin : Plugin<Project> {
             }
         }
         jarTask.dependsOn(task)
+
+        val signTask = project.task("signCordappJar")
+        signTask.doLast {
+            if (cordapp.signing.enabled) {
+                val options = cordapp.signing.options.toSignJarOptionsMap()
+                options["jar"] = project.tasks.getByName("jar").outputs.files.singleFile.toPath().toString()
+                project.ant.invokeMethod("signjar", options)
+            }
+        }
+        jarTask.finalizedBy(signTask)
     }
 
     private fun getDirectNonCordaDependencies(project: Project): Set<File> {
