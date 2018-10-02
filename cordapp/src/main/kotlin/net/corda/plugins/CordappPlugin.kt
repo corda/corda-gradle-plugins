@@ -2,6 +2,7 @@ package net.corda.plugins
 
 import net.corda.plugins.Utils.Companion.compareVersions
 import org.gradle.api.GradleException
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
@@ -141,10 +142,15 @@ class CordappPlugin : Plugin<Project> {
 
         // If the minimum platform version is not set, default to 1.
         val minPlatformVersion: Int = cordapp.info?.minPlatformVersion ?: 1
-        check(targetVersion != null) { "Target version was not set and could not be determined from the project's Corda dependency. Please specify the target version of your CorDapp." }
-        check(targetVersion!! >= 1) { "Target version must not be smaller than 1." }
-        check(targetVersion >= minPlatformVersion) { "Target version must not be smaller than min platform version." }
-
+        if (targetVersion == null) {
+            throw InvalidUserDataException("Target version was not set and could not be determined from the project's Corda dependency. Please specify the target version of your CorDapp.")
+        }
+        if (targetVersion < 1) {
+            throw InvalidUserDataException("Target version must not be smaller than 1.")
+        }
+        if (targetVersion < minPlatformVersion) {
+            throw InvalidUserDataException("Target version must not be smaller than min platform version.")
+        }
         return Pair(targetVersion, minPlatformVersion)
     }
 
