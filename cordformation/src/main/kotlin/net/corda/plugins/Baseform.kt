@@ -74,14 +74,23 @@ open class Baseform : DefaultTask() {
     }
 
     /**
-     * List of classes to be included in "exclude_whitelist.txt" file for network-bootstrapper,
-     * by default contains contracts classes from Finance Cordapp to allow signature constraints being used for them.
+     * List of classes to be included in "exclude_whitelist.txt" file for network-bootstrapper.
      */
     @Input
     var excludeWhitelist: List<String> = listOf()
 
     fun excludeWhitelist(map: List<String>) {
         excludeWhitelist = map
+    }
+
+    /**
+     * List of classes to be included in "include_whitelist.txt" file for network-bootstrapper.
+     */
+    @Input
+    var includeWhitelist: List<String> = listOf()
+
+    fun includeWhitelist(map: List<String>) {
+        includeWhitelist = map
     }
 
     /**
@@ -161,25 +170,25 @@ open class Baseform : DefaultTask() {
 
     /**
      * Generates exclude_whitelist.txt.
-     * If excludeWhitelist is empty and all Cordapp JARs will be signed, adds Finance App contract classes to exclude_whitelist.txt.
      */
     protected fun generateExcludedWhitelist() {
-        if (signing.enabled && excludeWhitelist.isEmpty()) {
-            if (signing.all) {
-                // If user didn't specified exclude whitelist and signs all Cordapps (so potentially corda-finance/Finance app)
-                // then allow contracts from Finance app to work with signature constraints and not whitelisting by default.
-                excludeWhitelist = listOf("net.corda.finance.contracts.asset.Cash", "net.corda.finance.contracts.asset.CommercialPaper",
-                        "net.corda.finance.contracts.CommercialPaper", "net.corda.finance.contracts.JavaCommercialPaper")
-                logger.warn("Signing Cordapp JARs but no contract classes are excluded from whitelisting " +
-                        "and signature constraints will not be used for contract classes except ones from corda-finance JAR.")
-            } else {
-                logger.warn("Signing Cordapp JAR but no contract classes are excluded from whitelisting " +
-                        "and signature constraints will not be used for contract classes.")
-            }
-        }
         if (excludeWhitelist.isNotEmpty()) {
-            val rootDir = Paths.get(project.projectDir.toPath().resolve(directory).resolve("exclude_whitelist.txt").toAbsolutePath().normalize().toString())
+            var fileName = "exclude_whitelist.txt"
+            logger.debug("Adding $excludeWhitelist to $fileName.")
+            val rootDir = Paths.get(project.projectDir.toPath().resolve(directory).resolve(fileName).toAbsolutePath().normalize().toString())
             Files.write(rootDir, excludeWhitelist)
+        }
+    }
+
+    /**
+     * Generates include_whitelist.txt.
+     */
+    protected fun generateIncludeWhitelist() {
+        if (includeWhitelist.isNotEmpty()) {
+            var fileName = "include_whitelist.txt"
+            logger.debug("Adding $includeWhitelist to $fileName.")
+            val rootDir = Paths.get(project.projectDir.toPath().resolve(directory).resolve(fileName).toAbsolutePath().normalize().toString())
+            Files.write(rootDir, includeWhitelist)
         }
     }
 
