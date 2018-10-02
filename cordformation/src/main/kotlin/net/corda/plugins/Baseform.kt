@@ -84,16 +84,6 @@ open class Baseform : DefaultTask() {
     }
 
     /**
-     * List of classes to be included in "include_whitelist.txt" file for network-bootstrapper.
-     */
-    @Input
-    var includeWhitelist: List<String> = listOf()
-
-    fun includeWhitelist(map: List<String>) {
-        includeWhitelist = map
-    }
-
-    /**
      * Add a node configuration.
      *
      * @param configureClosure A node configuration that will be deployed.
@@ -177,18 +167,6 @@ open class Baseform : DefaultTask() {
             logger.debug("Adding $excludeWhitelist to $fileName.")
             val rootDir = Paths.get(project.projectDir.toPath().resolve(directory).resolve(fileName).toAbsolutePath().normalize().toString())
             Files.write(rootDir, excludeWhitelist)
-        }
-    }
-
-    /**
-     * Generates include_whitelist.txt.
-     */
-    protected fun generateIncludeWhitelist() {
-        if (includeWhitelist.isNotEmpty()) {
-            var fileName = "include_whitelist.txt"
-            logger.debug("Adding $includeWhitelist to $fileName.")
-            val rootDir = Paths.get(project.projectDir.toPath().resolve(directory).resolve(fileName).toAbsolutePath().normalize().toString())
-            Files.write(rootDir, includeWhitelist)
         }
     }
 

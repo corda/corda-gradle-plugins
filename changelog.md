@@ -6,6 +6,8 @@
 
 * `cordapp`: Add `targetPlatformVersion` and `minimumPlatformVersion` to the CorDapp Info. The min platform version defaults to 1. If the target version is not set by the user, the plugin attempts to read the platform version of the project's Corda dependency. 
 * `cordformation`: Removed experimental feature `CordformDefinition`
+* `cordformation`: Support for Signature Constraints - The plugin signs all Cordapp JARs by default. Uses key from a generated keyStore, `signing` entry can configure keyStore/key or external one used.
+* `cordapp`: Support for Signature Constraints - added optional `signing` entry to sign CorDapp JAR.
 
 ### Version 4.0.29
 
