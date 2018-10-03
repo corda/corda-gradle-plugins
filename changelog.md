@@ -4,7 +4,7 @@
 
 ### Version 4.0.30
 
-* `cordapp`: Add `targetVersion` and `minPlatformVersion` to the CorDapp Info. The min platform version defaults to 1. If the target version is not set by the user, the plugin attempts to read the platform version of the project's Corda dependency. 
+* `cordapp`: Add `targetPlatformVersion` and `minimumPlatformVersion` to the CorDapp Info. The min platform version defaults to 1. If the target version is not set by the user, the plugin attempts to read the platform version of the project's Corda dependency. 
 * `cordformation`: Removed experimental feature `CordformDefinition`
 
 ### Version 4.0.29
