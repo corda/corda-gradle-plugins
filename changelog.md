@@ -8,6 +8,7 @@
 * `cordformation`: Removed experimental feature `CordformDefinition`
 * `cordformation`: Support for Signature Constraints - The plugin signs all Cordapp JARs by default. Uses key from a generated keyStore, `signing` entry can configure keyStore/key or external one used.
 * `cordapp`: Support for Signature Constraints - added optional `signing` entry to sign CorDapp JAR.
+* `publish-utils`: Support for Signature Constraints - publishing CorDapp requires `signing` entry in `cordapp` unless singing is disabled explicitly.
 
 ### Version 4.0.29
 
