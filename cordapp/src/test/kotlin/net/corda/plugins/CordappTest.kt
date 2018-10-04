@@ -33,8 +33,11 @@ class CordappTest {
         val expectedName = "test cordapp"
         val expectedVersion = "3.2.1"
         val expectedVendor = "test vendor"
+        val expectedtargetPlatformVersion = "5"
+        val expectedminimumPlatformVersion = "2"
 
-        val extraArgs = listOf("-Pname_info_arg=$expectedName", "-Pversion_info_arg=$expectedVersion", "-Pvendor_info_arg=$expectedVendor")
+        val extraArgs = listOf("-Pname_info_arg=$expectedName", "-Pversion_info_arg=$expectedVersion", "-Pvendor_info_arg=$expectedVendor", "-Ptarget_version_arg=$expectedtargetPlatformVersion", "-Pmin_platform_version_arg=$expectedminimumPlatformVersion")
+
         val jarTaskRunner = jarTaskRunner("CorDappWithInfo.gradle", extraArgs)
 
         val result = jarTaskRunner.build()
@@ -49,6 +52,8 @@ class CordappTest {
 
             assertThat(attributes.getValue("Name")).isEqualTo(expectedName)
             assertThat(attributes.getValue("Implementation-Version")).isEqualTo(expectedVersion)
+            assertThat(attributes.getValue("Target-Platform-Version")).isEqualTo(expectedtargetPlatformVersion)
+            assertThat(attributes.getValue("Min-Platform-Version")).isEqualTo(expectedminimumPlatformVersion)
             assertThat(attributes.getValue("Implementation-Vendor")).isEqualTo(expectedVendor)
         }
     }

@@ -2,6 +2,7 @@ package net.corda.plugins
 
 import net.corda.plugins.Utils.Companion.compareVersions
 import org.gradle.api.GradleException
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
@@ -38,7 +39,6 @@ class CordappPlugin : Plugin<Project> {
 
         cordapp = project.extensions.create("cordapp", CordappExtension::class.java)
         cordapp.setProject(project)
-
         configureCordappJar(project)
     }
 
@@ -50,10 +50,13 @@ class CordappPlugin : Plugin<Project> {
         val task = project.task("configureCordappFatJar")
         val jarTask = project.tasks.getByName("jar") as Jar
         jarTask.doFirst {
+            val (targetPlatformVersion, minimumPlatformVersion) = checkVersionInfo()
             val attributes = jarTask.manifest.attributes
             attributes["Name"] = cordapp.info?.name ?: "${project.group}.${jarTask.baseName}"
             attributes["Implementation-Version"] = cordapp.info?.version ?: project.version
             attributes["Implementation-Vendor"] = cordapp.info?.vendor ?: UNKNOWN
+            targetPlatformVersion?.let { attributes["Target-Platform-Version"] = it }
+            minimumPlatformVersion?.let { attributes["Min-Platform-Version"] = it }
             if (attributes["Implementation-Vendor"] == UNKNOWN) {
                 project.logger.warn("CordApp's vendor is \"$UNKNOWN\". Please specify it in \"cordapp.info.vendor\".")
             }
@@ -116,6 +119,19 @@ class CordappPlugin : Plugin<Project> {
             }
         }
         return filteredDeps.toUniqueFiles(runtimeConfiguration) - excludeDeps.toUniqueFiles(runtimeConfiguration)
+    }
+
+    private fun checkVersionInfo(): Pair<Int?, Int?> {
+        // If the minimum platform version is not set, default to 1.
+        val minimumPlatformVersion: Int = cordapp.info?.minimumPlatformVersion ?: 1
+        val targetPlatformVersion = cordapp.info?.targetPlatformVersion ?: throw InvalidUserDataException("Target version was not set and could not be determined from the project's Corda dependency. Please specify the target version of your CorDapp.")
+        if (targetPlatformVersion < 1) {
+            throw InvalidUserDataException("Target version must not be smaller than 1.")
+        }
+        if (targetPlatformVersion < minimumPlatformVersion) {
+            throw InvalidUserDataException("Target version must not be smaller than min platform version.")
+        }
+        return Pair(targetPlatformVersion, minimumPlatformVersion)
     }
 
     private fun Iterable<Dependency>.toUniqueFiles(configuration: Configuration): Set<File> {
