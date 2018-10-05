@@ -79,14 +79,14 @@ class CordappPlugin : Plugin<Project> {
         }
         jarTask.dependsOn(task)
 
-        val optionalSignTask = createSigningTask(project, "singCordapp", false, false)
+        val optionalSignTask = createSigningTask(project, "signCordapp", false, false)
         jarTask.finalizedBy(optionalSignTask)
 
         val signTask = project.tasks.findByName("sourceJar") //task in corda-publish-utils plugin
         if (signTask != null ) {
-            val singTaskForPublishingTask = createSigningTask(project, "singCordappForPublishing", true, true)
+            val signTaskForPublishingTask = createSigningTask(project, "signCordappForPublishing", true, true)
             val jarPublishingTask = signTask as Jar
-            jarPublishingTask.dependsOn(singTaskForPublishingTask)
+            jarPublishingTask.dependsOn(signTaskForPublishingTask)
         }
     }
 
