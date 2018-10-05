@@ -3,6 +3,9 @@ package net.corda.plugins
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.plugins.ExtraPropertiesExtension
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.StandardCopyOption
 import kotlin.math.max
 
 /**
@@ -53,6 +56,16 @@ class Utils {
                 }
             }
             return 0
+        }
+
+        @JvmStatic
+        fun defaultKeystoreFromResources() : Path {
+            val path = Files.createTempFile("cordadevcakeys",".jks")
+            this.javaClass.classLoader.getResourceAsStream("certificates/cordadevcakeys.jks").use {
+                `is` -> Files.copy(`is`, path, StandardCopyOption.REPLACE_EXISTING)
+            }
+            path.toFile().deleteOnExit()
+            return path
         }
     }
 }

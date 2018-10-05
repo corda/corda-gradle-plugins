@@ -1,6 +1,7 @@
 package net.corda.plugins
 
 import groovy.lang.Closure
+import net.corda.plugins.Utils.Companion.defaultKeystoreFromResources
 import org.gradle.api.DefaultTask
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.tasks.Input
@@ -177,14 +178,12 @@ open class Baseform : DefaultTask() {
         if (!signing.enabled)
             return
 
-        val addDefaultKeystoreIfAbsent = { map: MutableMap<String, String> ->
-            map.putIfAbsent("keystore",
-                    project.projectDir.toPath().resolve(directory).resolve("jarSignKeystore.p12").toAbsolutePath().normalize().toString())
-        }
+        require(!signing.generateKeystore || (signing.generateKeystore && !signing.options.hasDefaultOptions()))
+        { "Mis-configured keyStore generation to sign CorDapp JARs. When 'signing.generateKeystore' is true the following " +
+                "'signing.options' need to be configured: keystore, alias, storepass, keypass." }
 
-        if (signing.generateKeystore) {
+        if (signing.generateKeystore && !signing.options.hasDefaultOptions()) {
             val genKeyTaskOptions = signing.options.toGenKeyOptionsMap()
-            addDefaultKeystoreIfAbsent(genKeyTaskOptions)
             if (Files.exists(Paths.get(genKeyTaskOptions["keystore"]))) {
                 logger.warn("Skipping keystore generation to sign Cordapps, the keystore already exists at '${genKeyTaskOptions["keystore"]}'.")
             } else {
@@ -194,7 +193,11 @@ open class Baseform : DefaultTask() {
         }
 
         val signJarOptions = signing.options.toSignJarOptionsMap()
-        addDefaultKeystoreIfAbsent(signJarOptions)
+        if (signing.options.hasDefaultOptions()) { // Use dev keystore from resources
+            val keypath = defaultKeystoreFromResources()
+            signJarOptions["keystore"] = keypath.toString()
+        }
+
         val jarsToSign = mutableListOf(project.tasks.getByName("jar").outputs.files.singleFile.toPath()) +
                 if (signing.all) nodes.flatMap(Node::getCordappList).map { it.jarFile }.distinct() else emptyList()
         jarsToSign.forEach {

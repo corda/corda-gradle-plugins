@@ -5,11 +5,13 @@ import org.gradle.api.GradleException
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import net.corda.plugins.Utils.Companion.defaultKeystoreFromResources
 import org.gradle.api.*
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.jvm.tasks.Jar
 import java.io.File
+import java.nio.file.Paths
 
 /**
  * The Cordapp plugin will turn a project into a cordapp project which builds cordapp JARs with the correct format
@@ -77,27 +79,38 @@ class CordappPlugin : Plugin<Project> {
         }
         jarTask.dependsOn(task)
 
-        val optionalSignTask = createSigningTask(project, "singCordapp", false)
+        val optionalSignTask = createSigningTask(project, "singCordapp", false, false)
         jarTask.finalizedBy(optionalSignTask)
 
         val signTask = project.tasks.findByName("sourceJar") //task in corda-publish-utils plugin
         if (signTask != null ) {
-            val singTaskForPublishingTask = createSigningTask(project, "singCordappForPublishing", true)
+            val singTaskForPublishingTask = createSigningTask(project, "singCordappForPublishing", true, true)
             val jarPublishingTask = signTask as Jar
             jarPublishingTask.dependsOn(singTaskForPublishingTask)
         }
     }
 
-    private fun createSigningTask(project: Project, taskName: String, isEnableByDefault: Boolean) : Task {
+    private fun createSigningTask(project: Project, taskName: String, isEnableByDefault: Boolean, warnWhenUsingDevelopmentKey: Boolean) : Task {
         val signTask = project.task(taskName)
         signTask.doLast {
             var enabled = !isEnableByDefault && cordapp.signing.enabled == true  // Case when signing is optional by default
             var enabledByDefault = isEnableByDefault && cordapp.signing.enabled != false  // Case when signing is required by default
             if (enabled || enabledByDefault)  {
-                val path = project.tasks.getByName("jar").outputs.files.singleFile.toPath()
-                project.logger.debug( "Signing JAR " + path.fileName)
                 val options = cordapp.signing.options.toSignJarOptionsMap()
+
+                if (warnWhenUsingDevelopmentKey && cordapp.signing.options.hasDefaultOptions()) {
+                    project.logger.warn("Using the default development keyStore to sign Cordapp JAR, which is suitable for Corda running in development mode only.")
+                }
+                val path = project.tasks.getByName("jar").outputs.files.singleFile.toPath()
                 options["jar"] = path.toString()
+                project.logger.debug( "Signing JAR " + path.fileName)
+
+                if (cordapp.signing.options.hasDefaultOptions()) { // Use dev keystore from resources
+                    val keypath = defaultKeystoreFromResources()
+                    options["keystore"] = keypath.toString()
+                }
+                project.logger.debug( "Signing JAR options: " + path.fileName)
+
                 try {
                     // Any subsequent sign using the same key will be ignored
                     project.ant.invokeMethod("signjar", options)
@@ -105,12 +118,15 @@ class CordappPlugin : Plugin<Project> {
                     throw InvalidUserDataException("Exception while signing ${path.fileName}," +
                             " ensure the 'cordapp.signing.options' entry contains correct keyStore configuration," +
                             " or disable signing by 'cordapp.signing.enabled=false'.", e)
+                } finally {
+                    if (cordapp.signing.options.hasDefaultOptions()) {
+                        Paths.get(options["keystore"]).toFile().delete()
+                    }
                 }
             }
         }
         return signTask
     }
-
 
     private fun getDirectNonCordaDependencies(project: Project): Set<File> {
         project.logger.info("Finding direct non-corda dependencies for inclusion in CorDapp JAR")

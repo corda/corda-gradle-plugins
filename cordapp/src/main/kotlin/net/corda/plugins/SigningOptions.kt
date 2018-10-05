@@ -5,28 +5,39 @@ import org.gradle.api.tasks.Input
 /** JAR sign options. */
 //Option used for ANT task "signjar"
 open class SigningOptions {
+    companion object {
+        // Defaults to keyStore resource/certificates/cordadevcakeys.jks with Corda developer (non-production) certificates
+        const val DEFAULT_ALIAS = "cordaintermediateca"
+        const val DEFAULT_STOREPASS = "cordacadevpass"
+        const val DEFAULT_KEYSTORE = "cordadevcakeys.jks"
+        const val DEFAULT_STORETYPE = "JKS"
+        const val DEFAULT_KEYPASS = "cordacadevkeypass"
+        // jarSigner doesn't add "SIG-" prefix, and EC signature doesn't follow JAR File Specification
+        const val DEFAULT_SIGFILE = "SIG-CORDAINT"
+    }
+
     @get:Input
-    var alias = "cordapp-signer"
+    var alias = DEFAULT_ALIAS
     fun alias(value: String) { alias = value }
 
     @get:Input
-    var storepass = "secret1!"
+    var storepass = DEFAULT_STOREPASS
     fun storepass(value: String) { storepass = value }
 
     @get:Input
-    var keystore = ""
+    var keystore = DEFAULT_KEYSTORE
     fun keystore(value: String) { keystore = value }
 
     @get:Input
-    var storetype = "PKCS12"
+    var storetype = DEFAULT_STORETYPE
     fun storetype(value: String) { storetype = value }
 
     @get:Input
-    var keypass = ""
+    var keypass = DEFAULT_KEYPASS
     fun keypass(value: String) { keypass = value }
 
     @get:Input
-    var sigfile = ""
+    var sigfile = DEFAULT_SIGFILE
     fun sigfile(value: String) { sigfile = value }
 
     @get:Input
@@ -106,4 +117,8 @@ open class SigningOptions {
             "tsaproxyport" to tsaproxyport, "executable" to executable, "force" to force,
             "sigalg" to sigalg, "digestalg" to digestalg, "tsadigestalg" to tsadigestalg)
             .filter { it.value.isNotBlank() }.toMutableMap()
+
+    fun hasDefaultOptions() = keystore == DEFAULT_KEYSTORE && alias == DEFAULT_ALIAS
+            && storepass == DEFAULT_STOREPASS &&  keypass == DEFAULT_KEYPASS
+            //DEFAULT_STORETYPE and DEFAULT_SIGFILE not checked as they are more a derived properties
 }
