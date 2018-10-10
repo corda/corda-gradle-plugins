@@ -11,7 +11,7 @@ class KeyGenAndSigningOptions : SigningOptions() {
     fun keyalg(value: String) { keyalg = value }
 
     @get:Input
-    var dname = "OU=Dummy Cordapp Distributor, O=Corda, L=London, C=GB"
+    var dname = ""
     fun dname(value: String) { dname = value }
 
     @get:Input

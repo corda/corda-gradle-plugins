@@ -79,26 +79,24 @@ class CordappPlugin : Plugin<Project> {
         }
         jarTask.dependsOn(task)
 
-        val optionalSignTask = createSigningTask(project, "signCordapp", false, false)
+        val optionalSignTask = createSigningTask(project, "signCordapp", false)
         jarTask.finalizedBy(optionalSignTask)
 
         val signTask = project.tasks.findByName("sourceJar") //task in corda-publish-utils plugin
         if (signTask != null ) {
-            val signTaskForPublishingTask = createSigningTask(project, "signCordappForPublishing", true, true)
+            val signTaskForPublishingTask = createSigningTask(project, "signCordappForPublishing", true)
             val jarPublishingTask = signTask as Jar
             jarPublishingTask.dependsOn(signTaskForPublishingTask)
         }
     }
 
-    private fun createSigningTask(project: Project, taskName: String, isEnableByDefault: Boolean, warnWhenUsingDevelopmentKey: Boolean) : Task {
+    private fun createSigningTask(project: Project, taskName: String, warnOnDevSetup: Boolean) : Task {
         val signTask = project.task(taskName)
         signTask.doLast {
-            var enabled = !isEnableByDefault && cordapp.signing.enabled == true  // Case when signing is optional by default
-            var enabledByDefault = isEnableByDefault && cordapp.signing.enabled != false  // Case when signing is required by default
-            if (enabled || enabledByDefault)  {
+            if (cordapp.signing.enabled) {
                 val options = cordapp.signing.options.toSignJarOptionsMap()
 
-                if (warnWhenUsingDevelopmentKey && cordapp.signing.options.hasDefaultOptions()) {
+                if (warnOnDevSetup && cordapp.signing.options.hasDefaultOptions()) {
                     project.logger.warn("Using the default development keyStore to sign Cordapp JAR, which is suitable for Corda running in development mode only.")
                 }
                 val path = project.tasks.getByName("jar").outputs.files.singleFile.toPath()
@@ -123,6 +121,8 @@ class CordappPlugin : Plugin<Project> {
                         Paths.get(options["keystore"]).toFile().delete()
                     }
                 }
+            } else if (warnOnDevSetup) {
+                project.logger.warn("CorDapp JAR signing is disabled, this will prevent using signature constraints for contracts from the Cordapp.")
             }
         }
         return signTask

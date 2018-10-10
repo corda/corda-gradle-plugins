@@ -8,8 +8,7 @@ import org.gradle.util.ConfigureUtil
 open class Signing {
 
     @get:Input
-    // Depending on invoking task null value indicates the flag not being set and allows to treat it either as true or false by default.
-    var enabled: Boolean? = null
+    var enabled: Boolean = true
         private set
     fun enabled(value: Boolean) { enabled = value }
 
