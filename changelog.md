@@ -4,9 +4,9 @@
 
 ### Version 4.0.31
 
-* `cordformation`: Support for Signature Constraints - the plugin signs all Cordapp JARs by default with development key. It can be disabled and configured by `signing` entry to generate ad-hoc keyStore/key or use external keyStore.
-* `cordapp`: Support for Signature Constraints - the plugin signs Cordapp JAR by default with development key, it can be disabled and configured by `signing` entry to use external keyStore.
-* `publish-utils`: Support for Signature Constraints - publishing CorDapp requires `signing` entry in `cordapp` unless singing is disabled explicitly.
+* `cordformation`: Support for Signature Constraints - the plugin signs all Cordapp JARs by default with Corda development key. It can be disabled and configured by `signing` entry to generate ad-hoc keyStore/key or use external keyStore.
+* `cordapp`: Support for Signature Constraints - the plugin signs Cordapp JAR by default with Corda development key, it can be disabled and configured by `signing` entry to use external keyStore.
+* `publish-utils`: Support for Signature Constraints - publishing CorDapp warns if `signing` entry in `cordapp` is not configured (so used default Corda development key) or disabled.
 
 ### Version 4.0.30
 
