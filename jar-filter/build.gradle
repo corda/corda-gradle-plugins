@@ -22,6 +22,21 @@ gradlePlugin {
     automatedPublishing = false
 }
 
+pluginBundle {
+    website = project.vcsUrl
+    vcsUrl = project.vcsUrl
+    description = 'Corda JAR Filter Plugin'
+    tags = ['corda']
+
+    plugins {
+        jarFilterPlugin {
+            displayName = 'Corda JAR Filter Plugin'
+        }
+    }
+}
+
+task('publishPlugin').dependsOn jar
+
 configurations {
     plugin
     shadow

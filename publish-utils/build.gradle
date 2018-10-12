@@ -15,3 +15,17 @@ gradlePlugin {
     }
     automatedPublishing = false
 }
+
+
+pluginBundle {
+    website = project.vcsUrl
+    vcsUrl = project.vcsUrl
+    description = 'Corda Publishing Plugin'
+    tags = ['corda']
+
+    plugins {
+        publishUtilsPlugin {
+            displayName = 'Corda Publishing Plugin'
+        }
+    }
+}

@@ -18,6 +18,19 @@ gradlePlugin {
     automatedPublishing = false
 }
 
+pluginBundle {
+    website = project.vcsUrl
+    vcsUrl = project.vcsUrl
+    description = 'Corda Cordapp Builder Plugin'
+    tags = ['corda']
+
+    plugins {
+        cordappPlugin {
+            displayName = 'Corda Cordapp Plugin'
+        }
+    }
+}
+
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     testCompile "commons-io:commons-io:$commons_io_version"

@@ -28,10 +28,14 @@ buildscript {
 }
 
 plugins {
-    id 'com.gradle.plugin-publish' version '0.10.0'
+    id 'com.gradle.plugin-publish' version '0.10.0' apply false
 }
 
 apply plugin: 'com.jfrog.artifactory'
+
+ext {
+    vcsUrl = 'https://github.com/corda/corda-gradle-plugins'
+}
 
 allprojects {
     version gradle_plugins_version
@@ -69,6 +73,7 @@ configure(publishProjects) { subproject ->
     apply plugin: 'maven-publish'
     apply plugin: 'com.jfrog.bintray'
     apply plugin: 'com.jfrog.artifactory'
+    apply plugin: 'com.gradle.plugin-publish'
 
     task sourceJar(type: Jar, dependsOn: subproject.classes) {
         classifier = 'sources'
@@ -99,9 +104,9 @@ configure(publishProjects) { subproject ->
                 pom {
                     name = subproject.name
                     description = subproject.description
-                    url = 'https://github.com/corda/corda-gradle-plugins'
+                    url = vcsUrl
                     scm {
-                        url = 'https://github.com/corda/corda-gradle-plugins'
+                        url = vcsUrl
                     }
 
                     licenses {
@@ -147,6 +152,12 @@ configure(publishProjects) { subproject ->
             }
         }
     }
+
+    pluginBundle {
+        mavenCoordinates {
+            groupId = project.group
+        }
+    }
 }
 
 artifactory {
@@ -162,31 +173,6 @@ artifactory {
             if (publishProjects.contains(project)) {
                 publications(project.name)
             }
-        }
-    }
-}
-
-pluginBundle {
-    website = 'https://www.corda.net/'
-    vcsUrl = 'https://github.com/corda/corda-gradle-plugins'
-    description = 'Corda Gradle Plugins'
-    tags = ['corda', 'publishing']
-
-    plugins {
-        publishUtilsPlugin {
-            displayName = 'Corda Publishing Plugin'
-        }
-
-        cordformationPlugin {
-            displayName = 'Cordaformation - Corda Local Network Builder'
-        }
-
-        cordappPlugin {
-            displayName = 'Corda Cordapp Plugin'
-        }
-
-        apiScannerPlugin {
-            displayName = 'Corda API Scanner Plugin'
         }
     }
 }
