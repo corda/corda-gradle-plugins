@@ -1,6 +1,9 @@
 package net.corda.plugins
 
 import groovy.lang.Closure
+import net.corda.plugins.SigningOptions.Companion.DEFAULT_KEYSTORE_EXTENSION
+import net.corda.plugins.SigningOptions.Companion.DEFAULT_KEYSTORE_FILE
+import net.corda.plugins.Utils.Companion.createTempFileFromResource
 import org.gradle.api.DefaultTask
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.tasks.Input
@@ -74,8 +77,7 @@ open class Baseform : DefaultTask() {
     }
 
     /**
-     * List of classes to be included in "exclude_whitelist.txt" file for network-bootstrapper,
-     * by default contains contracts classes from Finance Cordapp to allow signature constraints being used for them.
+     * List of classes to be included in "exclude_whitelist.txt" file for network-bootstrapper.
      */
     @Input
     var excludeWhitelist: List<String> = listOf()
@@ -161,24 +163,12 @@ open class Baseform : DefaultTask() {
 
     /**
      * Generates exclude_whitelist.txt.
-     * If excludeWhitelist is empty and all Cordapp JARs will be signed, adds Finance App contract classes to exclude_whitelist.txt.
      */
     protected fun generateExcludedWhitelist() {
-        if (signing.enabled && excludeWhitelist.isEmpty()) {
-            if (signing.all) {
-                // If user didn't specified exclude whitelist and signs all Cordapps (so potentially corda-finance/Finance app)
-                // then allow contracts from Finance app to work with signature constraints and not whitelisting by default.
-                excludeWhitelist = listOf("net.corda.finance.contracts.asset.Cash", "net.corda.finance.contracts.asset.CommercialPaper",
-                        "net.corda.finance.contracts.CommercialPaper", "net.corda.finance.contracts.JavaCommercialPaper")
-                logger.warn("Signing Cordapp JARs but no contract classes are excluded from whitelisting " +
-                        "and signature constraints will not be used for contract classes except ones from corda-finance JAR.")
-            } else {
-                logger.warn("Signing Cordapp JAR but no contract classes are excluded from whitelisting " +
-                        "and signature constraints will not be used for contract classes.")
-            }
-        }
         if (excludeWhitelist.isNotEmpty()) {
-            val rootDir = Paths.get(project.projectDir.toPath().resolve(directory).resolve("exclude_whitelist.txt").toAbsolutePath().normalize().toString())
+            var fileName = "exclude_whitelist.txt"
+            logger.debug("Adding $excludeWhitelist to $fileName.")
+            val rootDir = Paths.get(project.projectDir.toPath().resolve(directory).resolve(fileName).toAbsolutePath().normalize().toString())
             Files.write(rootDir, excludeWhitelist)
         }
     }
@@ -190,24 +180,27 @@ open class Baseform : DefaultTask() {
         if (!signing.enabled)
             return
 
-        val addDefaultKeystoreIfAbsent = { map: MutableMap<String, String> ->
-            map.putIfAbsent("keystore",
-                    project.projectDir.toPath().resolve(directory).resolve("jarSignKeystore.p12").toAbsolutePath().normalize().toString())
+        require(!signing.generateKeystore || (signing.generateKeystore && !signing.options.hasDefaultOptions())) {
+            "Mis-configured keyStore generation to sign CorDapp JARs. When 'signing.generateKeystore' is true the following " +
+                    "'signing.options' need to be configured: keystore, alias, storepass, keypass."
         }
 
-        if (signing.generateKeystore) {
+        if (signing.generateKeystore && !signing.options.hasDefaultOptions()) {
             val genKeyTaskOptions = signing.options.toGenKeyOptionsMap()
-            addDefaultKeystoreIfAbsent(genKeyTaskOptions)
             if (Files.exists(Paths.get(genKeyTaskOptions["keystore"]))) {
                 logger.warn("Skipping keystore generation to sign Cordapps, the keystore already exists at '${genKeyTaskOptions["keystore"]}'.")
             } else {
-                logger.info("Generating keystore to sign Cordapps with options: ${genKeyTaskOptions.entries.map { "${it.key}=\"${it.value}\"" }.joinToString()}.")
+                logger.info("Generating keystore to sign Cordapps with options: ${genKeyTaskOptions.map { "${it.key}=${it.value}" }.joinToString()}.")
                 project.ant.invokeMethod("genkey", genKeyTaskOptions)
             }
         }
 
         val signJarOptions = signing.options.toSignJarOptionsMap()
-        addDefaultKeystoreIfAbsent(signJarOptions)
+        if (signing.options.hasDefaultOptions()) {
+            val keyStorePath = createTempFileFromResource(SigningOptions.DEFAULT_KEYSTORE, DEFAULT_KEYSTORE_FILE, DEFAULT_KEYSTORE_EXTENSION)
+            signJarOptions["keystore"] = keyStorePath.toString()
+        }
+
         val jarsToSign = mutableListOf(project.tasks.getByName("jar").outputs.files.singleFile.toPath()) +
                 if (signing.all) nodes.flatMap(Node::getCordappList).map { it.jarFile }.distinct() else emptyList()
         jarsToSign.forEach {

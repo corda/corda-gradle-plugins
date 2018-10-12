@@ -24,7 +24,7 @@ open class KeyGenAndSigning {
     fun all(value: Boolean) { all = value }
 
     @get:Input
-    var generateKeystore: Boolean = true
+    var generateKeystore: Boolean = false
         private set
     fun generateKeystore(value: Boolean) { generateKeystore = value }
 }

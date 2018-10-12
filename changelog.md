@@ -2,6 +2,11 @@
 
 ## Version 4
 
+### Version 4.0.31
+
+* `cordformation`: Support for Signature Constraints - the plugin signs all Cordapp JARs by default with Corda development key. It can be disabled or configured to generate ad-hoc keyStore/key or use an external keyStore.
+* `cordapp`: Support for Signature Constraints - the plugin signs Cordapp JAR by default with Corda development key, it can be disabled or configured to use an external keyStore.
+
 ### Version 4.0.30
 
 * `cordapp`: Add `targetPlatformVersion` and `minimumPlatformVersion` to the CorDapp Info. The min platform version defaults to 1. If the target version is not set by the user, the plugin attempts to read the platform version of the project's Corda dependency. 

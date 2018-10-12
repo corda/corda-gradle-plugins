@@ -3,6 +3,9 @@ package net.corda.plugins
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.plugins.ExtraPropertiesExtension
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.StandardCopyOption
 import kotlin.math.max
 
 /**
@@ -53,6 +56,16 @@ class Utils {
                 }
             }
             return 0
+        }
+
+        @JvmStatic
+        fun createTempFileFromResource(resourcePath: String, tempFileName: String, tempFileExtension: String): Path {
+            val path = Files.createTempFile(tempFileName, tempFileExtension)
+            javaClass.classLoader.getResourceAsStream(resourcePath).use {
+                Files.copy(it, path, StandardCopyOption.REPLACE_EXISTING)
+            }
+            path.toFile().deleteOnExit()
+            return path
         }
     }
 }
