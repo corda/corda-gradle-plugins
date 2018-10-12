@@ -10,11 +10,19 @@ open class Signing {
     @get:Input
     var enabled: Boolean = true
         private set
-    fun enabled(value: Boolean) { enabled = value }
+
+    fun enabled(value: Boolean) {
+        enabled = value
+    }
+
+    fun enabled(value: String?) {
+        enabled = value?.let { it.toBoolean() } ?: true
+    }
 
     @get:Input
     var options: SigningOptions = SigningOptions()
         private set
+
     fun options(configureClosure: Closure<in SigningOptions>) {
         options = ConfigureUtil.configure(configureClosure, options) as SigningOptions
     }
