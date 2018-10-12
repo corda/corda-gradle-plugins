@@ -27,6 +27,10 @@ buildscript {
     }
 }
 
+plugins {
+    id 'com.gradle.plugin-publish' version '0.10.0'
+}
+
 apply plugin: 'com.jfrog.artifactory'
 
 allprojects {
@@ -158,6 +162,31 @@ artifactory {
             if (publishProjects.contains(project)) {
                 publications(project.name)
             }
+        }
+    }
+}
+
+pluginBundle {
+    website = 'https://www.corda.net/'
+    vcsUrl = 'https://github.com/corda/corda-gradle-plugins'
+    description = 'Corda Gradle Plugins'
+    tags = ['corda', 'publishing']
+
+    plugins {
+        publishUtilsPlugin {
+            displayName = 'Corda Publishing Plugin'
+        }
+
+        cordformationPlugin {
+            displayName = 'Cordaformation - Corda Local Network Builder'
+        }
+
+        cordappPlugin {
+            displayName = 'Corda Cordapp Plugin'
+        }
+
+        apiScannerPlugin {
+            displayName = 'Corda API Scanner Plugin'
         }
     }
 }
