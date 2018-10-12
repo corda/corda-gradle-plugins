@@ -59,10 +59,10 @@ class Utils {
         }
 
         @JvmStatic
-        fun defaultKeystoreFromResources() : Path {
-            val path = Files.createTempFile("cordadevcakeys",".jks")
-            this.javaClass.classLoader.getResourceAsStream("certificates/cordadevcakeys.jks").use {
-                `is` -> Files.copy(`is`, path, StandardCopyOption.REPLACE_EXISTING)
+        fun createTempFileFromResource(resourcePath: String, tempFileName: String, tempFileExtension: String): Path {
+            val path = Files.createTempFile(tempFileName, tempFileExtension)
+            javaClass.classLoader.getResourceAsStream(resourcePath).use {
+                Files.copy(it, path, StandardCopyOption.REPLACE_EXISTING)
             }
             path.toFile().deleteOnExit()
             return path

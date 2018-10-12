@@ -1,12 +1,14 @@
 package net.corda.plugins
 
+import net.corda.plugins.SigningOptions.Companion.DEFAULT_KEYSTORE
+import net.corda.plugins.SigningOptions.Companion.DEFAULT_KEYSTORE_EXTENSION
+import net.corda.plugins.SigningOptions.Companion.DEFAULT_KEYSTORE_FILE
 import net.corda.plugins.Utils.Companion.compareVersions
+import net.corda.plugins.Utils.Companion.createTempFileFromResource
 import org.gradle.api.GradleException
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import net.corda.plugins.Utils.Companion.defaultKeystoreFromResources
-import org.gradle.api.*
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.jvm.tasks.Jar
@@ -79,55 +81,37 @@ class CordappPlugin : Plugin<Project> {
         }
         jarTask.dependsOn(task)
 
-        val signTask = project.task("signCordapp") { it.doLast{ sign(project) } }
+        val signTask = project.task("signJar") { it.doLast { sign(project, cordapp.signing) } }
         jarTask.finalizedBy(signTask)
-
-        val sourceJarTask = project.tasks.findByName("sourceJar") //task in corda-publish-utils plugin
-        if (sourceJarTask != null) {
-            val signTaskForPublishingTask = project.task("signCordappForPublishing") {
-                        it.doLast {
-                            if (cordapp.signing.enabled) {
-                                if (cordapp.signing.options.hasDefaultOptions()) {
-                                    project.logger.warn("Using the default development keyStore to sign Cordapp JAR, " +
-                                            "which is suitable for Corda running in development mode only.")
-                                }
-                            } else {
-                                project.logger.warn("CorDapp JAR signing is disabled, this will prevent using " +
-                                        "signature constraints for contracts from the Cordapp.")
-                            }
-                            sign(project)
-                        }
-                    }
-            val jarPublishingTask = sourceJarTask as Jar
-            jarPublishingTask.dependsOn(signTaskForPublishingTask)
-        }
     }
 
-    private fun sign(project: Project) {
-        if (cordapp.signing.enabled) {
-            val options = cordapp.signing.options.toSignJarOptionsMap()
+    private fun sign(project: Project, signing: Signing) {
+        if (!signing.enabled) {
+            project.logger.info("CorDapp JAR signing is disabled, the CorDapp's contracts will not use signature constraints.")
+            return
+        }
+        val options = signing.options.toSignJarOptionsMap()
+        if (signing.options.hasDefaultOptions()) {
+            project.logger.info("CorDapp JAR signing with the default Corda development key, suitable for Corda running in development mode only.")
+            val keyStorePath = createTempFileFromResource(DEFAULT_KEYSTORE, DEFAULT_KEYSTORE_FILE, DEFAULT_KEYSTORE_EXTENSION)
+            options["keystore"] = keyStorePath.toString()
+        }
 
-            val path = project.tasks.getByName("jar").outputs.files.singleFile.toPath()
-            options["jar"] = path.toString()
-            project.logger.debug("Signing JAR " + path.fileName)
+        val path = project.tasks.getByName("jar").outputs.files.singleFile.toPath()
+        options["jar"] = path.toString()
 
-            if (cordapp.signing.options.hasDefaultOptions()) { // Use dev keystore from resources
-                val keypath = defaultKeystoreFromResources()
-                options["keystore"] = keypath.toString()
-            }
-            project.logger.debug("Signing JAR options: " + path.fileName)
-
-            try {
-                // Any subsequent sign using the same key will be ignored
-                project.ant.invokeMethod("signjar", options)
-            } catch (e: Exception) {
-                throw InvalidUserDataException("Exception while signing ${path.fileName}," +
-                        " ensure the 'cordapp.signing.options' entry contains correct keyStore configuration," +
-                        " or disable signing by 'cordapp.signing.enabled=false'.", e)
-            } finally {
-                if (cordapp.signing.options.hasDefaultOptions()) {
-                    Paths.get(options["keystore"]).toFile().delete()
-                }
+        try {
+            project.ant.invokeMethod("signjar", options)
+        } catch (e: Exception) {
+            // Not adding error message as it's always meaningless, logs with --INFO level contain more insights
+            throw InvalidUserDataException("Exception while signing ${path.fileName}, " +
+                    "ensure the 'cordapp.signing.options' entry contains correct keyStore configuration, " +
+                    "or disable signing by 'cordapp.signing.enabled false'. " +
+                    if (project.logger.isInfoEnabled || project.logger.isDebugEnabled) "Search for 'ant:signjar' in log output."
+                    else "Run with --info or --debug option and search for 'ant:signjar' in log output. ", e)
+        } finally {
+            if (signing.options.hasDefaultOptions()) {
+                Paths.get(options["keystore"]).toFile().delete()
             }
         }
     }
