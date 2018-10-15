@@ -2,6 +2,7 @@ package net.corda.plugins
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.artifacts.ModuleDependency
 import java.io.File
 
 /**
@@ -57,7 +58,9 @@ class Cordformation : Plugin<Project> {
         Utils.createRuntimeConfiguration(CORDFORMATION_TYPE, project)
         // TODO: improve how we re-use existing declared external variables from root gradle.build
         val jolokiaVersion = try { project.rootProject.ext<String>("jolokia_version") } catch (e: Exception) { "1.6.0" }
-        project.dependencies.add(CORDFORMATION_TYPE, "org.jolokia:jolokia-jvm:$jolokiaVersion:agent")
+        val jolokia = project.dependencies.add(CORDFORMATION_TYPE, "org.jolokia:jolokia-jvm:$jolokiaVersion:agent")
+        // The Jolokia agent is a fat jar really, so we don't want its transitive dependencies.
+        (jolokia as ModuleDependency).isTransitive = false
     }
 }
 
