@@ -44,7 +44,7 @@ class Cordformation : Plugin<Project> {
                 throw IllegalStateException("No $jarName JAR found. Have you deployed the Corda project to Maven? Looked for \"$jarName-$releaseVersion.jar\"")
             } else {
                 val jar = maybeJar.singleFile
-                require(jar.isFile)
+                require(jar.isFile) { "$jar either does not exist or is not a file" }
                 return jar
             }
         }
