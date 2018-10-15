@@ -61,7 +61,7 @@ class Utils {
         @JvmStatic
         fun createTempFileFromResource(resourcePath: String, tempFileName: String, tempFileExtension: String): Path {
             val path = Files.createTempFile(tempFileName, tempFileExtension)
-            javaClass.classLoader.getResourceAsStream(resourcePath).use {
+            this::class.java.classLoader.getResourceAsStream(resourcePath).use {
                 Files.copy(it, path, StandardCopyOption.REPLACE_EXISTING)
             }
             path.toFile().deleteOnExit()

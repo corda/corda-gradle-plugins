@@ -4,6 +4,7 @@
 
 ### Version 4.0.31
 
+* `cordformation`: Exclude transitive dependencies from Jolokia agent.
 * `cordformation`: Support for Signature Constraints - the plugin signs all Cordapp JARs by default with Corda development key. It can be disabled or configured to generate ad-hoc keyStore/key or use an external keyStore.
 * `cordapp`: Support for Signature Constraints - the plugin signs Cordapp JAR by default with Corda development key, it can be disabled or configured to use an external keyStore.
 
