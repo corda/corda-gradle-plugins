@@ -60,8 +60,8 @@ class CordappPlugin : Plugin<Project> {
             attributes["Name"] = cordapp.info?.name ?: "${project.group}.${jarTask.baseName}"
             attributes["Implementation-Version"] = cordapp.info?.version ?: project.version
             attributes["Implementation-Vendor"] = cordapp.info?.vendor ?: UNKNOWN
-            targetPlatformVersion?.let { attributes["Target-Platform-Version"] = it }
-            minimumPlatformVersion?.let { attributes["Min-Platform-Version"] = it }
+            attributes["Target-Platform-Version"] = targetPlatformVersion
+            attributes["Min-Platform-Version"] = minimumPlatformVersion
             if (attributes["Implementation-Vendor"] == UNKNOWN) {
                 project.logger.warn("CordApp's vendor is \"$UNKNOWN\". Please specify it in \"cordapp.info.vendor\".")
             }
@@ -81,7 +81,7 @@ class CordappPlugin : Plugin<Project> {
         }
         jarTask.dependsOn(task)
 
-        val signTask = project.task("signJar") { it.doLast { sign(project, cordapp.signing) } }
+        val signTask = project.task("signJar").doLast { sign(project, cordapp.signing) }
         jarTask.finalizedBy(signTask)
     }
 
@@ -150,7 +150,7 @@ class CordappPlugin : Plugin<Project> {
         return filteredDeps.toUniqueFiles(runtimeConfiguration) - excludeDeps.toUniqueFiles(runtimeConfiguration)
     }
 
-    private fun checkVersionInfo(): Pair<Int?, Int?> {
+    private fun checkVersionInfo(): Pair<Int, Int> {
         // If the minimum platform version is not set, default to 1.
         val minimumPlatformVersion: Int = cordapp.info?.minimumPlatformVersion ?: 1
         val targetPlatformVersion = cordapp.info?.targetPlatformVersion ?: throw InvalidUserDataException("Target version was not set and could not be determined from the project's Corda dependency. Please specify the target version of your CorDapp.")
