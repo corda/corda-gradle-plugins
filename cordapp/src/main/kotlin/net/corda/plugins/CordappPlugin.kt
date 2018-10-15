@@ -65,6 +65,9 @@ class CordappPlugin : Plugin<Project> {
             if (attributes["Implementation-Vendor"] == UNKNOWN) {
                 project.logger.warn("CordApp's vendor is \"$UNKNOWN\". Please specify it in \"cordapp.info.vendor\".")
             }
+            if (cordapp.signing.enabled) {
+                attributes["Sealed"] = "true"
+            }
         }
         task.doLast {
             jarTask.from(getDirectNonCordaDependencies(project).map {
