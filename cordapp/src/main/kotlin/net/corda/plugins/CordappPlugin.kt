@@ -68,6 +68,8 @@ class CordappPlugin : Plugin<Project> {
             if (cordapp.signing.enabled) {
                 attributes["Sealed"] = "true"
             }
+        }.doLast {
+            sign(project, cordapp.signing)
         }
         task.doLast {
             jarTask.from(getDirectNonCordaDependencies(project).map {
@@ -83,9 +85,6 @@ class CordappPlugin : Plugin<Project> {
             }
         }
         jarTask.dependsOn(task)
-
-        val signTask = project.task("signJar").doLast { sign(project, cordapp.signing) }
-        jarTask.finalizedBy(signTask)
     }
 
     private fun sign(project: Project, signing: Signing) {
