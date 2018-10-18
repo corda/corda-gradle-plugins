@@ -6,7 +6,6 @@
 
 * `cordformation`: Add ability to specify a flow override as part of cordformation via `flowOverride`
 
-
 ### Version 4.0.32
 
 * `cordformation`: Exclude transitive dependencies from Jolokia agent.
