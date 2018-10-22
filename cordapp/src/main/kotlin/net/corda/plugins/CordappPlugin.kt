@@ -69,7 +69,7 @@ class CordappPlugin : Plugin<Project> {
                 attributes["Sealed"] = "true"
             }
         }.doLast {
-            sign(project, cordapp.signing)
+            sign(project, cordapp.signing, project.tasks.getByName("jar").outputs.files.singleFile)
         }
         task.doLast {
             jarTask.from(getDirectNonCordaDependencies(project).map {
@@ -85,9 +85,24 @@ class CordappPlugin : Plugin<Project> {
             }
         }
         jarTask.dependsOn(task)
+
+        val signJarTask = project.task("signJar")
+        signJarTask.outputs.files(signJarTask.inputs.files)
+        signJarTask.doLast {
+            if (it.inputs.files.isEmpty) {
+                throw InvalidUserDataException("No JAR file(s) defined to sign, ensure to configure inputs property for signJar task " +
+                        "by e.g. 'signJar.inputs.files(otherTask.outputs)' or do not invoke singJar task.")
+            }
+            val forceResignOptions = cordapp.signing
+            forceResignOptions.enabled(true)
+            forceResignOptions.options.force = "true" // Just in case - this allows to re-sign already signed JAR file with the same key
+            for (file: File in it.inputs.files) {
+                sign(project, forceResignOptions, file)
+            }
+        }
     }
 
-    private fun sign(project: Project, signing: Signing) {
+    private fun sign(project: Project, signing: Signing, file: File) {
         if (!signing.enabled) {
             project.logger.info("CorDapp JAR signing is disabled, the CorDapp's contracts will not use signature constraints.")
             return
@@ -99,7 +114,7 @@ class CordappPlugin : Plugin<Project> {
             options["keystore"] = keyStorePath.toString()
         }
 
-        val path = project.tasks.getByName("jar").outputs.files.singleFile.toPath()
+        val path = file.toPath()
         options["jar"] = path.toString()
 
         try {
@@ -155,7 +170,8 @@ class CordappPlugin : Plugin<Project> {
     private fun checkVersionInfo(): Pair<Int, Int> {
         // If the minimum platform version is not set, default to 1.
         val minimumPlatformVersion: Int = cordapp.info?.minimumPlatformVersion ?: 1
-        val targetPlatformVersion = cordapp.info?.targetPlatformVersion ?: throw InvalidUserDataException("Target version was not set and could not be determined from the project's Corda dependency. Please specify the target version of your CorDapp.")
+        val targetPlatformVersion = cordapp.info?.targetPlatformVersion
+                ?: throw InvalidUserDataException("Target version was not set and could not be determined from the project's Corda dependency. Please specify the target version of your CorDapp.")
         if (targetPlatformVersion < 1) {
             throw InvalidUserDataException("Target version must not be smaller than 1.")
         }
