@@ -1,10 +1,7 @@
 package net.corda.plugins
 
-import net.corda.plugins.SigningOptions.Companion.DEFAULT_KEYSTORE
-import net.corda.plugins.SigningOptions.Companion.DEFAULT_KEYSTORE_EXTENSION
-import net.corda.plugins.SigningOptions.Companion.DEFAULT_KEYSTORE_FILE
+import net.corda.plugins.SignJar.Companion.sign
 import net.corda.plugins.Utils.Companion.compareVersions
-import net.corda.plugins.Utils.Companion.createTempFileFromResource
 import org.gradle.api.GradleException
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Plugin
@@ -13,7 +10,6 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.jvm.tasks.Jar
 import java.io.File
-import java.nio.file.Paths
 
 /**
  * The Cordapp plugin will turn a project into a cordapp project which builds cordapp JARs with the correct format
@@ -69,7 +65,7 @@ class CordappPlugin : Plugin<Project> {
                 attributes["Sealed"] = "true"
             }
         }.doLast {
-            sign(project, cordapp.signing, project.tasks.getByName("jar").outputs.files.singleFile)
+            sign(project, cordapp.signing, it.outputs.files.singleFile)
         }
         task.doLast {
             jarTask.from(getDirectNonCordaDependencies(project).map {
@@ -85,52 +81,6 @@ class CordappPlugin : Plugin<Project> {
             }
         }
         jarTask.dependsOn(task)
-
-        val signJarTask = project.task("signJar")
-        signJarTask.outputs.files(signJarTask.inputs.files)
-        signJarTask.doLast {
-            if (it.inputs.files.isEmpty) {
-                throw InvalidUserDataException("No JAR file(s) defined to sign, ensure to configure inputs property for signJar task " +
-                        "by e.g. 'signJar.inputs.files(otherTask.outputs)' or do not invoke singJar task.")
-            }
-            val forceResignOptions = cordapp.signing
-            forceResignOptions.enabled(true)
-            forceResignOptions.options.force = "true" // Just in case - this allows to re-sign already signed JAR file with the same key
-            for (file: File in it.inputs.files) {
-                sign(project, forceResignOptions, file)
-            }
-        }
-    }
-
-    private fun sign(project: Project, signing: Signing, file: File) {
-        if (!signing.enabled) {
-            project.logger.info("CorDapp JAR signing is disabled, the CorDapp's contracts will not use signature constraints.")
-            return
-        }
-        val options = signing.options.toSignJarOptionsMap()
-        if (signing.options.hasDefaultOptions()) {
-            project.logger.info("CorDapp JAR signing with the default Corda development key, suitable for Corda running in development mode only.")
-            val keyStorePath = createTempFileFromResource(DEFAULT_KEYSTORE, DEFAULT_KEYSTORE_FILE, DEFAULT_KEYSTORE_EXTENSION)
-            options["keystore"] = keyStorePath.toString()
-        }
-
-        val path = file.toPath()
-        options["jar"] = path.toString()
-
-        try {
-            project.ant.invokeMethod("signjar", options)
-        } catch (e: Exception) {
-            // Not adding error message as it's always meaningless, logs with --INFO level contain more insights
-            throw InvalidUserDataException("Exception while signing ${path.fileName}, " +
-                    "ensure the 'cordapp.signing.options' entry contains correct keyStore configuration, " +
-                    "or disable signing by 'cordapp.signing.enabled false'. " +
-                    if (project.logger.isInfoEnabled || project.logger.isDebugEnabled) "Search for 'ant:signjar' in log output."
-                    else "Run with --info or --debug option and search for 'ant:signjar' in log output. ", e)
-        } finally {
-            if (signing.options.hasDefaultOptions()) {
-                Paths.get(options["keystore"]).toFile().delete()
-            }
-        }
     }
 
     private fun getDirectNonCordaDependencies(project: Project): Set<File> {
