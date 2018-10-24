@@ -1,11 +1,13 @@
 package net.corda.plugins
 
-import groovy.lang.Closure
+import org.gradle.api.Action
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.Input
-import org.gradle.util.ConfigureUtil
+import org.gradle.api.tasks.Nested
+import javax.inject.Inject
 
 /** JAR sign and control option. */
-open class Signing {
+open class Signing @Inject constructor(objectFactory: ObjectFactory) {
 
     @get:Input
     var enabled: Boolean = true
@@ -19,11 +21,10 @@ open class Signing {
         enabled = value?.let { it.toBoolean() } ?: true
     }
 
-    @get:Input
-    var options: SigningOptions = SigningOptions()
-        private set
+    @get:Nested
+    val options: SigningOptions = objectFactory.newInstance(SigningOptions::class.java)
 
-    fun options(configureClosure: Closure<in SigningOptions>) {
-        options = ConfigureUtil.configure(configureClosure, options) as SigningOptions
+    fun options(action: Action<in SigningOptions>) {
+        action.execute(options)
     }
 }

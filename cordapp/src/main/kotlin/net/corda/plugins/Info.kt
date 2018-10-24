@@ -1,3 +1,16 @@
 package net.corda.plugins
 
-open class Info(var name: String? = null, var version: String? = null, var vendor: String? = null, var targetPlatformVersion: Int? = null, var minimumPlatformVersion: Int? = null)
+import org.gradle.api.tasks.Input
+
+open class Info {
+    @Input
+    var name: String? = null
+    @Input
+    var version: String? = null
+    @Input
+    var vendor: String? = null
+    @Input
+    var targetPlatformVersion: Int? = null
+    @Input
+    var minimumPlatformVersion: Int? = null
+}

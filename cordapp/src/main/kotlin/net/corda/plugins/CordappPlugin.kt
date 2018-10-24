@@ -38,8 +38,7 @@ class CordappPlugin : Plugin<Project> {
         Utils.createCompileConfiguration("cordaCompile", project)
         Utils.createRuntimeConfiguration("cordaRuntime", project)
 
-        cordapp = project.extensions.create("cordapp", CordappExtension::class.java)
-        cordapp.setProject(project)
+        cordapp = project.extensions.create("cordapp", CordappExtension::class.java, project.objects)
         configureCordappJar(project)
     }
 
@@ -119,8 +118,8 @@ class CordappPlugin : Plugin<Project> {
 
     private fun checkVersionInfo(): Pair<Int, Int> {
         // If the minimum platform version is not set, default to 1.
-        val minimumPlatformVersion: Int = cordapp.info?.minimumPlatformVersion ?: 1
-        val targetPlatformVersion = cordapp.info?.targetPlatformVersion
+        val minimumPlatformVersion: Int = cordapp.info.minimumPlatformVersion ?: 1
+        val targetPlatformVersion = cordapp.info.targetPlatformVersion
                 ?: throw InvalidUserDataException("Target version was not set and could not be determined from the project's Corda dependency. Please specify the target version of your CorDapp.")
         if (targetPlatformVersion < 1) {
             throw InvalidUserDataException("Target version must not be smaller than 1.")

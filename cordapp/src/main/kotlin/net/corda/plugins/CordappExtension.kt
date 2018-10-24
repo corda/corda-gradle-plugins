@@ -1,23 +1,29 @@
 package net.corda.plugins
 
-import org.gradle.api.Project
+import org.gradle.api.Action
+import org.gradle.api.model.ObjectFactory
+import org.gradle.api.tasks.Nested
+import javax.inject.Inject
 
-open class CordappExtension {
-    private lateinit var project: Project
-
-    fun setProject(project: Project) {
-        this.project = project
-        info = project.extensions.create("info", Info::class.java)
-        signing = project.extensions.create("signing", Signing::class.java)
-    }
+open class CordappExtension @Inject constructor(objectFactory: ObjectFactory)  {
 
     /**
      * CorDapp distribution information.
      */
-    var info: Info? = null
+    @get:Nested
+    val info: Info = objectFactory.newInstance(Info::class.java)
 
     /**
      * Optional parameters for ANT signJar tasks to sign Cordapps
      */
-    var signing: Signing = Signing()
+    @get:Nested
+    val signing: Signing = objectFactory.newInstance(Signing::class.java)
+
+    fun info(action: Action<in Info>) {
+        action.execute(info)
+    }
+
+    fun signing(action: Action<in Signing>) {
+        action.execute(signing)
+    }
 }
