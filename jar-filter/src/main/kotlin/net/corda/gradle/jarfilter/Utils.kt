@@ -14,7 +14,7 @@ import java.util.zip.ZipEntry.STORED
 import kotlin.math.max
 import kotlin.text.RegexOption.*
 
-internal val JAR_PATTERN = "(\\.jar)$".toRegex(IGNORE_CASE)
+internal val JAR_PATTERN = "(\\.jar)\$".toRegex(IGNORE_CASE)
 
 // Use the same constant file timestamp as Gradle.
 private val CONSTANT_TIME: FileTime = FileTime.fromMillis(

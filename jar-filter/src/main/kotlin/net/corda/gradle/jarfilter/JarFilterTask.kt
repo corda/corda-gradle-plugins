@@ -1,6 +1,6 @@
 package net.corda.gradle.jarfilter
 
-import groovy.lang.Closure
+import org.gradle.api.Action
 import org.gradle.api.DefaultTask
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.file.ConfigurableFileCollection
@@ -37,20 +37,11 @@ open class JarFilterTask : DefaultTask() {
 
     fun jars(inputs: Any?) = setJars(inputs)
 
-    @get:Input
-    protected var forDelete: Set<String> = emptySet()
+    @get:Nested
+    val annotations: FilterAnnotations = project.objects.newInstance(FilterAnnotations::class.java)
 
-    @get:Input
-    protected var forStub: Set<String> = emptySet()
-
-    @get:Input
-    protected var forRemove: Set<String> = emptySet()
-
-    @get:Input
-    protected var forSanitise: Set<String> = emptySet()
-
-    fun annotations(assign: Closure<List<String>>) {
-        assign.call()
+    fun annotations(action: Action<in FilterAnnotations>) {
+        action.execute(annotations)
     }
 
     @get:Console
@@ -77,24 +68,32 @@ open class JarFilterTask : DefaultTask() {
     fun outputDir(dir: File?) = setOutputDir(dir)
 
     @get:OutputFiles
-    val filtered: FileCollection get() = project.files(jars.files.map(this::toFiltered))
+    val filtered: FileCollection get() = project.files(jars.map(::toFiltered))
 
     private fun toFiltered(source: File) = File(outputDir, source.name.replace(JAR_PATTERN, "-filtered\$1"))
 
     @TaskAction
     fun filterJars() {
         logger.info("JarFiltering:")
-        if (forDelete.isNotEmpty()) {
-            logger.info("- Elements annotated with one of '{}' will be deleted", forDelete.joinToString())
+        with(annotations.forDelete) {
+            if (isNotEmpty()) {
+                logger.info("- Elements annotated with one of '{}' will be deleted", joinToString())
+            }
         }
-        if (forStub.isNotEmpty()) {
-            logger.info("- Methods annotated with one of '{}' will be stubbed out", forStub.joinToString())
+        with(annotations.forStub) {
+            if (isNotEmpty()) {
+                logger.info("- Methods annotated with one of '{}' will be stubbed out", joinToString())
+            }
         }
-        if (forRemove.isNotEmpty()) {
-            logger.info("- Annotations '{}' will be removed entirely", forRemove.joinToString())
+        with(annotations.forRemove) {
+            if (isNotEmpty()) {
+                logger.info("- Annotations '{}' will be removed entirely", joinToString())
+            }
         }
-        if (forSanitise.isNotEmpty()) {
-            logger.info("- Annotations '{}' will be removed from primary constructors", forSanitise.joinToString())
+        with(annotations.forSanitise) {
+            if (isNotEmpty()) {
+                logger.info("- Annotations '{}' will be removed from primary constructors", joinToString())
+            }
         }
         checkDistinctAnnotations()
         try {
@@ -107,25 +106,21 @@ open class JarFilterTask : DefaultTask() {
         }
     }
 
-    private fun checkDistinctAnnotations() {
+    private fun checkDistinctAnnotations() = with(annotations) {
         logger.info("Checking that all annotations are distinct.")
-        val annotations = forRemove.toHashSet().apply {
-            addAll(forDelete)
-            addAll(forStub)
-            removeAll(forRemove)
-        }
+        val allAnnotations = (forRemove + forDelete + forStub - forRemove).toMutableSet()
         forDelete.forEach {
-            if (!annotations.remove(it)) {
+            if (!allAnnotations.remove(it)) {
                 failWith("Annotation '$it' also appears in JarFilter 'forDelete' section")
             }
         }
         forStub.forEach {
-            if (!annotations.remove(it)) {
+            if (!allAnnotations.remove(it)) {
                 failWith("Annotation '$it' also appears in JarFilter 'forStub' section")
             }
         }
-        if (!annotations.isEmpty()) {
-            failWith("SHOULDN'T HAPPEN - Martian annotations! '${annotations.joinToString()}'")
+        if (!allAnnotations.isEmpty()) {
+            failWith("SHOULDN'T HAPPEN - Martian annotations! '${allAnnotations.joinToString()}'")
         }
     }
 
@@ -142,10 +137,10 @@ open class JarFilterTask : DefaultTask() {
         private val source: Path = inFile.toPath()
         private val target: Path = toFiltered(inFile).toPath()
 
-        private val descriptorsForRemove = toDescriptors(forRemove)
-        private val descriptorsForDelete = toDescriptors(forDelete)
-        private val descriptorsForStub = toDescriptors(forStub)
-        private val descriptorsForSanitising = toDescriptors(forSanitise)
+        private val descriptorsForRemove = toDescriptors(annotations.forRemove)
+        private val descriptorsForDelete = toDescriptors(annotations.forDelete)
+        private val descriptorsForStub = toDescriptors(annotations.forStub)
+        private val descriptorsForSanitising = toDescriptors(annotations.forSanitise)
 
         init {
             Files.deleteIfExists(target)
@@ -156,14 +151,14 @@ open class JarFilterTask : DefaultTask() {
             var input = source
 
             try {
-                if (descriptorsForSanitising.isNotEmpty() && SanitisingPass(input).use { it.run() }) {
+                if (descriptorsForSanitising.isNotEmpty() && SanitisingPass(input).use(Pass::run)) {
                     input = target.moveToInput()
                 }
 
                 var passes = 1
                 while (true) {
                     verbose("Pass {}", passes)
-                    val isModified = FilterPass(input).use { it.run() }
+                    val isModified = FilterPass(input).use(FilterPass::run)
 
                     if (!isModified) {
                         logger.info("No changes after latest pass - exiting.")
@@ -175,7 +170,7 @@ open class JarFilterTask : DefaultTask() {
                     input = target.moveToInput()
                 }
             } catch (e: Exception) {
-                logger.error("Error filtering '{}' elements from {}", ArrayList(forRemove).apply { addAll(forDelete); addAll(forStub) }, input)
+                logger.error("Error filtering '{}' elements from {}", arrayListOf(annotations.forRemove) + annotations.forDelete + annotations.forStub, input)
                 throw e
             }
         }
