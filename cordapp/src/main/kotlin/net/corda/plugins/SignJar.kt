@@ -48,17 +48,8 @@ open class SignJar : DefaultTask() {
 
     private val signing: Signing = (project.extensions.findByName("cordapp") as CordappExtension).signing
 
-    private var _postfix = "-signed"
-
     @get:Input
-    val postfix: String
-        get() = _postfix
-
-    fun setPostfix(value: String) {
-        _postfix = value
-    }
-
-    fun postfix(value: String) = setPostfix(value)
+    var postfix: String = "-signed"
 
     private val _inputJars: ConfigurableFileCollection = project.files()
 
