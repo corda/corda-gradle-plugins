@@ -1,6 +1,6 @@
 plugins {
     id 'org.jetbrains.kotlin.jvm' version '$kotlin_version'
-    id 'net.corda.plugins.jar-filter'
+    id 'net.corda.plugins.jar-filter' apply false
 }
 apply from: 'repositories.gradle'
 
@@ -16,7 +16,7 @@ sourceSets {
 }
 
 dependencies {
-    compile 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
     compileOnly files('../../unwanteds/build/libs/unwanteds.jar')
 }
 

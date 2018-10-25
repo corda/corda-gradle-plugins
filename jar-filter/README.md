@@ -9,9 +9,23 @@ We use this plugin together with ProGuard to generate Corda's `core-deterministi
 modules. See [here](https://github.com/corda/corda/blob/master/docs/source/deterministic-modules.rst) for more information.
 
 ## Usage
-This plugin is automatically available on Gradle's classpath since it lives in Corda's `buildSrc` directory.
-You need only `import` the plugin's task classes in the `build.gradle` file and then use them to declare
-tasks.
+The plugin only needs to be added to the Gradle plugin classpath to make its task classes available. You can then use
+these classes to declare tasks in your `build.gradle` files.
+```gradle
+buildscript {
+    repositories {
+        gradlePluginPortal()
+    }
+
+    classpath "net.corda.plugins:jar-filter:$jar-filter-version"
+}
+```
+or
+```gradle
+plugins {
+    id 'net.corda.plugins.jar-filter' version '$jar-filter-version' apply false
+}
+```
 
 You can enable the tasks' logging output using Gradle's `--info` or `--debug` command-line options.
 

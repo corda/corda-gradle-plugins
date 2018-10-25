@@ -60,7 +60,7 @@ open class MetaFixerTask : DefaultTask() {
         try {
             for (jar in jars) {
                 logger.info("Reading from {}", jar)
-                MetaFix(jar).use { it.run() }
+                MetaFix(jar).use(MetaFix::run)
             }
         } catch (e: Exception) {
             rethrowAsUncheckedException(e)
@@ -68,7 +68,7 @@ open class MetaFixerTask : DefaultTask() {
     }
 
     @get:OutputFiles
-    val metafixed: FileCollection get() = project.files(jars.files.map(this::toMetaFixed))
+    val metafixed: FileCollection get() = project.files(jars.map(::toMetaFixed))
 
     private fun toMetaFixed(source: File) = File(outputDir, source.name.replace(JAR_PATTERN, "$suffix\$1"))
 
