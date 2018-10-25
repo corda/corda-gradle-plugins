@@ -85,9 +85,6 @@ open class SignJar : DefaultTask() {
 
     @TaskAction
     fun build() {
-        if (inputJars.isEmpty) {
-            throw InvalidUserDataException("No input JAR file defined, ensure to configure 'inputs property for SignJar task.")
-        }
         for (file: File in inputJars) {
             val signedFile = toSigned(file)
             Files.copy(file.toPath(), signedFile.toPath(), StandardCopyOption.REPLACE_EXISTING)
