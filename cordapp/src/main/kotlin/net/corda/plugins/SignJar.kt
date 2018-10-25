@@ -1,10 +1,8 @@
 package net.corda.plugins
 
-import org.gradle.api.Action
 import org.gradle.api.DefaultTask
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
-import org.gradle.api.model.ObjectFactory
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.*
@@ -12,10 +10,8 @@ import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.nio.file.StandardCopyOption
-import javax.inject.Inject
 
-open class SignJar @Inject constructor(objectFactory: ObjectFactory) : DefaultTask() {
-
+open class SignJar : DefaultTask() {
 
     companion object {
         fun sign(project: Project, signing: Signing, file: File, enabled: Boolean = signing.enabled) {
@@ -50,24 +46,19 @@ open class SignJar @Inject constructor(objectFactory: ObjectFactory) : DefaultTa
         }
     }
 
-    @Nested
-    val signing: Signing = objectFactory.newInstance(Signing::class.java)
+    private val signing: Signing = (project.extensions.findByName("cordapp") as CordappExtension).signing
 
-    fun signing(action: Action<Signing>) {
-        action.execute(signing)
-    }
-
-    private var _postfix =  "signed"
+    private var _postfix = "-signed"
 
     @get:Input
     val postfix: String
-            get() = _postfix
+        get() = _postfix
 
     fun setPostfix(value: String) {
         _postfix = value
     }
 
-   fun postfix(value: String) = setPostfix(value)
+    fun postfix(value: String) = setPostfix(value)
 
     private val _inputJars: ConfigurableFileCollection = project.files()
 
@@ -84,23 +75,23 @@ open class SignJar @Inject constructor(objectFactory: ObjectFactory) : DefaultTa
 
     @get:OutputFiles
     val outputJars: FileCollection
-        get() = project.files(inputJars.files.map(::toSigned))
+        get() = project.files(inputJars.map(::toSigned))
 
     private fun toSigned(file: File): File {
         val path = file.absolutePath
         val lastDot = path.lastIndexOf('.')
-        return File( path.substring(0, lastDot) + "-" + postfix + path.substring(lastDot))
+        return File(path.substring(0, lastDot) + postfix + path.substring(lastDot))
     }
 
     @TaskAction
     fun build() {
         if (inputJars.isEmpty) {
-            throw InvalidUserDataException("No input JAR file defined, ensure to configure inputs property for SignJar task.")
+            throw InvalidUserDataException("No input JAR file defined, ensure to configure 'inputs property for SignJar task.")
         }
-        for (file: File in inputJars.files) {
+        for (file: File in inputJars) {
             val signedFile = toSigned(file)
             Files.copy(file.toPath(), signedFile.toPath(), StandardCopyOption.REPLACE_EXISTING)
             sign(project, signing, signedFile, true)
         }
-     }
+    }
 }

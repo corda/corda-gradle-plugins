@@ -3,14 +3,14 @@ package net.corda.plugins
 import org.gradle.api.tasks.Input
 
 open class Info {
-    @Input
+    @get:Input
     var name: String? = null
-    @Input
+    @get:Input
     var version: String? = null
-    @Input
+    @get:Input
     var vendor: String? = null
-    @Input
+    @get:Input
     var targetPlatformVersion: Int? = null
-    @Input
+    @get:Input
     var minimumPlatformVersion: Int? = null
 }

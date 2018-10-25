@@ -11,14 +11,9 @@ open class Signing @Inject constructor(objectFactory: ObjectFactory) {
 
     @get:Input
     var enabled: Boolean = true
-        private set
-
-    fun enabled(value: Boolean) {
-        enabled = value
-    }
 
     fun enabled(value: String?) {
-        enabled = value?.let { it.toBoolean() } ?: true
+        enabled = value?.toBoolean() ?: true
     }
 
     @get:Nested

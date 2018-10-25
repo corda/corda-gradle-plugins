@@ -52,9 +52,9 @@ class CordappPlugin : Plugin<Project> {
         jarTask.doFirst {
             val (targetPlatformVersion, minimumPlatformVersion) = checkVersionInfo()
             val attributes = jarTask.manifest.attributes
-            attributes["Name"] = cordapp.info?.name ?: "${project.group}.${jarTask.baseName}"
-            attributes["Implementation-Version"] = cordapp.info?.version ?: project.version
-            attributes["Implementation-Vendor"] = cordapp.info?.vendor ?: UNKNOWN
+            attributes["Name"] = cordapp.info.name ?: "${project.group}.${jarTask.baseName}"
+            attributes["Implementation-Version"] = cordapp.info.version ?: project.version
+            attributes["Implementation-Vendor"] = cordapp.info.vendor ?: UNKNOWN
             attributes["Target-Platform-Version"] = targetPlatformVersion
             attributes["Min-Platform-Version"] = minimumPlatformVersion
             if (attributes["Implementation-Vendor"] == UNKNOWN) {
