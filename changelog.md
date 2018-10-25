@@ -4,10 +4,11 @@
 
 ### Version 4.0.34
 
+* `cordapp`: New `SignJar` task allows to sign arbitrary JAR files by reusing `signing` configuration of the `Cordapp` plugin
+
 ### Version 4.0.33
 
 * `cordformation`: Add ability to specify a flow override as part of cordformation via `flowOverride`
-* `cordapp`: New `SignJar` task allows to sign arbitrary JAR files reusing `signing` configuration of the `Cordapp` plugin
 
 ### Version 4.0.32
 
