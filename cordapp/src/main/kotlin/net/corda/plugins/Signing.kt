@@ -10,14 +10,14 @@ import javax.inject.Inject
 open class Signing @Inject constructor(objectFactory: ObjectFactory) {
 
     @get:Input
-    var enabled: Boolean = true
+    var enabled: Boolean = System.getProperty("signingEnabled", "true").toBoolean()
 
     fun enabled(value: Boolean) {
         enabled = value
     }
 
-    fun enabled(value: String?) {
-        enabled = value?.toBoolean() ?: true
+    fun enabled(value: String) {
+        enabled = value.toBoolean()
     }
 
     @get:Nested
