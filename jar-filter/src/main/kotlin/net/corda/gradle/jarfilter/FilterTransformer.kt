@@ -58,8 +58,8 @@ class FilterTransformer private constructor (
                   || super.hasUnwantedElements
 
     private fun isUnwantedClass(name: String): Boolean = unwantedElements.containsClass(name)
-    private fun hasDeletedSyntheticMethod(name: String): Boolean = deletedMethods.any { method ->
-        name.startsWith("$className\$${method.visibleName}\$")
+    private fun hasDeletedAnnotationsMethod(clsName: String): Boolean = deletedMethods.any { method ->
+        clsName.startsWith("$className\$${method.visibleName}\$") && method.isKotlinSynthetic("annotations")
     }
 
     override fun recreate(visitor: ClassVisitor) = FilterTransformer(
@@ -131,7 +131,7 @@ class FilterTransformer private constructor (
 
     override fun visitInnerClass(clsName: String, outerName: String?, innerName: String?, access: Int) {
         logger.debug("--- inner class {} [outer: {}, inner: {}]", clsName, outerName, innerName)
-        if (isUnwantedClass || hasDeletedSyntheticMethod(clsName)) {
+        if (isUnwantedClass || hasDeletedAnnotationsMethod(clsName)) {
             if (unwantedElements.addClass(clsName)) {
                 logger.info("- Deleted inner class {}", clsName)
             }
