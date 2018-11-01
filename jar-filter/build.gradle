@@ -35,8 +35,6 @@ pluginBundle {
     }
 }
 
-task('publishPlugin').dependsOn jar
-
 configurations {
     plugin
     shadow
@@ -92,7 +90,7 @@ jar.finalizedBy shadowJar
 configurations.archives.artifacts.clear()
 artifacts {
     shadow shadowJar
-    archives shadowJar, sourceJar, javadocJar
+    archives shadowJar, sourceJar
 }
 
 // We need to modify how the publish task works.
