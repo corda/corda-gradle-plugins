@@ -4,6 +4,7 @@ import groovy.lang.Closure
 import net.corda.plugins.SigningOptions.Companion.DEFAULT_KEYSTORE_EXTENSION
 import net.corda.plugins.SigningOptions.Companion.DEFAULT_KEYSTORE_FILE
 import net.corda.plugins.Utils.Companion.createTempFileFromResource
+import org.gradle.api.Action
 import org.gradle.api.DefaultTask
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.tasks.Input
@@ -66,14 +67,13 @@ open class Baseform : DefaultTask() {
     var nodeDefaults: Closure<in Node>? = null
 
     /**
-     * Options for sign Cordapp JARs and generate keyStore for it,
-     * by default all Cordapps are signed with default keyStore options.
+     * Configuration for keystore generation and JAR signing.
      */
     @Input
-    var signing: KeyGenAndSigning = KeyGenAndSigning()
+    val signing: KeyGenAndSigning = project.objects.newInstance(KeyGenAndSigning::class.java)
 
-    fun signing(configureClosure: Closure<in KeyGenAndSigning>) {
-        signing = project.configure(KeyGenAndSigning(), configureClosure) as KeyGenAndSigning
+    fun signing(action: Action<in KeyGenAndSigning>) {
+        action.execute(signing)
     }
 
     /**
@@ -187,8 +187,8 @@ open class Baseform : DefaultTask() {
 
         if (signing.generateKeystore && !signing.options.hasDefaultOptions()) {
             val genKeyTaskOptions = signing.options.toGenKeyOptionsMap()
-            if (Files.exists(Paths.get(genKeyTaskOptions["keystore"]))) {
-                logger.warn("Skipping keystore generation to sign Cordapps, the keystore already exists at '${genKeyTaskOptions["keystore"]}'.")
+            if (Files.exists(Paths.get(genKeyTaskOptions[SigningOptions.Key.KEYSTORE]))) {
+                logger.warn("Skipping keystore generation to sign Cordapps, the keystore already exists at '${genKeyTaskOptions[SigningOptions.Key.KEYSTORE]}'.")
             } else {
                 logger.info("Generating keystore to sign Cordapps with options: ${genKeyTaskOptions.map { "${it.key}=${it.value}" }.joinToString()}.")
                 project.ant.invokeMethod("genkey", genKeyTaskOptions)
@@ -198,13 +198,13 @@ open class Baseform : DefaultTask() {
         val signJarOptions = signing.options.toSignJarOptionsMap()
         if (signing.options.hasDefaultOptions()) {
             val keyStorePath = createTempFileFromResource(SigningOptions.DEFAULT_KEYSTORE, DEFAULT_KEYSTORE_FILE, DEFAULT_KEYSTORE_EXTENSION)
-            signJarOptions["keystore"] = keyStorePath.toString()
+            signJarOptions[SigningOptions.Key.KEYSTORE] = keyStorePath.toString()
         }
 
-        val jarsToSign = mutableListOf(project.tasks.getByName("jar").outputs.files.singleFile.toPath()) +
+        val jarsToSign = mutableListOf(project.tasks.getByName(SigningOptions.Key.JAR).outputs.files.singleFile.toPath()) +
                 if (signing.all) nodes.flatMap(Node::getCordappList).map { it.jarFile }.distinct() else emptyList()
         jarsToSign.forEach {
-            signJarOptions["jar"] = it.toString()
+            signJarOptions[SigningOptions.Key.JAR] = it.toString()
             project.ant.invokeMethod("signjar", signJarOptions)
         }
     }

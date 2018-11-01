@@ -12,7 +12,6 @@ import java.nio.file.Paths
 import java.nio.file.StandardCopyOption
 
 open class SignJar : DefaultTask() {
-
     companion object {
         fun sign(project: Project, signing: Signing, file: File, enabled: Boolean = signing.enabled) {
             if (!enabled) {
@@ -23,11 +22,11 @@ open class SignJar : DefaultTask() {
             if (signing.options.hasDefaultOptions()) {
                 project.logger.info("CorDapp JAR signing with the default Corda development key, suitable for Corda running in development mode only.")
                 val keyStorePath = Utils.createTempFileFromResource(SigningOptions.DEFAULT_KEYSTORE, SigningOptions.DEFAULT_KEYSTORE_FILE, SigningOptions.DEFAULT_KEYSTORE_EXTENSION)
-                options["keystore"] = keyStorePath.toString()
+                options[SigningOptions.Key.KEYSTORE] = keyStorePath.toString()
             }
 
             val path = file.toPath()
-            options["jar"] = path.toString()
+            options[SigningOptions.Key.JAR] = path.toString()
 
             try {
                 project.ant.invokeMethod("signjar", options)
@@ -40,7 +39,7 @@ open class SignJar : DefaultTask() {
                         else "Run with --info or --debug option and search for 'ant:signjar' in log output. ", e)
             } finally {
                 if (signing.options.hasDefaultOptions()) {
-                    Paths.get(options["keystore"]).toFile().delete()
+                    Paths.get(options[SigningOptions.Key.KEYSTORE]).toFile().delete()
                 }
             }
         }
