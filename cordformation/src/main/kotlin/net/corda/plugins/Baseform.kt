@@ -70,7 +70,7 @@ open class Baseform : DefaultTask() {
      * Configuration for keystore generation and JAR signing.
      */
     @Input
-    var signing: KeyGenAndSigning = project.objects.newInstance(KeyGenAndSigning::class.java)
+    val signing: KeyGenAndSigning = project.objects.newInstance(KeyGenAndSigning::class.java)
 
     fun signing(action: Action<in KeyGenAndSigning>) {
         action.execute(signing)
