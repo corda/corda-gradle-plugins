@@ -1,16 +1,16 @@
 package net.corda.plugins
 
+import net.corda.plugins.SigningOptions.Companion.SYSTEM_PROPERTY_PREFIX
 import org.gradle.api.Action
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Nested
 import javax.inject.Inject
 
-/** JAR sign and control option. */
 open class Signing @Inject constructor(objectFactory: ObjectFactory) {
 
     @get:Input
-    var enabled: Boolean = System.getProperty("signingEnabled", "true").toBoolean()
+    var enabled: Boolean = System.getProperty(SYSTEM_PROPERTY_PREFIX + "enabled", "true").toBoolean()
 
     fun enabled(value: Boolean) {
         enabled = value

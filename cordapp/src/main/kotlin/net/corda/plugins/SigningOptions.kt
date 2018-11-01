@@ -2,11 +2,10 @@ package net.corda.plugins
 
 import org.gradle.api.tasks.Input
 
-/** JAR sign options. */
-//Option used for ANT task "signjar"
+/** Options for ANT task "signjar". */
 open class SigningOptions {
     companion object {
-        // Defaults to resource/certificates/cordadevcakeys.jks keyStore with Corda development key
+        // Defaults to resource/certificates/cordadevcakeys.jks keystore with Corda development key
         private const val DEFAULT_ALIAS = "cordaintermediateca"
         private const val DEFAULT_STOREPASS = "cordacadevpass"
         private const val DEFAULT_STORETYPE = "JKS"
@@ -14,181 +13,148 @@ open class SigningOptions {
         const val DEFAULT_KEYSTORE = "certificates/cordadevcakeys.jks"
         const val DEFAULT_KEYSTORE_FILE = "cordadevcakeys"
         const val DEFAULT_KEYSTORE_EXTENSION = "jks"
+        const val SYSTEM_PROPERTY_PREFIX = "signing."
+    }
+
+    /** Option keys for ANT task. */
+    class Key {
+        companion object {
+            val JAR = "jar"
+            val ALIAS = "alias"
+            val STOREPASS = "storepass"
+            val KEYSTORE = "keystore"
+            val STORETYPE = "storetype"
+            val KEYPASS = "keypass"
+            val SIGFILE = "sigfile"
+            val SIGNEDJAR = "signedjar"
+            val VERBOSE = "verbose"
+            val STRICT = "strict"
+            val INTERNALSF = "internalsf"
+            val SECTIONSONLY = "sectionsonly"
+            val LAZY = "lazy"
+            val MAXMEMORY = "maxmemory"
+            val PRESERVELASTMODIFIED = "preservelastmodified"
+            val TSACERT = "tsaurl"
+            val TSAURL = "tsacert"
+            val TSAPROXYHOST = "tsaproxyhost"
+            val TSAPROXYPORT = "tsaproxyport"
+            val EXECUTABLE = "executable"
+            val FORCE = "force"
+            val SIGALG = "sigalg"
+            val DIGESTALG = "digestalg"
+            val TSADIGESTALG = "tsadigestalg"
+        }
     }
 
     @get:Input
-    var alias = System.getProperty("signingAlias", DEFAULT_ALIAS)
-
-    fun alias(value: String) {
-        alias = value
-    }
+    var alias = System.getProperty(SYSTEM_PROPERTY_PREFIX + Key.ALIAS, DEFAULT_ALIAS)
 
     @get:Input
-    var storepass = System.getProperty("signingStorepass", DEFAULT_STOREPASS)
-
-    fun storepass(value: String) {
-        storepass = value
-    }
+    var storepass = System.getProperty(SYSTEM_PROPERTY_PREFIX + Key.STOREPASS, DEFAULT_STOREPASS)
 
     @get:Input
-    var keystore = System.getProperty("signingKeystore", DEFAULT_KEYSTORE)
-
-    fun keystore(value: String) {
-        keystore = value
-    }
+    var keystore = System.getProperty(SYSTEM_PROPERTY_PREFIX + Key.KEYSTORE, DEFAULT_KEYSTORE)
 
     @get:Input
-    var storetype = System.getProperty("signingStoretype", DEFAULT_STORETYPE)
-
-    fun storetype(value: String) {
-        storetype = value
-    }
+    var storetype = System.getProperty(SYSTEM_PROPERTY_PREFIX + Key.STORETYPE, DEFAULT_STORETYPE)
 
     @get:Input
-    var keypass = System.getProperty("signingKeypass", DEFAULT_KEYPASS)
-
-    fun keypass(value: String) {
-        keypass = value
-    }
+    var keypass = System.getProperty(SYSTEM_PROPERTY_PREFIX + Key.KEYPASS, DEFAULT_KEYPASS)
 
     @get:Input
     var sigfile = ""
 
-    fun sigfile(value: String) {
-        sigfile = value
-    }
-
     @get:Input
     var signedjar = ""
-
-    fun signedjar(value: String) {
-        signedjar = value
-    }
 
     @get:Input
     var verbose = ""
 
-    fun verbose(value: String) {
-        verbose = value
+    fun verbose(value: Boolean) {
+        verbose = value.toString()
     }
 
     @get:Input
     var strict = ""
 
-    fun strict(value: String) {
-        strict = value
+    fun strict(value: Boolean) {
+        strict = value.toString()
     }
 
     @get:Input
     var internalsf = ""
 
-    fun internalsf(value: String) {
-        internalsf = value
+    fun internalsf(value: Boolean) {
+        internalsf = value.toString()
     }
 
     @get:Input
     var sectionsonly = ""
 
-    fun sectionsonly(value: String) {
-        sectionsonly = value
+    fun sectionsonly(value: Boolean) {
+        sectionsonly = value.toString()
     }
 
     @get:Input
     var lazy = ""
 
-    fun lazy(value: String) {
-        lazy = value
+    fun lazy(value: Boolean) {
+        lazy = value.toString()
     }
 
     @get:Input
     var maxmemory = ""
 
-    fun maxmemory(value: String) {
-        maxmemory = value
-    }
-
     @get:Input
     var preservelastmodified = ""
 
-    fun preservelastmodified(value: String) {
-        preservelastmodified = value
+    fun preservelastmodified(value: Boolean) {
+        preservelastmodified = value.toString()
     }
 
     @get:Input
     var tsaurl = ""
 
-    fun tsaurl(value: String) {
-        tsaurl = value
-    }
-
     @get:Input
     var tsacert = ""
-
-    fun tsacert(value: String) {
-        tsacert = value
-    }
 
     @get:Input
     var tsaproxyhost = ""
 
-    fun tsaproxyhost(value: String) {
-        tsaproxyhost = value
-    }
-
     @get:Input
     var tsaproxyport = ""
-
-    fun tsaproxyport(value: String) {
-        tsaproxyport = value
-    }
 
     @get:Input
     var executable = ""
 
-    fun executable(value: String) {
-        executable = value
-    }
-
     @get:Input
     var force = ""
 
-    fun force(value: String) {
-        force = value
+    fun force(value: Boolean) {
+        force = value.toString()
     }
 
     @get:Input
     var sigalg = ""
 
-    fun sigalg(value: String) {
-        sigalg = value
-    }
-
     @get:Input
     var digestalg = ""
 
-    fun digestalg(value: String) {
-        digestalg = value
-    }
-
     @get:Input
     var tsadigestalg = ""
-
-    fun tsadigestalg(value: String) {
-        tsadigestalg = value
-    }
 
     /**
      * Returns options as map.
      */
     fun toSignJarOptionsMap(): MutableMap<String, String> =
-            mapOf("alias" to alias, "storepass" to storepass, "keystore" to keystore,
-                    "storetype" to storetype, "keypass" to keypass, "sigfile" to sigfile,
-                    "signedjar" to signedjar, "verbose" to verbose, "strict" to strict,
-                    "internalsf" to internalsf, "sectionsonly" to sectionsonly, "lazy" to lazy,
-                    "maxmemory" to maxmemory, "preservelastmodified" to preservelastmodified,
-                    "tsaurl" to tsacert, "tsacert" to tsaurl, "tsaproxyhost" to tsaproxyhost,
-                    "tsaproxyport" to tsaproxyport, "executable" to executable, "force" to force,
-                    "sigalg" to sigalg, "digestalg" to digestalg, "tsadigestalg" to tsadigestalg)
+            mapOf(Key.ALIAS to alias, Key.STOREPASS to storepass, Key.KEYSTORE to keystore,
+                    Key.STORETYPE to storetype, Key.KEYPASS to keypass, Key.SIGFILE to sigfile,
+                    Key.SIGNEDJAR to signedjar, Key.VERBOSE to verbose, Key.STRICT to strict,
+                    Key.INTERNALSF to internalsf, Key.SECTIONSONLY to sectionsonly, Key.LAZY to lazy,
+                    Key.MAXMEMORY to maxmemory, Key.PRESERVELASTMODIFIED to preservelastmodified,
+                    Key.TSAURL to tsacert, Key.TSACERT to tsaurl, Key.TSAPROXYHOST to tsaproxyhost,
+                    Key.TSAPROXYPORT to tsaproxyport, Key.EXECUTABLE to executable, Key.FORCE to force,
+                    Key.SIGALG to sigalg, Key.DIGESTALG to digestalg, Key.TSADIGESTALG to tsadigestalg)
                     .filter { it.value.isNotBlank() }.toMutableMap()
 
     fun hasDefaultOptions() = keystore == DEFAULT_KEYSTORE

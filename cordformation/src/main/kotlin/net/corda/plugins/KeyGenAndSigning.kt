@@ -1,30 +1,49 @@
 package net.corda.plugins
 
-import groovy.lang.Closure
+import org.gradle.api.Action
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.Input
-import org.gradle.util.ConfigureUtil
+import org.gradle.api.tasks.Nested
+import javax.inject.Inject
 
-/** JAR sign, keystore generation and overall signing control options. */
-open class KeyGenAndSigning {
+open class KeyGenAndSigning @Inject constructor(objectFactory: ObjectFactory) {
     @get:Input
     var enabled: Boolean = true
-        private set
-    fun enabled(value: Boolean) { enabled = value }
 
-    @get:Input
-    var options: KeyGenAndSigningOptions = KeyGenAndSigningOptions()
-        private set
-    fun options(configureClosure: Closure<in KeyGenAndSigningOptions>) {
-        options = ConfigureUtil.configure(configureClosure, options) as KeyGenAndSigningOptions
+    fun enabled(value: Boolean) {
+        enabled = value
+    }
+
+    fun enabled(value: String) {
+        enabled = value.toBoolean()
     }
 
     @get:Input
     var all: Boolean = true
-        private set
-    fun all(value: Boolean) { all = value }
+
+    fun all(value: Boolean) {
+        all = value
+    }
+
+    fun all(value: String) {
+        all = value.toBoolean()
+    }
 
     @get:Input
     var generateKeystore: Boolean = false
-        private set
-    fun generateKeystore(value: Boolean) { generateKeystore = value }
+
+    fun generateKeystore(value: Boolean) {
+        generateKeystore = value
+    }
+
+    fun generateKeystore(value: String) {
+        generateKeystore = value.toBoolean()
+    }
+
+    @get:Nested
+    var options: KeyGenAndSigningOptions = objectFactory.newInstance(KeyGenAndSigningOptions::class.java)
+
+    fun options(action: Action<in KeyGenAndSigningOptions>) {
+        action.execute(options)
+    }
 }
