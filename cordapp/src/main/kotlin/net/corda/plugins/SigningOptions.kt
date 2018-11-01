@@ -1,6 +1,8 @@
 package net.corda.plugins
 
+import org.gradle.api.tasks.Console
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Internal
 
 /** Options for ANT task "signjar". */
 open class SigningOptions {
@@ -19,30 +21,30 @@ open class SigningOptions {
     /** Option keys for ANT task. */
     class Key {
         companion object {
-            val JAR = "jar"
-            val ALIAS = "alias"
-            val STOREPASS = "storepass"
-            val KEYSTORE = "keystore"
-            val STORETYPE = "storetype"
-            val KEYPASS = "keypass"
-            val SIGFILE = "sigfile"
-            val SIGNEDJAR = "signedjar"
-            val VERBOSE = "verbose"
-            val STRICT = "strict"
-            val INTERNALSF = "internalsf"
-            val SECTIONSONLY = "sectionsonly"
-            val LAZY = "lazy"
-            val MAXMEMORY = "maxmemory"
-            val PRESERVELASTMODIFIED = "preservelastmodified"
-            val TSACERT = "tsaurl"
-            val TSAURL = "tsacert"
-            val TSAPROXYHOST = "tsaproxyhost"
-            val TSAPROXYPORT = "tsaproxyport"
-            val EXECUTABLE = "executable"
-            val FORCE = "force"
-            val SIGALG = "sigalg"
-            val DIGESTALG = "digestalg"
-            val TSADIGESTALG = "tsadigestalg"
+            const val JAR = "jar"
+            const val ALIAS = "alias"
+            const val STOREPASS = "storepass"
+            const val KEYSTORE = "keystore"
+            const val STORETYPE = "storetype"
+            const val KEYPASS = "keypass"
+            const val SIGFILE = "sigfile"
+            const val SIGNEDJAR = "signedjar"
+            const val VERBOSE = "verbose"
+            const val STRICT = "strict"
+            const val INTERNALSF = "internalsf"
+            const val SECTIONSONLY = "sectionsonly"
+            const val LAZY = "lazy"
+            const val MAXMEMORY = "maxmemory"
+            const val PRESERVELASTMODIFIED = "preservelastmodified"
+            const val TSACERT = "tsaurl"
+            const val TSAURL = "tsacert"
+            const val TSAPROXYHOST = "tsaproxyhost"
+            const val TSAPROXYPORT = "tsaproxyport"
+            const val EXECUTABLE = "executable"
+            const val FORCE = "force"
+            const val SIGALG = "sigalg"
+            const val DIGESTALG = "digestalg"
+            const val TSADIGESTALG = "tsadigestalg"
         }
     }
 
@@ -67,7 +69,7 @@ open class SigningOptions {
     @get:Input
     var signedjar = ""
 
-    @get:Input
+    @get:Console
     var verbose = ""
 
     fun verbose(value: Boolean) {
@@ -102,7 +104,7 @@ open class SigningOptions {
         lazy = value.toString()
     }
 
-    @get:Input
+    @get:Internal
     var maxmemory = ""
 
     @get:Input

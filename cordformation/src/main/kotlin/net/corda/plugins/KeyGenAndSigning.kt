@@ -41,7 +41,7 @@ open class KeyGenAndSigning @Inject constructor(objectFactory: ObjectFactory) {
     }
 
     @get:Nested
-    var options: KeyGenAndSigningOptions = objectFactory.newInstance(KeyGenAndSigningOptions::class.java)
+    val options: KeyGenAndSigningOptions = objectFactory.newInstance(KeyGenAndSigningOptions::class.java)
 
     fun options(action: Action<in KeyGenAndSigningOptions>) {
         action.execute(options)

@@ -7,10 +7,10 @@ open class KeyGenAndSigningOptions : SigningOptions() {
     /** Additional option keys for ANT task. */
     class Key {
         companion object {
-            val KEYALG = "keyalg"
-            val DNAME = "dname"
-            val VALIDITY = "validity"
-            val KEYSIZE = "keysize"
+            const val KEYALG = "keyalg"
+            const val DNAME = "dname"
+            const val VALIDITY = "validity"
+            const val KEYSIZE = "keysize"
         }
     }
 
