@@ -89,8 +89,10 @@ task shadowJar(type: ShadowJar) {
 }
 jar.finalizedBy shadowJar
 
+configurations.archives.artifacts.clear()
 artifacts {
     shadow shadowJar
+    archives shadowJar, sourceJar, javadocJar
 }
 
 // We need to modify how the publish task works.
