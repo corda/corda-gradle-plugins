@@ -31,6 +31,19 @@ gradlePlugin {
     automatedPublishing = false
 }
 
+pluginBundle {
+    website = project.vcsUrl
+    vcsUrl = project.vcsUrl
+    description = 'Cordformation allows you to build your own local Corda networks for development'
+    tags = ['corda']
+
+    plugins {
+        cordformationPlugin {
+            displayName = 'Cordaformation - Corda Local Network Builder'
+        }
+    }
+}
+
 dependencies {
     compile project(":cordapp")
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"

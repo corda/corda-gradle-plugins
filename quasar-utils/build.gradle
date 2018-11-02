@@ -19,6 +19,19 @@ gradlePlugin {
     automatedPublishing = false
 }
 
+pluginBundle {
+    website = project.vcsUrl
+    vcsUrl = project.vcsUrl
+    description = 'Corda Quasar Utils Plugin'
+    tags = ['corda']
+
+    plugins {
+        quasarPlugin {
+            displayName = 'Corda Quasar Utils Plugin'
+        }
+    }
+}
+
 dependencies {
     compile project(':cordapp')
     testCompile "junit:junit:$junit_version"

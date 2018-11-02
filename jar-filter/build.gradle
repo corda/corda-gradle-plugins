@@ -25,6 +25,19 @@ gradlePlugin {
     automatedPublishing = false
 }
 
+pluginBundle {
+    website = project.vcsUrl
+    vcsUrl = project.vcsUrl
+    description = 'Corda JAR Filter Plugin'
+    tags = ['corda']
+
+    plugins {
+        jarFilterPlugin {
+            displayName = 'Corda JAR Filter Plugin'
+        }
+    }
+}
+
 configurations {
     plugin
     shadow
@@ -77,8 +90,10 @@ task shadowJar(type: ShadowJar) {
 }
 jar.finalizedBy shadowJar
 
+configurations.archives.artifacts.clear()
 artifacts {
     shadow shadowJar
+    archives shadowJar, sourceJar
 }
 
 // We need to modify how the publish task works.
