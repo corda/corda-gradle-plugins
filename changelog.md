@@ -2,6 +2,8 @@
 
 ## Version 4
 
+### Version 4.0.35
+
 ### Version 4.0.34
 
 * `cordapp`: New `SignJar` task allows to sign arbitrary JAR files by reusing `signing` configuration of the `Cordapp` plugin
