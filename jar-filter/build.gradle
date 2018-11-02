@@ -1,5 +1,8 @@
+import com.github.jengelman.gradle.plugins.shadow.ShadowExtension
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
 plugins {
-    id 'com.github.johnrengelman.shadow' version '2.0.4' apply false
+    id 'com.github.johnrengelman.shadow' version '4.0.2' apply false
     id 'java-gradle-plugin'
     id 'jacoco'
 }
@@ -60,7 +63,7 @@ jar {
     classifier 'ignore'
 }
 
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+extensions.create("shadow", ShadowExtension, project)
 task shadowJar(type: ShadowJar) {
     configurations = [project.configurations.plugin]
     from jar
@@ -81,20 +84,10 @@ artifacts {
 // We need to modify how the publish task works.
 ext {
     mavenArtifacts = {
-        it.artifact shadowJar
+        project.shadow.component(it)
     }
 
     mavenPom = {
         it.name = 'Jar Filter'
-        it.withXml {
-            def dependenciesNode = asNode().appendNode('dependencies')
-            configurations.shadow.resolvedConfiguration.firstLevelModuleDependencies.forEach {
-                def dependency = dependenciesNode.appendNode('dependency')
-                dependency.appendNode('groupId', it.moduleGroup)
-                dependency.appendNode('artifactId', it.moduleName)
-                dependency.appendNode('version', it.moduleVersion)
-                dependency.appendNode('scope', 'runtime')
-            }
-        }
     }
 }
