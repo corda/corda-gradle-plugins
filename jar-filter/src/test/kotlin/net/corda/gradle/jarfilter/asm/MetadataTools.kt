@@ -1,8 +1,10 @@
 @file:JvmName("MetadataTools")
 package net.corda.gradle.jarfilter.asm
 
+import net.corda.gradle.jarfilter.KOTLIN_METADATA_DATA_FIELD_NAME
+import net.corda.gradle.jarfilter.KOTLIN_METADATA_DESC
+import net.corda.gradle.jarfilter.KOTLIN_METADATA_STRINGS_FIELD_NAME
 import net.corda.gradle.jarfilter.StdOutLogging
-import org.jetbrains.kotlin.load.java.JvmAnnotationNames.*
 import org.objectweb.asm.*
 import org.objectweb.asm.Opcodes.ASM6
 
@@ -51,8 +53,8 @@ internal val Class<*>.classMetadata: ClassMetadata get() {
 
 private fun Class<*>.readMetadata(): Pair<List<String>, List<String>> {
     val metadata = getAnnotation(metadataClass)
-    val d1 = metadataClass.getMethod(METADATA_DATA_FIELD_NAME)
-    val d2 = metadataClass.getMethod(METADATA_STRINGS_FIELD_NAME)
+    val d1 = metadataClass.getMethod(KOTLIN_METADATA_DATA_FIELD_NAME)
+    val d2 = metadataClass.getMethod(KOTLIN_METADATA_STRINGS_FIELD_NAME)
     return Pair(d1.invoke(metadata).asList(), d2.invoke(metadata).asList())
 }
 
@@ -63,13 +65,13 @@ fun <T> Any.asList(): List<T> {
 
 private class MetadataWriter(metadata: Pair<List<String>, List<String>>, visitor: ClassVisitor) : ClassVisitor(ASM6, visitor) {
     private val kotlinMetadata: MutableMap<String, List<String>> = mutableMapOf(
-        METADATA_DATA_FIELD_NAME to metadata.first,
-        METADATA_STRINGS_FIELD_NAME to metadata.second
+        KOTLIN_METADATA_DATA_FIELD_NAME to metadata.first,
+        KOTLIN_METADATA_STRINGS_FIELD_NAME to metadata.second
     )
 
     override fun visitAnnotation(descriptor: String, visible: Boolean): AnnotationVisitor? {
         val av = super.visitAnnotation(descriptor, visible) ?: return null
-        return if (descriptor == METADATA_DESC) KotlinMetadataWriter(av) else av
+        return if (descriptor == KOTLIN_METADATA_DESC) KotlinMetadataWriter(av) else av
     }
 
     private inner class KotlinMetadataWriter(av: AnnotationVisitor) : AnnotationVisitor(api, av) {

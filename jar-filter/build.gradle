@@ -1,8 +1,4 @@
-import com.github.jengelman.gradle.plugins.shadow.ShadowExtension
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-
 plugins {
-    id 'com.github.johnrengelman.shadow' version '4.0.2' apply false
     id 'java-gradle-plugin'
     id 'jacoco'
 }
@@ -13,6 +9,11 @@ description 'Deletes or stubs out unwanted elements from Java/Kotlin byte-code.'
 repositories {
     mavenCentral()
     jcenter()
+    maven { url "https://kotlin.bintray.com/kotlinx/" }
+}
+
+ext {
+    kotlin_metadata_version = '0.0.4'
 }
 
 gradlePlugin {
@@ -39,19 +40,13 @@ pluginBundle {
 }
 
 configurations {
-    plugin
-    shadow
     jacocoRuntime
 }
 
 dependencies {
-    shadow gradleApi()
-    shadow localGroovy()
-    shadow "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
-    shadow "org.ow2.asm:asm:$asm_version"
-    implementation configurations.shadow
-    implementation project(':jar-filter:kotlin-metadata')
-    plugin configurations.runtimeClasspath - configurations.shadow
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+    implementation "org.jetbrains.kotlinx:kotlinx-metadata-jvm:$kotlin_metadata_version"
+    implementation "org.ow2.asm:asm:$asm_version"
 
     testImplementation "org.jetbrains.kotlin:kotlin-test-junit"
     testImplementation "org.jetbrains.kotlin:kotlin-reflect"
@@ -72,36 +67,8 @@ processTestResources {
     }
 }
 
-jar {
-    classifier 'ignore'
-}
-
-extensions.create("shadow", ShadowExtension, project)
-task shadowJar(type: ShadowJar) {
-    configurations = [project.configurations.plugin]
-    from jar
-
-    relocate('org.jetbrains.kotlin', 'net.corda.gradle.jarfilter.org.jetbrains.kotlin') {
-        exclude 'org.jetbrains.kotlin.com.google.**'
-    }
-    relocate 'org.jetbrains.kotlin.com.google', 'net.corda.gradle.jarfilter.com.google'
-    relocate 'one.util.streamex', 'net.corda.gradle.jarfilter.one.util.streamex'
-    relocate 'javaslang', 'net.corda.gradle.jarfilter.javaslang'
-}
-jar.finalizedBy shadowJar
-
-configurations.archives.artifacts.clear()
-artifacts {
-    shadow shadowJar
-    archives shadowJar, sourceJar
-}
-
 // We need to modify how the publish task works.
 ext {
-    mavenArtifacts = {
-        project.shadow.component(it)
-    }
-
     mavenPom = {
         it.name = 'Jar Filter'
     }

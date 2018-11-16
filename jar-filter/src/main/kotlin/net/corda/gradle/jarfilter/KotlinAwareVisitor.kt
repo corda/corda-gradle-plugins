@@ -1,10 +1,21 @@
+@file:JvmName("KotlinMetadata")
 package net.corda.gradle.jarfilter
 
+import kotlinx.metadata.jvm.KotlinClassHeader
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.Logger
-import org.jetbrains.kotlin.load.java.JvmAnnotationNames.*
 import org.objectweb.asm.AnnotationVisitor
 import org.objectweb.asm.ClassVisitor
+
+const val KOTLIN_METADATA_DESC = "Lkotlin/Metadata;"
+const val KOTLIN_METADATA_DATA_FIELD_NAME = "d1"
+const val KOTLIN_METADATA_STRINGS_FIELD_NAME = "d2"
+const val KOTLIN_KIND_FIELD_NAME = "k"
+
+private const val KOTLIN_CLASS: Int = KotlinClassHeader.CLASS_KIND
+private const val KOTLIN_FILE: Int = KotlinClassHeader.FILE_FACADE_KIND
+private const val KOTLIN_SYNTHETIC: Int = KotlinClassHeader.SYNTHETIC_CLASS_KIND
+private const val KOTLIN_MULTIFILE_PART: Int = KotlinClassHeader.MULTI_FILE_CLASS_PART_KIND
 
 /**
  * Kotlin support: Loads the ProtoBuf data from the [kotlin.Metadata] annotation.
@@ -15,14 +26,6 @@ abstract class KotlinAwareVisitor(
     protected val logger: Logger,
     protected val kotlinMetadata: MutableMap<String, List<String>>
 ) : ClassVisitor(api, visitor) {
-
-    private companion object {
-        /** See [org.jetbrains.kotlin.load.kotlin.header.KotlinClassHeader.Kind]. */
-        private const val KOTLIN_CLASS = 1
-        private const val KOTLIN_FILE = 2
-        private const val KOTLIN_SYNTHETIC = 3
-        private const val KOTLIN_MULTIFILE_PART = 5
-    }
 
     private var classKind: Int = 0
 
@@ -35,19 +38,19 @@ abstract class KotlinAwareVisitor(
 
     override fun visitAnnotation(descriptor: String, visible: Boolean): AnnotationVisitor? {
         val av = super.visitAnnotation(descriptor, visible) ?: return null
-        return if (descriptor == METADATA_DESC) KotlinMetadataAdaptor(av) else av
+        return if (descriptor == KOTLIN_METADATA_DESC) KotlinMetadataAdaptor(av) else av
     }
 
     protected fun processMetadata() {
         if (kotlinMetadata.isNotEmpty()) {
             logger.log(level, "- Examining Kotlin @Metadata[k={}]", classKind)
-            val d1 = kotlinMetadata.remove(METADATA_DATA_FIELD_NAME)
-            val d2 = kotlinMetadata.remove(METADATA_STRINGS_FIELD_NAME)
+            val d1 = kotlinMetadata.remove(KOTLIN_METADATA_DATA_FIELD_NAME)
+            val d2 = kotlinMetadata.remove(KOTLIN_METADATA_STRINGS_FIELD_NAME)
             if (d1 != null && d1.isNotEmpty() && d2 != null) {
                 processMetadata(d1, d2).apply {
                     if (isNotEmpty()) {
-                        kotlinMetadata[METADATA_DATA_FIELD_NAME] = this
-                        kotlinMetadata[METADATA_STRINGS_FIELD_NAME] = d2
+                        kotlinMetadata[KOTLIN_METADATA_DATA_FIELD_NAME] = this
+                        kotlinMetadata[KOTLIN_METADATA_STRINGS_FIELD_NAME] = d2
                     }
                 }
             }
@@ -75,7 +78,7 @@ abstract class KotlinAwareVisitor(
 
     private inner class KotlinMetadataAdaptor(av: AnnotationVisitor): AnnotationVisitor(api, av) {
         override fun visit(name: String?, value: Any?) {
-            if (name == KIND_FIELD_NAME) {
+            if (name == KOTLIN_KIND_FIELD_NAME) {
                 classKind = value as Int
             }
             super.visit(name, value)

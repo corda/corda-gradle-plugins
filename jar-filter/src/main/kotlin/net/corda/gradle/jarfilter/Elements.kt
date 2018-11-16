@@ -1,15 +1,15 @@
 @file:JvmName("Elements")
 package net.corda.gradle.jarfilter
 
-import org.jetbrains.kotlin.metadata.ProtoBuf
-import org.jetbrains.kotlin.metadata.deserialization.Flags.*
-import org.jetbrains.kotlin.metadata.deserialization.NameResolver
-import org.jetbrains.kotlin.metadata.deserialization.TypeTable
-import org.jetbrains.kotlin.metadata.deserialization.returnType
-import org.jetbrains.kotlin.metadata.jvm.JvmProtoBuf
-import org.jetbrains.kotlin.metadata.jvm.deserialization.ClassMapperLite
-import org.jetbrains.kotlin.metadata.jvm.deserialization.JvmMemberSignature
-import org.jetbrains.kotlin.metadata.jvm.deserialization.JvmProtoBufUtil
+import kotlinx.metadata.internal.metadata.ProtoBuf
+import kotlinx.metadata.internal.metadata.deserialization.Flags.*
+import kotlinx.metadata.internal.metadata.deserialization.NameResolver
+import kotlinx.metadata.internal.metadata.deserialization.TypeTable
+import kotlinx.metadata.internal.metadata.jvm.JvmProtoBuf
+import kotlinx.metadata.internal.metadata.jvm.deserialization.ClassMapperLite
+import kotlinx.metadata.internal.metadata.jvm.deserialization.JvmMemberSignature
+import kotlinx.metadata.internal.metadata.jvm.deserialization.JvmProtoBufUtil
+import kotlinx.metadata.internal.protobuf.GeneratedMessageLite.*
 import org.objectweb.asm.Opcodes.ACC_SYNTHETIC
 import java.util.*
 
@@ -182,3 +182,15 @@ internal fun ProtoBuf.ValueParameter.clearDeclaresDefaultValue(): ProtoBuf.Value
 
 internal val List<ProtoBuf.ValueParameter>.hasAnyDefaultValues
     get() = any { DECLARES_DEFAULT_VALUE.get(it.flags) }
+
+internal fun ProtoBuf.Property.returnType(typeTable: TypeTable): ProtoBuf.Type {
+    return when {
+        hasReturnType() -> returnType
+        hasReturnTypeId() -> typeTable[returnTypeId]
+        else -> throw IllegalStateException("No returnType in ProtoBuf.Property")
+    }
+}
+
+internal fun <M : ExtendableMessage<M>, T> ExtendableMessage<M>.getExtensionOrNull(extension: GeneratedExtension<M, T>): T? {
+    return if (hasExtension(extension)) getExtension(extension) else null
+}

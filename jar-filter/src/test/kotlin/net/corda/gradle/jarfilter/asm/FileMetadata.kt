@@ -1,10 +1,10 @@
 package net.corda.gradle.jarfilter.asm
 
+import kotlinx.metadata.internal.metadata.ProtoBuf
+import kotlinx.metadata.internal.metadata.deserialization.TypeTable
 import net.corda.gradle.jarfilter.MetadataTransformer
 import net.corda.gradle.jarfilter.mutableList
 import org.gradle.api.logging.Logger
-import org.jetbrains.kotlin.metadata.ProtoBuf
-import org.jetbrains.kotlin.metadata.deserialization.TypeTable
 
 internal class FileMetadata(
     logger: Logger,
