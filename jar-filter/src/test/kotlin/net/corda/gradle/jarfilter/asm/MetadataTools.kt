@@ -1,10 +1,10 @@
 @file:JvmName("MetadataTools")
 package net.corda.gradle.jarfilter.asm
 
-import net.corda.gradle.jarfilter.KOTLIN_METADATA_DATA_FIELD_NAME
-import net.corda.gradle.jarfilter.KOTLIN_METADATA_DESC
-import net.corda.gradle.jarfilter.KOTLIN_METADATA_STRINGS_FIELD_NAME
-import net.corda.gradle.jarfilter.StdOutLogging
+import kotlinx.metadata.InconsistentKotlinMetadataException
+import kotlinx.metadata.jvm.KotlinClassHeader
+import kotlinx.metadata.jvm.KotlinClassMetadata
+import net.corda.gradle.jarfilter.*
 import org.objectweb.asm.*
 import org.objectweb.asm.Opcodes.ASM6
 
@@ -23,14 +23,23 @@ fun <T: Any, X: Any> Class<in T>.metadataAs(template: Class<in X>): ByteArray {
         val templatePrefix = templateDescriptor.dropLast(1) + '$'
         val targetDescriptor = descriptor
         val targetPrefix = targetDescriptor.dropLast(1) + '$'
-        Pair(m.first, m.second.map { s ->
-            when {
-                // Replace any references to the template class with the target class.
-                s == templateDescriptor -> targetDescriptor
-                s.startsWith(templatePrefix) -> targetPrefix + s.substring(templatePrefix.length)
-                else -> s
-            }
-        }.toList())
+        KotlinClassHeader(
+            m.kind,
+            m.metadataVersion,
+            m.bytecodeVersion,
+            m.data1,
+            m.data2.map { s ->
+                when {
+                    // Replace any references to the template class with the target class.
+                    s == templateDescriptor -> targetDescriptor
+                    s.startsWith(templatePrefix) -> targetPrefix + s.substring(templatePrefix.length)
+                    else -> s
+                }
+            }.toTypedArray(),
+            m.extraString,
+            m.packageName,
+            m.extraInt
+        )
     }
     return bytecode.accept { w -> MetadataWriter(metadata, w) }
 }
@@ -39,34 +48,49 @@ fun <T: Any, X: Any> Class<in T>.metadataAs(template: Class<in X>): ByteArray {
  * Kotlin reflection only supports classes atm, so use this to examine file metadata.
  */
 internal val Class<*>.fileMetadata: FileMetadata get() {
-    val (d1, d2) = readMetadata()
-    return FileMetadata(StdOutLogging(kotlin), d1, d2)
+    val fileMetadata = FileMetadata()
+    (KotlinClassMetadata.read(readMetadata()) as? KotlinClassMetadata.FileFacade
+        ?: throw InconsistentKotlinMetadataException("Unknown metadata format")).accept(fileMetadata)
+    return fileMetadata
 }
 
 /**
  * For accessing the parts of class metadata that Kotlin reflection cannot reach.
  */
 internal val Class<*>.classMetadata: ClassMetadata get() {
-    val (d1, d2) = readMetadata()
-    return ClassMetadata(StdOutLogging(kotlin), d1, d2)
+    val classMetadata = ClassMetadata()
+    (KotlinClassMetadata.read(readMetadata()) as? KotlinClassMetadata.Class
+        ?: throw InconsistentKotlinMetadataException("Unknown metadata format")).accept(classMetadata)
+    return classMetadata
 }
 
-private fun Class<*>.readMetadata(): Pair<List<String>, List<String>> {
+private fun Class<*>.readMetadata(): KotlinClassHeader {
     val metadata = getAnnotation(metadataClass)
-    val d1 = metadataClass.getMethod(KOTLIN_METADATA_DATA_FIELD_NAME)
-    val d2 = metadataClass.getMethod(KOTLIN_METADATA_STRINGS_FIELD_NAME)
-    return Pair(d1.invoke(metadata).asList(), d2.invoke(metadata).asList())
+    val kind = metadataClass.getMethod(KOTLIN_KIND_FIELD_NAME)
+    val metadataVersion = metadataClass.getMethod(KOTLIN_METADATA_VERSION_NAME)
+    val bytecodeVersion = metadataClass.getMethod(KOTLIN_BYTECODE_VERSION_NAME)
+    val data1 = metadataClass.getMethod(KOTLIN_METADATA_DATA_FIELD_NAME)
+    val data2 = metadataClass.getMethod(KOTLIN_METADATA_STRINGS_FIELD_NAME)
+    val extraString = metadataClass.getMethod(KOTLIN_METADATA_EXTRA_STRING_NAME)
+    val packageName = metadataClass.getMethod(KOTLIN_METADATA_PACKAGE_NAME)
+    val extraInt = metadataClass.getMethod(KOTLIN_METADATA_EXTRA_INT_NAME)
+    @Suppress("unchecked_cast")
+    return KotlinClassHeader(
+        kind = kind.invoke(metadata) as Int?,
+        metadataVersion = metadataVersion.invoke(metadata) as IntArray?,
+        bytecodeVersion = bytecodeVersion.invoke(metadata) as IntArray?,
+        data1 = data1.invoke(metadata) as Array<String>?,
+        data2 = data2.invoke(metadata) as Array<String>?,
+        extraString = extraString.invoke(metadata) as String?,
+        packageName = packageName.invoke(metadata) as String?,
+        extraInt = extraInt.invoke(metadata) as Int?
+    )
 }
 
-@Suppress("UNCHECKED_CAST")
-fun <T> Any.asList(): List<T> {
-    return (this as? Array<T>)?.toList() ?: emptyList()
-}
-
-private class MetadataWriter(metadata: Pair<List<String>, List<String>>, visitor: ClassVisitor) : ClassVisitor(ASM6, visitor) {
-    private val kotlinMetadata: MutableMap<String, List<String>> = mutableMapOf(
-        KOTLIN_METADATA_DATA_FIELD_NAME to metadata.first,
-        KOTLIN_METADATA_STRINGS_FIELD_NAME to metadata.second
+private class MetadataWriter(metadata: KotlinClassHeader, visitor: ClassVisitor) : ClassVisitor(ASM6, visitor) {
+    private val kotlinMetadata: MutableMap<String, Array<String>> = mutableMapOf(
+        KOTLIN_METADATA_DATA_FIELD_NAME to metadata.data1,
+        KOTLIN_METADATA_STRINGS_FIELD_NAME to metadata.data2
     )
 
     override fun visitAnnotation(descriptor: String, visible: Boolean): AnnotationVisitor? {

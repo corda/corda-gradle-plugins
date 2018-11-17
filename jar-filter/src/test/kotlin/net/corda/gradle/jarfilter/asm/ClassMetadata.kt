@@ -1,48 +1,28 @@
 package net.corda.gradle.jarfilter.asm
 
-import kotlinx.metadata.internal.metadata.ProtoBuf
-import kotlinx.metadata.internal.metadata.deserialization.TypeTable
-import net.corda.gradle.jarfilter.MetadataTransformer
-import net.corda.gradle.jarfilter.getClassInternalName
+import kotlinx.metadata.ClassName
+import kotlinx.metadata.Flags
+import kotlinx.metadata.KmClassVisitor
 import net.corda.gradle.jarfilter.toPackageFormat
-import net.corda.gradle.jarfilter.mutableList
-import org.gradle.api.logging.Logger
 
-internal class ClassMetadata(
-    logger: Logger,
-    d1: List<String>,
-    d2: List<String>
-) : MetadataTransformer<ProtoBuf.Class>(
-    logger,
-    emptyList(),
-    emptyList(),
-    emptyList(),
-    emptyList(),
-    emptyList(),
-    {},
-    d1,
-    d2,
-    ProtoBuf.Class::parseFrom
-) {
-    override val typeTable = TypeTable(message.typeTable)
-    override val className = nameResolver.getClassInternalName(message.fqName)
-    override val nestedClassNames = mutableList(message.nestedClassNameList)
-    override val properties = mutableList(message.propertyList)
-    override val functions = mutableList(message.functionList)
-    override val constructors = mutableList(message.constructorList)
-    override val typeAliases = mutableList(message.typeAliasList)
-    override val sealedSubclassNames = mutableList(message.sealedSubclassFqNameList)
+internal class ClassMetadata : KmClassVisitor() {
+    private var className: ClassName = ""
 
-    override fun rebuild(): ProtoBuf.Class = message
+    private val _sealedSubclasses: MutableList<ClassName> = mutableListOf()
+    val sealedSubclasses: List<ClassName> get() = _sealedSubclasses
 
-    val sealedSubclasses: List<String> = sealedSubclassNames.map {
-        // Transform "a/b/c/BaseName$SubclassName" -> "a.b.c.BaseName$SubclassName"
-        nameResolver.getClassInternalName(it).toPackageFormat }.toList()
+    private val _nestedClasses: MutableList<ClassName> = mutableListOf()
+    val nestedClasses: List<ClassName> get() = _nestedClasses
 
-    val nestedClasses: List<String>
+    override fun visit(flags: Flags, name: ClassName) {
+        className = name.toPackageFormat
+    }
 
-    init {
-        val internalClassName = className.toPackageFormat
-        nestedClasses = nestedClassNames.map { "$internalClassName\$${nameResolver.getClassInternalName(it)}" }.toList()
+    override fun visitNestedClass(name: String) {
+        _nestedClasses += "$className\$$name"
+    }
+
+    override fun visitSealedSubclass(name: ClassName) {
+        _sealedSubclasses += name.replace('.', '$').toPackageFormat
     }
 }

@@ -11,6 +11,11 @@ const val KOTLIN_METADATA_DESC = "Lkotlin/Metadata;"
 const val KOTLIN_METADATA_DATA_FIELD_NAME = "d1"
 const val KOTLIN_METADATA_STRINGS_FIELD_NAME = "d2"
 const val KOTLIN_KIND_FIELD_NAME = "k"
+const val KOTLIN_METADATA_VERSION_NAME = "mv"
+const val KOTLIN_BYTECODE_VERSION_NAME = "bv"
+const val KOTLIN_METADATA_EXTRA_INT_NAME = "xi"
+const val KOTLIN_METADATA_EXTRA_STRING_NAME = "xs"
+const val KOTLIN_METADATA_PACKAGE_NAME= "pn"
 
 private const val KOTLIN_CLASS: Int = KotlinClassHeader.CLASS_KIND
 private const val KOTLIN_FILE: Int = KotlinClassHeader.FILE_FACADE_KIND
