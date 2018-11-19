@@ -60,7 +60,7 @@ class CordappPlugin : Plugin<Project> {
             if (attributes["Implementation-Vendor"] == UNKNOWN) {
                 project.logger.warn("CordApp's vendor is \"$UNKNOWN\". Please specify it in \"cordapp.info.vendor\".")
             }
-            if (cordapp.signing.enabled) {
+            if (cordapp.sealing.enabled) {
                 attributes["Sealed"] = "true"
             }
         }.doLast {
