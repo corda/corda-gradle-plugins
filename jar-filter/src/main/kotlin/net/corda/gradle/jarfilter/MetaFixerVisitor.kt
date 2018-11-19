@@ -52,25 +52,25 @@ class MetaFixerVisitor private constructor(
         return super.visitInnerClass(clsName, outerName, innerName, access)
     }
 
-    override fun processClassMetadata(d1: List<String>, d2: List<String>): List<String> {
+    override fun processClassMetadata(data1: List<String>, data2: List<String>): List<String> {
         return ClassMetaFixerTransformer(
                 logger = logger,
                 actualFields = fields,
                 actualMethods = methods,
                 actualNestedClasses = nestedClasses,
                 actualClasses = classNames,
-                d1 = d1,
-                d2 = d2)
+                data1 = data1,
+                data2 = data2)
             .transform()
     }
 
-    override fun processPackageMetadata(d1: List<String>, d2: List<String>): List<String> {
+    override fun processPackageMetadata(data1: List<String>, data2: List<String>): List<String> {
         return PackageMetaFixerTransformer(
                 logger = logger,
                 actualFields = fields,
                 actualMethods = methods,
-                d1 = d1,
-                d2 = d2)
+                data1 = data1,
+                data2 = data2)
             .transform()
     }
 }

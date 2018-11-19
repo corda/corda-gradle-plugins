@@ -6,7 +6,6 @@ buildscript {
         jsr305_version = '3.0.2'
         kotlin_version = '1.2.71'
         artifactory_plugin_version = '4.7.3'
-        proguard_version = '6.0.3'
         snake_yaml_version = '1.19'
         commons_io_version = '2.6'
         assertj_version = '3.9.1'
@@ -23,7 +22,6 @@ buildscript {
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.3'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath "org.jfrog.buildinfo:build-info-extractor-gradle:$artifactory_plugin_version"
-        classpath "net.sf.proguard:proguard-gradle:$proguard_version"
     }
 }
 

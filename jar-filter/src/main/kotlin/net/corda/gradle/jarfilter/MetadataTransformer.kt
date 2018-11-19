@@ -1,18 +1,17 @@
 package net.corda.gradle.jarfilter
 
+import kotlinx.metadata.internal.metadata.ProtoBuf
+import kotlinx.metadata.internal.metadata.deserialization.Flags.*
+import kotlinx.metadata.internal.metadata.deserialization.NameResolver
+import kotlinx.metadata.internal.metadata.deserialization.TypeTable
+import kotlinx.metadata.internal.metadata.jvm.JvmProtoBuf.*
+import kotlinx.metadata.internal.metadata.jvm.deserialization.BitEncoding
+import kotlinx.metadata.internal.metadata.jvm.deserialization.JvmNameResolver
+import kotlinx.metadata.internal.metadata.jvm.deserialization.JvmProtoBufUtil
+import kotlinx.metadata.internal.metadata.jvm.deserialization.JvmProtoBufUtil.EXTENSION_REGISTRY
+import kotlinx.metadata.internal.protobuf.ExtensionRegistryLite
+import kotlinx.metadata.internal.protobuf.MessageLite
 import org.gradle.api.logging.Logger
-import org.jetbrains.kotlin.metadata.ProtoBuf
-import org.jetbrains.kotlin.metadata.deserialization.Flags.*
-import org.jetbrains.kotlin.metadata.deserialization.NameResolver
-import org.jetbrains.kotlin.metadata.deserialization.TypeTable
-import org.jetbrains.kotlin.metadata.deserialization.getExtensionOrNull
-import org.jetbrains.kotlin.metadata.jvm.JvmProtoBuf.*
-import org.jetbrains.kotlin.metadata.jvm.deserialization.BitEncoding
-import org.jetbrains.kotlin.metadata.jvm.deserialization.JvmNameResolver
-import org.jetbrains.kotlin.metadata.jvm.deserialization.JvmProtoBufUtil
-import org.jetbrains.kotlin.metadata.jvm.deserialization.JvmProtoBufUtil.EXTENSION_REGISTRY
-import org.jetbrains.kotlin.protobuf.ExtensionRegistryLite
-import org.jetbrains.kotlin.protobuf.MessageLite
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
@@ -29,8 +28,8 @@ internal abstract class MetadataTransformer<out T : MessageLite>(
     private val deletedNestedClasses: Collection<String>,
     private val deletedClasses: Collection<String>,
     private val handleExtraMethod: (MethodElement) -> Unit,
-    d1: List<String>,
-    d2: List<String>,
+    data1: List<String>,
+    data2: List<String>,
     parser: (InputStream, ExtensionRegistryLite) -> T
 ) {
     private val stringTableTypes: StringTableTypes
@@ -47,9 +46,9 @@ internal abstract class MetadataTransformer<out T : MessageLite>(
     protected abstract val typeAliases: MutableList<ProtoBuf.TypeAlias>
 
     init {
-        val input = ByteArrayInputStream(BitEncoding.decodeBytes(d1.toTypedArray()))
+        val input = ByteArrayInputStream(BitEncoding.decodeBytes(data1.toTypedArray()))
         stringTableTypes = StringTableTypes.parseDelimitedFrom(input, EXTENSION_REGISTRY)
-        nameResolver = JvmNameResolver(stringTableTypes, d2.toTypedArray())
+        nameResolver = JvmNameResolver(stringTableTypes, data2.toTypedArray())
         message = parser(input, EXTENSION_REGISTRY)
     }
 
@@ -223,7 +222,7 @@ internal abstract class MetadataTransformer<out T : MessageLite>(
 
 /**
  * Removes elements from a [kotlin.Metadata] annotation that contains
- * a [ProtoBuf.Class] object in its [d1][kotlin.Metadata.d1] field.
+ * a [ProtoBuf.Class] object in its [data1][kotlin.Metadata.d1] field.
  */
 internal class ClassMetadataTransformer(
     logger: Logger,
@@ -233,8 +232,8 @@ internal class ClassMetadataTransformer(
     deletedNestedClasses: Collection<String>,
     deletedClasses: Collection<String>,
     handleExtraMethod: (MethodElement) -> Unit,
-    d1: List<String>,
-    d2: List<String>
+    data1: List<String>,
+    data2: List<String>
 ) : MetadataTransformer<ProtoBuf.Class>(
     logger,
     deletedFields,
@@ -243,8 +242,8 @@ internal class ClassMetadataTransformer(
     deletedNestedClasses,
     deletedClasses,
     handleExtraMethod,
-    d1,
-    d2,
+    data1,
+    data2,
     ProtoBuf.Class::parseFrom
 ) {
     override val typeTable = TypeTable(message.typeTable)
@@ -279,15 +278,15 @@ internal class ClassMetadataTransformer(
 
 /**
  * Removes elements from a [kotlin.Metadata] annotation that contains
- * a [ProtoBuf.Package] object in its [d1][kotlin.Metadata.d1] field.
+ * a [ProtoBuf.Package] object in its [data1][kotlin.Metadata.d1] field.
  */
 internal class PackageMetadataTransformer(
     logger: Logger,
     deletedFields: Collection<FieldElement>,
     deletedFunctions: Collection<MethodElement>,
     handleExtraMethod: (MethodElement) -> Unit,
-    d1: List<String>,
-    d2: List<String>
+    data1: List<String>,
+    data2: List<String>
 ) : MetadataTransformer<ProtoBuf.Package>(
     logger,
     deletedFields,
@@ -296,8 +295,8 @@ internal class PackageMetadataTransformer(
     emptyList(),
     emptyList(),
     handleExtraMethod,
-    d1,
-    d2,
+    data1,
+    data2,
     ProtoBuf.Package::parseFrom
 ) {
     override val typeTable = TypeTable(message.typeTable)
