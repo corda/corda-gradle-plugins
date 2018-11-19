@@ -37,12 +37,12 @@ class SanitisingTransformer(visitor: ClassVisitor, logger: Logger, private val u
     private var className: String = "(unknown)"
     private var primaryConstructor: MethodElement? = null
 
-    override fun processPackageMetadata(d1: List<String>, d2: List<String>): List<String> = emptyList()
+    override fun processPackageMetadata(data1: List<String>, data2: List<String>): List<String> = emptyList()
 
-    override fun processClassMetadata(d1: List<String>, d2: List<String>): List<String> {
-        val input = ByteArrayInputStream(BitEncoding.decodeBytes(d1.toTypedArray()))
+    override fun processClassMetadata(data1: List<String>, data2: List<String>): List<String> {
+        val input = ByteArrayInputStream(BitEncoding.decodeBytes(data1.toTypedArray()))
         val stringTableTypes = StringTableTypes.parseDelimitedFrom(input, EXTENSION_REGISTRY)
-        val nameResolver = JvmNameResolver(stringTableTypes, d2.toTypedArray())
+        val nameResolver = JvmNameResolver(stringTableTypes, data2.toTypedArray())
         val message = ProtoBuf.Class.parseFrom(input, EXTENSION_REGISTRY)
         val typeTable = TypeTable(message.typeTable)
 

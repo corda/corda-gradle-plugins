@@ -37,8 +37,8 @@ abstract class KotlinAwareVisitor(
     open val hasUnwantedElements: Boolean get() = kotlinMetadata.isNotEmpty()
     protected open val level: LogLevel = LogLevel.INFO
 
-    protected abstract fun processClassMetadata(d1: List<String>, d2: List<String>): List<String>
-    protected abstract fun processPackageMetadata(d1: List<String>, d2: List<String>): List<String>
+    protected abstract fun processClassMetadata(data1: List<String>, data2: List<String>): List<String>
+    protected abstract fun processPackageMetadata(data1: List<String>, data2: List<String>): List<String>
     protected abstract fun processKotlinAnnotation()
 
     override fun visitAnnotation(descriptor: String, visible: Boolean): AnnotationVisitor? {
@@ -49,23 +49,23 @@ abstract class KotlinAwareVisitor(
     protected fun processMetadata() {
         if (kotlinMetadata.isNotEmpty()) {
             logger.log(level, "- Examining Kotlin @Metadata[k={}]", classKind)
-            val d1 = kotlinMetadata.remove(KOTLIN_METADATA_DATA_FIELD_NAME)
-            val d2 = kotlinMetadata.remove(KOTLIN_METADATA_STRINGS_FIELD_NAME)
-            if (d1 != null && d1.isNotEmpty() && d2 != null) {
-                processMetadata(d1, d2).apply {
+            val data1 = kotlinMetadata.remove(KOTLIN_METADATA_DATA_FIELD_NAME)
+            val data2 = kotlinMetadata.remove(KOTLIN_METADATA_STRINGS_FIELD_NAME)
+            if (data1 != null && data1.isNotEmpty() && data2 != null) {
+                processMetadata(data1, data2).apply {
                     if (isNotEmpty()) {
                         kotlinMetadata[KOTLIN_METADATA_DATA_FIELD_NAME] = this
-                        kotlinMetadata[KOTLIN_METADATA_STRINGS_FIELD_NAME] = d2
+                        kotlinMetadata[KOTLIN_METADATA_STRINGS_FIELD_NAME] = data2
                     }
                 }
             }
         }
     }
 
-    private fun processMetadata(d1: List<String>, d2: List<String>): List<String> {
+    private fun processMetadata(data1: List<String>, data2: List<String>): List<String> {
         return when (classKind) {
-            KOTLIN_CLASS -> processClassMetadata(d1, d2)
-            KOTLIN_FILE, KOTLIN_MULTIFILE_PART -> processPackageMetadata(d1, d2)
+            KOTLIN_CLASS -> processClassMetadata(data1, data2)
+            KOTLIN_FILE, KOTLIN_MULTIFILE_PART -> processPackageMetadata(data1, data2)
             KOTLIN_SYNTHETIC -> {
                 logger.log(level,"-- synthetic class ignored")
                 emptyList()
@@ -73,7 +73,7 @@ abstract class KotlinAwareVisitor(
             else -> {
                 /*
                  * For class-kind=4 (i.e. "multi-file"), we currently
-                 * expect d1=[list of multi-file-part classes], d2=null.
+                 * expect data1=[list of multi-file-part classes], data2=null.
                  */
                 logger.log(level,"-- unsupported class-kind {}", classKind)
                 emptyList()

@@ -175,7 +175,7 @@ class FilterTransformer private constructor (
     /**
      * Removes the deleted methods and fields from the Kotlin Class metadata.
      */
-    override fun processClassMetadata(d1: List<String>, d2: List<String>): List<String> {
+    override fun processClassMetadata(data1: List<String>, data2: List<String>): List<String> {
         val partitioned = deletedMethods.groupBy(MethodElement::isConstructor)
         val prefix = "$className$"
         return ClassMetadataTransformer(
@@ -186,22 +186,22 @@ class FilterTransformer private constructor (
                 deletedNestedClasses = unwantedElements.classes.filter { it.startsWith(prefix) }.map { it.drop(prefix.length) },
                 deletedClasses = unwantedElements.classes,
                 handleExtraMethod = ::delete,
-                d1 = d1,
-                d2 = d2)
+                data1 = data1,
+                data2 = data2)
             .transform()
     }
 
     /**
      * Removes the deleted methods and fields from the Kotlin Package metadata.
      */
-    override fun processPackageMetadata(d1: List<String>, d2: List<String>): List<String> {
+    override fun processPackageMetadata(data1: List<String>, data2: List<String>): List<String> {
         return PackageMetadataTransformer(
                 logger = logger,
                 deletedFields = unwantedFields,
                 deletedFunctions = deletedMethods,
                 handleExtraMethod = ::delete,
-                d1 = d1,
-                d2 = d2)
+                data1 = data1,
+                data2 = data2)
             .transform()
     }
 

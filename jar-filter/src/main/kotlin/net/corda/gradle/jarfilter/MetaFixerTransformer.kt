@@ -28,8 +28,8 @@ internal abstract class MetaFixerTransformer<out T : MessageLite>(
     private val actualMethods: Collection<String>,
     private val actualNestedClasses: Collection<String>,
     private val actualClasses: Collection<String>,
-    d1: List<String>,
-    d2: List<String>,
+    data1: List<String>,
+    data2: List<String>,
     parser: (InputStream, ExtensionRegistryLite) -> T
 ) {
     private val stringTableTypes: StringTableTypes
@@ -46,9 +46,9 @@ internal abstract class MetaFixerTransformer<out T : MessageLite>(
     protected open val sealedSubclassNames: MutableList<Int> get() = throw UnsupportedOperationException("No sealedSubclassNames")
 
     init {
-        val input = ByteArrayInputStream(BitEncoding.decodeBytes(d1.toTypedArray()))
+        val input = ByteArrayInputStream(BitEncoding.decodeBytes(data1.toTypedArray()))
         stringTableTypes = StringTableTypes.parseDelimitedFrom(input, EXTENSION_REGISTRY)
-        nameResolver = JvmNameResolver(stringTableTypes, d2.toTypedArray())
+        nameResolver = JvmNameResolver(stringTableTypes, data2.toTypedArray())
         message = parser(input, EXTENSION_REGISTRY)
     }
 
@@ -197,7 +197,7 @@ internal abstract class MetaFixerTransformer<out T : MessageLite>(
 
 /**
  * Aligns a [kotlin.Metadata] annotation containing a [ProtoBuf.Class] object
- * in its [d1][kotlin.Metadata.d1] field with the byte-code of its host class.
+ * in its [data1][kotlin.Metadata.d1] field with the byte-code of its host class.
  */
 internal class ClassMetaFixerTransformer(
     logger: Logger,
@@ -205,16 +205,16 @@ internal class ClassMetaFixerTransformer(
     actualMethods: Collection<String>,
     actualNestedClasses: Collection<String>,
     actualClasses: Collection<String>,
-    d1: List<String>,
-    d2: List<String>
+    data1: List<String>,
+    data2: List<String>
 ) : MetaFixerTransformer<ProtoBuf.Class>(
     logger,
     actualFields,
     actualMethods,
     actualNestedClasses,
     actualClasses,
-    d1,
-    d2,
+    data1,
+    data2,
     ProtoBuf.Class::parseFrom
 ) {
     override val typeTable = TypeTable(message.typeTable)
@@ -244,22 +244,22 @@ internal class ClassMetaFixerTransformer(
 
 /**
  * Aligns a [kotlin.Metadata] annotation containing a [ProtoBuf.Package] object
- * in its [d1][kotlin.Metadata.d1] field with the byte-code of its host class.
+ * in its [data1][kotlin.Metadata.d1] field with the byte-code of its host class.
  */
 internal class PackageMetaFixerTransformer(
     logger: Logger,
     actualFields: Collection<FieldElement>,
     actualMethods: Collection<String>,
-    d1: List<String>,
-    d2: List<String>
+    data1: List<String>,
+    data2: List<String>
 ) : MetaFixerTransformer<ProtoBuf.Package>(
     logger,
     actualFields,
     actualMethods,
     emptyList(),
     emptyList(),
-    d1,
-    d2,
+    data1,
+    data2,
     ProtoBuf.Package::parseFrom
 ) {
     override val typeTable = TypeTable(message.typeTable)
