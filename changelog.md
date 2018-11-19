@@ -4,6 +4,8 @@
 
 ### Version 4.0.35
 
+* `cordapp`: New `sealing` entry allows to opt-out generation of sealed CorDapp JAR.
+
 ### Version 4.0.34
 
 * `cordapp`: New `SignJar` task allows to sign arbitrary JAR files by reusing `signing` configuration of the `Cordapp` plugin
