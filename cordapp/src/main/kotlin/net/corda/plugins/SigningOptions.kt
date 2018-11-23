@@ -8,11 +8,11 @@ import org.gradle.api.tasks.Internal
 open class SigningOptions {
     companion object {
         // Defaults to resource/certificates/cordadevcakeys.jks keystore with Corda development key
-        private const val DEFAULT_ALIAS = "cordaintermediateca"
+        private const val DEFAULT_ALIAS = "cordacodesign"
         private const val DEFAULT_STOREPASS = "cordacadevpass"
         private const val DEFAULT_STORETYPE = "JKS"
         private const val DEFAULT_KEYPASS = "cordacadevkeypass"
-        const val DEFAULT_KEYSTORE = "certificates/cordadevcakeys.jks"
+        const val DEFAULT_KEYSTORE = "certificates/cordadevcodesign.jks"
         const val DEFAULT_KEYSTORE_FILE = "cordadevcakeys"
         const val DEFAULT_KEYSTORE_EXTENSION = "jks"
         const val SYSTEM_PROPERTY_PREFIX = "signing."
