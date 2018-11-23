@@ -2,6 +2,8 @@
 
 ## Version 4
 
+### Version 4.0.36
+
 ### Version 4.0.35
 
 * `cordapp`: New `sealing` entry allows to opt-out generation of sealed CorDapp JAR.
