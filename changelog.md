@@ -4,6 +4,8 @@
 
 ### Version 4.0.36
 
+* `cordapp`: Fixed the development key for Cordapp signing (incorrect ISO country code in CN).
+
 ### Version 4.0.35
 
 * `cordapp`: New `sealing` entry allows to opt-out generation of sealed CorDapp JAR.
