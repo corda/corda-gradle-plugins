@@ -2,6 +2,8 @@
 
 ## Version 4
 
+### Version 4.0.37
+
 ### Version 4.0.36
 
 * `cordapp`: Fixed the development key for Cordapp signing (incorrect ISO country code in CN).
