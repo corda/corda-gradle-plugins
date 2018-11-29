@@ -16,9 +16,14 @@ jar {
 
 cordapp {
     info {
-        name name_info_arg
-        version version_info_arg
-        vendor vendor_info_arg
+        cordappContractName cordappContractName_info_arg
+        cordappContractVersion cordappContractVersion_info_arg
+        cordappContractVendor cordappContractVendor_info_arg
+        cordappContractLicence cordappContractLicence_info_arg
+        cordappWorflowName cordappWorflowName_info_arg
+        cordappWorflowVersion cordappWorflowVersion_info_arg
+        cordappWorflowVendor cordappWorflowVendor_info_arg
+        cordappWorflowLicence cordappWorflowLicence_info_arg
         targetPlatformVersion target_version_arg.toInteger()
         minimumPlatformVersion min_platform_version_arg.toInteger()
     }

@@ -2,7 +2,11 @@
 
 ## Version 4
 
+### Version 4.0.38
+
 ### Version 4.0.37
+
+* `cordapp`: Cordapp naming conventions changed to CordappContract and CordappWorkflow for all attributes (name, version, vendor, licence)
 
 ### Version 4.0.36
 

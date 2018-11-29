@@ -4,11 +4,21 @@ import org.gradle.api.tasks.Input
 
 open class Info {
     @get:Input
-    var name: String? = null
+    var cordappContractName: String? = null
     @get:Input
-    var version: String? = null
+    var cordappContractVersion: String? = null
     @get:Input
-    var vendor: String? = null
+    var cordappContractVendor: String? = null
+    @get:Input
+    var cordappContractLicence: String? = null
+    @get:Input
+    var cordappWorflowName: String? = null
+    @get:Input
+    var cordappWorflowVersion: String? = null
+    @get:Input
+    var cordappWorflowVendor: String? = null
+    @get:Input
+    var cordappWorflowLicence: String? = null
     @get:Input
     var targetPlatformVersion: Int? = null
     @get:Input
