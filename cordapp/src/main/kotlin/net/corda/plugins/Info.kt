@@ -3,6 +3,14 @@ package net.corda.plugins
 import org.gradle.api.tasks.Input
 
 open class Info {
+    /** to Corda 3 attributes */
+    @get:Input
+    var name: String? = null
+    @get:Input
+    var version: String? = null
+    @get:Input
+    var vendor: String? = null
+    /** Corda 4 attributes */
     @get:Input
     var cordappContractName: String? = null
     @get:Input
