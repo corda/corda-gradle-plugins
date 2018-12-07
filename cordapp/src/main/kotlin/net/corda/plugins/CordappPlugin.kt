@@ -50,14 +50,15 @@ class CordappPlugin : Plugin<Project> {
         val task = project.task("configureCordappFatJar")
         val jarTask = project.tasks.getByName("jar") as Jar
         jarTask.doFirst {
-            val (targetPlatformVersion, minimumPlatformVersion) = checkVersionInfo()
+            val (targetPlatformVersion, minimumPlatformVersion) = checkPlatformVersionInfo()
+            val (contractVersion, workflowVersion) = checkCordappVersionInfo(project)
             val attributes = jarTask.manifest.attributes
             attributes["Cordapp-Contract-Name"] = cordapp.info.cordappContractName ?: "${project.group}.${jarTask.baseName}"
-            attributes["Cordapp-Contract-Version"] = cordapp.info.cordappContractVersion ?: project.version
+            attributes["Cordapp-Contract-Version"] = contractVersion
             attributes["Cordapp-Contract-Vendor"] = cordapp.info.cordappContractVendor ?: UNKNOWN
             attributes["Cordapp-Contract-Licence"] = cordapp.info.cordappContractLicence ?: UNKNOWN
             attributes["Cordapp-Workflow-Name"] = cordapp.info.cordappWorflowName ?: "${project.group}.${jarTask.baseName}"
-            attributes["Cordapp-Workflow-Version"] = cordapp.info.cordappWorflowVersion ?: project.version
+            attributes["Cordapp-Workflow-Version"] = workflowVersion
             attributes["Cordapp-Workflow-Vendor"] = cordapp.info.cordappWorflowVendor ?: UNKNOWN
             attributes["Cordapp-Workflow-Licence"] = cordapp.info.cordappWorflowLicence ?: UNKNOWN
             attributes["Target-Platform-Version"] = targetPlatformVersion
@@ -121,7 +122,7 @@ class CordappPlugin : Plugin<Project> {
         return filteredDeps.toUniqueFiles(runtimeConfiguration) - excludeDeps.toUniqueFiles(runtimeConfiguration)
     }
 
-    private fun checkVersionInfo(): Pair<Int, Int> {
+    private fun checkPlatformVersionInfo(): Pair<Int, Int> {
         // If the minimum platform version is not set, default to 1.
         val minimumPlatformVersion: Int = cordapp.info.minimumPlatformVersion ?: 1
         val targetPlatformVersion = cordapp.info.targetPlatformVersion
@@ -133,6 +134,22 @@ class CordappPlugin : Plugin<Project> {
             throw InvalidUserDataException("Target version must not be smaller than min platform version.")
         }
         return Pair(targetPlatformVersion, minimumPlatformVersion)
+    }
+
+    private fun checkCordappVersionInfo(project: Project): Pair<Int, Int> {
+        val contractVersion = try {
+            Integer.parseInt(cordapp.info.cordappContractVersion)
+        } catch (e: NumberFormatException) {
+            project.logger.info("Invalid Contract version identifier: ${cordapp.info.cordappContractVersion}. Defaulting to 1")
+            1
+        }
+        val workflowVersion = try {
+            Integer.parseInt(cordapp.info.cordappWorflowVersion)
+        } catch (e: NumberFormatException) {
+            project.logger.info("Invalid Workflow version identifier: ${cordapp.info.cordappContractVersion}. Defaulting to 1")
+            1
+        }
+        return Pair(contractVersion, workflowVersion)
     }
 
     private fun Iterable<Dependency>.toUniqueFiles(configuration: Configuration): Set<File> {

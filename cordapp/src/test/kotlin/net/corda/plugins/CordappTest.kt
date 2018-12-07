@@ -35,12 +35,12 @@ class CordappTest {
         val expectedSealed = "true"
 
         val expectedContractCordappName = "test contract name"
-        val expectedContractCordappVersion = "4.0"
+        val expectedContractCordappVersion = "1"
         val expectedContractCordappVendor = "test contract vendor"
         val expectedContractCordappLicence = "test contract licence"
 
         val expectedWorkflowCordappName = "test workflow name"
-        val expectedWorkflowCordappVersion = "4.0"
+        val expectedWorkflowCordappVersion = "1"
         val expectedWorkflowCordappVendor = "test workflow vendor"
         val expectedWorkflowCordappLicence = "test workflow licence"
 
