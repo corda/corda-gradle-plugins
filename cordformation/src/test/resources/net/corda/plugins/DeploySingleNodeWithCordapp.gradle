@@ -1,7 +1,7 @@
 buildscript {
     ext {
         corda_group = 'net.corda'
-        corda_release_version = '3.3-corda' // TODO: Set to 3.0.0 when Corda 3 is released
+        corda_release_version = '3.0-SNAPSHOT' // TODO: Set to 3.0.0 when Corda 3 is released
         jolokia_version = '1.6.0'
     }
 }
