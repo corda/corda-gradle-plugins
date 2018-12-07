@@ -50,22 +50,27 @@ class CordappPlugin : Plugin<Project> {
         val task = project.task("configureCordappFatJar")
         val jarTask = project.tasks.getByName("jar") as Jar
         jarTask.doFirst {
-            val (targetPlatformVersion, minimumPlatformVersion) = checkPlatformVersionInfo()
-            val (contractVersion, workflowVersion) = checkCordappVersionInfo(project)
             val attributes = jarTask.manifest.attributes
-            attributes["Cordapp-Contract-Name"] = cordapp.info.cordappContractName ?: "${project.group}.${jarTask.baseName}"
-            attributes["Cordapp-Contract-Version"] = contractVersion
-            attributes["Cordapp-Contract-Vendor"] = cordapp.info.cordappContractVendor ?: UNKNOWN
-            attributes["Cordapp-Contract-Licence"] = cordapp.info.cordappContractLicence ?: UNKNOWN
-            attributes["Cordapp-Workflow-Name"] = cordapp.info.cordappWorflowName ?: "${project.group}.${jarTask.baseName}"
-            attributes["Cordapp-Workflow-Version"] = workflowVersion
-            attributes["Cordapp-Workflow-Vendor"] = cordapp.info.cordappWorflowVendor ?: UNKNOWN
-            attributes["Cordapp-Workflow-Licence"] = cordapp.info.cordappWorflowLicence ?: UNKNOWN
+            if (cordapp.contract.name != null) {
+                attributes["Cordapp-Contract-Name"] = cordapp.contract.name ?: "${project.group}.${jarTask.baseName}"
+                attributes["Cordapp-Contract-Version"] = parseVersion(cordapp.contract.version, project)
+                attributes["Cordapp-Contract-Vendor"] = cordapp.contract.vendor ?: UNKNOWN
+                attributes["Cordapp-Contract-Licence"] = cordapp.contract.licence ?: UNKNOWN
+            }
+            if (cordapp.workflow.name != null) {
+                attributes["Cordapp-Workflow-Name"] = cordapp.workflow.name ?: "${project.group}.${jarTask.baseName}"
+                attributes["Cordapp-Workflow-Version"] = parseVersion(cordapp.workflow.version, project)
+                attributes["Cordapp-Workflow-Vendor"] = cordapp.workflow.vendor ?: UNKNOWN
+                attributes["Cordapp-Workflow-Licence"] = cordapp.workflow.licence ?: UNKNOWN
+            }
+            if (cordapp.info.name != null) {
+                attributes["Name"] = cordapp.info.name ?: "${project.group}.${jarTask.baseName}"
+                attributes["Implementation-Version"] = cordapp.info.version ?: project.version
+                attributes["Implementation-Vendor"] = cordapp.info.vendor ?: UNKNOWN
+            }
+            val (targetPlatformVersion, minimumPlatformVersion) = checkPlatformVersionInfo()
             attributes["Target-Platform-Version"] = targetPlatformVersion
             attributes["Min-Platform-Version"] = minimumPlatformVersion
-            if (attributes["Implementation-Vendor"] == UNKNOWN) {
-                project.logger.warn("CordApp's vendor is \"$UNKNOWN\". Please specify it in \"cordapp.info.vendor\".")
-            }
             if (cordapp.sealing.enabled) {
                 attributes["Sealed"] = "true"
             }
@@ -124,8 +129,8 @@ class CordappPlugin : Plugin<Project> {
 
     private fun checkPlatformVersionInfo(): Pair<Int, Int> {
         // If the minimum platform version is not set, default to 1.
-        val minimumPlatformVersion: Int = cordapp.info.minimumPlatformVersion ?: 1
-        val targetPlatformVersion = cordapp.info.targetPlatformVersion
+        val minimumPlatformVersion: Int = cordapp.info.minimumPlatformVersion ?: cordapp.minimumPlatformVersion ?: 1
+        val targetPlatformVersion = cordapp.info.targetPlatformVersion ?: cordapp.targetPlatformVersion
                 ?: throw InvalidUserDataException("Target version was not set and could not be determined from the project's Corda dependency. Please specify the target version of your CorDapp.")
         if (targetPlatformVersion < 1) {
             throw InvalidUserDataException("Target version must not be smaller than 1.")
@@ -136,20 +141,14 @@ class CordappPlugin : Plugin<Project> {
         return Pair(targetPlatformVersion, minimumPlatformVersion)
     }
 
-    private fun checkCordappVersionInfo(project: Project): Pair<Int, Int> {
-        val contractVersion = try {
-            Integer.parseInt(cordapp.info.cordappContractVersion)
+    private fun parseVersion(versionStr: String?, project: Project): Int {
+        if (versionStr == null) return 1
+        return try {
+            Integer.parseInt(versionStr)
         } catch (e: NumberFormatException) {
-            project.logger.info("Invalid Contract version identifier: ${cordapp.info.cordappContractVersion}. Defaulting to 1")
+            project.logger.info("Invalid version identifier: $versionStr. Defaulting to 1")
             1
         }
-        val workflowVersion = try {
-            Integer.parseInt(cordapp.info.cordappWorflowVersion)
-        } catch (e: NumberFormatException) {
-            project.logger.info("Invalid Workflow version identifier: ${cordapp.info.cordappContractVersion}. Defaulting to 1")
-            1
-        }
-        return Pair(contractVersion, workflowVersion)
     }
 
     private fun Iterable<Dependency>.toUniqueFiles(configuration: Configuration): Set<File> {
