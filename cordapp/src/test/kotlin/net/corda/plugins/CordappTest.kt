@@ -1,14 +1,15 @@
 package net.corda.plugins
 
+import installResource
 import org.apache.commons.io.IOUtils
-import org.assertj.core.api.Assertions.*
+import org.assertj.core.api.Assertions.assertThat
+import org.gradle.testkit.runner.GradleRunner
+import org.gradle.testkit.runner.TaskOutcome
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import java.io.File
-import org.gradle.testkit.runner.GradleRunner
-import org.gradle.testkit.runner.TaskOutcome
 import java.util.jar.JarInputStream
 
 class CordappTest {
@@ -26,6 +27,7 @@ class CordappTest {
     @Before
     fun setup() {
         buildFile = testProjectDir.newFile("build.gradle")
+        installResource(testProjectDir, "repositories.gradle")
     }
 
     @Test
