@@ -53,13 +53,13 @@ class CordappPlugin : Plugin<Project> {
             val attributes = jarTask.manifest.attributes
             if (cordapp.contract.name != null) {
                 attributes["Cordapp-Contract-Name"] = cordapp.contract.name ?: "${project.group}.${jarTask.baseName}"
-                attributes["Cordapp-Contract-Version"] = parseVersion(cordapp.contract.version, project)
+                attributes["Cordapp-Contract-Version"] = parseVersion(cordapp.contract.version)
                 attributes["Cordapp-Contract-Vendor"] = cordapp.contract.vendor ?: UNKNOWN
                 attributes["Cordapp-Contract-Licence"] = cordapp.contract.licence ?: UNKNOWN
             }
             if (cordapp.workflow.name != null) {
                 attributes["Cordapp-Workflow-Name"] = cordapp.workflow.name ?: "${project.group}.${jarTask.baseName}"
-                attributes["Cordapp-Workflow-Version"] = parseVersion(cordapp.workflow.version, project)
+                attributes["Cordapp-Workflow-Version"] = parseVersion(cordapp.workflow.version)
                 attributes["Cordapp-Workflow-Vendor"] = cordapp.workflow.vendor ?: UNKNOWN
                 attributes["Cordapp-Workflow-Licence"] = cordapp.workflow.licence ?: UNKNOWN
             }
@@ -141,13 +141,17 @@ class CordappPlugin : Plugin<Project> {
         return Pair(targetPlatformVersion, minimumPlatformVersion)
     }
 
-    private fun parseVersion(versionStr: String?, project: Project): Int {
-        if (versionStr == null) return 1
+    private fun parseVersion(versionStr: String?): Int {
+        if (versionStr == null)
+            throw InvalidUserDataException("Target version not specified. Please specify a whole number starting from 1.")
         return try {
-            Integer.parseInt(versionStr)
+            val version = Integer.parseInt(versionStr)
+            if (version < 1) {
+                throw InvalidUserDataException("Target version must not be smaller than 1.")
+            }
+            return version
         } catch (e: NumberFormatException) {
-            project.logger.info("Invalid version identifier: $versionStr. Defaulting to 1")
-            1
+            throw InvalidUserDataException("Version identifier must be a whole number starting from 1.")
         }
     }
 
