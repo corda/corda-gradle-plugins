@@ -31,7 +31,7 @@ class CordappPlugin : Plugin<Project> {
         project.logger.info("Configuring ${project.name} as a cordapp")
 
         if (compareVersions(project.gradle.gradleVersion, MIN_GRADLE_VERSION) < 0) {
-            throw GradleException("Gradle version ${project.gradle.gradleVersion} is below the supported minimum version $MIN_GRADLE_VERSION. Please update Gradle or consider using Gradle wrapper if it is provided with the project. More information about CorDapp build system can be found here: https://docs.corda.net/cordapp-build-systems.html")
+            throw GradleException("Gradle versionId ${project.gradle.gradleVersion} is below the supported minimum versionId $MIN_GRADLE_VERSION. Please update Gradle or consider using Gradle wrapper if it is provided with the project. More information about CorDapp build system can be found here: https://docs.corda.net/cordapp-build-systems.html")
         }
 
         Utils.createCompileConfiguration("cordapp", project)
@@ -53,13 +53,13 @@ class CordappPlugin : Plugin<Project> {
             val attributes = jarTask.manifest.attributes
             if (cordapp.contract.name != null) {
                 attributes["Cordapp-Contract-Name"] = cordapp.contract.name ?: "${project.group}.${jarTask.baseName}"
-                attributes["Cordapp-Contract-Version"] = parseVersion(cordapp.contract.version)
+                attributes["Cordapp-Contract-Version"] = parseVersion(cordapp.contract.versionId)
                 attributes["Cordapp-Contract-Vendor"] = cordapp.contract.vendor ?: UNKNOWN
                 attributes["Cordapp-Contract-Licence"] = cordapp.contract.licence ?: UNKNOWN
             }
             if (cordapp.workflow.name != null) {
                 attributes["Cordapp-Workflow-Name"] = cordapp.workflow.name ?: "${project.group}.${jarTask.baseName}"
-                attributes["Cordapp-Workflow-Version"] = parseVersion(cordapp.workflow.version)
+                attributes["Cordapp-Workflow-Version"] = parseVersion(cordapp.workflow.versionId)
                 attributes["Cordapp-Workflow-Vendor"] = cordapp.workflow.vendor ?: UNKNOWN
                 attributes["Cordapp-Workflow-Licence"] = cordapp.workflow.licence ?: UNKNOWN
             }
@@ -131,23 +131,23 @@ class CordappPlugin : Plugin<Project> {
         // If the minimum platform version is not set, default to 1.
         val minimumPlatformVersion: Int = cordapp.info.minimumPlatformVersion ?: cordapp.minimumPlatformVersion ?: 1
         val targetPlatformVersion = cordapp.info.targetPlatformVersion ?: cordapp.targetPlatformVersion
-                ?: throw InvalidUserDataException("Target version was not set and could not be determined from the project's Corda dependency. Please specify the target version of your CorDapp.")
+                ?: throw InvalidUserDataException("Target versionId was not set and could not be determined from the project's Corda dependency. Please specify the target versionId of your CorDapp.")
         if (targetPlatformVersion < 1) {
-            throw InvalidUserDataException("Target version must not be smaller than 1.")
+            throw InvalidUserDataException("Target versionId must not be smaller than 1.")
         }
         if (targetPlatformVersion < minimumPlatformVersion) {
-            throw InvalidUserDataException("Target version must not be smaller than min platform version.")
+            throw InvalidUserDataException("Target versionId must not be smaller than min platform versionId.")
         }
         return Pair(targetPlatformVersion, minimumPlatformVersion)
     }
 
     private fun parseVersion(versionStr: String?): Int {
         if (versionStr == null)
-            throw InvalidUserDataException("Target version not specified. Please specify a whole number starting from 1.")
+            throw InvalidUserDataException("Target versionId not specified. Please specify a whole number starting from 1.")
         return try {
             val version = Integer.parseInt(versionStr)
             if (version < 1) {
-                throw InvalidUserDataException("Target version must not be smaller than 1.")
+                throw InvalidUserDataException("Target versionId must not be smaller than 1.")
             }
             return version
         } catch (e: NumberFormatException) {

@@ -6,7 +6,7 @@ open class Contract {
     @get:Input
     var name: String? = null
     @get:Input
-    var version: String? = null
+    var versionId: String? = null
     @get:Input
     var vendor: String? = null
     @get:Input
