@@ -12,10 +12,10 @@ open class CordappExtension @Inject constructor(objectFactory: ObjectFactory)  {
      * Top-level CorDapp attributes
      */
     @get:Input
-    var targetPlatformVersion: Int? = 1
+    var targetPlatformVersion: Int? = null
 
     @get:Input
-    var minimumPlatformVersion: Int? = 1
+    var minimumPlatformVersion: Int? = null
 
     /**
      * CorDapp distribution information (deprecated)

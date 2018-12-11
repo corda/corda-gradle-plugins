@@ -51,19 +51,24 @@ class CordappPlugin : Plugin<Project> {
         val jarTask = project.tasks.getByName("jar") as Jar
         jarTask.doFirst {
             val attributes = jarTask.manifest.attributes
+            var skip = false
+            // Corda 4 attributes support
             if (cordapp.contract.name != null) {
                 attributes["Cordapp-Contract-Name"] = cordapp.contract.name ?: "${project.group}.${jarTask.baseName}"
                 attributes["Cordapp-Contract-Version"] = parseVersion(cordapp.contract.versionId.toString())
                 attributes["Cordapp-Contract-Vendor"] = cordapp.contract.vendor ?: UNKNOWN
                 attributes["Cordapp-Contract-Licence"] = cordapp.contract.licence ?: UNKNOWN
+                skip = true
             }
             if (cordapp.workflow.name != null) {
                 attributes["Cordapp-Workflow-Name"] = cordapp.workflow.name ?: "${project.group}.${jarTask.baseName}"
                 attributes["Cordapp-Workflow-Version"] = parseVersion(cordapp.workflow.versionId.toString())
                 attributes["Cordapp-Workflow-Vendor"] = cordapp.workflow.vendor ?: UNKNOWN
                 attributes["Cordapp-Workflow-Licence"] = cordapp.workflow.licence ?: UNKNOWN
+                skip = true
             }
-            if (cordapp.info.name != null) {
+            // Deprecated support (Corda 3)
+            if (!skip && cordapp.info.name != null) {
                 attributes["Name"] = cordapp.info.name ?: "${project.group}.${jarTask.baseName}"
                 attributes["Implementation-Version"] = cordapp.info.version ?: project.version
                 attributes["Implementation-Vendor"] = cordapp.info.vendor ?: UNKNOWN
@@ -129,8 +134,8 @@ class CordappPlugin : Plugin<Project> {
 
     private fun checkPlatformVersionInfo(): Pair<Int, Int> {
         // If the minimum platform version is not set, default to 1.
-        val minimumPlatformVersion: Int = cordapp.info.minimumPlatformVersion ?: cordapp.minimumPlatformVersion ?: 1
-        val targetPlatformVersion = cordapp.info.targetPlatformVersion ?: cordapp.targetPlatformVersion
+        val minimumPlatformVersion: Int = cordapp.minimumPlatformVersion ?: cordapp.info.minimumPlatformVersion ?: 1
+        val targetPlatformVersion = cordapp.targetPlatformVersion ?: cordapp.info.targetPlatformVersion
                 ?: throw InvalidUserDataException("Target versionId was not set and could not be determined from the project's Corda dependency. Please specify the target versionId of your CorDapp.")
         if (targetPlatformVersion < 1) {
             throw InvalidUserDataException("Target versionId must not be smaller than 1.")

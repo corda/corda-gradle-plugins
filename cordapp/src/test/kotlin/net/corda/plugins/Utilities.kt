@@ -1,3 +1,5 @@
+package net.corda.plugins
+
 import org.junit.rules.TemporaryFolder
 import java.io.File
 import java.io.IOException

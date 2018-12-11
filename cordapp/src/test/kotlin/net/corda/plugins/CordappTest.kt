@@ -1,6 +1,5 @@
 package net.corda.plugins
 
-import installResource
 import org.apache.commons.io.IOUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.testkit.runner.GradleRunner
@@ -37,9 +36,13 @@ class CordappTest {
         val expectedVendor = "test vendor"
         val expectedtargetPlatformVersion = "5"
         val expectedminimumPlatformVersion = "2"
-        val expectedSealed = "true"
 
-        val extraArgs = listOf("-Pname_info_arg=$expectedName", "-Pversion_info_arg=$expectedVersion", "-Pvendor_info_arg=$expectedVendor", "-Ptarget_version_arg=$expectedtargetPlatformVersion", "-Pmin_platform_version_arg=$expectedminimumPlatformVersion")
+        val extraArgs = listOf(
+                "-Pname_info_arg=$expectedName",
+                "-Pversion_info_arg=$expectedVersion",
+                "-Pvendor_info_arg=$expectedVendor",
+                "-Ptarget_version_arg=$expectedtargetPlatformVersion",
+                "-Pmin_platform_version_arg=$expectedminimumPlatformVersion")
 
         val jarTaskRunner = jarTaskRunner("CorDappWithInfo.gradle", extraArgs)
 
@@ -55,10 +58,9 @@ class CordappTest {
 
             assertThat(attributes.getValue("Name")).isEqualTo(expectedName)
             assertThat(attributes.getValue("Implementation-Version")).isEqualTo(expectedVersion)
+            assertThat(attributes.getValue("Implementation-Vendor")).isEqualTo(expectedVendor)
             assertThat(attributes.getValue("Target-Platform-Version")).isEqualTo(expectedtargetPlatformVersion)
             assertThat(attributes.getValue("Min-Platform-Version")).isEqualTo(expectedminimumPlatformVersion)
-            assertThat(attributes.getValue("Implementation-Vendor")).isEqualTo(expectedVendor)
-            assertThat(attributes.getValue("Sealed")).isEqualTo(expectedSealed)
         }
     }
 
@@ -94,6 +96,7 @@ class CordappTest {
             assertThat(attributes.getValue("Cordapp-Contract-Version")).isEqualTo(expectedContractCordappVersion)
             assertThat(attributes.getValue("Cordapp-Contract-Vendor")).isEqualTo(expectedContractCordappVendor)
             assertThat(attributes.getValue("Cordapp-Contract-Licence")).isEqualTo(expectedContractCordappLicence)
+            assertThat(attributes.getValue("Target-Platform-Version")).isEqualTo(expectedtargetPlatformVersion)
         }
     }
 
@@ -129,6 +132,7 @@ class CordappTest {
             assertThat(attributes.getValue("Cordapp-Workflow-Version")).isEqualTo(expectedWorkflowCordappVersion)
             assertThat(attributes.getValue("Cordapp-Workflow-Vendor")).isEqualTo(expectedWorkflowCordappVendor)
             assertThat(attributes.getValue("Cordapp-Workflow-Licence")).isEqualTo(expectedWorkflowCordappLicence)
+            assertThat(attributes.getValue("Target-Platform-Version")).isEqualTo(expectedtargetPlatformVersion)
         }
     }
 
@@ -176,6 +180,7 @@ class CordappTest {
             assertThat(attributes.getValue("Cordapp-Workflow-Version")).isEqualTo(expectedWorkflowCordappVersion)
             assertThat(attributes.getValue("Cordapp-Workflow-Vendor")).isEqualTo(expectedWorkflowCordappVendor)
             assertThat(attributes.getValue("Cordapp-Workflow-Licence")).isEqualTo(expectedWorkflowCordappLicence)
+            assertThat(attributes.getValue("Target-Platform-Version")).isEqualTo(expectedtargetPlatformVersion)
         }
     }
 
@@ -226,9 +231,9 @@ class CordappTest {
             assertThat(attributes.getValue("Cordapp-Workflow-Vendor")).isEqualTo(expectedWorkflowCordappVendor)
             assertThat(attributes.getValue("Cordapp-Workflow-Licence")).isEqualTo(expectedWorkflowCordappLicence)
 
-            assertThat(attributes.getValue("Name")).isEqualTo(expectedName)
-            assertThat(attributes.getValue("Implementation-Version")).isEqualTo(expectedVersion)
-            assertThat(attributes.getValue("Implementation-Vendor")).isEqualTo(expectedVendor)
+            assertThat(attributes.getValue("Name")).isNull()
+            assertThat(attributes.getValue("Implementation-Version")).isNull()
+            assertThat(attributes.getValue("Implementation-Vendor")).isNull()
 
             assertThat(attributes.getValue("Target-Platform-Version")).isEqualTo(expectedtargetPlatformVersion)
             assertThat(attributes.getValue("Min-Platform-Version")).isEqualTo(expectedminimumPlatformVersion)
