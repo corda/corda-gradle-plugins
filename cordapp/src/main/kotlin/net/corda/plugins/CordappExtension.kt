@@ -2,16 +2,39 @@ package net.corda.plugins
 
 import org.gradle.api.Action
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Nested
 import javax.inject.Inject
 
 open class CordappExtension @Inject constructor(objectFactory: ObjectFactory)  {
 
     /**
-     * CorDapp distribution information.
+     * Top-level CorDapp attributes
      */
+    @get:Input
+    var targetPlatformVersion: Int? = null
+
+    @get:Input
+    var minimumPlatformVersion: Int? = null
+
+    /**
+     * CorDapp distribution information (deprecated)
+     */
+    @Deprecated("Use top-level attributes and specific Contract and Workflow info objects")
     @get:Nested
     val info: Info = objectFactory.newInstance(Info::class.java)
+
+    /**
+     * CorDapp Contract distribution information.
+     */
+    @get:Nested
+    val contract: Contract = objectFactory.newInstance(Contract::class.java)
+
+    /**
+     * CorDapp Worflow (flows and services) distribution information.
+     */
+    @get:Nested
+    val workflow: Workflow = objectFactory.newInstance(Workflow::class.java)
 
     /**
      * Optional parameters for ANT signJar tasks to sign Cordapps.
@@ -25,6 +48,13 @@ open class CordappExtension @Inject constructor(objectFactory: ObjectFactory)  {
     @get:Nested
     val sealing: Sealing = objectFactory.newInstance(Sealing::class.java)
 
+    fun contract(action: Action<in Contract>) {
+        action.execute(contract)
+    }
+
+    fun workflow(action: Action<in Workflow>) {
+        action.execute(workflow)
+    }
 
     fun info(action: Action<in Info>) {
         action.execute(info)

@@ -2,6 +2,7 @@ package net.corda.plugins
 
 import org.gradle.api.tasks.Input
 
+@Deprecated("Use top-level attributes and specific Contract and Workflow info objects")
 open class Info {
     @get:Input
     var name: String? = null

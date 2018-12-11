@@ -1,0 +1,20 @@
+plugins {
+    id 'java'
+    id 'net.corda.plugins.cordapp'
+}
+
+apply from: 'repositories.gradle'
+
+jar {
+    baseName 'test-cordapp'
+}
+
+cordapp {
+    targetPlatformVersion target_version_arg.toInteger()
+    workflow {
+        name cordappWorkflowName_info_arg
+        versionId cordappWorkflowVersion_info_arg
+        vendor cordappWorkflowVendor_info_arg
+        licence cordappWorkflowLicence_info_arg
+    }
+}
