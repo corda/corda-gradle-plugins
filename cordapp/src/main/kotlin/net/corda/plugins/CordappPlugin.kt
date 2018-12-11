@@ -53,13 +53,13 @@ class CordappPlugin : Plugin<Project> {
             val attributes = jarTask.manifest.attributes
             if (cordapp.contract.name != null) {
                 attributes["Cordapp-Contract-Name"] = cordapp.contract.name ?: "${project.group}.${jarTask.baseName}"
-                attributes["Cordapp-Contract-Version"] = parseVersion(cordapp.contract.versionId)
+                attributes["Cordapp-Contract-Version"] = parseVersion(cordapp.contract.versionId.toString())
                 attributes["Cordapp-Contract-Vendor"] = cordapp.contract.vendor ?: UNKNOWN
                 attributes["Cordapp-Contract-Licence"] = cordapp.contract.licence ?: UNKNOWN
             }
             if (cordapp.workflow.name != null) {
                 attributes["Cordapp-Workflow-Name"] = cordapp.workflow.name ?: "${project.group}.${jarTask.baseName}"
-                attributes["Cordapp-Workflow-Version"] = parseVersion(cordapp.workflow.versionId)
+                attributes["Cordapp-Workflow-Version"] = parseVersion(cordapp.workflow.versionId.toString())
                 attributes["Cordapp-Workflow-Vendor"] = cordapp.workflow.vendor ?: UNKNOWN
                 attributes["Cordapp-Workflow-Licence"] = cordapp.workflow.licence ?: UNKNOWN
             }
