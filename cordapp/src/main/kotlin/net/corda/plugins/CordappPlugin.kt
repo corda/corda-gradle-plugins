@@ -68,6 +68,8 @@ class CordappPlugin : Plugin<Project> {
                 skip = true
             }
             // Deprecated support (Corda 3)
+            if (skip && cordapp.info.name != null)
+                project.logger.warn("Ignoring deprecated 'info' attributes. Using 'contract' and 'workflow' attributes.")
             if (!skip && cordapp.info.name != null) {
                 attributes["Name"] = cordapp.info.name ?: "${project.group}.${jarTask.baseName}"
                 attributes["Implementation-Version"] = cordapp.info.version ?: project.version
