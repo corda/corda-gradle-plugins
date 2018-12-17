@@ -21,7 +21,9 @@ private val CONSTANT_TIME: FileTime = FileTime.fromMillis(
     GregorianCalendar(1980, FEBRUARY, 1).apply { timeZone = TimeZone.getTimeZone("UTC") }.timeInMillis
 )
 
-internal fun rethrowAsUncheckedException(e: Exception): Nothing
+// Declared as inline to avoid polluting the exception stack trace.
+@Suppress("NOTHING_TO_INLINE")
+internal inline fun rethrowAsUncheckedException(e: Exception): Nothing
     = throw (e as? RuntimeException) ?: GradleException(e.message ?: "", e)
 
 /**
