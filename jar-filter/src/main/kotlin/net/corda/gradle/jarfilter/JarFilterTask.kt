@@ -164,6 +164,7 @@ open class JarFilterTask : DefaultTask() {
                         logger.info("No changes after latest pass - exiting.")
                         break
                     } else if (++passes > maxPasses) {
+                        logger.warn("Exceeded maximum number of passes ({}) - aborting!", maxPasses)
                         break
                     }
 
