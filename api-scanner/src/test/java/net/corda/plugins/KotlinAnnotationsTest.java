@@ -43,6 +43,7 @@ public class KotlinAnnotationsTest {
 
     private static final String[] expectedClassWithJvmStaticFunctionCompanion = {
         "public static final class net.corda.example.HasJvmStaticFunction$Companion extends java.lang.Object",
+        "  public <init>(kotlin.jvm.internal.DefaultConstructorMarker)",
         "  public final void doThing(String)",
         "##"
     };
@@ -53,6 +54,7 @@ public class KotlinAnnotationsTest {
         "  public <init>(String)",
         "  public <init>(String, String)",
         "  public <init>(String, String, int)",
+        "  public <init>(String, String, int, int, kotlin.jvm.internal.DefaultConstructorMarker)",
         "  @NotNull",
         "  public final String getNotNullable()",
         "  @Nullable",
