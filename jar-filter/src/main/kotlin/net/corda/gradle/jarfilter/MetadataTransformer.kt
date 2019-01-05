@@ -103,7 +103,7 @@ internal abstract class MetadataTransformer<out T : MessageLite>(
 
         for (idx in 0 until constructors.size) {
             val constructor = constructors[idx]
-            val signature = JvmProtoBufUtil.getJvmConstructorSignature(constructor, nameResolver, typeTable)?.toMethodElement()
+            val signature = (JvmProtoBufUtil.getJvmConstructorSignature(constructor, nameResolver, typeTable) ?: continue).toMethodElement()
             if (signature == deleted) {
                 if (IS_SECONDARY.get(constructor.flags)) {
                     logger.info("-- removing constructor: {}", deleted.signature)
@@ -116,7 +116,7 @@ internal abstract class MetadataTransformer<out T : MessageLite>(
                 constructors[idx] = constructor.toBuilder()
                     .updateValueParameters(ProtoBuf.ValueParameter::clearDeclaresDefaultValue)
                     .build()
-                logger.info("-- removing default parameter values: {}", signature)
+                logger.info("-- removing default parameter values: {}", deletedPrimary.signature)
                 return true
             }
         }
