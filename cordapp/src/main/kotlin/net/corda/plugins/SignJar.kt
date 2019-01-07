@@ -29,6 +29,7 @@ open class SignJar : DefaultTask() {
             options[SigningOptions.Key.JAR] = path.toString()
 
             try {
+                project.logger.info("Jar signing with following options: $options")
                 project.ant.invokeMethod("signjar", options)
             } catch (e: Exception) {
                 // Not adding error message as it's always meaningless, logs with --INFO level contain more insights
