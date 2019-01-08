@@ -53,7 +53,7 @@ class CordappPlugin : Plugin<Project> {
             val attributes = jarTask.manifest.attributes
             var skip = false
             // check whether metadata has been configured (not mandatory for non-flow, non-contract gradle build files)
-            if ((cordapp.contract.name == null) && (cordapp.workflow.name == null) && (cordapp.info == null)) {
+            if (cordapp.contract.isEmpty() && cordapp.workflow.isEmpty() && cordapp.info.isEmpty()) {
                 project.logger.warn("Cordapp metadata not defined for this gradle build file. See https://docs.corda.net/head/cordapp-build-systems.html#separation-of-cordapp-contracts-flows-and-services")
             }
             else {

@@ -14,4 +14,5 @@ open class Info {
     var targetPlatformVersion: Int? = null
     @get:Input
     var minimumPlatformVersion: Int? = null
+    internal fun isEmpty() : Boolean = (name == null && version == null && vendor == null && targetPlatformVersion == null && minimumPlatformVersion == null)
 }

@@ -12,4 +12,5 @@ open class Workflow {
     var vendor: String? = null
     @get:Input
     var licence: String? = null
+    internal fun isEmpty(): Boolean = (name == null && versionId == null && vendor == null && licence == null)
 }
