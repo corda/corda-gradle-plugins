@@ -58,14 +58,14 @@ class CordappPlugin : Plugin<Project> {
             }
             else {
                 // Corda 4 attributes support
-                if (cordapp.contract.name != null) {
+                if (!cordapp.contract.isEmpty()) {
                     attributes["Cordapp-Contract-Name"] = cordapp.contract.name ?: "${project.group}.${jarTask.baseName}"
                     attributes["Cordapp-Contract-Version"] = parseVersion(cordapp.contract.versionId.toString())
                     attributes["Cordapp-Contract-Vendor"] = cordapp.contract.vendor ?: UNKNOWN
                     attributes["Cordapp-Contract-Licence"] = cordapp.contract.licence ?: UNKNOWN
                     skip = true
                 }
-                if (cordapp.workflow.name != null) {
+                if (!cordapp.workflow.isEmpty()) {
                     attributes["Cordapp-Workflow-Name"] = cordapp.workflow.name ?: "${project.group}.${jarTask.baseName}"
                     attributes["Cordapp-Workflow-Version"] = parseVersion(cordapp.workflow.versionId.toString())
                     attributes["Cordapp-Workflow-Vendor"] = cordapp.workflow.vendor ?: UNKNOWN
@@ -73,12 +73,14 @@ class CordappPlugin : Plugin<Project> {
                     skip = true
                 }
                 // Deprecated support (Corda 3)
-                if (skip && cordapp.info.name != null)
-                    project.logger.warn("Ignoring deprecated 'info' attributes. Using 'contract' and 'workflow' attributes.")
-                if (!skip && cordapp.info.name != null) {
-                    attributes["Name"] = cordapp.info.name ?: "${project.group}.${jarTask.baseName}"
-                    attributes["Implementation-Version"] = cordapp.info.version ?: project.version
-                    attributes["Implementation-Vendor"] = cordapp.info.vendor ?: UNKNOWN
+                if (!cordapp.info.isEmpty()) {
+                    if (skip) {
+                        project.logger.warn("Ignoring deprecated 'info' attributes. Using 'contract' and 'workflow' attributes.")
+                    } else {
+                        attributes["Name"] = cordapp.info.name ?: "${project.group}.${jarTask.baseName}"
+                        attributes["Implementation-Version"] = cordapp.info.version ?: project.version
+                        attributes["Implementation-Vendor"] = cordapp.info.vendor ?: UNKNOWN
+                    }
                 }
                 val (targetPlatformVersion, minimumPlatformVersion) = checkPlatformVersionInfo()
                 attributes["Target-Platform-Version"] = targetPlatformVersion
@@ -162,7 +164,7 @@ class CordappPlugin : Plugin<Project> {
             if (version < 1) {
                 throw InvalidUserDataException("Target versionId must not be smaller than 1.")
             }
-            return version
+            version
         } catch (e: NumberFormatException) {
             throw InvalidUserDataException("Version identifier must be a whole number starting from 1.")
         }

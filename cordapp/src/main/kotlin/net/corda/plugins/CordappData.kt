@@ -2,7 +2,7 @@ package net.corda.plugins
 
 import org.gradle.api.tasks.Input
 
-open class Workflow {
+open class CordappData {
     @get:Input
     var name: String? = null
     /** relaxed type so users can specify Integer or String identifiers */

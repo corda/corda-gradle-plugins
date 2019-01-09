@@ -28,13 +28,13 @@ open class CordappExtension @Inject constructor(objectFactory: ObjectFactory)  {
      * CorDapp Contract distribution information.
      */
     @get:Nested
-    val contract: Contract = objectFactory.newInstance(Contract::class.java)
+    val contract: CordappData = objectFactory.newInstance(CordappData::class.java)
 
     /**
      * CorDapp Worflow (flows and services) distribution information.
      */
     @get:Nested
-    val workflow: Workflow = objectFactory.newInstance(Workflow::class.java)
+    val workflow: CordappData = objectFactory.newInstance(CordappData::class.java)
 
     /**
      * Optional parameters for ANT signJar tasks to sign Cordapps.
@@ -48,11 +48,11 @@ open class CordappExtension @Inject constructor(objectFactory: ObjectFactory)  {
     @get:Nested
     val sealing: Sealing = objectFactory.newInstance(Sealing::class.java)
 
-    fun contract(action: Action<in Contract>) {
+    fun contract(action: Action<in CordappData>) {
         action.execute(contract)
     }
 
-    fun workflow(action: Action<in Workflow>) {
+    fun workflow(action: Action<in CordappData>) {
         action.execute(workflow)
     }
 
