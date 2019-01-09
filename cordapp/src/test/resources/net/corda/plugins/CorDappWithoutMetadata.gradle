@@ -1,0 +1,10 @@
+plugins {
+    id 'java'
+    id 'net.corda.plugins.cordapp'
+}
+
+apply from: 'repositories.gradle'
+
+jar {
+    baseName 'test-cordapp'
+}

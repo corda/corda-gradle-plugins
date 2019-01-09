@@ -241,6 +241,18 @@ class CordappTest {
         }
     }
 
+    @Test
+    fun `a cordapp without any metadata`() {
+        val jarTaskRunner = jarTaskRunner("CorDappWithoutMetadata.gradle")
+
+        val result = jarTaskRunner.build()
+
+        assertThat(result.task(":jar")!!.outcome).isEqualTo(TaskOutcome.SUCCESS)
+
+        val jarFile = getCordappJar(cordappJarName)
+        assertThat(jarFile).exists()
+    }
+
     private fun jarTaskRunner(buildFileResourceName: String, extraArgs: List<String> = emptyList()): GradleRunner {
         createBuildFile(buildFileResourceName)
         return GradleRunner.create()
