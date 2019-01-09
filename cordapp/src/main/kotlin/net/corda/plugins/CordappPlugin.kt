@@ -60,14 +60,14 @@ class CordappPlugin : Plugin<Project> {
                 // Corda 4 attributes support
                 if (!cordapp.contract.isEmpty()) {
                     attributes["Cordapp-Contract-Name"] = cordapp.contract.name ?: "${project.group}.${jarTask.baseName}"
-                    attributes["Cordapp-Contract-Version"] = parseVersion(cordapp.contract.versionId.toString())
+                    attributes["Cordapp-Contract-Version"] = checkCorDappVersionId(cordapp.contract.versionId)
                     attributes["Cordapp-Contract-Vendor"] = cordapp.contract.vendor ?: UNKNOWN
                     attributes["Cordapp-Contract-Licence"] = cordapp.contract.licence ?: UNKNOWN
                     skip = true
                 }
                 if (!cordapp.workflow.isEmpty()) {
                     attributes["Cordapp-Workflow-Name"] = cordapp.workflow.name ?: "${project.group}.${jarTask.baseName}"
-                    attributes["Cordapp-Workflow-Version"] = parseVersion(cordapp.workflow.versionId.toString())
+                    attributes["Cordapp-Workflow-Version"] = checkCorDappVersionId(cordapp.workflow.versionId)
                     attributes["Cordapp-Workflow-Vendor"] = cordapp.workflow.vendor ?: UNKNOWN
                     attributes["Cordapp-Workflow-Licence"] = cordapp.workflow.licence ?: UNKNOWN
                     skip = true
@@ -156,18 +156,13 @@ class CordappPlugin : Plugin<Project> {
         return Pair(targetPlatformVersion, minimumPlatformVersion)
     }
 
-    private fun parseVersion(versionStr: String?): Int {
-        if (versionStr == null)
+    private fun checkCorDappVersionId(versionId: Int?): Int {
+        if (versionId == null)
             throw InvalidUserDataException("Target versionId not specified. Please specify a whole number starting from 1.")
-        return try {
-            val version = Integer.parseInt(versionStr)
-            if (version < 1) {
-                throw InvalidUserDataException("Target versionId must not be smaller than 1.")
-            }
-            version
-        } catch (e: NumberFormatException) {
-            throw InvalidUserDataException("Version identifier must be a whole number starting from 1.")
+        else if (versionId < 1) {
+            throw InvalidUserDataException("Target versionId must not be smaller than 1.")
         }
+        return versionId
     }
 
     private fun Iterable<Dependency>.toUniqueFiles(configuration: Configuration): Set<File> {
