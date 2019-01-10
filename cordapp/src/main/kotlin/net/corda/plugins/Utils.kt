@@ -15,6 +15,7 @@ import kotlin.math.max
 @Suppress("UNCHECKED_CAST")
 fun <T : Any> Project.ext(name: String): T = (extensions.findByName("ext") as ExtraPropertiesExtension).get(name) as T
 fun Project.configuration(name: String): Configuration = configurations.single { it.name == name }
+fun Project.configurationsWithPrefix(prefix: String): List<Configuration> = configurations.filter { it.name.startsWith(prefix) }
 
 class Utils {
     companion object {
