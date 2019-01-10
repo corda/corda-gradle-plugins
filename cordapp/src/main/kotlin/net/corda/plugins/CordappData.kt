@@ -7,7 +7,7 @@ open class CordappData {
     var name: String? = null
     /** relaxed type so users can specify Integer or String identifiers */
     @get:Input
-    var versionId: Any? = null
+    var versionId: Int? = null
     @get:Input
     var vendor: String? = null
     @get:Input

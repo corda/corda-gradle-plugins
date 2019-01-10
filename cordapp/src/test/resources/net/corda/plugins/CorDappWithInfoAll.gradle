@@ -21,13 +21,13 @@ cordapp {
     }
     contract {
         name cordappContractName_info_arg
-        versionId cordappContractVersion_info_arg
+        versionId cordappContractVersion_info_arg.toInteger()
         vendor cordappContractVendor_info_arg
         licence cordappContractLicence_info_arg
     }
     workflow {
         name cordappWorkflowName_info_arg
-        versionId cordappWorkflowVersion_info_arg
+        versionId cordappWorkflowVersion_info_arg.toInteger()
         vendor cordappWorkflowVendor_info_arg
         licence cordappWorkflowLicence_info_arg
     }
