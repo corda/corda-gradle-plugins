@@ -146,21 +146,21 @@ class CordappPlugin : Plugin<Project> {
         // If the minimum platform version is not set, default to 1.
         val minimumPlatformVersion: Int = cordapp.minimumPlatformVersion ?: cordapp.info.minimumPlatformVersion ?: 1
         val targetPlatformVersion = cordapp.targetPlatformVersion ?: cordapp.info.targetPlatformVersion
-                ?: throw InvalidUserDataException("Target versionId was not set and could not be determined from the project's Corda dependency. Please specify the target versionId of your CorDapp.")
+                ?: throw InvalidUserDataException("CorDapp `targetPlatformVersion` was not specified in the `cordapp` metadata section.")
         if (targetPlatformVersion < 1) {
-            throw InvalidUserDataException("Target versionId must not be smaller than 1.")
+            throw InvalidUserDataException("CorDapp `targetPlatformVersion` must not be smaller than 1.")
         }
         if (targetPlatformVersion < minimumPlatformVersion) {
-            throw InvalidUserDataException("Target versionId must not be smaller than min platform versionId.")
+            throw InvalidUserDataException("CorDapp `targetPlatformVersion` must not be smaller than the `minimumPlatformVersion` ($minimumPlatformVersion)")
         }
         return Pair(targetPlatformVersion, minimumPlatformVersion)
     }
 
     private fun checkCorDappVersionId(versionId: Int?): Int {
         if (versionId == null)
-            throw InvalidUserDataException("Target versionId not specified. Please specify a whole number starting from 1.")
+            throw InvalidUserDataException("CorDapp `versionId` was not specified in the associated `contract` or `workflow` metadata section. Please specify a whole number starting from 1.")
         else if (versionId < 1) {
-            throw InvalidUserDataException("Target versionId must not be smaller than 1.")
+            throw InvalidUserDataException("CorDapp `versionId` must not be smaller than 1.")
         }
         return versionId
     }
