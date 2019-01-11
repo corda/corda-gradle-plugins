@@ -4,6 +4,8 @@
 
 ### Version 4.0.38
 
+* `cordapp`: When this plugin is applied, and the project also applies the maven-publish project, the resulting pom that is published will correctly have no dependencies - as the cordapp jar will be a fat jar.  
+
 ### Version 4.0.37
 
 * `cordapp`: Cordapp naming conventions changed to CordappContract and CordappWorkflow for all attributes (name, version, vendor, licence)
