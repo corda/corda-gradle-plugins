@@ -205,7 +205,6 @@ open class Baseform : DefaultTask() {
                 if (signing.all) nodes.flatMap(Node::getCordappList).map { it.jarFile }.distinct() else emptyList()
         jarsToSign.forEach {
             signJarOptions[SigningOptions.Key.JAR] = it.toString()
-            logger.info("Signing JAR $it with options $signJarOptions")
             project.ant.invokeMethod("signjar", signJarOptions)
         }
     }
