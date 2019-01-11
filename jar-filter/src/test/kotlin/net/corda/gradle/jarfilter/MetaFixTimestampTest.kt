@@ -42,7 +42,7 @@ class MetaFixTimestampTest {
         private fun createTestProject() = TestRule { base, _ ->
             object : Statement() {
                 override fun evaluate() {
-                    testProjectDir.installResource("gradle.properties")
+                    testProjectDir.installResources("gradle.properties", "settings.gradle")
                     testProjectDir.newFile("build.gradle").writeText("""
                         |plugins {
                         |    id 'net.corda.plugins.jar-filter'

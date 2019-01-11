@@ -26,6 +26,7 @@ class CordappTest {
     @Before
     fun setup() {
         buildFile = testProjectDir.newFile("build.gradle")
+        installResource(testProjectDir, "settings.gradle")
         installResource(testProjectDir, "repositories.gradle")
     }
 
