@@ -8,7 +8,7 @@ import javax.inject.Inject
 
 open class KeyGenAndSigning @Inject constructor(objectFactory: ObjectFactory) {
     @get:Input
-    var enabled: Boolean = true
+    var enabled: Boolean = false    // default behaviour is to deploy JAR artifacts as built (signed or unsigned)
 
     fun enabled(value: Boolean) {
         enabled = value
