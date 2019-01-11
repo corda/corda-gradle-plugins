@@ -141,14 +141,9 @@ class CordappPlugin : Plugin<Project> {
     }
 
     private fun calculateExcludedDependencies(project: Project): Set<Dependency> {
-
+        //TODO if we intend cordapp jars to define transitive dependencies instead of just being fat
         //we need to use the final artifact name, not the project name
-        //for example, project(":core") needs to be translated into net.corda.corda-core
-
-        val projectDependencies = project.configurationsWithPrefix("corda").map { it.allDependencies }.filter { it is DefaultProjectDependency }.map { it as DefaultProjectDependency }
-        val jarDependencies = project.configurationsWithPrefix("corda").map { it.allDependencies }.filter { it is DefaultExternalModuleDependency }.map { it as DefaultExternalModuleDependency }
-
-        projectDependencies.map { it.dependencyProject }
+        //for example, project(":core") needs to be translated into net.corda:corda-core
 
         return project.configuration("cordapp").allDependencies +
                 project.configuration("cordaCompile").allDependencies +

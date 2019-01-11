@@ -9,7 +9,6 @@ import org.gradle.api.publish.maven.internal.dependencies.MavenDependencyInterna
 import org.gradle.api.publish.maven.internal.publication.MavenPomDistributionManagementInternal
 import org.gradle.api.publish.maven.internal.publication.MavenPomInternal
 import org.gradle.api.publish.maven.internal.publisher.MavenProjectIdentity
-import java.util.function.Function
 
 class StrippedMavenPom(
     private val pom: MavenPomInternal,
@@ -84,24 +83,23 @@ class StrippedMavenPom(
     }
 
     override fun getRuntimeDependencyManagement(): MutableSet<MavenDependency>? {
-        val depsToExclude: Set<Pair<String, String>> = projectDepCalculator(project)
-        return pom.runtimeDependencyManagement.filterNot { toExcludableDependency(it) in depsToExclude}.toHashSet()
+        //for now, just return empty set, but in future if we do allow cordapps to have dependencies outside of corda
+        //something along the lines of:
+        // val depsToExclude: Set<Pair<String, String>> = projectDepCalculator(project)
+        // return pom.runtimeDependencyManagement.filterNot { toExcludableDependency(it) in depsToExclude}.toHashSet()
+        return HashSet()
     }
 
     override fun getRuntimeDependencies(): MutableSet<MavenDependencyInternal>? {
-        val depsToExclude: Set<Pair<String, String>> = projectDepCalculator(project)
-        return pom.runtimeDependencies.filterNot { toExcludableDependency(it) in depsToExclude}.toHashSet()
+        return HashSet()
     }
 
     override fun getApiDependencyManagement(): MutableSet<MavenDependency>? {
-        val depsToExclude: Set<Pair<String, String>> = projectDepCalculator(project)
-        return pom.apiDependencyManagement.filterNot { toExcludableDependency(it) in depsToExclude}.toHashSet()
+        return HashSet()
     }
 
     override fun getApiDependencies(): MutableSet<MavenDependencyInternal>? {
-        val depsToExclude: Set<Pair<String, String>> = projectDepCalculator(project)
-        val transformedProjectDependencies = pom.apiDependencies.map { toExcludableDependency(it) }
-        return pom.apiDependencies.filterNot { toExcludableDependency(it) in depsToExclude}.toHashSet()
+        return HashSet()
     }
 
     override fun getDevelopers(): MutableList<MavenPomDeveloper>? {
