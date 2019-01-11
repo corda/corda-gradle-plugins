@@ -8,6 +8,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
+import org.gradle.api.java.archives.Attributes
 import org.gradle.api.publish.maven.internal.publication.MavenPomInternal
 import org.gradle.api.publish.maven.tasks.GenerateMavenPom
 import org.gradle.jvm.tasks.Jar
@@ -54,47 +55,16 @@ class CordappPlugin : Plugin<Project> {
         val jarTask = project.tasks.getByName("jar") as Jar
         jarTask.doFirst { _ ->
             val attributes = jarTask.manifest.attributes
-            var skip = false
             // check whether metadata has been configured (not mandatory for non-flow, non-contract gradle build files)
             if (cordapp.contract.isEmpty() && cordapp.workflow.isEmpty() && cordapp.info.isEmpty()) {
                 project.logger.warn("Cordapp metadata not defined for this gradle build file. See https://docs.corda.net/head/cordapp-build-systems.html#separation-of-cordapp-contracts-flows-and-services")
-            }
-            else {
-                // Corda 4 attributes support
-                if (!cordapp.contract.isEmpty()) {
-                    attributes["Cordapp-Contract-Name"] = cordapp.contract.name ?: "${project.group}.${jarTask.baseName}"
-                    attributes["Cordapp-Contract-Version"] = checkCorDappVersionId(cordapp.contract.versionId)
-                    attributes["Cordapp-Contract-Vendor"] = cordapp.contract.vendor ?: UNKNOWN
-                    attributes["Cordapp-Contract-Licence"] = cordapp.contract.licence ?: UNKNOWN
-                    skip = true
-                }
-                if (!cordapp.workflow.isEmpty()) {
-                    attributes["Cordapp-Workflow-Name"] = cordapp.workflow.name ?: "${project.group}.${jarTask.baseName}"
-                    attributes["Cordapp-Workflow-Version"] = checkCorDappVersionId(cordapp.workflow.versionId)
-                    attributes["Cordapp-Workflow-Vendor"] = cordapp.workflow.vendor ?: UNKNOWN
-                    attributes["Cordapp-Workflow-Licence"] = cordapp.workflow.licence ?: UNKNOWN
-                    skip = true
-                }
-                // Deprecated support (Corda 3)
-                if (!cordapp.info.isEmpty()) {
-                    if (skip) {
-                        project.logger.warn("Ignoring deprecated 'info' attributes. Using 'contract' and 'workflow' attributes.")
-                    } else {
-                        attributes["Name"] = cordapp.info.name ?: "${project.group}.${jarTask.baseName}"
-                        attributes["Implementation-Version"] = cordapp.info.version ?: project.version
-                        attributes["Implementation-Vendor"] = cordapp.info.vendor ?: UNKNOWN
-                    }
-                }
-                val (targetPlatformVersion, minimumPlatformVersion) = checkPlatformVersionInfo()
-                attributes["Target-Platform-Version"] = targetPlatformVersion
-                attributes["Min-Platform-Version"] = minimumPlatformVersion
-                if (cordapp.sealing.enabled) {
-                    attributes["Sealed"] = "true"
-                }
+            } else {
+                configureCordappAttributes(project, jarTask, attributes)
             }
         }.doLast {
             sign(project, cordapp.signing, it.outputs.files.singleFile)
         }
+
         task.doLast {
             jarTask.from(getDirectNonCordaDependencies(project).map {
                 project.logger.info("CorDapp dependency: ${it.name}")
@@ -106,9 +76,45 @@ class CordappPlugin : Plugin<Project> {
                 exclude("META-INF/*.MF")
                 exclude("META-INF/LICENSE")
                 exclude("META-INF/NOTICE")
+                exclude("META-INF/INDEX.LIST")
             }
         }
         jarTask.dependsOn(task)
+    }
+
+    private fun configureCordappAttributes(project: Project, jarTask: Jar, attributes: Attributes) {
+        var skip = false
+        // Corda 4 attributes support
+        if (!cordapp.contract.isEmpty()) {
+            attributes["Cordapp-Contract-Name"] = cordapp.contract.name ?: "${project.group}.${jarTask.baseName}"
+            attributes["Cordapp-Contract-Version"] = checkCorDappVersionId(cordapp.contract.versionId)
+            attributes["Cordapp-Contract-Vendor"] = cordapp.contract.vendor ?: UNKNOWN
+            attributes["Cordapp-Contract-Licence"] = cordapp.contract.licence ?: UNKNOWN
+            skip = true
+        }
+        if (!cordapp.workflow.isEmpty()) {
+            attributes["Cordapp-Workflow-Name"] = cordapp.workflow.name ?: "${project.group}.${jarTask.baseName}"
+            attributes["Cordapp-Workflow-Version"] = checkCorDappVersionId(cordapp.workflow.versionId)
+            attributes["Cordapp-Workflow-Vendor"] = cordapp.workflow.vendor ?: UNKNOWN
+            attributes["Cordapp-Workflow-Licence"] = cordapp.workflow.licence ?: UNKNOWN
+            skip = true
+        }
+        // Deprecated support (Corda 3)
+        if (!cordapp.info.isEmpty()) {
+            if (skip) {
+                project.logger.warn("Ignoring deprecated 'info' attributes. Using 'contract' and 'workflow' attributes.")
+            } else {
+                attributes["Name"] = cordapp.info.name ?: "${project.group}.${jarTask.baseName}"
+                attributes["Implementation-Version"] = cordapp.info.version ?: project.version
+                attributes["Implementation-Vendor"] = cordapp.info.vendor ?: UNKNOWN
+            }
+        }
+        val (targetPlatformVersion, minimumPlatformVersion) = checkPlatformVersionInfo()
+        attributes["Target-Platform-Version"] = targetPlatformVersion
+        attributes["Min-Platform-Version"] = minimumPlatformVersion
+        if (cordapp.sealing.enabled) {
+            attributes["Sealed"] = "true"
+        }
     }
 
     private fun configurePomCreation(project: Project) {
