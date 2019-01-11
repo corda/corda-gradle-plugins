@@ -11,8 +11,11 @@ import org.gradle.api.artifacts.Dependency
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency
 import org.gradle.api.plugins.UnknownPluginException
+import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.internal.publication.MavenPomInternal
+import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
 import org.gradle.api.publish.maven.tasks.GenerateMavenPom
+import org.gradle.api.publish.plugins.PublishingPlugin
 import org.gradle.jvm.tasks.Jar
 import java.io.File
 
@@ -125,7 +128,7 @@ class CordappPlugin : Plugin<Project> {
 
     private fun configurePomCreation(project: Project) {
         project.gradle.taskGraph.beforeTask { task ->
-            if (task.name.contains("generatePomFile") && isCordappProject(project)) {
+            if (task.project == project && task.name.contains("generatePomFile") && isCordappProject(project) ) {
                 task.doFirst{aboutToExecute ->
                     project.logger.info("Modifying task: ${task.name} in project ${project.path} to exclude all dependencies from pom")
                     val pom = (aboutToExecute as GenerateMavenPom).pom
