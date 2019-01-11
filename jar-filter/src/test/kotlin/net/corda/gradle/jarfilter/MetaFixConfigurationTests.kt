@@ -20,7 +20,7 @@ class MetaFixConfigurationTests {
 
     @Before
     fun setup() {
-        testProjectDir.installResource("gradle.properties")
+        testProjectDir.installResources("gradle.properties", "settings.gradle")
     }
 
     @Test

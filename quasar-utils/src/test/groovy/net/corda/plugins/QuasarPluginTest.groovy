@@ -1,6 +1,7 @@
 package net.corda.plugins
 
 import org.gradle.testkit.runner.GradleRunner
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
@@ -14,6 +15,11 @@ class QuasarPluginTest {
 
     @Rule
     public final TemporaryFolder testProjectDir = new TemporaryFolder()
+
+    @Before
+    void setup() {
+        Utilities.installResource(testProjectDir, "settings.gradle")
+    }
 
     @Test
     void checkDefaultVersionIsUsed() {
