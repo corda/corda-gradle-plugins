@@ -8,6 +8,8 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
+import org.gradle.api.publish.maven.internal.publication.MavenPomInternal
+import org.gradle.api.publish.maven.tasks.GenerateMavenPom
 import org.gradle.jvm.tasks.Jar
 import java.io.File
 
@@ -39,6 +41,7 @@ class CordappPlugin : Plugin<Project> {
         Utils.createRuntimeConfiguration("cordaRuntime", project)
 
         cordapp = project.extensions.create("cordapp", CordappExtension::class.java, project.objects)
+        configurePomCreation(project)
         configureCordappJar(project)
     }
 
@@ -49,7 +52,7 @@ class CordappPlugin : Plugin<Project> {
         // Note: project.afterEvaluate did not have full dependency resolution completed, hence a task is used instead
         val task = project.task("configureCordappFatJar")
         val jarTask = project.tasks.getByName("jar") as Jar
-        jarTask.doFirst {
+        jarTask.doFirst { _ ->
             val attributes = jarTask.manifest.attributes
             var skip = false
             // check whether metadata has been configured (not mandatory for non-flow, non-contract gradle build files)
@@ -108,33 +111,63 @@ class CordappPlugin : Plugin<Project> {
         jarTask.dependsOn(task)
     }
 
+    private fun configurePomCreation(project: Project) {
+        project.gradle.taskGraph.beforeTask { task ->
+            if (task.project == project && task.name.startsWith("generatePomFile")) {
+                task.doFirst { aboutToExecute ->
+                    project.logger.info("Modifying task: ${task.name} in project ${project.path} to exclude all dependencies from pom")
+                    val pom = (aboutToExecute as GenerateMavenPom).pom
+                    if (pom is MavenPomInternal) {
+                        val filteredPom = FilteredPom(pom)
+                        aboutToExecute.pom = filteredPom
+                    }
+                }
+            }
+        }
+    }
+
+    private fun calculateExcludedDependencies(project: Project): Set<Dependency> {
+        //TODO if we intend cordapp jars to define transitive dependencies instead of just being fat
+        //we need to use the final artifact name, not the project name
+        //for example, project(":core") needs to be translated into net.corda:corda-core
+
+        return project.configuration("cordapp").allDependencies +
+                project.configuration("cordaCompile").allDependencies +
+                project.configuration("cordaRuntime").allDependencies
+    }
+
+    private fun hardCodedExcludes(): Set<Pair<String, String>>{
+        val excludes = setOf(
+            ("org.jetbrains.kotlin"  to "kotlin-stdlib"),
+            ("org.jetbrains.kotlin" to "kotlin-stdlib-jre8"),
+            ("org.jetbrains.kotlin" to "kotlin-stdlib-jdk8"),
+            ("org.jetbrains.kotlin" to "kotlin-reflect"),
+            ("co.paralleluniverse" to "quasar-core")
+        )
+        return excludes
+    }
+
     private fun getDirectNonCordaDependencies(project: Project): Set<File> {
         project.logger.info("Finding direct non-corda dependencies for inclusion in CorDapp JAR")
-        val excludes = listOf(
-                mapOf("group" to "org.jetbrains.kotlin", "name" to "kotlin-stdlib"),
-                mapOf("group" to "org.jetbrains.kotlin", "name" to "kotlin-stdlib-jre8"),
-                mapOf("group" to "org.jetbrains.kotlin", "name" to "kotlin-stdlib-jdk8"),
-                mapOf("group" to "org.jetbrains.kotlin", "name" to "kotlin-reflect"),
-                mapOf("group" to "co.paralleluniverse", "name" to "quasar-core")
-        )
+        val excludes = hardCodedExcludes()
 
         val runtimeConfiguration = project.configuration("runtime")
         // The direct dependencies of this project
-        val excludeDeps = project.configuration("cordapp").allDependencies +
-                project.configuration("cordaCompile").allDependencies +
-                project.configuration("cordaRuntime").allDependencies
+        val excludeDeps = calculateExcludedDependencies(project)
         val directDeps = runtimeConfiguration.allDependencies - excludeDeps
         // We want to filter out anything Corda related or provided by Corda, like kotlin-stdlib and quasar
         val filteredDeps = directDeps.filter { dep ->
-            excludes.none { exclude -> (exclude["group"] == dep.group) && (exclude["name"] == dep.name) }
+            excludes.none { exclude -> (exclude.first == dep.group) && (exclude.second == dep.name) }
         }
         filteredDeps.forEach {
             // net.corda or com.r3.corda.enterprise may be a core dependency which shouldn't be included in this cordapp so give a warning
             val group = it.group ?: ""
             if (group.startsWith("net.corda.") || group.startsWith("com.r3.corda.")) {
-                project.logger.warn("You appear to have included a Corda platform component ($it) using a 'compile' or 'runtime' dependency." +
-                        "This can cause node stability problems. Please use 'corda' instead." +
-                        "See http://docs.corda.net/cordapp-build-systems.html")
+                project.logger.warn(
+                    "You appear to have included a Corda platform component ($it) using a 'compile' or 'runtime' dependency." +
+                            "This can cause node stability problems. Please use 'corda' instead." +
+                            "See http://docs.corda.net/cordapp-build-systems.html"
+                )
             } else {
                 project.logger.info("Including dependency in CorDapp JAR: $it")
             }
@@ -146,7 +179,7 @@ class CordappPlugin : Plugin<Project> {
         // If the minimum platform version is not set, default to 1.
         val minimumPlatformVersion: Int = cordapp.minimumPlatformVersion ?: cordapp.info.minimumPlatformVersion ?: 1
         val targetPlatformVersion = cordapp.targetPlatformVersion ?: cordapp.info.targetPlatformVersion
-                ?: throw InvalidUserDataException("CorDapp `targetPlatformVersion` was not specified in the `cordapp` metadata section.")
+        ?: throw InvalidUserDataException("CorDapp `targetPlatformVersion` was not specified in the `cordapp` metadata section.")
         if (targetPlatformVersion < 1) {
             throw InvalidUserDataException("CorDapp `targetPlatformVersion` must not be smaller than 1.")
         }

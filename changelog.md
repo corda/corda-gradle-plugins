@@ -10,6 +10,7 @@
 * `cordapp`: enforce CorDapp `workflow` and `contract` version identifier metadata to be an integer.
 * `cordapp`: relax cordapp metadata checking (warn on missing metadata rather than failing-fast).
    This allows multi-module structured CorDapps to only define metadata for flows and/or contracts modules.
+* `cordapp`: When this plugin is applied, and the project also applies the maven-publish project, the resulting pom that is published will correctly have no dependencies - as the cordapp jar will be a fat jar.  
 
 ### Version 4.0.37
 
