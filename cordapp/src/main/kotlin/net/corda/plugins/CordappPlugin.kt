@@ -8,7 +8,6 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
-import org.gradle.api.plugins.UnknownPluginException
 import org.gradle.api.publish.maven.internal.publication.MavenPomInternal
 import org.gradle.api.publish.maven.tasks.GenerateMavenPom
 import org.gradle.jvm.tasks.Jar
@@ -112,25 +111,14 @@ class CordappPlugin : Plugin<Project> {
         jarTask.dependsOn(task)
     }
 
-    private fun isCordappProject(project: Project): Boolean{
-        return try{
-            project.plugins.getPlugin(net.corda.plugins.CordappPlugin::class.java)
-            true
-        }catch (e: UnknownPluginException){
-            false
-        }
-    }
-
     private fun configurePomCreation(project: Project) {
         project.gradle.taskGraph.beforeTask { task ->
-            if (task.project == project && task.name.contains("generatePomFile") && isCordappProject(project) ) {
-                task.doFirst{aboutToExecute ->
+            if (task.project == project && task.name.startsWith("generatePomFile")) {
+                task.doFirst { aboutToExecute ->
                     project.logger.info("Modifying task: ${task.name} in project ${project.path} to exclude all dependencies from pom")
                     val pom = (aboutToExecute as GenerateMavenPom).pom
                     if (pom is MavenPomInternal) {
-                        val filteredPom = StrippedMavenPom(pom, project) { project ->
-                            hardCodedExcludes() + calculateExcludedDependencies(project).map { it.group!! to it.name }
-                        }
+                        val filteredPom = FilteredPom(pom)
                         aboutToExecute.pom = filteredPom
                     }
                 }
