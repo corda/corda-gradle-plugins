@@ -120,8 +120,7 @@ class CordappPlugin : Plugin<Project> {
                 project.logger.info("Modifying task: ${task.name} in project ${project.path} to exclude all dependencies from pom")
                 val pom = task.pom
                 if (pom is MavenPomInternal) {
-                    val filteredPom = FilteredPom(pom)
-                    task.pom = filteredPom
+                    task.pom = FilteredPom(pom)
                 }
             }
         }
