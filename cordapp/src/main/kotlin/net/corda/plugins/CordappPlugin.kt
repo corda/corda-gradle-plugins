@@ -2,10 +2,7 @@ package net.corda.plugins
 
 import net.corda.plugins.SignJar.Companion.sign
 import net.corda.plugins.Utils.Companion.compareVersions
-import org.gradle.api.GradleException
-import org.gradle.api.InvalidUserDataException
-import org.gradle.api.Plugin
-import org.gradle.api.Project
+import org.gradle.api.*
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.java.archives.Attributes
@@ -118,15 +115,13 @@ class CordappPlugin : Plugin<Project> {
     }
 
     private fun configurePomCreation(project: Project) {
-        project.gradle.taskGraph.beforeTask { task ->
-            if (task.project == project && task.name.startsWith("generatePomFile")) {
-                task.doFirst { aboutToExecute ->
-                    project.logger.info("Modifying task: ${task.name} in project ${project.path} to exclude all dependencies from pom")
-                    val pom = (aboutToExecute as GenerateMavenPom).pom
-                    if (pom is MavenPomInternal) {
-                        val filteredPom = FilteredPom(pom)
-                        aboutToExecute.pom = filteredPom
-                    }
+        project.tasks.withType(GenerateMavenPom::class.java) { task ->
+            task.doFirst { _ ->
+                project.logger.info("Modifying task: ${task.name} in project ${project.path} to exclude all dependencies from pom")
+                val pom = task.pom
+                if (pom is MavenPomInternal) {
+                    val filteredPom = FilteredPom(pom)
+                    task.pom = filteredPom
                 }
             }
         }
