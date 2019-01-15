@@ -32,4 +32,7 @@ jar {
 
 scanApi {
     verbose = true
+    excludeMethods = [
+            "net.corda.example.ClassWithFilteredMethods": ["public <init>(int, String, int, kotlin.jvm.internal.DefaultConstructorMarker)"]
+    ]
 }

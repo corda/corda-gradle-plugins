@@ -1,8 +1,12 @@
 package net.corda.plugins;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static java.util.Collections.emptyList;
+import static java.util.Collections.emptyMap;
 
 @SuppressWarnings("unused")
 public class ScannerExtension {
@@ -10,6 +14,7 @@ public class ScannerExtension {
     private boolean verbose;
     private boolean enabled = true;
     private List<String> excludeClasses = emptyList();
+    private Map<String, Collection<String>> excludeMethods = emptyMap();
 
     public boolean isVerbose() {
         return verbose;
@@ -33,5 +38,13 @@ public class ScannerExtension {
 
     public void setExcludeClasses(List<String> excludeClasses) {
         this.excludeClasses = excludeClasses;
+    }
+
+    public Map<String, Collection<String>> getExcludeMethods() {
+        return excludeMethods;
+    }
+
+    public void setExcludeMethods(Map<String, Collection<String>> excludeMethods) {
+        this.excludeMethods = excludeMethods;
     }
 }

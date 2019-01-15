@@ -5,10 +5,7 @@ import io.github.lukehutch.fastclasspathscanner.scanner.FieldInfo;
 import io.github.lukehutch.fastclasspathscanner.scanner.MethodInfo;
 import io.github.lukehutch.fastclasspathscanner.typesignature.TypeSignature;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.lang.reflect.Modifier;
 import java.util.Collection;
 import java.util.LinkedList;
@@ -21,6 +18,18 @@ import static java.util.stream.Collectors.toCollection;
 public class ApiPrintWriter extends PrintWriter {
     ApiPrintWriter(File file, String encoding) throws FileNotFoundException, UnsupportedEncodingException {
         super(file, encoding);
+    }
+
+    private ApiPrintWriter(StringWriter out) {
+        super(out);
+    }
+
+    /**
+     * Factory method to create an {@link ApiPrintWriter} that appends the data to a StringWriter,
+     * so that they can be gathered in memory, instead of being printed in a file.
+     */
+    static ApiPrintWriter withStringWriter(StringWriter out) {
+        return new ApiPrintWriter(out);
     }
 
     public void println(ClassInfo classInfo, int modifierMask, List<String> filteredAnnotations) {

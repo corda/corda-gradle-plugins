@@ -97,4 +97,10 @@ public class KotlinAnnotationsTest {
                  "##"
             );
     }
+
+    @Test
+    public void testFilteredMethodsAreExcluded() throws IOException {
+        assertThat(testProject.getApiLines())
+                .doesNotContain("  public <init>(int, String, int, kotlin.jvm.internal.DefaultConstructorMarker)");
+    }
 }
