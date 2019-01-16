@@ -451,11 +451,11 @@ public class ScanApi extends DefaultTask {
     }
 
     private boolean isExcluded(MethodInfo methodWithoutAnnotations) {
-        final String methodDescriptor = methodWithoutAnnotations.getTypeDescriptorStr();
+        final String methodSignature = methodWithoutAnnotations.getMethodName() + methodWithoutAnnotations.getTypeDescriptorStr();
         final String className = methodWithoutAnnotations.getClassName();
 
         return this.excludeMethods.containsKey(className) &&
-                this.excludeMethods.get(className).contains(methodDescriptor);
+                this.excludeMethods.get(className).contains(methodSignature);
     }
 
     private static boolean isVisible(int accessFlags) {

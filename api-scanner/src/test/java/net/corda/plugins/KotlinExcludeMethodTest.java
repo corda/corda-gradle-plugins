@@ -21,6 +21,7 @@ public class KotlinExcludeMethodTest {
     @Test
     public void testFilteredMethodsAreExcluded() throws IOException {
         assertThat(testProject.getApiText())
+                .contains("net.corda.example.ClassWithExtraConstructorGenerated")
                 .doesNotContain("<init>(String, String, kotlin.jvm.internal.DefaultConstructorMarker)");
     }
 

@@ -20,16 +20,6 @@ public class ApiPrintWriter extends PrintWriter {
         super(file, encoding);
     }
 
-    /**
-     * A secondary constructor used create an {@link ApiPrintWriter} that appends the data to a StringWriter,
-     * so that they can be gathered in memory, instead of being printed in a file.
-     *
-     * @param out the string writer where the output will be redirected.
-     */
-    ApiPrintWriter(StringWriter out) {
-        super(out);
-    }
-
     public void println(ClassInfo classInfo, int modifierMask, List<String> filteredAnnotations) {
         append(asAnnotations(filteredAnnotations, ""));
         append(Modifier.toString(classInfo.getClassRef().getModifiers() & modifierMask));

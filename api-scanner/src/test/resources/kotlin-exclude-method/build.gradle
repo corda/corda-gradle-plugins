@@ -33,6 +33,8 @@ jar {
 scanApi {
     verbose = true
     excludeMethods = [
-            "net.corda.example.ClassWithExtraConstructorGenerated": ["(Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V"]
+            "net.corda.example.ClassWithExtraConstructorGenerated": [
+                    "<init>(Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V"
+            ]
     ]
 }
