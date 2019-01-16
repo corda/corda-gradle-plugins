@@ -20,16 +20,14 @@ public class ApiPrintWriter extends PrintWriter {
         super(file, encoding);
     }
 
-    private ApiPrintWriter(StringWriter out) {
-        super(out);
-    }
-
     /**
-     * Factory method to create an {@link ApiPrintWriter} that appends the data to a StringWriter,
+     * A secondary constructor used create an {@link ApiPrintWriter} that appends the data to a StringWriter,
      * so that they can be gathered in memory, instead of being printed in a file.
+     *
+     * @param out the string writer where the output will be redirected.
      */
-    static ApiPrintWriter withStringWriter(StringWriter out) {
-        return new ApiPrintWriter(out);
+    ApiPrintWriter(StringWriter out) {
+        super(out);
     }
 
     public void println(ClassInfo classInfo, int modifierMask, List<String> filteredAnnotations) {

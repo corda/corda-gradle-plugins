@@ -4,12 +4,12 @@ plugins {
 }
 apply from: 'repositories.gradle'
 
-description 'Test appearance of Kotlin-specific annotations'
+description 'Test behaviour of filtering'
 
 sourceSets {
     main {
         kotlin {
-            srcDir file("../resources/test/kotlin-annotations/kotlin")
+            srcDir file("../resources/test/kotlin-exclude-method/kotlin")
         }
     }
 }
@@ -27,9 +27,12 @@ compileKotlin {
 }
 
 jar {
-    baseName = "kotlin-annotations"
+    baseName = "kotlin-exclude-method"
 }
 
 scanApi {
     verbose = true
+    excludeMethods = [
+            "net.corda.example.ClassWithExtraConstructorGenerated": ["(Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V"]
+    ]
 }

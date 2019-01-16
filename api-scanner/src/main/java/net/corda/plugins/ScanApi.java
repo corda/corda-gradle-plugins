@@ -71,7 +71,7 @@ public class ScanApi extends DefaultTask {
     private final ConfigurableFileCollection sources;
     private final ConfigurableFileCollection classpath;
     private final Set<String> excludeClasses;
-    private final Map<String, Collection<String>> excludeMethods;
+    private final Map<String, Set<String>> excludeMethods;
     private final File outputDir;
     private boolean verbose;
 
@@ -79,7 +79,7 @@ public class ScanApi extends DefaultTask {
         sources = getProject().files();
         classpath = getProject().files();
         excludeClasses = new LinkedHashSet<>();
-        excludeMethods = new HashMap<>();
+        excludeMethods = new LinkedHashMap<>();
         outputDir = new File(getProject().getBuildDir(), "api");
     }
 
@@ -118,9 +118,9 @@ public class ScanApi extends DefaultTask {
         return unmodifiableMap(excludeMethods);
     }
 
-    void setExcludeMethods(Map<String, Collection<String>> excludeMethods) {
+    void setExcludeMethods(Map<String, ? extends Collection<String>> excludeMethods) {
         this.excludeMethods.clear();
-        this.excludeMethods.putAll(excludeMethods);
+        excludeMethods.forEach((key, value) -> this.excludeMethods.put(key, new LinkedHashSet<>(value)));
     }
 
     @OutputFiles
@@ -318,7 +318,7 @@ public class ScanApi extends DefaultTask {
             sort(methods);
             for (MethodInfo method : methods) {
                 if (isVisible(method.getModifiers()) // Only public and protected methods
-                        && !isExcluded(writer, filterAnnotationsFor(method)) // Filter out methods explicitly excluded
+                        && !isExcluded(filterAnnotationsFor(method)) // Filter out methods explicitly excluded
                         && isValid(method.getModifiers(), METHOD_MASK) // Excludes bridge methods
                         && !hasInternalAnnotation(method.getAnnotationNames()) // Excludes methods annotated as @CordaInternal
                         && !isKotlinInternalScope(method)) {
@@ -450,21 +450,12 @@ public class ScanApi extends DefaultTask {
         return (modifiers & mask) == modifiers;
     }
 
-    private boolean isExcluded(ApiPrintWriter writer, MethodInfo methodWithoutAnnotations) {
-        final StringWriter stringWriter = new StringWriter();
-        final ApiPrintWriter apiPrintWriter = ApiPrintWriter.withStringWriter(stringWriter);
-        apiPrintWriter.println(methodWithoutAnnotations, "");
-        final String methodSignature = removeTrailingSpaceAndNewLines(stringWriter.toString());
+    private boolean isExcluded(MethodInfo methodWithoutAnnotations) {
+        final String methodDescriptor = methodWithoutAnnotations.getTypeDescriptorStr();
         final String className = methodWithoutAnnotations.getClassName();
 
         return this.excludeMethods.containsKey(className) &&
-                this.excludeMethods.get(className).contains(methodSignature);
-    }
-
-    private String removeTrailingSpaceAndNewLines(final String value) {
-        return value.replace("\n", "")
-                .replace("\r", "")
-                .trim();
+                this.excludeMethods.get(className).contains(methodDescriptor);
     }
 
     private static boolean isVisible(int accessFlags) {
