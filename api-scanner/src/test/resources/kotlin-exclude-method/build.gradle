@@ -1,0 +1,40 @@
+plugins {
+    id 'net.corda.plugins.api-scanner'
+    id 'org.jetbrains.kotlin.jvm' version '$kotlin_version'
+}
+apply from: 'repositories.gradle'
+
+description 'Test behaviour of filtering'
+
+sourceSets {
+    main {
+        kotlin {
+            srcDir file("../resources/test/kotlin-exclude-method/kotlin")
+        }
+    }
+}
+
+dependencies {
+    compile 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version'
+    compile 'org.jetbrains.kotlin:kotlin-reflect:$kotlin_version'
+}
+
+compileKotlin {
+    kotlinOptions {
+        jvmTarget = "1.8"
+        freeCompilerArgs = ['-Xjvm-default=enable']
+    }
+}
+
+jar {
+    baseName = "kotlin-exclude-method"
+}
+
+scanApi {
+    verbose = true
+    excludeMethods = [
+            "net.corda.example.ClassWithExtraConstructorGenerated": [
+                    "<init>(Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V"
+            ]
+    ]
+}

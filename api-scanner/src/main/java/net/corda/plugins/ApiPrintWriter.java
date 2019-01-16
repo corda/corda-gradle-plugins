@@ -5,10 +5,7 @@ import io.github.lukehutch.fastclasspathscanner.scanner.FieldInfo;
 import io.github.lukehutch.fastclasspathscanner.scanner.MethodInfo;
 import io.github.lukehutch.fastclasspathscanner.typesignature.TypeSignature;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.lang.reflect.Modifier;
 import java.util.Collection;
 import java.util.LinkedList;

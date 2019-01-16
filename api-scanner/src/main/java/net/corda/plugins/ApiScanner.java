@@ -37,6 +37,7 @@ public class ApiScanner implements Plugin<Project> {
                 // Automatically creates a dependency on jar tasks.
                 scanTask.setSources(project.files(jarTasks));
                 scanTask.setExcludeClasses(extension.getExcludeClasses());
+                scanTask.setExcludeMethods(extension.getExcludeMethods());
                 scanTask.setVerbose(extension.isVerbose());
                 scanTask.setEnabled(extension.isEnabled());
 
