@@ -2,7 +2,12 @@
 
 ## Version 4
 
+### Version 4.0.40
+
 ### Version 4.0.39
+
+* `api-scanner`: allow to exclude methods from the API report
+* `api-scanner`: enable reporting of methods synthesized from Kotlin
 
 ### Version 4.0.38
 
