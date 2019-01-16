@@ -369,6 +369,7 @@ public class ScanApi extends DefaultTask {
         }
 
         private Set<ClassInfo> readClassAnnotationsFor(ClassInfo classInfo) {
+            // The annotation ordering doesn't matter, as they will be sorted later.
             Set<ClassInfo> annotations = new HashSet<>(classInfo.getAnnotations());
             annotations.addAll(selectInheritedAnnotations(classInfo.getSuperclasses()));
             annotations.addAll(selectInheritedAnnotations(classInfo.getImplementedInterfaces()));
@@ -376,6 +377,7 @@ public class ScanApi extends DefaultTask {
         }
 
         private Set<ClassInfo> readInterfaceAnnotationsFor(ClassInfo classInfo) {
+            // The annotation ordering doesn't matter, as they will be sorted later.
             Set<ClassInfo> annotations = new HashSet<>(classInfo.getAnnotations());
             annotations.addAll(selectInheritedAnnotations(classInfo.getSuperinterfaces()));
             return annotations;

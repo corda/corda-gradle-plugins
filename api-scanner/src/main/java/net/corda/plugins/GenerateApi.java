@@ -1,6 +1,7 @@
 package net.corda.plugins;
 
 import org.gradle.api.DefaultTask;
+import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.OutputFile;
@@ -54,7 +55,8 @@ public class GenerateApi extends DefaultTask {
                     Files.copy(apiFile.toPath(), output);
                 }
             } catch (IOException e) {
-                getLogger().error("Failed to generate API file", e);
+                getLogger().error("Failed to generate API file: {}", e.getMessage());
+                throw new InvalidUserCodeException(e.getMessage(), e);
             }
         }
     }
