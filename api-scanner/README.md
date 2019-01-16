@@ -38,8 +38,18 @@ scanApi {
     excludeClasses = [
         ...
     ]
+
+    //Methods that should be excluded from the output.
+    excludeMethods = [
+        "class_name" = [
+            "method_1_signature",
+            "method_2_signature"
+        ]
+    ]
 }
 ```
+For the `excludeMethods` option, the method signature should be the method name, followed by the descriptor used internally by the JVM.
+For instance, for the method `int[] m(int i, String s)`, the signature `m(ILjava/lang/String;)[I` should be used. The method name for constructors is `<init>`.
 
 All of the `ScanApi` tasks write their output files to their own `$buildDir/api` directory, where they
 are collated into a single output file by the `GenerateApi` task. The `GenerateApi` task is declared
