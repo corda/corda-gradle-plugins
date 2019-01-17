@@ -3,6 +3,7 @@ package net.corda.plugins;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
@@ -26,6 +27,11 @@ public class GenerateApi extends DefaultTask {
 
     public void setBaseName(String baseName) {
         this.baseName = baseName;
+    }
+
+    @Input
+    public String getBaseName() {
+        return baseName;
     }
 
     @InputFiles
