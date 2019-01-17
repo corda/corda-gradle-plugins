@@ -41,7 +41,7 @@ scanApi {
 
     //Methods that should be excluded from the output.
     excludeMethods = [
-        "class_name" = [
+        "class_name": [
             "method_1_signature",
             "method_2_signature"
         ]
