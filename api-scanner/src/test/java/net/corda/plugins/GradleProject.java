@@ -26,7 +26,7 @@ import static org.junit.Assert.*;
  * JUnit rule to execute the scanApi Gradle task. This rule should be chained with TemporaryFolder.
  */
 public class GradleProject implements TestRule {
-    private static final String testGradleUserHome = System.getProperty("test.gradle.user.home", "");
+    private static final String TEST_GRADLE_USER_HOME = System.getProperty("test.gradle.user.home", "");
 
     private final TemporaryFolder projectDir;
     private final String name;
@@ -94,8 +94,8 @@ public class GradleProject implements TestRule {
         List<String> args = new ArrayList<>(taskNames.length + 3);
         Collections.addAll(args, taskNames);
         args.add("--info");
-        if (!testGradleUserHome.isEmpty()) {
-            Collections.addAll(args,"-g", testGradleUserHome);
+        if (!TEST_GRADLE_USER_HOME.isEmpty()) {
+            Collections.addAll(args, "-g", TEST_GRADLE_USER_HOME);
         }
         return args;
     }
