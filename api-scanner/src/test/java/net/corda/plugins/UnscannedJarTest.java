@@ -15,21 +15,21 @@ import static net.corda.plugins.GradleProject.getGradleArgsForTasks;
 import static org.gradle.testkit.runner.TaskOutcome.NO_SOURCE;
 import static org.junit.Assert.*;
 
-public class UnscannedJarsTest {
+public class UnscannedJarTest {
 
     @Rule
     public final TemporaryFolder testProjectDir = new TemporaryFolder();
 
     @Before
     public void setup() throws IOException {
-        installResource(testProjectDir, "unscanned-jars/build.gradle");
+        installResource(testProjectDir, "unscanned-jar/build.gradle");
         installResource(testProjectDir, "repositories.gradle");
         installResource(testProjectDir, "settings.gradle");
         installResource(testProjectDir, "gradle.properties");
     }
 
     @Test
-    public void testUnscannedJars() {
+    public void testUnscannedJar() {
         BuildResult result = GradleRunner.create()
             .withProjectDir(testProjectDir.getRoot())
             .withArguments(getGradleArgsForTasks("scanApi"))

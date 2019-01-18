@@ -3,8 +3,8 @@ package net.corda.plugins;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.tasks.TaskCollection;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.jvm.tasks.Jar;
 
@@ -24,29 +24,32 @@ public class ApiScanner implements Plugin<Project> {
 
         ScannerExtension extension = project.getExtensions().create("scanApi", ScannerExtension.class);
 
-        // Register the scanning task lazily, which ensures that it
-        // will be configured after the project has been evaluated.
+        // Register the scanning task lazily, so that it will be configured after the project has been evaluated.
         project.getLogger().info("Adding scanApi task to {}", project.getName());
         TaskProvider<ScanApi> scanProvider = project.getTasks().register("scanApi", ScanApi.class, scanTask -> {
-            TaskCollection<Jar> jarTasks = project.getTasks()
-                .withType(Jar.class)
-                .matching(jarTask -> jarTask.getClassifier().isEmpty() && jarTask.isEnabled());
+            ConfigurableFileCollection jarSources = project.files();
+
+            project.getTasks().withType(Jar.class, jarTask -> {
+                if (jarTask.getClassifier().isEmpty() && jarTask.isEnabled()) {
+                    jarSources.from(jarTask);
+                }
+            });
 
             scanTask.setClasspath(compilationClasspath(project.getConfigurations()));
             // Automatically creates a dependency on jar tasks.
-            scanTask.setSources(project.files(jarTasks));
+            scanTask.setSources(jarSources);
             scanTask.setExcludeClasses(extension.getExcludeClasses());
             scanTask.setExcludeMethods(extension.getExcludeMethods());
             scanTask.setVerbose(extension.isVerbose());
             scanTask.setEnabled(extension.isEnabled());
         });
 
-        // Declare this ScanApi task to be a dependency of any
-        // GenerateApi tasks belonging to any of our ancestors.
-        project.getRootProject().getTasks()
-            .withType(GenerateApi.class)
-            .matching(generateTask -> isAncestorOf(generateTask.getProject(), project))
-            .forEach(generateTask -> generateTask.dependsOn(scanProvider));
+        // Declare this ScanApi task to be a dependency of any GenerateApi tasks belonging to any of our ancestors.
+        project.getRootProject().getTasks().withType(GenerateApi.class, generateTask -> {
+            if (isAncestorOf(generateTask.getProject(), project)) {
+                generateTask.dependsOn(scanProvider);
+            }
+        });
     }
 
     /*

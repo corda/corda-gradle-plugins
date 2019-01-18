@@ -30,6 +30,7 @@ public class GradleProject implements TestRule {
 
     private final TemporaryFolder projectDir;
     private final String name;
+    private String taskName = "scanApi";
 
     private String output;
     private Path api;
@@ -38,6 +39,11 @@ public class GradleProject implements TestRule {
         this.projectDir = projectDir;
         this.name = name;
         this.output = "";
+    }
+
+    public GradleProject withTaskName(String taskName) {
+        this.taskName = taskName;
+        return this;
     }
 
     public Path getApi() {
@@ -69,15 +75,15 @@ public class GradleProject implements TestRule {
 
                 BuildResult result = GradleRunner.create()
                     .withProjectDir(projectDir.getRoot())
-                    .withArguments(getGradleArgsForTasks("scanApi"))
+                    .withArguments(getGradleArgsForTasks(taskName))
                     .withPluginClasspath()
                     .build();
                 output = result.getOutput();
                 System.out.println(output);
 
-                BuildTask scanApi = result.task(":scanApi");
-                assertNotNull(scanApi);
-                assertEquals(SUCCESS, scanApi.getOutcome());
+                BuildTask task = result.task(":" + taskName);
+                assertNotNull(task);
+                assertEquals(SUCCESS, task.getOutcome());
 
                 api = pathOf(projectDir, "build", "api", name + ".txt");
                 assertThat(api).isRegularFile();

@@ -4,23 +4,23 @@ plugins {
 }
 apply from: 'repositories.gradle'
 
-description 'Test unwanted jars are not scanned'
+description 'Test unwanted jar is not scanned'
 
 sourceSets {
     main {
         java {
-            srcDir file("../resources/test/unscanned-jars/java")
+            srcDir file("../resources/test/unscanned-jar/java")
         }
     }
 }
 
 jar {
-    baseName = "unscanned-jars"
+    baseName = "unscanned-jar"
     enabled = false
 }
 
 task otherJar(type: Jar) {
-    baseName = "unscanned-jars"
+    baseName = "unscanned-jar"
     classifier "other"
 }
 
