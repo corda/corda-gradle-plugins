@@ -6,6 +6,7 @@ import net.corda.plugins.SigningOptions.Companion.DEFAULT_KEYSTORE_FILE
 import net.corda.plugins.Utils.Companion.createTempFileFromResource
 import org.gradle.api.Action
 import org.gradle.api.DefaultTask
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
@@ -205,7 +206,15 @@ open class Baseform : DefaultTask() {
                 if (signing.all) nodes.flatMap(Node::getCordappList).map { it.jarFile }.distinct() else emptyList()
         jarsToSign.forEach {
             signJarOptions[SigningOptions.Key.JAR] = it.toString()
-            project.ant.invokeMethod("signjar", signJarOptions)
+            try{
+                project.ant.invokeMethod("signjar", signJarOptions)
+            }catch (e: Exception){
+                throw InvalidUserDataException("Exception while signing ${it.fileName}, " +
+                        "ensure the 'cordapp.signing.options' entry contains correct keyStore configuration, " +
+                        "or disable signing by 'cordapp.signing.enabled false'. " +
+                        if (project.logger.isInfoEnabled || project.logger.isDebugEnabled) "Search for 'ant:signjar' in log output."
+                        else "Run with --info or --debug option and search for 'ant:signjar' in log output. ", e)
+            }
         }
     }
 
