@@ -9,6 +9,7 @@ import org.junit.rules.TestRule;
 import java.io.IOException;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.gradle.testkit.runner.TaskOutcome.*;
 
 public class GenerateEmptyApiTest {
     private final TemporaryFolder testProjectDir = new TemporaryFolder();
@@ -20,6 +21,8 @@ public class GenerateEmptyApiTest {
 
     @Test
     public void testGenerateEmptyApi() throws IOException {
+        assertThat(testProject.getOutcomeOf("jar")).isNull();
+        assertThat(testProject.getOutcomeOf("scanApi")).isEqualTo(NO_SOURCE);
         assertThat(testProject.getApiLines()).isEmpty();
     }
 }

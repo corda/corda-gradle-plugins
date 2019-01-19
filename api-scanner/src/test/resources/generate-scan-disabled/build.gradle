@@ -6,12 +6,12 @@ plugins {
 }
 apply from: 'repositories.gradle'
 
-description 'Test generating overall API file'
+description 'Test generating API file when scanApi disabled'
 
 sourceSets {
     main {
         java {
-            srcDir file("../resources/test/generate-api/java")
+            srcDir file("../resources/test/generate-scan-disabled/java")
         }
     }
 }
@@ -22,9 +22,10 @@ jar {
 
 scanApi {
     verbose = true
+    enabled = false
 }
 
 task generateApi(type: GenerateApi) {
-    baseName = 'generate-api'
+    baseName = 'generate-scan-disabled'
     version = ''
 }

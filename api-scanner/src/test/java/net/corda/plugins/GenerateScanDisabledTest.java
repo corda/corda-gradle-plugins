@@ -6,20 +6,23 @@ import org.junit.rules.RuleChain;
 import org.junit.rules.TemporaryFolder;
 import org.junit.rules.TestRule;
 
+import java.io.IOException;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.gradle.testkit.runner.TaskOutcome.*;
 
-public class UnscannedJarTest {
+public class GenerateScanDisabledTest {
     private final TemporaryFolder testProjectDir = new TemporaryFolder();
-    private final GradleProject testProject = new GradleProject(testProjectDir, "unscanned-jar")
-            .withExpectedOutcome(NO_SOURCE);
+    private final GradleProject testProject = new GradleProject(testProjectDir, "generate-scan-disabled")
+            .withTaskName("generateApi");
 
     @Rule
     public TestRule rules = RuleChain.outerRule(testProjectDir).around(testProject);
 
     @Test
-    public void testUnscannedJar() {
-        assertThat(testProject.getOutcomeOf("jar")).isNull();
-        assertThat(testProject.getOutcomeOf("otherJar")).isNull();
+    public void testApiWithDisabledScan() throws IOException {
+        assertThat(testProject.getOutcomeOf("jar")).isEqualTo(SUCCESS);
+        assertThat(testProject.getOutcomeOf("scanApi")).isEqualTo(SKIPPED);
+        assertThat(testProject.getApiLines()).isEmpty();
     }
 }

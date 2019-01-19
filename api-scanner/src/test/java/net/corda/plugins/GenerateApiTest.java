@@ -9,6 +9,7 @@ import org.junit.rules.TestRule;
 import java.io.IOException;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.gradle.testkit.runner.TaskOutcome.*;
 
 public class GenerateApiTest {
     private final TemporaryFolder testProjectDir = new TemporaryFolder();
@@ -20,6 +21,8 @@ public class GenerateApiTest {
 
     @Test
     public void testGenerateApi() throws IOException {
+        assertThat(testProject.getOutcomeOf("jar")).isEqualTo(SUCCESS);
+        assertThat(testProject.getOutcomeOf("scanApi")).isEqualTo(SUCCESS);
         assertThat(testProject.getApiLines())
             .contains(
                 "public class net.corda.example.SimpleClass extends java.lang.Object",

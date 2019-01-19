@@ -17,20 +17,31 @@ public class GenerateApi extends DefaultTask {
 
     private final File outputDir;
     private String baseName;
+    private String version;
 
     public GenerateApi() {
         setGroup("Corda API");
         outputDir = new File(getProject().getBuildDir(), "api");
         baseName = "api-" + getProject().getName();
+        version = getProject().getVersion().toString();
     }
 
     public void setBaseName(String baseName) {
         this.baseName = baseName;
     }
 
+    public void setVersion(String version) {
+        this.version = version;
+    }
+
     @Input
     public String getBaseName() {
         return baseName;
+    }
+
+    @Input
+    public String getVersion() {
+        return version;
     }
 
     @InputFiles
@@ -48,7 +59,6 @@ public class GenerateApi extends DefaultTask {
     }
 
     private StringBuilder appendVersion(@Nonnull StringBuilder builder) {
-        String version = getProject().getVersion().toString();
         if (!version.isEmpty()) {
             builder.append('-').append(version);
         }
