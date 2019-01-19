@@ -45,26 +45,13 @@ public class ApiScanner implements Plugin<Project> {
         });
 
         // Declare this ScanApi task to be a dependency of any GenerateApi tasks belonging to any of our ancestors.
-        project.getRootProject().getTasks().withType(GenerateApi.class, generateTask -> {
-            if (isAncestorOf(generateTask.getProject(), project)) {
+        Project target = project;
+        while (target != null) {
+            target.getTasks().withType(GenerateApi.class, generateTask -> {
                 generateTask.dependsOn(scanProvider);
-            }
-        });
-    }
-
-    /*
-     * Recurse through a child project's parents until we reach the root,
-     * and return true iff we find our target project along the way.
-     */
-    private static boolean isAncestorOf(Project target, Project child) {
-        Project p = child;
-        while (p != null) {
-            if (p == target) {
-                return true;
-            }
-            p = p.getParent();
+            });
+            target = target.getParent();
         }
-        return false;
     }
 
     private static FileCollection compilationClasspath(ConfigurationContainer configurations) {
