@@ -1,13 +1,16 @@
 package net.corda.plugins;
 
+import org.assertj.core.api.AbstractPathAssert;
 import org.gradle.testkit.runner.BuildResult;
 import org.gradle.testkit.runner.BuildTask;
 import org.gradle.testkit.runner.GradleRunner;
+import org.gradle.testkit.runner.TaskOutcome;
 import org.junit.rules.TemporaryFolder;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -25,12 +28,16 @@ import static org.junit.Assert.*;
 /**
  * JUnit rule to execute the scanApi Gradle task. This rule should be chained with TemporaryFolder.
  */
+@SuppressWarnings("WeakerAccess")
 public class GradleProject implements TestRule {
-    private static final String testGradleUserHome = System.getProperty("test.gradle.user.home", "");
+    private static final String TEST_GRADLE_USER_HOME = System.getProperty("test.gradle.user.home", "");
 
     private final TemporaryFolder projectDir;
     private final String name;
+    private String taskName = "scanApi";
+    private TaskOutcome expectedOutcome = SUCCESS;
 
+    private BuildResult result;
     private String output;
     private Path api;
 
@@ -38,6 +45,16 @@ public class GradleProject implements TestRule {
         this.projectDir = projectDir;
         this.name = name;
         this.output = "";
+    }
+
+    public GradleProject withTaskName(String taskName) {
+        this.taskName = taskName;
+        return this;
+    }
+
+    public GradleProject withExpectedOutcome(TaskOutcome outcome) {
+        this.expectedOutcome = outcome;
+        return this;
     }
 
     public Path getApi() {
@@ -57,6 +74,19 @@ public class GradleProject implements TestRule {
         return output;
     }
 
+    public TaskOutcome getOutcomeOf(String taskName) {
+        BuildTask task = result.task(":" + taskName);
+        return task == null ? null : task.getOutcome();
+    }
+
+    private void validate(AbstractPathAssert<?> check) {
+        if (expectedOutcome == SUCCESS) {
+            check.isRegularFile();
+        } else {
+            check.doesNotExist();
+        }
+    }
+
     @Override
     public Statement apply(Statement base, Description description) {
         return new Statement() {
@@ -67,35 +97,32 @@ public class GradleProject implements TestRule {
                 installResource(projectDir, "settings.gradle");
                 installResource(projectDir, "gradle.properties");
 
-                BuildResult result = GradleRunner.create()
+                result = GradleRunner.create()
                     .withProjectDir(projectDir.getRoot())
-                    .withArguments(getGradleArgsForTasks("scanApi"))
+                    .withArguments(getGradleArgsForTasks(taskName))
                     .withPluginClasspath()
                     .build();
                 output = result.getOutput();
                 System.out.println(output);
 
-                BuildTask scanApi = result.task(":scanApi");
-                assertNotNull(scanApi);
-                assertEquals(SUCCESS, scanApi.getOutcome());
+                assertEquals(expectedOutcome, getOutcomeOf(taskName));
 
                 api = pathOf(projectDir, "build", "api", name + ".txt");
-                assertThat(api).isRegularFile();
-                base.evaluate();
+                validate(assertThat(api));
             }
         };
     }
 
-    public static Path pathOf(TemporaryFolder folder, String... elements) {
+    public static Path pathOf(@Nonnull TemporaryFolder folder, String... elements) {
         return Paths.get(folder.getRoot().getAbsolutePath(), elements);
     }
 
-    public static List<String> getGradleArgsForTasks(String... taskNames) {
-        List<String> args = new ArrayList<>(taskNames.length + 3);
+    public static List<String> getGradleArgsForTasks(@Nonnull String... taskNames) {
+        List<String> args = new ArrayList<>(taskNames.length + 4);
         Collections.addAll(args, taskNames);
-        args.add("--info");
-        if (!testGradleUserHome.isEmpty()) {
-            Collections.addAll(args,"-g", testGradleUserHome);
+        Collections.addAll(args, "--info", "--stacktrace");
+        if (!TEST_GRADLE_USER_HOME.isEmpty()) {
+            Collections.addAll(args, "-g", TEST_GRADLE_USER_HOME);
         }
         return args;
     }

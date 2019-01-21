@@ -104,7 +104,8 @@ public class ApiPrintWriter extends PrintWriter {
         if (items.isEmpty()) {
             return "";
         }
-        return items.stream().map(ApiPrintWriter::removePackageName).collect(joining(System.lineSeparator() + indentation + '@', indentation + "@", System.lineSeparator()));
+        return items.stream().map(ApiPrintWriter::removePackageName)
+            .collect(joining(System.lineSeparator() + indentation + '@', indentation + '@', System.lineSeparator()));
     }
 
     private static String removePackageName(String className) {
