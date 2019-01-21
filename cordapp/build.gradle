@@ -32,8 +32,12 @@ pluginBundle {
 }
 
 dependencies {
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
-    testCompile "commons-io:commons-io:$commons_io_version"
-    testCompile "junit:junit:$junit_version" // TODO: Unify with core
-    testCompile "org.assertj:assertj-core:$assertj_version"
+    // Gradle plugins written in Kotlin will always use Gradle's
+    // own provided Kotlin libraries at runtime. So ensure that
+    // we don't add Kotlin as a dependency in our published POM.
+    compileOnly "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+    testImplementation "org.jetbrains.kotlin:kotlin-test-junit"
+    testImplementation "commons-io:commons-io:$commons_io_version"
+    testImplementation "junit:junit:$junit_version" // TODO: Unify with core
+    testImplementation "org.assertj:assertj-core:$assertj_version"
 }

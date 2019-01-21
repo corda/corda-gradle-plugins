@@ -39,11 +39,11 @@ allprojects {
     version gradle_plugins_version
     group 'net.corda.plugins'
 
-    tasks.withType(JavaCompile).all {
+    tasks.withType(JavaCompile) {
         options.encoding = 'UTF-8'
     }
 
-    tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
+    tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile) {
         kotlinOptions {
             // When writing Gradle plugins in Kotlin, we need to restrict
             // ourselves to the same Kotlin API that Gradle itself uses.
