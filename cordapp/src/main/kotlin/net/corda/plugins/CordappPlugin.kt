@@ -63,16 +63,16 @@ class CordappPlugin : Plugin<Project> {
         }
 
         task.doLast {
-            jarTask.from(getDirectNonCordaDependencies(project).map {
-                project.logger.info("CorDapp dependency: ${it.name}")
-                project.zipTree(it)
+            jarTask.from(getDirectNonCordaDependencies(project).map {file ->
+                project.logger.info("CorDapp dependency: ${file.name}")
+                project.zipTree(file)
             }).apply {
                 exclude("META-INF/*.SF")
                 exclude("META-INF/*.DSA")
                 exclude("META-INF/*.RSA")
                 exclude("META-INF/*.MF")
-                exclude("META-INF/LICENSE")
-                exclude("META-INF/NOTICE")
+                exclude("META-INF/LICENSE*")
+                exclude("META-INF/NOTICE*")
                 exclude("META-INF/INDEX.LIST")
             }
         }
