@@ -373,7 +373,7 @@ open class Node @Inject constructor(private val project: Project) {
 
     internal fun installCordapps() {
         val cordappsDir = nodeDir.toPath().resolve("cordapps")
-        val nodeCordapps = getCordappList().map { it.jarFile }.distinct()
+        val nodeCordapps = getCordappList().map(Node.ResolvedCordapp::jarFile).distinct()
         nodeCordapps.map { nodeCordapp ->
             project.copy {
                 it.apply {
@@ -393,7 +393,7 @@ open class Node @Inject constructor(private val project: Project) {
         // with loading our custom X509EdDSAEngine.
         val organizationName = name!!.trim().split(",").firstOrNull { it.startsWith("O=") }?.substringAfter("=")
         val dirName = organizationName ?: name
-        containerName = dirName!!.replace("\\s+".toRegex(), "-").toLowerCase()
+        containerName = dirName!!.replace("\\s++".toRegex(), "-").toLowerCase()
         this.rootDir = rootDir.toFile()
         nodeDir = File(this.rootDir, dirName.replace("\\s", ""))
         Files.createDirectories(nodeDir.toPath())
@@ -431,10 +431,10 @@ open class Node @Inject constructor(private val project: Project) {
     private fun installWebserverJar() {
         // If no webserver JAR is provided, the default development webserver is used.
         val webJar = if (webserverJar == null) {
-            project.logger.info("Using default development webserver.")
+            project.logger.lifecycle("Using default development webserver.")
             Cordformation.verifyAndGetRuntimeJar(project, "corda-webserver")
         } else {
-            project.logger.info("Using custom webserver: $webserverJar.")
+            project.logger.lifecycle("Using custom webserver: $webserverJar.")
             File(webserverJar)
         }
 
@@ -469,7 +469,7 @@ open class Node @Inject constructor(private val project: Project) {
 
     internal fun installDrivers() {
         drivers?.let {
-            project.logger.info("Copy $it to './drivers' directory")
+            project.logger.lifecycle("Copy $it to './drivers' directory")
             it.forEach { path -> copyToDriversDir(File(path)) }
         }
     }

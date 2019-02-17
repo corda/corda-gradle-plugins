@@ -4,6 +4,8 @@
 
 ### Version 4.0.40
 
+* `cordformation`: `deployNodes` now works from the test runtime classpath.
+
 ### Version 4.0.39
 
 * `api-scanner`: allow to exclude methods from the API report

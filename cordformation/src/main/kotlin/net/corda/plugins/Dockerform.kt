@@ -39,7 +39,7 @@ open class Dockerform : Baseform() {
      */
     @TaskAction
     fun build() {
-        project.logger.info("Running Cordform task")
+        project.logger.lifecycle("Running Cordform task")
         initializeConfiguration()
         nodes.forEach(Node::installDockerConfig)
         installCordaJar()
