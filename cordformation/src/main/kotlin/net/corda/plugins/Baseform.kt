@@ -6,13 +6,14 @@ import net.corda.plugins.SigningOptions.Companion.DEFAULT_KEYSTORE_FILE
 import net.corda.plugins.Utils.Companion.createTempFileFromResource
 import org.gradle.api.Action
 import org.gradle.api.DefaultTask
+import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.Optional
-import org.gradle.api.tasks.SourceSet.MAIN_SOURCE_SET_NAME
+import org.gradle.api.tasks.SourceSet.TEST_SOURCE_SET_NAME
 import java.io.File
 import java.lang.reflect.InvocationTargetException
 import java.net.URLClassLoader
@@ -29,11 +30,10 @@ import java.nio.file.Paths
 open class Baseform : DefaultTask() {
     private companion object {
         const val nodeJarName = "corda.jar"
-        private val defaultDirectory: Path = Paths.get("build", "nodes")
     }
 
     @Input
-    var directory = defaultDirectory
+    var directory: Path = project.buildDir.toPath().resolve("nodes")
 
     @Nested
     protected val nodes = mutableListOf<Node>()
@@ -122,13 +122,13 @@ open class Baseform : DefaultTask() {
     private fun getNodeByName(name: String): Node? = nodes.firstOrNull { it.name == name }
 
     /**
-     * The NetworkBootstrapper needn't be compiled until just before our build method, so we load it manually via sourceSets.main.runtimeClasspath.
+     * The NetworkBootstrapper needn't be compiled until just before our build method, so we load it manually via sourceSets.test.runtimeClasspath.
      */
-    private fun loadNetworkBootstrapperClass(): Class<*> {
+    private fun loadNetworkBootstrapper(): URLClassLoader {
         val plugin = project.convention.getPlugin(JavaPluginConvention::class.java)
-        val classpath = plugin.sourceSets.getByName(MAIN_SOURCE_SET_NAME).runtimeClasspath
+        val classpath = plugin.sourceSets.getByName(TEST_SOURCE_SET_NAME).runtimeClasspath
         val urls = classpath.files.map { it.toURI().toURL() }.toTypedArray()
-        return URLClassLoader(urls).loadClass("net.corda.nodeapi.internal.network.NetworkBootstrapper")
+        return URLClassLoader(urls)
     }
 
     /**
@@ -158,7 +158,7 @@ open class Baseform : DefaultTask() {
     }
 
     private fun deleteRootDir() {
-        project.logger.info("Deleting $directory")
+        project.logger.lifecycle("Deleting $directory")
         project.delete(directory)
     }
 
@@ -167,7 +167,7 @@ open class Baseform : DefaultTask() {
      */
     protected fun generateExcludedWhitelist() {
         if (excludeWhitelist.isNotEmpty()) {
-            var fileName = "exclude_whitelist.txt"
+            val fileName = "exclude_whitelist.txt"
             logger.debug("Adding $excludeWhitelist to $fileName.")
             val rootDir = Paths.get(project.projectDir.toPath().resolve(directory).resolve(fileName).toAbsolutePath().normalize().toString())
             Files.write(rootDir, excludeWhitelist)
@@ -191,7 +191,7 @@ open class Baseform : DefaultTask() {
             if (Files.exists(Paths.get(genKeyTaskOptions[SigningOptions.Key.KEYSTORE]))) {
                 logger.warn("Skipping keystore generation to sign Cordapps, the keystore already exists at '${genKeyTaskOptions[SigningOptions.Key.KEYSTORE]}'.")
             } else {
-                logger.info("Generating keystore to sign Cordapps with options: ${genKeyTaskOptions.map { "${it.key}=${it.value}" }.joinToString()}.")
+                logger.lifecycle("Generating keystore to sign Cordapps with options: ${genKeyTaskOptions.map { "${it.key}=${it.value}" }.joinToString()}.")
                 project.ant.invokeMethod("genkey", genKeyTaskOptions)
             }
         }
@@ -203,7 +203,7 @@ open class Baseform : DefaultTask() {
         }
 
         val jarsToSign = mutableListOf(project.tasks.getByName(SigningOptions.Key.JAR).outputs.files.singleFile.toPath()) +
-                if (signing.all) nodes.flatMap(Node::getCordappList).map { it.jarFile }.distinct() else emptyList()
+                if (signing.all) nodes.flatMap(Node::getCordappList).map(Node.ResolvedCordapp::jarFile).distinct() else emptyList()
         jarsToSign.forEach {
             signJarOptions[SigningOptions.Key.JAR] = it.toString()
             try{
@@ -219,16 +219,26 @@ open class Baseform : DefaultTask() {
     }
 
     protected fun bootstrapNetwork() {
-        val networkBootstrapperClass = loadNetworkBootstrapperClass()
-        val networkBootstrapper = networkBootstrapperClass.newInstance()
-        val bootstrapMethod = networkBootstrapperClass.getMethod("bootstrapCordform", Path::class.java, List::class.java).apply { isAccessible = true }
-        val allCordapps = nodes.flatMap(Node::getCordappList).map { it.jarFile }.distinct()
-        val rootDir = project.projectDir.toPath().resolve(directory).toAbsolutePath().normalize()
-        try {
-            // Call NetworkBootstrapper.bootstrap
-            bootstrapMethod.invoke(networkBootstrapper, rootDir, allCordapps)
-        } catch (e: InvocationTargetException) {
-            throw e.cause!!
+        loadNetworkBootstrapper().use { cl ->
+            val networkBootstrapperClass = cl.loadNetworkBootstrapper()
+            val networkBootstrapper = networkBootstrapperClass.newInstance()
+            val bootstrapMethod = networkBootstrapperClass.getMethod("bootstrapCordform", Path::class.java, List::class.java).apply { isAccessible = true }
+            val allCordapps = nodes.flatMap(Node::getCordappList).map(Node.ResolvedCordapp::jarFile).distinct()
+            val rootDir = project.projectDir.toPath().resolve(directory).toAbsolutePath().normalize()
+            try {
+                // Call NetworkBootstrapper.bootstrap
+                bootstrapMethod.invoke(networkBootstrapper, rootDir, allCordapps)
+            } catch (e: InvocationTargetException) {
+                throw e.cause!!.let { InvalidUserCodeException(it.message ?: "", it) }
+            }
+        }
+    }
+
+    private fun ClassLoader.loadNetworkBootstrapper(): Class<*> {
+        return try {
+            loadClass("net.corda.nodeapi.internal.network.NetworkBootstrapper")
+        } catch (e: ClassNotFoundException) {
+            throw InvalidUserCodeException("Cannot find the NetworkBootstrapper class. Please ensure that 'corda-node-api' is available on Gradle's test runtime classpath.", e)
         }
     }
 }
