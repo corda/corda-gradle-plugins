@@ -220,7 +220,7 @@ open class Baseform : DefaultTask() {
 
     protected fun bootstrapNetwork() {
         loadNetworkBootstrapper().use { cl ->
-            val networkBootstrapperClass: Class<*> = cl.loadClass("net.corda.nodeapi.internal.network.NetworkBootstrapper")
+            val networkBootstrapperClass = cl.loadNetworkBootstrapper()
             val networkBootstrapper = networkBootstrapperClass.newInstance()
             val bootstrapMethod = networkBootstrapperClass.getMethod("bootstrapCordform", Path::class.java, List::class.java).apply { isAccessible = true }
             val allCordapps = nodes.flatMap(Node::getCordappList).map(Node.ResolvedCordapp::jarFile).distinct()
@@ -231,6 +231,14 @@ open class Baseform : DefaultTask() {
             } catch (e: InvocationTargetException) {
                 throw e.cause!!.let { InvalidUserCodeException(it.message ?: "", it) }
             }
+        }
+    }
+
+    private fun ClassLoader.loadNetworkBootstrapper(): Class<*> {
+        return try {
+            loadClass("net.corda.nodeapi.internal.network.NetworkBootstrapper")
+        } catch (e: ClassNotFoundException) {
+            throw InvalidUserCodeException("Cannot find the NetworkBootstrapper class. Please ensure that 'corda-node-api' is available on Gradle's test runtime classpath.", e)
         }
     }
 }
