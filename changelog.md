@@ -2,6 +2,8 @@
 
 ## Version 4
 
+### Version 4.0.41
+
 ### Version 4.0.40
 
 * `cordformation`: `deployNodes` now works from the test runtime classpath.
