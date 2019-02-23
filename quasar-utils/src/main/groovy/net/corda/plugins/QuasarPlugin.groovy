@@ -15,7 +15,7 @@ class QuasarPlugin implements Plugin<Project> {
 
     @Override
     void apply(Project project) {
-        Utils.createRuntimeConfiguration("cordaRuntime", project)
+        Utils.createRuntimeConfiguration("cordaRuntime", project.configurations)
         def quasar = project.configurations.create("quasar")
 
         def rootProject = project.rootProject
