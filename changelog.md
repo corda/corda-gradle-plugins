@@ -4,6 +4,8 @@
 
 ### Version 4.0.42
 
+* `cordformation`: Add Jolokia agent to the `cordaRuntime` configuration to prevent the `cordapp` plugin from including it inside the CorDapp.
+
 ### Version 4.0.41
 
 * `cordformation`: Unload `SecurityProvider` instances installed by Network Bootstrapper to prevent linkage exceptions later.

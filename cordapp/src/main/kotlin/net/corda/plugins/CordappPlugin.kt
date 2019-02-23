@@ -34,9 +34,9 @@ class CordappPlugin : Plugin<Project> {
             throw GradleException("Gradle versionId ${project.gradle.gradleVersion} is below the supported minimum versionId $MIN_GRADLE_VERSION. Please update Gradle or consider using Gradle wrapper if it is provided with the project. More information about CorDapp build system can be found here: https://docs.corda.net/cordapp-build-systems.html")
         }
 
-        Utils.createCompileConfiguration("cordapp", project)
-        Utils.createCompileConfiguration("cordaCompile", project)
-        Utils.createRuntimeConfiguration("cordaRuntime", project)
+        Utils.createCompileConfiguration("cordapp", project.configurations)
+        Utils.createCompileConfiguration("cordaCompile", project.configurations)
+        Utils.createRuntimeConfiguration("cordaRuntime", project.configurations)
 
         cordapp = project.extensions.create("cordapp", CordappExtension::class.java, project.objects)
         configurePomCreation(project)

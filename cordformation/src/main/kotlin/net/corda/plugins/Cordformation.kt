@@ -54,8 +54,11 @@ class Cordformation : Plugin<Project> {
     }
 
     override fun apply(project: Project) {
-        Utils.createCompileConfiguration("cordapp", project)
-        Utils.createRuntimeConfiguration(CORDFORMATION_TYPE, project)
+        project.configurations.apply {
+            Utils.createCompileConfiguration("cordapp", this)
+            val cordaRuntime = Utils.createRuntimeConfiguration("cordaRuntime", this)
+            Utils.createChildConfiguration(CORDFORMATION_TYPE, cordaRuntime, this)
+        }
         // TODO: improve how we re-use existing declared external variables from root gradle.build
         val jolokiaVersion = try { project.rootProject.ext<String>("jolokia_version") } catch (e: Exception) { "1.6.0" }
         val jolokia = project.dependencies.add(CORDFORMATION_TYPE, "org.jolokia:jolokia-jvm:$jolokiaVersion:agent")
