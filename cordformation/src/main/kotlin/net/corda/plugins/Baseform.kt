@@ -234,31 +234,37 @@ open class Baseform : DefaultTask() {
             } catch (e: InvocationTargetException) {
                 throw e.cause!!.let { InvalidUserCodeException(it.message ?: "", it) }
             } finally {
-                /*
-                 * Ensure we remove any [SecurityProvider] instances that the
-                 * Network Bootstrapper may have registered. Otherwise the JVM
-                 * will be unable to delete this [ClassLoader] from memory.
-                 */
-                Security.getProviders().forEach { provider ->
-                    if (provider::class.java.classLoader == cl) {
-                        Security.removeProvider(provider.name)
-                    }
-                }
-
-                /*
-                 * Shutdown the most likely SFL4J implementations that
-                 * Network Bootstrapper could be using.
-                 */
-                cl.shutdownLog4J2()
-                cl.shutdownLog4J()
-                cl.shutdownLogback()
-
-                /*
-                 * Make sure JCL isn't holding onto anything either.
-                 */
-                cl.shutdownCommonsLogging()
+                // Clean up anything else that could prevent the
+                // Network Bootstrapper jar from being unloaded.
+                cleanupNetworkBootstrapper(cl)
             }
         }
+    }
+
+    private fun cleanupNetworkBootstrapper(classLoader: ClassLoader) {
+        /*
+         * Ensure we remove any [SecurityProvider] instances that the
+         * Network Bootstrapper may have registered. Otherwise the JVM
+         * will be unable to delete this [ClassLoader] from memory.
+         */
+        Security.getProviders().forEach { provider ->
+            if (provider::class.java.classLoader == classLoader) {
+                Security.removeProvider(provider.name)
+            }
+        }
+
+        /*
+         * Shutdown the most likely SFL4J implementations that
+         * Network Bootstrapper could have been using.
+         */
+        classLoader.shutdownLog4J2()
+        classLoader.shutdownLog4J()
+        classLoader.shutdownLogback()
+
+        /*
+         * Make sure JCL isn't holding onto anything either.
+         */
+        classLoader.shutdownCommonsLogging()
     }
 
     private fun ClassLoader.loadNetworkBootstrapper(): Class<*> {
