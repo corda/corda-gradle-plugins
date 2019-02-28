@@ -2,6 +2,8 @@
 
 ## Version 4
 
+### Version 4.0.42
+
 ### Version 4.0.41
 
 * `cordformation`: Unload `SecurityProvider` instances installed by Network Bootstrapper to prevent linkage exceptions later.
