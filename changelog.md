@@ -4,6 +4,10 @@
 
 ### Version 4.0.41
 
+* `cordformation`: Unload `SecurityProvider` instances installed by Network Bootstrapper to prevent linkage exceptions later.
+
+* `cordformation`: Revert `deployNodes` back to using the runtime classpath again. Anything needed solely by `deployNodes` can be added to Gradle's `runtimeOnly` configuration instead.
+
 ### Version 4.0.40
 
 * `cordformation`: `deployNodes` now works from the test runtime classpath.
