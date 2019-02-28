@@ -13,13 +13,14 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.Optional
-import org.gradle.api.tasks.SourceSet.TEST_SOURCE_SET_NAME
+import org.gradle.api.tasks.SourceSet.MAIN_SOURCE_SET_NAME
 import java.io.File
 import java.lang.reflect.InvocationTargetException
 import java.net.URLClassLoader
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.security.Security
 
 /**
  * Creates nodes based on the configuration of this task in the gradle configuration DSL.
@@ -122,13 +123,15 @@ open class Baseform : DefaultTask() {
     private fun getNodeByName(name: String): Node? = nodes.firstOrNull { it.name == name }
 
     /**
-     * The NetworkBootstrapper needn't be compiled until just before our build method, so we load it manually via sourceSets.test.runtimeClasspath.
+     * The NetworkBootstrapper needn't be compiled until just before our build method,
+     * so we load it manually via sourceSets.main.runtimeClasspath.
      */
-    private fun loadNetworkBootstrapper(): URLClassLoader {
+    private fun createNetworkBootstrapperLoader(): URLClassLoader {
         val plugin = project.convention.getPlugin(JavaPluginConvention::class.java)
-        val classpath = plugin.sourceSets.getByName(TEST_SOURCE_SET_NAME).runtimeClasspath
+        val classpath = plugin.sourceSets.getByName(MAIN_SOURCE_SET_NAME).runtimeClasspath
         val urls = classpath.files.map { it.toURI().toURL() }.toTypedArray()
-        return URLClassLoader(urls)
+        // This classloader should be self-contained. Don't assign Gradle's classloader as its parent.
+        return URLClassLoader(urls, null)
     }
 
     /**
@@ -219,7 +222,7 @@ open class Baseform : DefaultTask() {
     }
 
     protected fun bootstrapNetwork() {
-        loadNetworkBootstrapper().use { cl ->
+        createNetworkBootstrapperLoader().use { cl ->
             val networkBootstrapperClass = cl.loadNetworkBootstrapper()
             val networkBootstrapper = networkBootstrapperClass.newInstance()
             val bootstrapMethod = networkBootstrapperClass.getMethod("bootstrapCordform", Path::class.java, List::class.java).apply { isAccessible = true }
@@ -230,15 +233,67 @@ open class Baseform : DefaultTask() {
                 bootstrapMethod.invoke(networkBootstrapper, rootDir, allCordapps)
             } catch (e: InvocationTargetException) {
                 throw e.cause!!.let { InvalidUserCodeException(it.message ?: "", it) }
+            } finally {
+                // Clean up anything else that could prevent the
+                // Network Bootstrapper jar from being unloaded.
+                cleanupNetworkBootstrapper(cl)
             }
         }
+    }
+
+    private fun cleanupNetworkBootstrapper(classLoader: ClassLoader) {
+        /*
+         * Ensure we remove any [SecurityProvider] instances that the
+         * Network Bootstrapper may have registered. Otherwise the JVM
+         * will be unable to delete this [ClassLoader] from memory.
+         */
+        Security.getProviders().forEach { provider ->
+            if (provider::class.java.classLoader == classLoader) {
+                Security.removeProvider(provider.name)
+            }
+        }
+
+        /*
+         * Shutdown the most likely SFL4J implementations that
+         * Network Bootstrapper could have been using.
+         */
+        classLoader.shutdownLog4J2()
+        classLoader.shutdownLog4J()
+        classLoader.shutdownLogback()
+
+        /*
+         * Make sure JCL isn't holding onto anything either.
+         */
+        classLoader.shutdownCommonsLogging()
     }
 
     private fun ClassLoader.loadNetworkBootstrapper(): Class<*> {
         return try {
             loadClass("net.corda.nodeapi.internal.network.NetworkBootstrapper")
         } catch (e: ClassNotFoundException) {
-            throw InvalidUserCodeException("Cannot find the NetworkBootstrapper class. Please ensure that 'corda-node-api' is available on Gradle's test runtime classpath.", e)
+            throw InvalidUserCodeException("Cannot find the NetworkBootstrapper class. Please ensure that 'corda-node-api' is available on Gradle's runtime classpath, "
+                    + "e.g. by adding it to Gradle's 'runtimeOnly' configuration.", e)
         }
+    }
+
+    private fun ClassLoader.shutdownCommonsLogging() = execute("org.apache.commons.logging.LogFactory", "releaseAll") { c, m -> invoke(c, m, null) }
+    private fun ClassLoader.shutdownLog4J() = execute("org.apache.log4j.LogManager", "shutdown") { c, m -> invoke(c, m, null) }
+    private fun ClassLoader.shutdownLog4J2() = execute("org.apache.logging.log4j.LogManager", "shutdown") { c, m -> invoke(c, m, null) }
+    private fun ClassLoader.shutdownLogback() = execute("ch.qos.logback.classic.LoggerContext", "stop") { c, m ->
+        val iLogger = invoke("org.slf4j.LoggerFactory", "getILoggerFactory", null)
+        invoke(c, m, iLogger)
+    }
+
+    private fun ClassLoader.execute(className: String, methodName: String, body: (String, String) -> Unit) {
+        try {
+            body(className, methodName)
+            logger.info("Executed {}.{}() successfully", className, methodName)
+        } catch (e: Exception) {
+            logger.debug("Failed to execute {}.{}(): {} ({})", className, methodName, e::class.java.name, e.message)
+        }
+    }
+
+    private fun ClassLoader.invoke(className: String, methodName: String, obj: Any?): Any? {
+        return loadClass(className).getDeclaredMethod(methodName).invoke(obj)
     }
 }
