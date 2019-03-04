@@ -2,6 +2,7 @@ package net.corda.plugins
 
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.plugins.ExtraPropertiesExtension
 import java.nio.file.Files
 import java.nio.file.Path
@@ -18,24 +19,24 @@ fun Project.configuration(name: String): Configuration = configurations.single {
 
 class Utils {
     companion object {
-        fun createCompileConfiguration(name: String, project: Project) {
-            if (project.configurations.none { it.name == name }) {
-                val configuration = project.configurations.create(name) {
+        fun createChildConfiguration(name: String, parent: Configuration, configurations: ConfigurationContainer): Configuration {
+            return configurations.findByName(name) ?: run {
+                val configuration = configurations.create(name) {
                     it.isTransitive = false
                 }
-                project.configurations.single { it.name == "compile" }.extendsFrom(configuration)
+                parent.extendsFrom(configuration)
+                configuration
             }
+        }
+
+        fun createCompileConfiguration(name: String, configurations: ConfigurationContainer): Configuration {
+            return createChildConfiguration(name, configurations.single { it.name == "compile" }, configurations)
         }
 
         // This function is called from the groovy quasar-utils plugin.
         @JvmStatic
-        fun createRuntimeConfiguration(name: String, project: Project) {
-            if (project.configurations.none { it.name == name }) {
-                val configuration = project.configurations.create(name) {
-                    it.isTransitive = false
-                }
-                project.configurations.single { it.name == "runtime" }.extendsFrom(configuration)
-            }
+        fun createRuntimeConfiguration(name: String, configurations: ConfigurationContainer): Configuration {
+            return createChildConfiguration(name, configurations.single { it.name == "runtime" }, configurations)
         }
 
         @JvmStatic
