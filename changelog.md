@@ -2,6 +2,8 @@
 
 ## Version 4
 
+### Version 4.0.43
+
 ### Version 4.0.42
 
 * `cordformation`: Add Jolokia agent to the `cordaRuntime` configuration to prevent the `cordapp` plugin from including it inside the CorDapp.
