@@ -26,7 +26,6 @@ class QuasarPluginTest {
     void checkDefaultVersionIsUsed() {
         def output = runGradleFor """
 plugins {
-    id 'java'
     id 'net.corda.plugins.quasar-utils' apply false
 }
 
@@ -71,7 +70,6 @@ buildscript {
 }
 
 plugins {
-    id 'java'
     id 'net.corda.plugins.quasar-utils' apply false
 }
 
@@ -106,7 +104,6 @@ configs.collectEntries { [(it.name):it] }.forEach { name, files ->
     void checkForTransitiveDependencies() {
         def output = runGradleFor """
 plugins {
-    id 'java'
     id 'net.corda.plugins.quasar-utils' apply false
 }
 
@@ -140,7 +137,6 @@ configs.collectEntries { [(it.name):it] }.forEach { name, files ->
     void checkJVMArgsAddedForTests() {
         def output = runGradleFor """
 plugins {
-    id 'java'
     id 'net.corda.plugins.quasar-utils' apply false
 }
 

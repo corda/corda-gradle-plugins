@@ -4,6 +4,8 @@
 
 ### Version 4.0.45
 
+* `quasar-utils`: Apply the `java` plugin automatically.
+
 ### Version 4.0.44
 
 * `cordapp`: Explicitly configure all of the CorDapp's `jar` task properties to ensure the CorDapp has a stable SHA256 hash.
