@@ -2,6 +2,7 @@ package net.corda.plugins
 
 import org.gradle.api.Project
 import org.gradle.api.Plugin
+import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.testing.Test
 import org.gradle.api.tasks.JavaExec
 
@@ -15,6 +16,10 @@ class QuasarPlugin implements Plugin<Project> {
 
     @Override
     void apply(Project project) {
+        // Apply the Java plugin on the assumption that we're building a JAR.
+        // This will also create the "compile", "compileOnly" and "runtime" configurations.
+        project.pluginManager.apply(JavaPlugin)
+
         Utils.createRuntimeConfiguration("cordaRuntime", project.configurations)
         def quasar = project.configurations.create("quasar")
 
@@ -30,11 +35,11 @@ class QuasarPlugin implements Plugin<Project> {
         // This adds Quasar to the compile classpath WITHOUT any of its transitive dependencies.
         project.dependencies.add("compileOnly", quasar)
 
-        project.tasks.withType(Test).all {
+        project.tasks.withType(Test) {
             jvmArgs "-javaagent:${project.configurations.quasar.singleFile}"
             jvmArgs "-Dco.paralleluniverse.fibers.verifyInstrumentation"
         }
-        project.tasks.withType(JavaExec).all {
+        project.tasks.withType(JavaExec) {
             jvmArgs "-javaagent:${project.configurations.quasar.singleFile}"
             jvmArgs "-Dco.paralleluniverse.fibers.verifyInstrumentation"
         }

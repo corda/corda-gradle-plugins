@@ -161,7 +161,7 @@ open class Baseform : DefaultTask() {
     }
 
     private fun deleteRootDir() {
-        project.logger.lifecycle("Deleting $directory")
+        logger.lifecycle("Deleting $directory")
         project.delete(directory)
     }
 
@@ -171,7 +171,7 @@ open class Baseform : DefaultTask() {
     protected fun generateExcludedWhitelist() {
         if (excludeWhitelist.isNotEmpty()) {
             val fileName = "exclude_whitelist.txt"
-            logger.debug("Adding $excludeWhitelist to $fileName.")
+            logger.debug("Adding {} to {}.", excludeWhitelist, fileName)
             val rootDir = Paths.get(project.projectDir.toPath().resolve(directory).resolve(fileName).toAbsolutePath().normalize().toString())
             Files.write(rootDir, excludeWhitelist)
         }

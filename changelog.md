@@ -10,6 +10,8 @@
 
 * `cordformation`: Add Jolokia agent to the `cordaRuntime` configuration to prevent the `cordapp` plugin from including it inside the CorDapp.
 
+* `quasar-utils`: Apply the `java` plugin automatically.
+
 ## Version 4
 
 ### Version 4.0.40
