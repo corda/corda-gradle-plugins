@@ -462,9 +462,11 @@ open class Node @Inject constructor(private val project: Project) {
                     (it.name == "jolokia-jvm") &&
                     (it.version == jolokiaVersion)
             // TODO: revisit when classifier attribute is added. eg && (it.classifier = "agent")
-        }.first()  // should always be the jolokia agent fat jar: eg. jolokia-jvm-1.6.0-agent.jar
-        project.logger.info("Jolokia agent jar: $agentJar")
-        copyToDriversDir(agentJar)
+        }.firstOrNull()
+        agentJar?.let {
+            project.logger.info("Jolokia agent jar: $it")
+            copyToDriversDir(it)
+        }
     }
 
     internal fun installDrivers() {
