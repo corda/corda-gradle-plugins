@@ -9,7 +9,17 @@ import org.gradle.api.java.archives.Attributes
 import org.gradle.api.publish.maven.internal.publication.MavenPomInternal
 import org.gradle.api.publish.maven.tasks.GenerateMavenPom
 import org.gradle.jvm.tasks.Jar
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.OutputStream
+import java.nio.ByteBuffer
+import java.security.MessageDigest
+import java.util.*
+import java.util.zip.ZipEntry
+import java.util.zip.ZipFile
+import java.util.zip.ZipOutputStream
+import javax.xml.bind.DatatypeConverter
 
 /**
  * The Cordapp plugin will turn a project into a cordapp project which builds cordapp JARs with the correct format
@@ -20,6 +30,12 @@ class CordappPlugin : Plugin<Project> {
     private companion object {
         private const val UNKNOWN = "Unknown"
         private const val MIN_GRADLE_VERSION = "4.0"
+
+        val contractCordappConfigurationName = "contractCordapp"
+        val flowCordappConfigurationName = "cordapp"
+        val cordaCompileConfigName = "cordaCompile"
+        val cordaRuntimeConfigurationName = "cordaRuntime"
+
     }
 
     /**
@@ -34,9 +50,11 @@ class CordappPlugin : Plugin<Project> {
             throw GradleException("Gradle versionId ${project.gradle.gradleVersion} is below the supported minimum versionId $MIN_GRADLE_VERSION. Please update Gradle or consider using Gradle wrapper if it is provided with the project. More information about CorDapp build system can be found here: https://docs.corda.net/cordapp-build-systems.html")
         }
 
-        Utils.createCompileConfiguration("cordapp", project.configurations)
-        Utils.createCompileConfiguration("cordaCompile", project.configurations)
-        Utils.createRuntimeConfiguration("cordaRuntime", project.configurations)
+
+        val contractsCordapp = Utils.createCompileConfiguration(contractCordappConfigurationName, project.configurations)
+        val flowCordapp = Utils.createCompileConfiguration(flowCordappConfigurationName, project.configurations)
+        val cordaCompile = Utils.createCompileConfiguration(cordaCompileConfigName, project.configurations)
+        val cordaRuntime = Utils.createRuntimeConfiguration(cordaRuntimeConfigurationName, project.configurations)
 
         cordapp = project.extensions.create("cordapp", CordappExtension::class.java, project.objects)
         configurePomCreation(project)
@@ -63,7 +81,9 @@ class CordappPlugin : Plugin<Project> {
         }
 
         task.doLast {
-            jarTask.from(getDirectNonCordaDependencies(project).map {file ->
+            val directNonCordaDependencies = getDirectNonCordaDependencies(project).toMutableSet()
+            addContractDependenciesListToJar(project, directNonCordaDependencies)
+            jarTask.from(directNonCordaDependencies.map { file ->
                 project.logger.info("CorDapp dependency: ${file.name}")
                 project.zipTree(file)
             }).apply {
@@ -77,6 +97,26 @@ class CordappPlugin : Plugin<Project> {
             }
         }
         jarTask.dependsOn(task)
+    }
+
+    private fun addContractDependenciesListToJar(project: Project, directNonCordaDependencies: MutableSet<File>) {
+        val hashes = calculateContractDependencyHashes(project)
+        val cordInfFolder = File(project.buildDir, "CORDA-DEPS")
+        cordInfFolder.mkdir()
+        val backingFile = File(cordInfFolder, "deps.zip")
+        backingFile.outputStream().use { fileOutputStream ->
+            ZipOutputStream(fileOutputStream).use { zipOutputStream ->
+                zipOutputStream.putNextEntry(ZipEntry("CORDA-INF/DEPENDENCIES.MF"))
+                zipOutputStream.bufferedWriter().use { writer ->
+                    hashes.forEach { hash ->
+                        writer.write(hash.toString())
+                        writer.newLine()
+                    }
+                }
+
+            }
+        }
+        directNonCordaDependencies.add(backingFile)
     }
 
     private fun configureCordappAttributes(project: Project, jarTask: Jar, attributes: Attributes) {
@@ -131,18 +171,24 @@ class CordappPlugin : Plugin<Project> {
         //we need to use the final artifact name, not the project name
         //for example, project(":core") needs to be translated into net.corda:corda-core
 
-        return project.configuration("cordapp").allDependencies +
-                project.configuration("cordaCompile").allDependencies +
-                project.configuration("cordaRuntime").allDependencies
+        return project.configuration(contractCordappConfigurationName).allDependencies +
+                project.configuration(flowCordappConfigurationName).allDependencies +
+                project.configuration(cordaCompileConfigName).allDependencies +
+                project.configuration(cordaRuntimeConfigurationName).allDependencies
     }
 
-    private fun hardCodedExcludes(): Set<Pair<String, String>>{
+    private fun calculateContractDependencyHashes(project: Project): List<SecureHash> {
+        val contractDependenciesFiles = project.configuration(contractCordappConfigurationName).files
+        return contractDependenciesFiles.map { it.readBytes().sha256() }
+    }
+
+    private fun hardCodedExcludes(): Set<Pair<String, String>> {
         val excludes = setOf(
-            ("org.jetbrains.kotlin"  to "kotlin-stdlib"),
-            ("org.jetbrains.kotlin" to "kotlin-stdlib-jre8"),
-            ("org.jetbrains.kotlin" to "kotlin-stdlib-jdk8"),
-            ("org.jetbrains.kotlin" to "kotlin-reflect"),
-            ("co.paralleluniverse" to "quasar-core")
+                ("org.jetbrains.kotlin" to "kotlin-stdlib"),
+                ("org.jetbrains.kotlin" to "kotlin-stdlib-jre8"),
+                ("org.jetbrains.kotlin" to "kotlin-stdlib-jdk8"),
+                ("org.jetbrains.kotlin" to "kotlin-reflect"),
+                ("co.paralleluniverse" to "quasar-core")
         )
         return excludes
     }
@@ -164,15 +210,16 @@ class CordappPlugin : Plugin<Project> {
             val group = it.group ?: ""
             if (group.startsWith("net.corda.") || group.startsWith("com.r3.corda.")) {
                 project.logger.warn(
-                    "You appear to have included a Corda platform component ($it) using a 'compile' or 'runtime' dependency." +
-                            "This can cause node stability problems. Please use 'corda' instead." +
-                            "See http://docs.corda.net/cordapp-build-systems.html"
+                        "You appear to have included a Corda platform component ($it) using a 'compile' or 'runtime' dependency." +
+                                "This can cause node stability problems. Please use 'corda' instead." +
+                                "See http://docs.corda.net/cordapp-build-systems.html"
                 )
             } else {
                 project.logger.info("Including dependency in CorDapp JAR: $it")
             }
         }
-        return filteredDeps.toUniqueFiles(runtimeConfiguration) - excludeDeps.toUniqueFiles(runtimeConfiguration)
+        val excludedFiles = excludeDeps.toUniqueFiles(runtimeConfiguration)
+        return filteredDeps.toUniqueFiles(runtimeConfiguration) - excludedFiles
     }
 
     private fun checkPlatformVersionInfo(): Pair<Int, Int> {
