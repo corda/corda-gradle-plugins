@@ -3,8 +3,8 @@ package net.corda.plugins;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.tasks.TaskCollection;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.jvm.tasks.Jar;
 
@@ -27,13 +27,10 @@ public class ApiScanner implements Plugin<Project> {
         // Register the scanning task lazily, so that it will be configured after the project has been evaluated.
         project.getLogger().info("Adding scanApi task to {}", project.getName());
         TaskProvider<ScanApi> scanProvider = project.getTasks().register("scanApi", ScanApi.class, scanTask -> {
-            ConfigurableFileCollection jarSources = project.files();
-
-            project.getTasks().withType(Jar.class, jarTask -> {
-                if (jarTask.getClassifier().isEmpty() && jarTask.isEnabled()) {
-                    jarSources.from(jarTask);
-                }
-            });
+            TaskCollection<Jar> jarTasks = project.getTasks()
+                .withType(Jar.class)
+                .matching(jarTask -> jarTask.getClassifier().isEmpty() && jarTask.isEnabled());
+            FileCollection jarSources = project.files(jarTasks);
 
             scanTask.setClasspath(compilationClasspath(project.getConfigurations()));
             // Automatically creates a dependency on jar tasks.
