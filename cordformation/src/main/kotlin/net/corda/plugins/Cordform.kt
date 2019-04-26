@@ -1,7 +1,9 @@
 package net.corda.plugins
 
 import org.apache.tools.ant.filters.FixCrLfFilter
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.TaskAction
+import javax.inject.Inject
 
 /**
  * Creates nodes based on the configuration of this task in the gradle configuration DSL.
@@ -9,7 +11,7 @@ import org.gradle.api.tasks.TaskAction
  * See documentation for examples.
  */
 @Suppress("unused")
-open class Cordform : Baseform() {
+open class Cordform @Inject constructor(objects: ObjectFactory) : Baseform(objects) {
     internal companion object {
         const val nodeJarName = "corda.jar"
     }

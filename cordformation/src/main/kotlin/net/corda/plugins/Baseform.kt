@@ -9,6 +9,7 @@ import org.gradle.api.Action
 import org.gradle.api.DefaultTask
 import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
@@ -29,7 +30,7 @@ import java.security.Security
  * See documentation for examples.
  */
 @Suppress("unused")
-open class Baseform : DefaultTask() {
+open class Baseform(objects: ObjectFactory) : DefaultTask() {
 
     private companion object {
         const val nodeJarName = "corda.jar"
@@ -43,7 +44,7 @@ open class Baseform : DefaultTask() {
 
     @get:Optional
     @get:Nested
-    protected val networkParameterOverrides : NetworkParameterOverrides = NetworkParameterOverrides(project)
+    protected val networkParameterOverrides: NetworkParameterOverrides = objects.newInstance(NetworkParameterOverrides::class.java, project)
 
     /**
      * Set the directory to install nodes into.
@@ -78,7 +79,7 @@ open class Baseform : DefaultTask() {
      * Configuration for keystore generation and JAR signing.
      */
     @get:Input
-    val signing: KeyGenAndSigning = project.objects.newInstance(KeyGenAndSigning::class.java)
+    val signing: KeyGenAndSigning = objects.newInstance(KeyGenAndSigning::class.java)
 
     fun signing(action: Action<in KeyGenAndSigning>) {
         action.execute(signing)
@@ -277,7 +278,7 @@ open class Baseform : DefaultTask() {
 
     private fun invokeBootstrap(networkBootstrapperClass: Class<*>, rootDir: Path, allCordapps: List<Path>) {
         try {
-            if (networkParameterOverrides.packageOwnerships.isEmpty()) {
+            if (networkParameterOverrides.packageOwnership.isEmpty()) {
                 val bootstrapMethod = networkBootstrapperClass.getMethod("bootstrapCordform", Path::class.java, List::class.java).apply { isAccessible = true }
                 bootstrapMethod.invoke(networkBootstrapperClass.newInstance(), rootDir, allCordapps)
             } else {
