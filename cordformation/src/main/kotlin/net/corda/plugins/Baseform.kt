@@ -35,10 +35,10 @@ open class Baseform : DefaultTask() {
         const val nodeJarName = "corda.jar"
     }
 
-    @Input
+    @get:Input
     var directory: Path = project.buildDir.toPath().resolve("nodes")
 
-    @Nested
+    @get:Nested
     protected val nodes = mutableListOf<Node>()
 
     @get:Optional
@@ -70,14 +70,14 @@ open class Baseform : DefaultTask() {
      * support this for a [Closure]. However, these defaults are
      * applied to every node anyway so [Internal] should be fine.
      */
-    @Optional
-    @Internal
+    @get:Optional
+    @get:Internal
     var nodeDefaults: Closure<in Node>? = null
 
     /**
      * Configuration for keystore generation and JAR signing.
      */
-    @Input
+    @get:Input
     val signing: KeyGenAndSigning = project.objects.newInstance(KeyGenAndSigning::class.java)
 
     fun signing(action: Action<in KeyGenAndSigning>) {
@@ -87,7 +87,7 @@ open class Baseform : DefaultTask() {
     /**
      * List of classes to be included in "exclude_whitelist.txt" file for network-bootstrapper.
      */
-    @Input
+    @get:Input
     var excludeWhitelist: List<String> = listOf()
 
     fun excludeWhitelist(map: List<String>) {

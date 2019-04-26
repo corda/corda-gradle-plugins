@@ -8,7 +8,9 @@ import org.apache.commons.io.FilenameUtils.removeExtension
 import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ProjectDependency
-import org.gradle.api.tasks.*
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.Optional
 import java.io.File
 import java.nio.charset.StandardCharsets
@@ -77,27 +79,27 @@ open class Node @Inject constructor(private val project: Project) {
      *
      * Incorrect configurations will not cause a DSL error.
      */
-    @Optional
-    @Input
+    @get:Optional
+    @get:Input
     var rpcUsers: List<Map<String, Any>> = emptyList()
 
     /**
      * Apply the notary configuration if this node is a notary. The map is the config structure of
      * net.corda.node.services.config.NotaryConfig
      */
-    @Optional
-    @Input
+    @get:Optional
+    @get:Input
     var notary: Map<String, Any> = emptyMap()
 
-    @Optional
-    @Input
+    @get:Optional
+    @get:Input
     var extraConfig: Map<String, Any> = emptyMap()
 
     /**
      * Copy files into the node relative directory './drivers'.
      */
-    @Optional
-    @Input
+    @get:Optional
+    @get:Input
     var drivers: List<String>? = null
 
     /**

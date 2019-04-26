@@ -13,14 +13,14 @@ open class Cordapp private constructor(
     constructor(cordappProject: Project) : this(null, cordappProject)
 
     // The configuration text that will be written
-    @Optional
-    @Input
+    @get:Optional
+    @get:Input
     internal var config: String? = null
 
     /**
      * Determines whether or not CordFormation will deploy this CorDapp into Corda.
      */
-    @Input
+    @get:Input
     var deploy: Boolean = true
 
     /**
