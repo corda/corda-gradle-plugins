@@ -1,5 +1,6 @@
 package net.corda.plugins
 
+import com.typesafe.config.ConfigRenderOptions
 import groovy.lang.Closure
 import net.corda.plugins.SigningOptions.Companion.DEFAULT_KEYSTORE_EXTENSION
 import net.corda.plugins.SigningOptions.Companion.DEFAULT_KEYSTORE_FILE
@@ -29,6 +30,7 @@ import java.security.Security
  */
 @Suppress("unused")
 open class Baseform : DefaultTask() {
+
     private companion object {
         const val nodeJarName = "corda.jar"
     }
@@ -38,6 +40,10 @@ open class Baseform : DefaultTask() {
 
     @Nested
     protected val nodes = mutableListOf<Node>()
+
+    @get:Optional
+    @get:Nested
+    protected val networkParameterOverrides : NetworkParameterOverrides = NetworkParameterOverrides(project)
 
     /**
      * Set the directory to install nodes into.
@@ -112,6 +118,10 @@ open class Baseform : DefaultTask() {
             node.configureFunc()
             nodes += node
         }
+    }
+
+    fun networkParameterOverrides(action: Action<in NetworkParameterOverrides>) {
+        action.execute(networkParameterOverrides)
     }
 
     /**
@@ -224,13 +234,11 @@ open class Baseform : DefaultTask() {
     protected fun bootstrapNetwork() {
         createNetworkBootstrapperLoader().use { cl ->
             val networkBootstrapperClass = cl.loadNetworkBootstrapper()
-            val networkBootstrapper = networkBootstrapperClass.newInstance()
-            val bootstrapMethod = networkBootstrapperClass.getMethod("bootstrapCordform", Path::class.java, List::class.java).apply { isAccessible = true }
             val allCordapps = nodes.flatMap(Node::getCordappList).map(Node.ResolvedCordapp::jarFile).distinct()
             val rootDir = project.projectDir.toPath().resolve(directory).toAbsolutePath().normalize()
             try {
                 // Call NetworkBootstrapper.bootstrap
-                bootstrapMethod.invoke(networkBootstrapper, rootDir, allCordapps)
+                invokeBootstrap(networkBootstrapperClass, rootDir, allCordapps)
             } catch (e: InvocationTargetException) {
                 throw e.cause!!.let { InvalidUserCodeException(it.message ?: "", it) }
             } finally {
@@ -265,6 +273,20 @@ open class Baseform : DefaultTask() {
          * Make sure JCL isn't holding onto anything either.
          */
         classLoader.shutdownCommonsLogging()
+    }
+
+    private fun invokeBootstrap(networkBootstrapperClass: Class<*>, rootDir: Path, allCordapps: List<Path>) {
+        try {
+            if (networkParameterOverrides.packageOwnerships.isEmpty()) {
+                val bootstrapMethod = networkBootstrapperClass.getMethod("bootstrapCordform", Path::class.java, List::class.java).apply { isAccessible = true }
+                bootstrapMethod.invoke(networkBootstrapperClass.newInstance(), rootDir, allCordapps)
+            } else {
+                val bootstrapMethod = networkBootstrapperClass.getMethod("bootstrapCordform", Path::class.java, List::class.java, String::class.java).apply { isAccessible = true }
+                bootstrapMethod.invoke(networkBootstrapperClass.newInstance(), rootDir, allCordapps, networkParameterOverrides.toConfig().root().render(ConfigRenderOptions.concise()))
+            }
+        } catch (e: NoSuchMethodException) {
+            throw InvalidUserCodeException("Unrecognised configuration options passed. Please ensure you're using the correct 'corda-node-api' version on Gradle's runtime classpath.", e.cause!!)
+        }
     }
 
     private fun ClassLoader.loadNetworkBootstrapper(): Class<*> {
