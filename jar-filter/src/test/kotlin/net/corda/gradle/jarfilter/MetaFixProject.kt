@@ -10,6 +10,7 @@ import org.junit.runner.Description
 import org.junit.runners.model.Statement
 import java.io.FileNotFoundException
 import java.nio.file.Path
+import kotlin.test.fail
 
 @Suppress("UNUSED")
 class MetaFixProject(private val projectDir: TemporaryFolder, private val name: String) : TestRule {
@@ -40,8 +41,7 @@ class MetaFixProject(private val projectDir: TemporaryFolder, private val name: 
                 _output = result.output
                 println(output)
 
-                val metafix = result.task(":metafix")
-                    ?: throw AssertionError("No outcome for metafix task")
+                val metafix = result.task(":metafix") ?: fail("No outcome for metafix task")
                 assertEquals(SUCCESS, metafix.outcome)
 
                 _sourceJar = projectDir.pathOf("build", "libs", "$name.jar")

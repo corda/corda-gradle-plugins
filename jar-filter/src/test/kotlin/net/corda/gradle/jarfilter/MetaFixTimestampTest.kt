@@ -17,6 +17,7 @@ import java.util.Calendar.FEBRUARY
 import java.util.zip.ZipEntry
 import java.util.zip.ZipEntry.*
 import java.util.zip.ZipFile
+import kotlin.test.fail
 
 class MetaFixTimestampTest {
     companion object {
@@ -62,8 +63,7 @@ class MetaFixTimestampTest {
                     output = result.output
                     println(output)
 
-                    val metafix = result.task(":metafix")
-                        ?: throw AssertionError("No outcome for metafix task")
+                    val metafix = result.task(":metafix") ?: fail("No outcome for metafix task")
                     assertEquals(SUCCESS, metafix.outcome)
 
                     metafixedJar = testProjectDir.pathOf("build", "metafixer-libs", "timestamps-metafixed.jar")

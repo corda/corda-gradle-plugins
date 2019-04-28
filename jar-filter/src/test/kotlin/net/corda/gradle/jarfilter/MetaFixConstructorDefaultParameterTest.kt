@@ -11,6 +11,7 @@ import org.junit.Assert.*
 import org.junit.BeforeClass
 import org.junit.Test
 import kotlin.reflect.full.primaryConstructor
+import kotlin.test.fail
 
 class MetaFixConstructorDefaultParameterTest {
     companion object {
@@ -42,7 +43,7 @@ class MetaFixConstructorDefaultParameterTest {
         }
 
         val sourcePrimary = sourceClass.kotlin.primaryConstructor
-                ?: throw AssertionError("source primary constructor missing")
+                ?: fail("source primary constructor missing")
         sourcePrimary.call(BIG_NUMBER, NUMBER, MESSAGE).apply {
             assertThat(longData()).isEqualTo(BIG_NUMBER)
             assertThat(intData()).isEqualTo(NUMBER)
@@ -50,7 +51,7 @@ class MetaFixConstructorDefaultParameterTest {
         }
 
         val sourceSecondary = sourceClass.kotlin.constructors.firstOrNull { it != sourcePrimary }
-                ?: throw AssertionError("source secondary constructor missing")
+                ?: fail("source secondary constructor missing")
         sourceSecondary.call('X', MESSAGE).apply {
             assertThat(stringData()).isEqualTo("X$MESSAGE")
         }
@@ -70,14 +71,14 @@ class MetaFixConstructorDefaultParameterTest {
     @Test
     fun `test fixed primary constructor has mandatory parameters`() {
         val fixedPrimary = fixedClass.kotlin.primaryConstructor
-                ?: throw AssertionError("fixed primary constructor missing")
+                ?: fail("fixed primary constructor missing")
         assertTrue("All fixed parameters should be mandatory", fixedPrimary.hasAllMandatoryParameters)
     }
 
     @Test
     fun `test fixed secondary constructor still has optional parameters`() {
         val fixedSecondary = (fixedClass.kotlin.constructors - fixedClass.kotlin.primaryConstructor).firstOrNull()
-                ?: throw AssertionError("fixed secondary constructor missing")
+                ?: fail("fixed secondary constructor missing")
         assertTrue("Some fixed parameters should be optional", fixedSecondary.hasAnyOptionalParameters)
     }
 

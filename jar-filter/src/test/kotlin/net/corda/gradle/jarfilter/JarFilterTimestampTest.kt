@@ -16,6 +16,7 @@ import java.util.*
 import java.util.Calendar.FEBRUARY
 import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
+import kotlin.test.fail
 
 class JarFilterTimestampTest {
     companion object {
@@ -61,8 +62,7 @@ class JarFilterTimestampTest {
                     output = result.output
                     println(output)
 
-                    val jarFilter = result.task(":jarFilter")
-                        ?: throw AssertionError("No outcome for jarFilter task")
+                    val jarFilter = result.task(":jarFilter") ?: fail("No outcome for jarFilter task")
                     assertEquals(SUCCESS, jarFilter.outcome)
 
                     filteredJar = testProjectDir.pathOf("build", "filtered-libs", "timestamps-filtered.jar")
