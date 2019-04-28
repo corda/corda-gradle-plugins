@@ -68,7 +68,7 @@ class JarFilterConfigurationTest {
         println(output)
 
         assertThat(output).containsSubsequence(
-            "Caused by: org.gradle.api.GradleException:",
+            "Caused by: org.gradle.api.InvalidUserCodeException:",
             "Caused by: java.io.FileNotFoundException:"
         )
 

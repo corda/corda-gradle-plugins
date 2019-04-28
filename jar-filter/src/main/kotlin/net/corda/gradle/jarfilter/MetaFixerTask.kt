@@ -2,8 +2,12 @@ package net.corda.gradle.jarfilter
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileCollection
+import org.gradle.api.file.ProjectLayout
 import org.gradle.api.logging.Logger
+import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.Property
 import org.gradle.api.tasks.*
 import java.io.Closeable
 import java.io.File
@@ -13,15 +17,17 @@ import java.util.zip.Deflater.BEST_COMPRESSION
 import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
 import java.util.zip.ZipOutputStream
+import javax.inject.Inject
 
-@Suppress("Unused", "MemberVisibilityCanBePrivate")
-open class MetaFixerTask : DefaultTask() {
+@Suppress("Unused")
+open class MetaFixerTask @Inject constructor(objects: ObjectFactory, layouts: ProjectLayout) : DefaultTask() {
     private val _jars: ConfigurableFileCollection = project.files()
     @get:SkipWhenEmpty
     @get:InputFiles
     val jars: FileCollection
         get() = _jars
 
+    @Suppress("MemberVisibilityCanBePrivate")
     fun setJars(inputs: Any?) {
         val files = inputs ?: return
         _jars.setFrom(files)
@@ -29,30 +35,31 @@ open class MetaFixerTask : DefaultTask() {
 
     fun jars(inputs: Any?) = setJars(inputs)
 
-    private var _outputDir = project.buildDir.resolve("metafixer-libs")
     @get:Internal
-    val outputDir: File
-        get() = _outputDir
-
-    fun setOutputDir(d: File?) {
-        val dir = d ?: return
-        _outputDir = dir
+    val outputDir: DirectoryProperty = layouts.directoryProperty().apply {
+        set(layouts.buildDirectory.dir("metafixer-libs"))
     }
 
-    fun outputDir(dir: File?) = setOutputDir(dir)
-
-    private var _suffix: String = "-metafixed"
-    @get:Input
-    val suffix: String get() = _suffix
-
-    fun setSuffix(input: String?) {
-        _suffix = input ?: return
+    fun outputDir(dir: File) {
+        outputDir.set(dir)
     }
 
-    fun suffix(suffix: String?) = setSuffix(suffix)
+    @get:Input
+    val suffix: Property<String> = objects.property(String::class.java).apply {
+        set("-metafixed")
+    }
+
+    fun suffix(sfx: String?) = suffix.set(sfx)
 
     @get:Input
-    var preserveTimestamps: Boolean = true
+    val preserveTimestamps: Property<Boolean> = objects.property(Boolean::class.javaObjectType).apply {
+        set(true)
+    }
+
+    @get:OutputFiles
+    val metafixed: FileCollection get() = project.files(jars.map(::toMetaFixed))
+
+    private fun toMetaFixed(source: File) = outputDir.file(suffix.map { sfx -> source.name.replace(JAR_PATTERN, "$sfx\$1") })
 
     @TaskAction
     fun fixMetadata() {
@@ -63,21 +70,16 @@ open class MetaFixerTask : DefaultTask() {
                 MetaFix(jar).use(MetaFix::run)
             }
         } catch (e: Exception) {
-            rethrowAsUncheckedException(e)
+            throw e.asUncheckedException()
         }
     }
-
-    @get:OutputFiles
-    val metafixed: FileCollection get() = project.files(jars.map(::toMetaFixed))
-
-    private fun toMetaFixed(source: File) = File(outputDir, source.name.replace(JAR_PATTERN, "$suffix\$1"))
 
     private inner class MetaFix(inFile: File) : Closeable {
         /**
          * Use [ZipFile] instead of [java.util.jar.JarInputStream] because
          * JarInputStream consumes MANIFEST.MF when it's the first or second entry.
          */
-        private val target: Path = toMetaFixed(inFile).toPath()
+        private val target: Path = toMetaFixed(inFile).get().asFile.toPath()
         private val inJar = ZipFile(inFile)
         private val outJar: ZipOutputStream
 
@@ -106,13 +108,13 @@ open class MetaFixerTask : DefaultTask() {
                 if (entry.isDirectory || !entry.name.endsWith(".class")) {
                     // This entry's byte contents have not changed,
                     // but may still need to be recompressed.
-                    outJar.putNextEntry(entry.copy().withFileTimestamps(preserveTimestamps))
+                    outJar.putNextEntry(entry.copy().withFileTimestamps(preserveTimestamps.get()))
                     entryData.copyTo(outJar)
                 } else {
                     // This entry's byte contents have almost certainly
                     // changed, and will be stored compressed.
                     val classData = entryData.readBytes().fixMetadata(logger, classNames)
-                    outJar.putNextEntry(entry.asCompressed().withFileTimestamps(preserveTimestamps))
+                    outJar.putNextEntry(entry.asCompressed().withFileTimestamps(preserveTimestamps.get()))
                     outJar.write(classData)
                 }
             }
