@@ -4,7 +4,11 @@ import org.gradle.api.Action
 import org.gradle.api.DefaultTask
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileCollection
+import org.gradle.api.file.ProjectLayout
+import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.Property
 import org.gradle.api.tasks.*
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassWriter
@@ -17,10 +21,11 @@ import java.nio.file.StandardCopyOption.*
 import java.util.zip.Deflater.BEST_COMPRESSION
 import java.util.zip.ZipFile
 import java.util.zip.ZipOutputStream
+import javax.inject.Inject
 import kotlin.math.max
 
-@Suppress("Unused", "MemberVisibilityCanBePrivate")
-open class JarFilterTask : DefaultTask() {
+@Suppress("Unused")
+open class JarFilterTask @Inject constructor(objects: ObjectFactory, layouts: ProjectLayout) : DefaultTask() {
     private companion object {
         private const val DEFAULT_MAX_PASSES = 5
     }
@@ -30,6 +35,7 @@ open class JarFilterTask : DefaultTask() {
     @get:InputFiles
     val jars: FileCollection get() = _jars
 
+    @Suppress("MemberVisibilityCanBePrivate")
     fun setJars(inputs: Any?) {
         val files = inputs ?: return
         _jars.setFrom(files)
@@ -38,75 +44,77 @@ open class JarFilterTask : DefaultTask() {
     fun jars(inputs: Any?) = setJars(inputs)
 
     @get:Nested
-    val annotations: FilterAnnotations = project.objects.newInstance(FilterAnnotations::class.java)
+    val annotations: FilterAnnotations = objects.newInstance(FilterAnnotations::class.java)
 
     fun annotations(action: Action<in FilterAnnotations>) {
         action.execute(annotations)
     }
 
     @get:Console
-    var verbose: Boolean = false
-
-    @get:Input
-    var maxPasses: Int = DEFAULT_MAX_PASSES
-        set(value) {
-            field = max(value, 1)
-        }
-
-    @get:Input
-    var preserveTimestamps: Boolean = true
-
-    private var _outputDir = project.buildDir.resolve("filtered-libs")
-    @get:Internal
-    val outputDir: File get() = _outputDir
-
-    fun setOutputDir(d: File?) {
-        val dir = d ?: return
-        _outputDir = dir
+    val verbose: Property<Boolean> = objects.property(Boolean::class.javaObjectType).apply {
+        set(false)
     }
 
-    fun outputDir(dir: File?) = setOutputDir(dir)
+    @get:Input
+    val maxPasses: Property<Int> = objects.property(Int::class.javaObjectType).apply {
+        set(DEFAULT_MAX_PASSES)
+    }
+
+    @get:Input
+    val preserveTimestamps: Property<Boolean> = objects.property(Boolean::class.javaObjectType).apply {
+        set(true)
+    }
+
+    @get:Internal
+    val outputDir: DirectoryProperty = layouts.directoryProperty().apply {
+        set(layouts.buildDirectory.dir("filtered-libs"))
+    }
+
+    fun outputDir(dir: File) {
+        outputDir.set(dir)
+    }
 
     @get:OutputFiles
     val filtered: FileCollection get() = project.files(jars.map(::toFiltered))
 
-    private fun toFiltered(source: File) = File(outputDir, source.name.replace(JAR_PATTERN, "-filtered\$1"))
+    private fun toFiltered(source: File) = outputDir.file(source.name.replace(JAR_PATTERN, "-filtered\$1"))
 
     @TaskAction
     fun filterJars() {
         logger.info("JarFiltering:")
-        with(annotations.forDelete) {
+        val annotationValues = annotations.values
+        with(annotationValues.forDelete) {
             if (isNotEmpty()) {
                 logger.info("- Elements annotated with one of '{}' will be deleted", joinToString())
             }
         }
-        with(annotations.forStub) {
+        with(annotationValues.forStub) {
             if (isNotEmpty()) {
                 logger.info("- Methods annotated with one of '{}' will be stubbed out", joinToString())
             }
         }
-        with(annotations.forRemove) {
+        with(annotationValues.forRemove) {
             if (isNotEmpty()) {
                 logger.info("- Annotations '{}' will be removed entirely", joinToString())
             }
         }
-        with(annotations.forSanitise) {
+        with(annotationValues.forSanitise) {
             if (isNotEmpty()) {
                 logger.info("- Annotations '{}' will be removed from primary constructors", joinToString())
             }
         }
-        checkDistinctAnnotations()
+        checkDistinctAnnotations(annotationValues)
         try {
             for (jar in jars) {
                 logger.info("Filtering {}", jar)
-                Filter(jar).run()
+                Filter(jar, annotationValues).run()
             }
         } catch (e: Exception) {
-            rethrowAsUncheckedException(e)
+            throw e.asUncheckedException()
         }
     }
 
-    private fun checkDistinctAnnotations() = with(annotations) {
+    private fun checkDistinctAnnotations(annotationValues: FilterAnnotations.Values) = with(annotationValues) {
         logger.info("Checking that all annotations are distinct.")
         val allAnnotations = (forRemove + forDelete + forStub - forRemove).toMutableSet()
         forDelete.forEach {
@@ -119,7 +127,7 @@ open class JarFilterTask : DefaultTask() {
                 failWith("Annotation '$it' also appears in JarFilter 'forStub' section")
             }
         }
-        if (!allAnnotations.isEmpty()) {
+        if (allAnnotations.isNotEmpty()) {
             failWith("SHOULDN'T HAPPEN - Martian annotations! '${allAnnotations.joinToString()}'")
         }
     }
@@ -127,20 +135,20 @@ open class JarFilterTask : DefaultTask() {
     private fun failWith(message: String): Nothing = throw InvalidUserDataException(message)
 
     private fun verbose(format: String, vararg objects: Any) {
-        if (verbose) {
+        if (verbose.get()) {
             logger.info(format, *objects)
         }
     }
 
-    private inner class Filter(inFile: File) {
+    private inner class Filter(inFile: File, private val annotationValues: FilterAnnotations.Values) {
         private val unwantedElements = UnwantedCache()
         private val source: Path = inFile.toPath()
-        private val target: Path = toFiltered(inFile).toPath()
+        private val target: Path = toFiltered(inFile).get().asFile.toPath()
 
-        private val descriptorsForRemove = toDescriptors(annotations.forRemove)
-        private val descriptorsForDelete = toDescriptors(annotations.forDelete)
-        private val descriptorsForStub = toDescriptors(annotations.forStub)
-        private val descriptorsForSanitising = toDescriptors(annotations.forSanitise)
+        private val descriptorsForRemove = toDescriptors(annotationValues.forRemove)
+        private val descriptorsForDelete = toDescriptors(annotationValues.forDelete)
+        private val descriptorsForStub = toDescriptors(annotationValues.forStub)
+        private val descriptorsForSanitising = toDescriptors(annotationValues.forSanitise)
 
         init {
             Files.deleteIfExists(target)
@@ -155,6 +163,7 @@ open class JarFilterTask : DefaultTask() {
                     input = target.moveToInput()
                 }
 
+                val maxPasses = max(this@JarFilterTask.maxPasses.get(), 1)
                 var passes = 1
                 while (true) {
                     verbose("Pass {}", passes)
@@ -171,7 +180,8 @@ open class JarFilterTask : DefaultTask() {
                     input = target.moveToInput()
                 }
             } catch (e: Exception) {
-                logger.error("Error filtering '{}' elements from {}", arrayListOf(annotations.forRemove) + annotations.forDelete + annotations.forStub, input)
+                val filterAnnotations = arrayListOf(annotationValues.forRemove) + annotationValues.forDelete + annotationValues.forStub
+                logger.error("Error filtering '{}' elements from {}", filterAnnotations, input)
                 throw e
             }
         }
@@ -210,14 +220,14 @@ open class JarFilterTask : DefaultTask() {
                     if (entry.isDirectory || !entry.name.endsWith(".class")) {
                         // This entry's byte contents have not changed,
                         // but may still need to be recompressed.
-                        outJar.putNextEntry(entry.copy().withFileTimestamps(preserveTimestamps))
+                        outJar.putNextEntry(entry.copy().withFileTimestamps(preserveTimestamps.get()))
                         entryData.copyTo(outJar)
                     } else {
                         val classData = transform(entryData.readBytes())
                         if (classData.isNotEmpty()) {
                             // This entry's byte contents have almost certainly
                             // changed, and will be stored compressed.
-                            outJar.putNextEntry(entry.asCompressed().withFileTimestamps(preserveTimestamps))
+                            outJar.putNextEntry(entry.asCompressed().withFileTimestamps(preserveTimestamps.get()))
                             outJar.write(classData)
                         }
                     }

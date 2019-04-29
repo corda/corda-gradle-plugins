@@ -16,6 +16,7 @@ import java.lang.reflect.InvocationTargetException
 import kotlin.jvm.kotlin
 import kotlin.reflect.full.primaryConstructor
 import kotlin.test.assertFailsWith
+import kotlin.test.fail
 
 class SanitiseStubConstructorTest {
     companion object {
@@ -56,10 +57,10 @@ class SanitiseStubConstructorTest {
                     assertThat("<init>(J) not found", this, hasItem(longConstructor))
                     assertEquals(constructorCount, this.size)
                 }
-                val primary = kotlin.primaryConstructor ?: throw AssertionError("primary constructor missing")
+                val primary = kotlin.primaryConstructor ?: fail("primary constructor missing")
                 assertThat(primary.call(BIG_NUMBER).longData()).isEqualTo(BIG_NUMBER)
 
-                val noArg = kotlin.noArgConstructor ?: throw AssertionError("no-arg constructor missing")
+                val noArg = kotlin.noArgConstructor ?: fail("no-arg constructor missing")
                 assertThat(noArg.callBy(emptyMap()).longData()).isEqualTo(0)
                 assertThat(newInstance().longData()).isEqualTo(0)
             }
@@ -74,10 +75,10 @@ class SanitiseStubConstructorTest {
                     assertThat("<init>(J) not found", this, hasItem(longConstructor))
                     assertEquals(constructorCount, this.size)
                 }
-                val primary = kotlin.primaryConstructor ?: throw AssertionError("primary constructor missing")
+                val primary = kotlin.primaryConstructor ?: fail("primary constructor missing")
                 assertThat(primary.call(BIG_NUMBER).longData()).isEqualTo(BIG_NUMBER)
 
-                val noArg = kotlin.noArgConstructor ?: throw AssertionError("no-arg constructor missing")
+                val noArg = kotlin.noArgConstructor ?: fail("no-arg constructor missing")
                 assertThat(assertFailsWith<InvocationTargetException> { noArg.callBy(emptyMap()) }.targetException)
                     .isInstanceOf(UnsupportedOperationException::class.java)
                     .hasMessage("Method has been deleted")
@@ -111,10 +112,10 @@ class SanitiseStubConstructorTest {
                     assertThat("<init>(I) not found", this, hasItem(intConstructor))
                     assertEquals(constructorCount, this.size)
                 }
-                val primary = kotlin.primaryConstructor ?: throw AssertionError("primary constructor missing")
+                val primary = kotlin.primaryConstructor ?: fail("primary constructor missing")
                 assertThat(primary.call(NUMBER).intData()).isEqualTo(NUMBER)
 
-                val noArg = kotlin.noArgConstructor ?: throw AssertionError("no-arg constructor missing")
+                val noArg = kotlin.noArgConstructor ?: fail("no-arg constructor missing")
                 assertThat(noArg.callBy(emptyMap()).intData()).isEqualTo(0)
                 assertThat(newInstance().intData()).isEqualTo(0)
             }
@@ -129,10 +130,10 @@ class SanitiseStubConstructorTest {
                     assertThat("<init>(I) not found", this, hasItem(intConstructor))
                     assertEquals(constructorCount, this.size)
                 }
-                val primary = kotlin.primaryConstructor ?: throw AssertionError("primary constructor missing")
+                val primary = kotlin.primaryConstructor ?: fail("primary constructor missing")
                 assertThat(primary.call(NUMBER).intData()).isEqualTo(NUMBER)
 
-                val noArg = kotlin.noArgConstructor ?: throw AssertionError("no-arg constructor missing")
+                val noArg = kotlin.noArgConstructor ?: fail("no-arg constructor missing")
                 assertThat(assertFailsWith<InvocationTargetException> { noArg.callBy(emptyMap()) }.targetException)
                     .isInstanceOf(UnsupportedOperationException::class.java)
                     .hasMessage("Method has been deleted")
@@ -166,10 +167,10 @@ class SanitiseStubConstructorTest {
                     assertThat("<init>(String) not found", this, hasItem(stringConstructor))
                     assertEquals(constructorCount, this.size)
                 }
-                val primary = kotlin.primaryConstructor ?: throw AssertionError("primary constructor missing")
+                val primary = kotlin.primaryConstructor ?: fail("primary constructor missing")
                 assertThat(primary.call(MESSAGE).stringData()).isEqualTo(MESSAGE)
 
-                val noArg = kotlin.noArgConstructor ?: throw AssertionError("no-arg constructor missing")
+                val noArg = kotlin.noArgConstructor ?: fail("no-arg constructor missing")
                 assertThat(noArg.callBy(emptyMap()).stringData()).isEqualTo(DEFAULT_MESSAGE)
                 assertThat(newInstance().stringData()).isEqualTo(DEFAULT_MESSAGE)
             }
@@ -184,10 +185,10 @@ class SanitiseStubConstructorTest {
                     assertThat("<init>(String) not found", this, hasItem(stringConstructor))
                     assertEquals(constructorCount, this.size)
                 }
-                val primary = kotlin.primaryConstructor ?: throw AssertionError("primary constructor missing")
+                val primary = kotlin.primaryConstructor ?: fail("primary constructor missing")
                 assertThat(primary.call(MESSAGE).stringData()).isEqualTo(MESSAGE)
 
-                val noArg = kotlin.noArgConstructor ?: throw AssertionError("no-arg constructor missing")
+                val noArg = kotlin.noArgConstructor ?: fail("no-arg constructor missing")
                 assertThat(assertFailsWith<InvocationTargetException> { noArg.callBy(emptyMap()) }.targetException)
                     .isInstanceOf(UnsupportedOperationException::class.java)
                     .hasMessage("Method has been deleted")
@@ -208,7 +209,7 @@ class SanitiseStubConstructorTest {
                     assertEquals(1, this.size)
                 }
 
-                val primary = kotlin.primaryConstructor ?: throw AssertionError("primary constructor missing")
+                val primary = kotlin.primaryConstructor ?: fail("primary constructor missing")
                 primary.call(NUMBER, MESSAGE).also { complex ->
                     assertThat((complex as HasString).stringData()).isEqualTo(MESSAGE)
                     assertThat((complex as HasInt).intData()).isEqualTo(NUMBER)
@@ -232,7 +233,7 @@ class SanitiseStubConstructorTest {
                     assertEquals(1, this.size)
                 }
 
-                val primary = kotlin.primaryConstructor ?: throw AssertionError("primary constructor missing")
+                val primary = kotlin.primaryConstructor ?: fail("primary constructor missing")
                 primary.call(NUMBER, MESSAGE).also { complex ->
                     assertThat((complex as HasString).stringData()).isEqualTo(MESSAGE)
                     assertThat((complex as HasInt).intData()).isEqualTo(NUMBER)
