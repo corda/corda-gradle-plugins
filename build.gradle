@@ -11,7 +11,7 @@ buildscript {
         junit_jupiter_version = '5.4.2'
         junit_platform_version = '1.4.2'
         junit_version = '4.12'
-        asm_version = '6.2.1'
+        asm_version = '7.1'
     }
 
     repositories {

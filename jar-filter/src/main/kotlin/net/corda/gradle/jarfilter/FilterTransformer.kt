@@ -26,7 +26,7 @@ class FilterTransformer private constructor (
     private val unwantedFields: MutableSet<FieldElement>,
     private val deletedMethods: MutableSet<MethodElement>,
     private val stubbedMethods: MutableSet<MethodElement>
-) : KotlinAfterProcessor(ASM6, visitor, logger, kotlinMetadata), Repeatable<FilterTransformer> {
+) : KotlinAfterProcessor(ASM7, visitor, logger, kotlinMetadata), Repeatable<FilterTransformer> {
     constructor(
         visitor: ClassVisitor,
         logger: Logger,
