@@ -15,6 +15,7 @@ import org.junit.rules.TestRule
 import kotlin.jvm.kotlin
 import kotlin.reflect.full.primaryConstructor
 import kotlin.test.assertFailsWith
+import kotlin.test.fail
 
 class SanitiseDeleteConstructorTest {
     companion object {
@@ -55,10 +56,10 @@ class SanitiseDeleteConstructorTest {
                     assertThat("<init>(J) not found", this, hasItem(longConstructor))
                     assertEquals(initialCount, this.size)
                 }
-                val primary = kotlin.primaryConstructor ?: throw AssertionError("primary constructor missing")
+                val primary = kotlin.primaryConstructor ?: fail("primary constructor missing")
                 assertThat(primary.call(BIG_NUMBER).longData()).isEqualTo(BIG_NUMBER)
 
-                val noArg = kotlin.noArgConstructor ?: throw AssertionError("no-arg constructor missing")
+                val noArg = kotlin.noArgConstructor ?: fail("no-arg constructor missing")
                 assertThat(noArg.callBy(emptyMap()).longData()).isEqualTo(0)
                 assertThat(newInstance().longData()).isEqualTo(0)
             }
@@ -73,7 +74,7 @@ class SanitiseDeleteConstructorTest {
                     assertThat("<init>(J) not found", this, hasItem(longConstructor))
                     assertEquals(1, this.size)
                 }
-                val primary = kotlin.primaryConstructor ?: throw AssertionError("primary constructor missing")
+                val primary = kotlin.primaryConstructor ?: fail("primary constructor missing")
                 assertThat(primary.call(BIG_NUMBER).longData()).isEqualTo(BIG_NUMBER)
 
                 assertNull("no-arg constructor exists", kotlin.noArgConstructor)
@@ -106,10 +107,10 @@ class SanitiseDeleteConstructorTest {
                     assertThat("<init>(I) not found", this, hasItem(intConstructor))
                     assertEquals(initialCount, this.size)
                 }
-                val primary = kotlin.primaryConstructor ?: throw AssertionError("primary constructor missing")
+                val primary = kotlin.primaryConstructor ?: fail("primary constructor missing")
                 assertThat(primary.call(NUMBER).intData()).isEqualTo(NUMBER)
 
-                val noArg = kotlin.noArgConstructor ?: throw AssertionError("no-arg constructor missing")
+                val noArg = kotlin.noArgConstructor ?: fail("no-arg constructor missing")
                 assertThat(noArg.callBy(emptyMap()).intData()).isEqualTo(0)
                 assertThat(newInstance().intData()).isEqualTo(0)
             }
@@ -124,7 +125,7 @@ class SanitiseDeleteConstructorTest {
                     assertThat("<init>(I) not found", this, hasItem(intConstructor))
                     assertEquals(1, this.size)
                 }
-                val primary = kotlin.primaryConstructor ?: throw AssertionError("primary constructor missing")
+                val primary = kotlin.primaryConstructor ?: fail("primary constructor missing")
                 assertThat(primary.call(NUMBER).intData()).isEqualTo(NUMBER)
 
                 assertNull("no-arg constructor exists", kotlin.noArgConstructor)
@@ -157,10 +158,10 @@ class SanitiseDeleteConstructorTest {
                     assertThat("<init>(String) not found", this, hasItem(stringConstructor))
                     assertEquals(initialCount, this.size)
                 }
-                val primary = kotlin.primaryConstructor ?: throw AssertionError("primary constructor missing")
+                val primary = kotlin.primaryConstructor ?: fail("primary constructor missing")
                 assertThat(primary.call(MESSAGE).stringData()).isEqualTo(MESSAGE)
 
-                val noArg = kotlin.noArgConstructor ?: throw AssertionError("no-arg constructor missing")
+                val noArg = kotlin.noArgConstructor ?: fail("no-arg constructor missing")
                 assertThat(noArg.callBy(emptyMap()).stringData()).isEqualTo(DEFAULT_MESSAGE)
                 assertThat(newInstance().stringData()).isEqualTo(DEFAULT_MESSAGE)
             }
@@ -175,7 +176,7 @@ class SanitiseDeleteConstructorTest {
                     assertThat("<init>(String) not found", this, hasItem(stringConstructor))
                     assertEquals(1, this.size)
                 }
-                val primary = kotlin.primaryConstructor ?: throw AssertionError("primary constructor missing")
+                val primary = kotlin.primaryConstructor ?: fail("primary constructor missing")
                 assertThat(primary.call(MESSAGE).stringData()).isEqualTo(MESSAGE)
 
                 assertNull("no-arg constructor exists", kotlin.noArgConstructor)
@@ -195,7 +196,7 @@ class SanitiseDeleteConstructorTest {
                     assertEquals(1, this.size)
                 }
 
-                val primary = kotlin.primaryConstructor ?: throw AssertionError("primary constructor missing")
+                val primary = kotlin.primaryConstructor ?: fail("primary constructor missing")
                 primary.call(NUMBER, MESSAGE).also { complex ->
                     assertThat((complex as HasString).stringData()).isEqualTo(MESSAGE)
                     assertThat((complex as HasInt).intData()).isEqualTo(NUMBER)
@@ -219,7 +220,7 @@ class SanitiseDeleteConstructorTest {
                     assertEquals(1, this.size)
                 }
 
-                val primary = kotlin.primaryConstructor ?: throw AssertionError("primary constructor missing")
+                val primary = kotlin.primaryConstructor ?: fail("primary constructor missing")
                 primary.call(NUMBER, MESSAGE).also { complex ->
                     assertThat((complex as HasString).stringData()).isEqualTo(MESSAGE)
                     assertThat((complex as HasInt).intData()).isEqualTo(NUMBER)

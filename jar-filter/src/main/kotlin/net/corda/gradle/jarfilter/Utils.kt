@@ -1,7 +1,7 @@
 @file:JvmName("Utils")
 package net.corda.gradle.jarfilter
 
-import org.gradle.api.GradleException
+import org.gradle.api.InvalidUserCodeException
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.ClassWriter
@@ -23,8 +23,8 @@ private val CONSTANT_TIME: FileTime = FileTime.fromMillis(
 
 // Declared as inline to avoid polluting the exception stack trace.
 @Suppress("NOTHING_TO_INLINE")
-internal inline fun rethrowAsUncheckedException(e: Exception): Nothing
-    = throw (e as? RuntimeException) ?: GradleException(e.message ?: "", e)
+internal inline fun Exception.asUncheckedException(): RuntimeException
+    = (this as? RuntimeException) ?: InvalidUserCodeException(message ?: "", this)
 
 /**
  * Recreates a [ZipEntry] object. The entry's byte contents
