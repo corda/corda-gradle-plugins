@@ -5,6 +5,7 @@ import java.io.File
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
+import kotlin.test.fail
 
 import java.nio.file.StandardCopyOption.REPLACE_EXISTING
 
@@ -25,3 +26,5 @@ fun copyResourceTo(resourceName: String, target: Path): Long {
 fun copyResourceTo(resourceName: String, target: File): Long {
     return copyResourceTo(resourceName, target.toPath())
 }
+
+fun systemProperty(name: String): String = System.getProperty(name) ?: fail("System property '$name' not set.")
