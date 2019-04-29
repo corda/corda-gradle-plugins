@@ -20,7 +20,7 @@ dependencies {
 }
 
 jar {
-    baseName = 'delete-nested-class'
+    archiveBaseName = 'delete-nested-class'
 }
 
 import net.corda.gradle.jarfilter.JarFilterTask

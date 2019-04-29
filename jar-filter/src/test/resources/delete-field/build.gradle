@@ -20,7 +20,7 @@ dependencies {
 }
 
 jar {
-    baseName = 'delete-field'
+    archiveBaseName = 'delete-field'
 }
 
 import net.corda.gradle.jarfilter.JarFilterTask

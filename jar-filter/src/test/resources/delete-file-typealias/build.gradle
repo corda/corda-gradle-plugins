@@ -20,7 +20,7 @@ dependencies {
 }
 
 jar {
-    baseName = 'delete-file-typealias'
+    archiveBaseName = 'delete-file-typealias'
 }
 
 import net.corda.gradle.jarfilter.JarFilterTask

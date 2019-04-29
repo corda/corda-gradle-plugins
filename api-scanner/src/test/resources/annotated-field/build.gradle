@@ -18,7 +18,7 @@ sourceSets {
 }
 
 jar {
-    baseName = "annotated-field"
+    archiveBaseName = "annotated-field"
 }
 
 scanApi {

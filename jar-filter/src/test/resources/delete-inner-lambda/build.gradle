@@ -21,7 +21,7 @@ dependencies {
 }
 
 jar {
-    baseName = 'delete-inner-lambda'
+    archiveBaseName = 'delete-inner-lambda'
 }
 
 import net.corda.gradle.jarfilter.JarFilterTask

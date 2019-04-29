@@ -15,7 +15,7 @@ sourceSets {
 }
 
 jar {
-    baseName = "basic-class"
+    archiveBaseName = "basic-class"
 }
 
 scanApi {

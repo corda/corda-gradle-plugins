@@ -20,7 +20,7 @@ dependencies {
 }
 
 jar {
-    baseName = 'delete-overloaded-function'
+    archiveBaseName = 'delete-overloaded-function'
 }
 
 import net.corda.gradle.jarfilter.JarFilterTask

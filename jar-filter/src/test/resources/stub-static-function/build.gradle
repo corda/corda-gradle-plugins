@@ -21,7 +21,7 @@ dependencies {
 }
 
 jar {
-    baseName = 'stub-static-function'
+    archiveBaseName = 'stub-static-function'
 }
 
 import net.corda.gradle.jarfilter.JarFilterTask

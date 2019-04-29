@@ -20,8 +20,8 @@ class MetaFixProject(private val projectDir: TemporaryFolder, private val name: 
     private var _metafixedJar: Path? = null
     val metafixedJar: Path get() = _metafixedJar ?: throw FileNotFoundException("Output not found")
 
-    private var _output: String = ""
-    val output: String get() = _output
+    var output: String = ""
+        private set
 
     override fun apply(base: Statement, description: Description): Statement {
         return object : Statement() {
@@ -38,7 +38,7 @@ class MetaFixProject(private val projectDir: TemporaryFolder, private val name: 
                     .withArguments(getGradleArgsForTasks("metafix"))
                     .withPluginClasspath()
                     .build()
-                _output = result.output
+                output = result.output
                 println(output)
 
                 val metafix = result.task(":metafix") ?: fail("No outcome for metafix task")

@@ -21,7 +21,7 @@ dependencies {
 }
 
 jar {
-    baseName = 'delete-extension-val'
+    archiveBaseName = 'delete-extension-val'
 }
 
 import net.corda.gradle.jarfilter.JarFilterTask

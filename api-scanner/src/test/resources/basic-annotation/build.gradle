@@ -15,7 +15,7 @@ sourceSets {
 }
 
 jar {
-    baseName = "basic-annotation"
+    archiveBaseName = "basic-annotation"
 }
 
 scanApi {

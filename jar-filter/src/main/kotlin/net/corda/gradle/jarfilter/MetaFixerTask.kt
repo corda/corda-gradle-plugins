@@ -36,23 +36,19 @@ open class MetaFixerTask @Inject constructor(objects: ObjectFactory, layouts: Pr
     fun jars(inputs: Any?) = setJars(inputs)
 
     @get:Internal
-    val outputDir: DirectoryProperty = layouts.directoryProperty(layouts.buildDirectory.dir("metafixer-libs"))
+    val outputDir: DirectoryProperty = objects.directoryProperty().convention(layouts.buildDirectory.dir("metafixer-libs"))
 
     fun outputDir(dir: File) {
         outputDir.set(dir)
     }
 
     @get:Input
-    val suffix: Property<String> = objects.property(String::class.java).apply {
-        set("-metafixed")
-    }
+    val suffix: Property<String> = objects.property(String::class.java).convention("-metafixed")
 
     fun suffix(sfx: String?) = suffix.set(sfx)
 
     @get:Input
-    val preserveTimestamps: Property<Boolean> = objects.property(Boolean::class.javaObjectType).apply {
-        set(true)
-    }
+    val preserveTimestamps: Property<Boolean> = objects.property(Boolean::class.javaObjectType).convention(true)
 
     @get:OutputFiles
     val metafixed: FileCollection get() = project.files(jars.map(::toMetaFixed))

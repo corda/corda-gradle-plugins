@@ -21,6 +21,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
+import java.io.FileNotFoundException
 import java.nio.file.Path
 import java.nio.file.Paths
 
@@ -117,6 +118,8 @@ class CordformTest {
 
     private fun getStandardGradleRunnerFor(buildFileResourceName: String): GradleRunner {
         createBuildFile(buildFileResourceName)
+        installResource("settings.gradle")
+        installResource("gradle.properties")
         return GradleRunner.create()
                 .withDebug(true)
                 .withProjectDir(testProjectDir.toFile())
@@ -125,6 +128,12 @@ class CordformTest {
     }
 
     private fun createBuildFile(buildFileResourceName: String) = IOUtils.copy(javaClass.getResourceAsStream(buildFileResourceName), buildFile.toFile().outputStream())
+    private fun installResource(resourceName: String) {
+        val buildFile = testProjectDir.resolve(resourceName.substring(1 + resourceName.lastIndexOf('/')))
+        javaClass.classLoader.getResourceAsStream(resourceName)?.use { input ->
+            IOUtils.copy(input, buildFile.toFile().outputStream())
+        } ?: throw FileNotFoundException(resourceName)
+    }
     private fun getNodeCordappJar(nodeName: String, cordappJarName: String) = Paths.get(testProjectDir.toFile().absolutePath, "build", "nodes", nodeName, "cordapps", "$cordappJarName.jar")
     private fun getNodeCordappConfig(nodeName: String, cordappJarName: String) = Paths.get(testProjectDir.toFile().absolutePath, "build", "nodes", nodeName, "cordapps", "config", "$cordappJarName.conf")
     private fun getNetworkParameterOverrides(nodeName: String) = Paths.get(testProjectDir.toFile().absolutePath, "build", "nodes", nodeName, "network-parameters")

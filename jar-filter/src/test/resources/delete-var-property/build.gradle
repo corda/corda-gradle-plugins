@@ -21,7 +21,7 @@ dependencies {
 }
 
 jar {
-    baseName = 'delete-var-property'
+    archiveBaseName = 'delete-var-property'
 }
 
 import net.corda.gradle.jarfilter.JarFilterTask

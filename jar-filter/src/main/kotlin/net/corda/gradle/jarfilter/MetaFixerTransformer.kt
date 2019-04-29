@@ -197,7 +197,7 @@ internal abstract class MetaFixerTransformer<out T : MessageLite>(
 
 /**
  * Aligns a [kotlin.Metadata] annotation containing a [ProtoBuf.Class] object
- * in its [data1][kotlin.Metadata.d1] field with the byte-code of its host class.
+ * in its [data1][kotlin.Metadata.data1] field with the byte-code of its host class.
  */
 internal class ClassMetaFixerTransformer(
     logger: Logger,
@@ -244,7 +244,7 @@ internal class ClassMetaFixerTransformer(
 
 /**
  * Aligns a [kotlin.Metadata] annotation containing a [ProtoBuf.Package] object
- * in its [data1][kotlin.Metadata.d1] field with the byte-code of its host class.
+ * in its [data1][kotlin.Metadata.data1] field with the byte-code of its host class.
  */
 internal class PackageMetaFixerTransformer(
     logger: Logger,

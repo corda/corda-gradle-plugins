@@ -27,7 +27,7 @@ compileKotlin {
 }
 
 jar {
-    baseName = "kotlin-exclude-method"
+    archiveBaseName = "kotlin-exclude-method"
 }
 
 scanApi {

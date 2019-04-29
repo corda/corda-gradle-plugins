@@ -21,7 +21,7 @@ dependencies {
 }
 
 jar {
-    baseName = 'interface-function'
+    archiveBaseName = 'interface-function'
 }
 
 import net.corda.gradle.jarfilter.JarFilterTask

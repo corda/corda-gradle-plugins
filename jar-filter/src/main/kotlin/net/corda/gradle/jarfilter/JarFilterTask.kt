@@ -51,22 +51,16 @@ open class JarFilterTask @Inject constructor(objects: ObjectFactory, layouts: Pr
     }
 
     @get:Console
-    val verbose: Property<Boolean> = objects.property(Boolean::class.javaObjectType).apply {
-        set(false)
-    }
+    val verbose: Property<Boolean> = objects.property(Boolean::class.javaObjectType).convention(false)
 
     @get:Input
-    val maxPasses: Property<Int> = objects.property(Int::class.javaObjectType).apply {
-        set(DEFAULT_MAX_PASSES)
-    }
+    val maxPasses: Property<Int> = objects.property(Int::class.javaObjectType).convention(DEFAULT_MAX_PASSES)
 
     @get:Input
-    val preserveTimestamps: Property<Boolean> = objects.property(Boolean::class.javaObjectType).apply {
-        set(true)
-    }
+    val preserveTimestamps: Property<Boolean> = objects.property(Boolean::class.javaObjectType).convention(true)
 
     @get:Internal
-    val outputDir: DirectoryProperty = layouts.directoryProperty(layouts.buildDirectory.dir("filtered-libs"))
+    val outputDir: DirectoryProperty = objects.directoryProperty().convention(layouts.buildDirectory.dir("filtered-libs"))
 
     fun outputDir(dir: File) {
         outputDir.set(dir)

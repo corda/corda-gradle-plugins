@@ -19,8 +19,8 @@ class JarFilterProject(private val projectDir: TemporaryFolder, private val name
     private var _filteredJar: Path? = null
     val filteredJar: Path get() = _filteredJar ?: throw FileNotFoundException("Output not found")
 
-    private var _output: String = ""
-    val output: String get() = _output
+    var output: String = ""
+        private set
 
     override fun apply(statement: Statement, description: Description): Statement {
         return object : Statement() {
@@ -37,7 +37,7 @@ class JarFilterProject(private val projectDir: TemporaryFolder, private val name
                     .withArguments(getGradleArgsForTasks("jarFilter"))
                     .withPluginClasspath()
                     .build()
-                _output = result.output
+                output = result.output
                 println(output)
 
                 val jarFilter = result.task(":jarFilter") ?: fail("No outcome for jarFilter task")

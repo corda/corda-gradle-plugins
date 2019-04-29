@@ -21,7 +21,7 @@ dependencies {
 }
 
 jar {
-    baseName = 'stub-var-property'
+    archiveBaseName = 'stub-var-property'
 }
 
 import net.corda.gradle.jarfilter.JarFilterTask

@@ -21,7 +21,7 @@ dependencies {
 }
 
 jar {
-    baseName = 'delete-static-function'
+    archiveBaseName = 'delete-static-function'
 }
 
 import net.corda.gradle.jarfilter.JarFilterTask

@@ -20,7 +20,7 @@ dependencies {
 }
 
 jar {
-    baseName = "kotlin-internal-annotation"
+    archiveBaseName = "kotlin-internal-annotation"
 }
 
 scanApi {

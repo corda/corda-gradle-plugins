@@ -15,13 +15,13 @@ sourceSets {
 }
 
 jar {
-    baseName = "unscanned-jar"
+    archiveBaseName = "unscanned-jar"
     enabled = false
 }
 
 task otherJar(type: Jar) {
-    baseName = "unscanned-jar"
-    classifier "other"
+    archiveBaseName = "unscanned-jar"
+    archiveClassifier = "other"
 }
 
 scanApi {
