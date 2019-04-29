@@ -10,6 +10,7 @@ import org.junit.runner.Description
 import org.junit.runners.model.Statement
 import java.io.FileNotFoundException
 import java.nio.file.Path
+import kotlin.test.fail
 
 class JarFilterProject(private val projectDir: TemporaryFolder, private val name: String) : TestRule {
     private var _sourceJar: Path? = null
@@ -39,8 +40,7 @@ class JarFilterProject(private val projectDir: TemporaryFolder, private val name
                 _output = result.output
                 println(output)
 
-                val jarFilter = result.task(":jarFilter")
-                    ?: throw AssertionError("No outcome for jarFilter task")
+                val jarFilter = result.task(":jarFilter") ?: fail("No outcome for jarFilter task")
                 assertEquals(SUCCESS, jarFilter.outcome)
 
                 _sourceJar = projectDir.pathOf("build", "libs", "$name.jar")

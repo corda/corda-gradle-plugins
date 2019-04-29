@@ -11,6 +11,7 @@ import org.junit.BeforeClass
 import org.junit.Test
 import kotlin.reflect.KFunction
 import kotlin.reflect.full.declaredFunctions
+import kotlin.test.fail
 
 class MetaFixFunctionDefaultParameterTest {
     companion object {
@@ -82,7 +83,7 @@ class MetaFixFunctionDefaultParameterTest {
     }
 
     private fun <T> Iterable<KFunction<T>>.findOrFail(name: String): KFunction<T> {
-        return find { it.name == name } ?: throw AssertionError("$name missing")
+        return find { it.name == name } ?: fail("$name missing")
     }
 }
 

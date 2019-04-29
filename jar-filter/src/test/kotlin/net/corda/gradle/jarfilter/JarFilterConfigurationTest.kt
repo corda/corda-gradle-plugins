@@ -10,6 +10,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
+import kotlin.test.fail
 
 class JarFilterConfigurationTest {
     private companion object {
@@ -68,7 +69,7 @@ class JarFilterConfigurationTest {
         println(output)
 
         assertThat(output).containsSubsequence(
-            "Caused by: org.gradle.api.GradleException:",
+            "Caused by: org.gradle.api.InvalidUserCodeException:",
             "Caused by: java.io.FileNotFoundException:"
         )
 
@@ -267,6 +268,6 @@ class JarFilterConfigurationTest {
     }
 
     private fun BuildResult.forTask(name: String): BuildTask {
-        return task(":$name") ?: throw AssertionError("No outcome for $name task")
+        return task(":$name") ?: fail("No outcome for $name task")
     }
 }
