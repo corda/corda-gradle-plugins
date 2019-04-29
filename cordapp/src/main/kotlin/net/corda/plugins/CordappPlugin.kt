@@ -6,17 +6,18 @@ import org.gradle.api.*
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.java.archives.Attributes
-import org.gradle.api.publish.maven.internal.publication.MavenPomInternal
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.publish.maven.tasks.GenerateMavenPom
 import org.gradle.jvm.tasks.Jar
 import java.io.File
+import javax.inject.Inject
 
 /**
  * The Cordapp plugin will turn a project into a cordapp project which builds cordapp JARs with the correct format
  * and with the information needed to run on Corda.
  */
 @Suppress("UNUSED")
-class CordappPlugin : Plugin<Project> {
+class CordappPlugin @Inject constructor(private val objects: ObjectFactory): Plugin<Project> {
     private companion object {
         private const val UNKNOWN = "Unknown"
         private const val MIN_GRADLE_VERSION = "4.0"
@@ -38,7 +39,7 @@ class CordappPlugin : Plugin<Project> {
         Utils.createCompileConfiguration("cordaCompile", project.configurations)
         Utils.createRuntimeConfiguration("cordaRuntime", project.configurations)
 
-        cordapp = project.extensions.create("cordapp", CordappExtension::class.java, project.objects)
+        cordapp = project.extensions.create("cordapp", CordappExtension::class.java, objects)
         configurePomCreation(project)
         configureCordappJar(project)
     }
@@ -50,7 +51,7 @@ class CordappPlugin : Plugin<Project> {
         // Note: project.afterEvaluate did not have full dependency resolution completed, hence a task is used instead
         val task = project.task("configureCordappFatJar")
         val jarTask = project.tasks.getByName("jar") as Jar
-        jarTask.doFirst { _ ->
+        jarTask.doFirst {
             val attributes = jarTask.manifest.attributes
             // check whether metadata has been configured (not mandatory for non-flow, non-contract gradle build files)
             if (cordapp.contract.isEmpty() && cordapp.workflow.isEmpty() && cordapp.info.isEmpty()) {
@@ -116,12 +117,11 @@ class CordappPlugin : Plugin<Project> {
 
     private fun configurePomCreation(project: Project) {
         project.tasks.withType(GenerateMavenPom::class.java) { task ->
-            task.doFirst { _ ->
+            task.doFirst {
                 project.logger.info("Modifying task: ${task.name} in project ${project.path} to exclude all dependencies from pom")
-                val pom = task.pom
-                if (pom is MavenPomInternal) {
-                    task.pom = FilteredPom(pom)
-                }
+                // The CorDapp is a semi-fat jar, so we need to exclude its compile and runtime
+                // scoped dependencies from its Maven POM when we publish it.
+                task.pom = filterDependenciesFor(task.pom)
             }
         }
     }

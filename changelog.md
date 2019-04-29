@@ -4,6 +4,8 @@
 
 ### Version 4.0.43
 
+* `cordapp`: Compatibility fix for Gradle 5.2 and above.
+
 * `api-scanner`: Compatibility fix for Gradle 5.x.
 
 ### Version 4.0.42
