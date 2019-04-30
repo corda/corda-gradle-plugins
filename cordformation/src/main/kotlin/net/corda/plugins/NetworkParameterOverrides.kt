@@ -13,15 +13,15 @@ import javax.inject.Inject
 open class NetworkParameterOverrides @Inject constructor(project: Project) {
 
     @get:Nested
-    val packageOwnerships: NamedDomainObjectContainer<PackageOwnership> = project.container(PackageOwnership::class.java)
+    val packageOwnership: NamedDomainObjectContainer<PackageOwnership> = project.container(PackageOwnership::class.java)
 
     fun packageOwnership(action: Action<NamedDomainObjectContainer<in PackageOwnership>>) {
-        action.execute(packageOwnerships)
+        action.execute(packageOwnership)
     }
 
     fun toConfig(): Config {
         val packageOwnershipsList = mutableListOf<ConfigObject?>()
-        packageOwnerships.forEach { packageOwnershipsList.add(it.toConfigObject()) }
+        packageOwnership.forEach { packageOwnershipsList.add(it.toConfigObject()) }
         val packageOwnershipsConfigObjectList = ConfigValueFactory.fromIterable(packageOwnershipsList)
 
         return ConfigFactory.empty().withValue("networkParameterOverrides", ConfigValueFactory.fromMap(mapOf("packageOwnership" to packageOwnershipsConfigObjectList)))

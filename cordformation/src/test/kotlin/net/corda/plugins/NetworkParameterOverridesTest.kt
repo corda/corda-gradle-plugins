@@ -47,7 +47,7 @@ class NetworkParameterOverridesTest {
             packageOwnership.keystore = "keystore"
             packageOwnership.keystoreAlias = "keystoreAlias"
             packageOwnership.keystorePassword = "keystorePassword"
-            networkParameterOverrides.packageOwnerships.add(packageOwnership)
+            networkParameterOverrides.packageOwnership.add(packageOwnership)
             return networkParameterOverrides
         }
     }
