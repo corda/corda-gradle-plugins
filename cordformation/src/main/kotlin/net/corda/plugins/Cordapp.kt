@@ -4,10 +4,11 @@ import org.gradle.api.Project
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Optional
 import java.io.File
+import javax.inject.Inject
 
-open class Cordapp private constructor(
-    @get:[Optional Input] val coordinates: String?,
-    @get:[Optional Input] val project: Project?
+open class Cordapp @Inject constructor(
+        @get:[Optional Input] val coordinates: String?,
+        @get:[Optional Input] val project: Project?
 ) {
     constructor(coordinates: String) : this(coordinates, null)
     constructor(cordappProject: Project) : this(null, cordappProject)

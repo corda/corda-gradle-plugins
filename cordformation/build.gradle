@@ -4,6 +4,7 @@ apply plugin: 'java-gradle-plugin'
 description 'A small gradle plugin for adding some basic Quasar tasks and configurations to reduce build.gradle bloat.'
 
 repositories {
+    mavenLocal()
     mavenCentral()
 }
 
@@ -57,6 +58,8 @@ dependencies {
     testImplementation "org.jetbrains.kotlin:kotlin-test-junit"
     testImplementation "junit:junit:$junit_version" // TODO: Unify with core
     testImplementation "org.assertj:assertj-core:$assertj_version"
+    testImplementation "net.corda:corda-node-api:5.0-SNAPSHOT"
+    testImplementation "net.corda:corda-serialization:5.0-SNAPSHOT"
     // Docker-compose file generation
     compile "org.yaml:snakeyaml:$snake_yaml_version"
 }

@@ -1,7 +1,8 @@
 buildscript {
     ext {
         corda_group = 'net.corda'
-        corda_release_version = '3.0-SNAPSHOT' // TODO: Set to 3.0.0 when Corda 3 is released
+        corda_release_version = '5.0-SNAPSHOT' // TODO: Set to 5.0 when Corda 5 is released
+        finance_release_version = '4.0'
         jolokia_version = '1.6.0'
     }
 }
@@ -12,6 +13,7 @@ plugins {
 }
 
 repositories {
+    mavenLocal()
     mavenCentral()
     maven { url 'https://ci-artifactory.corda.r3cev.com/artifactory/corda-dev' }
     maven { url 'https://ci-artifactory.corda.r3cev.com/artifactory/corda-releases' }
@@ -21,7 +23,8 @@ repositories {
 dependencies {
     runtime "$corda_group:corda:$corda_release_version"
     runtime "$corda_group:corda-node-api:$corda_release_version"
-    cordapp "$corda_group:corda-finance:$corda_release_version"
+    cordapp "$corda_group:corda-finance-contracts:$finance_release_version"
+    cordapp "$corda_group:corda-finance-workflows:$finance_release_version"
 }
 
 jar {
@@ -34,6 +37,9 @@ task deployNodes(type: net.corda.plugins.Cordform, dependsOn: [jar]) {
         notary = [validating : true]
         p2pPort 10002
         rpcPort 10003
+        rpcSettings {
+            adminAddress "localhost:10004"
+        }
         cordapp {
             config "a=b"
         }

@@ -28,6 +28,15 @@ dependencies {
 }
 
 task deployNodes(type: net.corda.plugins.Cordform) {
+    networkParameterOverrides {
+        packageOwnership {
+            "com.mypackagename" {
+                keystore = "_teststore"
+                keystorePassword = "MyStorePassword"
+                keystoreAlias = "MyKeyAlias"
+            }
+        }
+    }
     node {
         projectCordapp {
             deploy false
@@ -39,11 +48,7 @@ task deployNodes(type: net.corda.plugins.Cordform) {
         rpcSettings {
             adminAddress "localhost:10004"
         }
-        cordapp "$corda_group:corda-finance-contracts:$finance_release_version", {
-            config "a=b"
-        }
-        cordapp "$corda_group:corda-finance-workflows:$finance_release_version", {
-            config "a=b"
-        }
+        cordapps = ["$corda_group:corda-finance-contracts:$finance_release_version",
+                    "$corda_group:corda-finance-workflows:$finance_release_version"]
     }
 }

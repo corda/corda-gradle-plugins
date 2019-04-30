@@ -33,7 +33,11 @@ class NetworkParameterOverridesTest {
         val configValue = value[0] as ConfigObject
         assertThat(configValue.size).isEqualTo(4)
 
-        val expected = ConfigValueFactory.fromMap(mapOf("keystore" to "keystore", "keystoreAlias" to "keystoreAlias", "keystorePassword" to "keystorePassword", "packageName" to "packageName"))
+        val expected = ConfigValueFactory.fromMap(
+                mapOf("keystore" to "keystore",
+                "keystoreAlias" to "keystoreAlias",
+                "keystorePassword" to "keystorePassword",
+                "packageName" to "packageName"))
         assertThat(configValue["keystore"]).isEqualTo(expected["keystore"])
         assertThat(configValue["keystoreAlias"]).isEqualTo(expected["keystoreAlias"])
         assertThat(configValue["keystorePassword"]).isEqualTo(expected["keystorePassword"])
