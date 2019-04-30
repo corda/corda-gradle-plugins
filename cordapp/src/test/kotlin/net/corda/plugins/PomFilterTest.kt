@@ -1,54 +1,37 @@
 package net.corda.plugins
 
 import org.assertj.core.api.Assertions.assertThat
-import org.gradle.testkit.runner.GradleRunner
-import org.gradle.testkit.runner.TaskOutcome.*
 import org.junit.Assert.*
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.RuleChain
 import org.junit.rules.TemporaryFolder
-import java.nio.file.Paths
-import kotlin.test.fail
+import org.junit.rules.TestRule
 import org.w3c.dom.Document
 import java.nio.file.Path
 import javax.xml.parsers.DocumentBuilderFactory
 
 class PomFilterTest {
-    private companion object {
-        private val testGradleUserHome = systemProperty("test.gradle.user.home")
-    }
-
-    @Rule
-    @JvmField
-    val testProjectDir = TemporaryFolder()
-
-    @Before
-    fun setup() {
-        installResource(testProjectDir, "settings.gradle")
-        installResource(testProjectDir, "repositories.gradle")
-    }
-
-    @Test
-    fun testFilteredPom() {
-        testProjectDir.newFile("build.gradle").writeText("""
+    private val testProjectDir = TemporaryFolder()
+    private val testProject = GradleProject(testProjectDir)
+        .withTaskName("generatePomFileForCordappPublishPublication")
+        .withBuildScript("""
             |plugins {
-            |    id 'java'
-            |    id 'maven-publish'
             |    id 'net.corda.plugins.cordapp'
+            |    id 'maven-publish'
             |}
+            |
+            |apply from: 'repositories.gradle'
             |
             |version = '1.0-SNAPSHOT'
             |group = 'com.example'
             |
-            |repositories {
-            |    mavenCentral()
-            |}
-            |
             |dependencies {
+            |    compile "org.slf4j:jcl-over-slf4j:1.7.26"
             |    implementation "org.slf4j:slf4j-api:1.7.26"
+            |    runtimeOnly "org.slf4j:slf4j-simple:1.7.26"
             |    cordaCompile "com.google.guava:guava:20.0"
-            |    cordaRuntime "org.slf4j:slf4j-simple:1.7.26"
+            |    cordaRuntime "javax.servlet:javax.servlet-api:3.1.0"
             |}
             |
             |cordapp {
@@ -79,14 +62,16 @@ class PomFilterTest {
             |    }
             |}
         """.trimMargin())
-        val result = jarTaskRunner(listOf("generatePomFileForCordappPublishPublication")).build()
-        println(result.output)
 
-        val generatePom = result.task(":generatePomFileForCordappPublishPublication")
-            ?: fail("No outcome for generatePomFileForCordappPublishPublication task")
-        assertEquals(SUCCESS, generatePom.outcome)
+    @Rule
+    @JvmField
+    val rules: TestRule = RuleChain
+        .outerRule(testProjectDir)
+        .around(testProject)
 
-        val pomFile = Paths.get(testProjectDir.root.absolutePath, "build", "publications", "cordappPublish", "pom-default.xml")
+    @Test
+    fun testFilteredPom() {
+        val pomFile = testProject.pathOf("build", "publications", "cordappPublish", "pom-default.xml")
         assertThat(pomFile).isRegularFile()
 
         val pom = pomFile.readXml()
@@ -94,14 +79,6 @@ class PomFilterTest {
         assertEquals("Should contain <licenses/> tag", 1, pom.getElementsByTagName("licenses").length)
         assertEquals("Should not contain <dependencies/> tag", 0, pom.getElementsByTagName("dependencies").length)
         assertEquals("Should not contain <dependency/> tags", 0, pom.getElementsByTagName("dependency").length)
-    }
-
-    private fun jarTaskRunner(extraArgs: List<String> = emptyList()): GradleRunner {
-        return GradleRunner.create()
-            .withProjectDir(testProjectDir.root)
-            .withArguments(listOf("jar", "-s", "--info", "-g", testGradleUserHome) + extraArgs)
-            .withPluginClasspath()
-            .withDebug(true)
     }
 
     private fun Path.readXml(): Document {
