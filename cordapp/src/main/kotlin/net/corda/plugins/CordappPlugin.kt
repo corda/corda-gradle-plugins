@@ -7,6 +7,7 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.java.archives.Attributes
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.publish.maven.tasks.GenerateMavenPom
 import org.gradle.jvm.tasks.Jar
 import java.io.File
@@ -35,6 +36,9 @@ class CordappPlugin @Inject constructor(private val objects: ObjectFactory): Plu
             throw GradleException("Gradle versionId ${project.gradle.gradleVersion} is below the supported minimum versionId $MIN_GRADLE_VERSION. Please update Gradle or consider using Gradle wrapper if it is provided with the project. More information about CorDapp build system can be found here: https://docs.corda.net/cordapp-build-systems.html")
         }
 
+        // Apply the Java plugin on the assumption that we're building a JAR.
+        // This will also create the "compile", "compileOnly" and "runtime" configurations.
+        project.pluginManager.apply(JavaPlugin::class.java)
         Utils.createCompileConfiguration("cordapp", project.configurations)
         Utils.createCompileConfiguration("cordaCompile", project.configurations)
         Utils.createRuntimeConfiguration("cordaRuntime", project.configurations)
@@ -49,8 +53,10 @@ class CordappPlugin @Inject constructor(private val objects: ObjectFactory): Plu
      */
     private fun configureCordappJar(project: Project) {
         // Note: project.afterEvaluate did not have full dependency resolution completed, hence a task is used instead
-        val task = project.task("configureCordappFatJar")
+        val cordappTask = project.task("configureCordappFatJar")
         val jarTask = project.tasks.getByName("jar") as Jar
+        jarTask.isPreserveFileTimestamps = false
+        jarTask.isReproducibleFileOrder = true
         jarTask.doFirst {
             val attributes = jarTask.manifest.attributes
             // check whether metadata has been configured (not mandatory for non-flow, non-contract gradle build files)
@@ -63,12 +69,13 @@ class CordappPlugin @Inject constructor(private val objects: ObjectFactory): Plu
             sign(project, cordapp.signing, it.outputs.files.singleFile)
         }
 
-        task.doLast {
-            jarTask.from(getDirectNonCordaDependencies(project).map {
-                project.logger.info("CorDapp dependency: ${it.name}")
-                project.zipTree(it)
+        cordappTask.doLast {
+            jarTask.from(getDirectNonCordaDependencies(project).map { file ->
+                it.logger.info("CorDapp dependency: ${file.name}")
+                project.zipTree(file)
             }).apply {
                 exclude("META-INF/*.SF")
+                exclude("META-INF/*.EC")
                 exclude("META-INF/*.DSA")
                 exclude("META-INF/*.RSA")
                 exclude("META-INF/*.MF")
@@ -77,7 +84,7 @@ class CordappPlugin @Inject constructor(private val objects: ObjectFactory): Plu
                 exclude("META-INF/INDEX.LIST")
             }
         }
-        jarTask.dependsOn(task)
+        jarTask.dependsOn(cordappTask)
     }
 
     private fun configureCordappAttributes(project: Project, jarTask: Jar, attributes: Attributes) {
