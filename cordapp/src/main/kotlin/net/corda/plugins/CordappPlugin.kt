@@ -158,7 +158,7 @@ class CordappPlugin @Inject constructor(private val objects: ObjectFactory): Plu
         project.logger.info("Finding direct non-corda dependencies for inclusion in CorDapp JAR")
         val excludes = hardCodedExcludes()
 
-        val runtimeConfiguration = project.configuration("runtime")
+        val runtimeConfiguration = project.configuration("runtimeClasspath")
         // The direct dependencies of this project
         val excludeDeps = calculateExcludedDependencies(project)
         val directDeps = runtimeConfiguration.allDependencies - excludeDeps

@@ -1,6 +1,6 @@
 package net.corda.plugins
 
-import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.*
 import org.junit.Assert.assertEquals
 import org.junit.BeforeClass
 import org.junit.ClassRule
@@ -12,7 +12,7 @@ import java.util.stream.Collectors.toList
 import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
 
-class CordappGradleConfigurationsTest {
+class NewGradleConfigurationsTest {
     companion object {
         private val testProjectDir = TemporaryFolder()
         private val testProject = GradleProject(testProjectDir)
@@ -27,10 +27,8 @@ class CordappGradleConfigurationsTest {
             |group = 'com.example'
             |
             |dependencies {
-            |    compile "org.slf4j:slf4j-api:1.7.26"
-            |    runtime "org.slf4j:slf4j-simple:1.7.26"
-            |    cordaCompile "com.google.guava:guava:20.0"
-            |    cordaRuntime "javax.servlet:javax.servlet-api:3.1.0"
+            |    implementation "org.slf4j:slf4j-api:1.7.26"
+            |    runtimeOnly "org.slf4j:slf4j-simple:1.7.26"
             |}
             |
             |jar {
@@ -71,7 +69,7 @@ class CordappGradleConfigurationsTest {
     }
 
     @Test
-    fun testCompileIncluded() {
+    fun testImplementationIncluded() {
         assertThat(testProject.output)
             .contains("CorDapp dependency: slf4j-api-1.7.26.jar")
         assertThat(poms)
@@ -79,26 +77,10 @@ class CordappGradleConfigurationsTest {
     }
 
     @Test
-    fun testRuntimeIncluded() {
+    fun testRuntimeOnlyIncluded() {
         assertThat(testProject.output)
             .contains("CorDapp dependency: slf4j-simple-1.7.26.jar")
         assertThat(poms)
             .anyMatch { it.name == "META-INF/maven/org.slf4j/slf4j-simple/pom.xml" }
-    }
-
-    @Test
-    fun testCordaRuntimeExcluded() {
-        assertThat(testProject.output)
-            .doesNotContain("CorDapp dependency: javax.servlet-api-3.1.0.jar")
-        assertThat(poms)
-            .noneMatch { it.name == "META-INF/maven/javax.servlet/javax.servlet-api/pom.xml" }
-    }
-
-    @Test
-    fun testCordaCompileExcluded() {
-        assertThat(testProject.output)
-            .doesNotContain("CorDapp dependency: guava-20.0.jar")
-        assertThat(poms)
-            .noneMatch { it.name == "META-INF/maven/com.google.guava/guava/pom.xml" }
     }
 }

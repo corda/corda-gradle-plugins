@@ -4,6 +4,8 @@
 
 ### Version 5.0.0
 
+* `cordapp`: Allow building CorDapps from jars in the `implementation` and `runtimeOnly` Gradle configurations.
+
 * `cordformation`: Add support for network parameter overrides.
 
 * `cordapp`: Make file order inside the jar reproducible, and discard file timestamps.
