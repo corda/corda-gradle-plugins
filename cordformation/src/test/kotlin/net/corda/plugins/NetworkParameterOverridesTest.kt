@@ -23,7 +23,7 @@ class NetworkParameterOverridesTest {
         val project = ProjectBuilder.builder().build()
         val networkParameterOverrides = createNetworkParameterOverrides(project)
 
-        val config = networkParameterOverrides.toConfig()!!
+        val config = networkParameterOverrides.toConfig()
         val renderString = config.root().render(ConfigRenderOptions.concise())
         val configFromString = ConfigFactory.parseString(renderString)
         val configObject = configFromString.getObject("networkParameterOverrides")
