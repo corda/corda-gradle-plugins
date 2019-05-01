@@ -12,7 +12,8 @@ import org.gradle.api.tasks.JavaExec
 class QuasarPlugin implements Plugin<Project> {
 
     static final defaultGroup = "co.paralleluniverse"
-    static final defaultVersion = "0.7.10"
+    // JDK 11 official support in 0.8.0 (https://github.com/puniverse/quasar/issues/317)
+    static final defaultVersion = "0.8.0"
 
     @Override
     void apply(Project project) {
@@ -26,14 +27,18 @@ class QuasarPlugin implements Plugin<Project> {
         def rootProject = project.rootProject
         def quasarGroup = rootProject.hasProperty("quasar_group") ? rootProject.ext.quasar_group : defaultGroup
         def quasarVersion = rootProject.hasProperty("quasar_version") ? rootProject.ext.quasar_version : defaultVersion
-        def quasarDependency = "${quasarGroup}:quasar-core:${quasarVersion}:jdk8@jar"
-        project.dependencies.add("quasar", quasarDependency)
+        def quasarDependency = "${quasarGroup}:quasar-core:${quasarVersion}"
+        project.dependencies.add("quasar", quasarDependency) {
+            it.transitive = false
+        }
         project.dependencies.add("cordaRuntime", quasarDependency) {
             // Ensure that Quasar's transitive dependencies are available at runtime (only).
-            it.transitive = true
+            it.transitive = false
         }
         // This adds Quasar to the compile classpath WITHOUT any of its transitive dependencies.
-        project.dependencies.add("compileOnly", quasar)
+        project.dependencies.add("compileOnly", quasar) {
+            it.transitive = false
+        }
 
         project.tasks.withType(Test) {
             jvmArgs "-javaagent:${project.configurations.quasar.singleFile}"

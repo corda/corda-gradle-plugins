@@ -49,10 +49,10 @@ configs.collectEntries { [(it.name):it] }.forEach { name, files ->
 }
 """
         assertThat(output).containsOnlyOnce(
-            "quasar: quasar-core-$QUASAR_VERSION-jdk8.jar".toString(),
-            "cordaRuntime: quasar-core-$QUASAR_VERSION-jdk8.jar".toString(),
-            "compileOnly: quasar-core-$QUASAR_VERSION-jdk8.jar".toString(),
-            "compileClasspath: quasar-core-$QUASAR_VERSION-jdk8.jar".toString()
+            "quasar: quasar-core-${QUASAR_VERSION}.jar".toString(),
+            "cordaRuntime: quasar-core-${QUASAR_VERSION}.jar".toString(),
+            "compileOnly: quasar-core-${QUASAR_VERSION}.jar".toString(),
+            "compileClasspath: quasar-core-${QUASAR_VERSION}.jar".toString()
         )
     }
 
@@ -93,10 +93,10 @@ configs.collectEntries { [(it.name):it] }.forEach { name, files ->
 }
 """
         assertThat(output).containsOnlyOnce(
-            "quasar: quasar-core-$quasarVersion-jdk8.jar".toString(),
-            "cordaRuntime: quasar-core-$quasarVersion-jdk8.jar".toString(),
-            "compileOnly: quasar-core-$quasarVersion-jdk8.jar".toString(),
-            "compileClasspath: quasar-core-$quasarVersion-jdk8.jar".toString()
+            "quasar: quasar-core-${quasarVersion}.jar".toString(),
+            "cordaRuntime: quasar-core-${quasarVersion}.jar".toString(),
+            "compileOnly: quasar-core-${quasarVersion}.jar".toString(),
+            "compileClasspath: quasar-core-${quasarVersion}.jar".toString()
         )
     }
 
@@ -159,7 +159,7 @@ test {
 }
 """
         assertThat(output).anyMatch {
-            it.startsWith("TEST-JVM: -javaagent:") && it.endsWith("quasar-core-$QUASAR_VERSION-jdk8.jar")
+            it.startsWith("TEST-JVM: -javaagent:") && it.endsWith("quasar-core-${QUASAR_VERSION}.jar")
         }.anyMatch {
             it == "TEST-JVM: -Dco.paralleluniverse.fibers.verifyInstrumentation"
         }

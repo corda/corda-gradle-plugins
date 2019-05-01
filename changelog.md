@@ -2,6 +2,8 @@
 
 ## Version 5
 
+* `quasar-utils`: Upgrade quasar to version 0.8.0 (JDK 11 support)
+
 ### Version 5.0.0
 
 * `cordapp`: Explicitly configure all of the CorDapp's `jar` task properties to ensure the CorDapp has a stable SHA256 hash.
