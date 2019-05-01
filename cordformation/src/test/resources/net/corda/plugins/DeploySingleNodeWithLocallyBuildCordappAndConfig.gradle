@@ -7,7 +7,6 @@ buildscript {
 }
 
 plugins {
-    id 'java'
     id 'net.corda.plugins.cordformation'
 }
 
