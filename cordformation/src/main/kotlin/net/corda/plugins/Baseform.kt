@@ -46,6 +46,10 @@ open class Baseform(objects: ObjectFactory) : DefaultTask() {
     @get:Nested
     protected val networkParameterOverrides: NetworkParameterOverrides = objects.newInstance(NetworkParameterOverrides::class.java, project)
 
+    fun networkParameterOverrides(action: Action<in NetworkParameterOverrides>) {
+        action.execute(networkParameterOverrides)
+    }
+
     /**
      * Set the directory to install nodes into.
      *
@@ -119,10 +123,6 @@ open class Baseform(objects: ObjectFactory) : DefaultTask() {
             node.configureFunc()
             nodes += node
         }
-    }
-
-    fun networkParameterOverrides(action: Action<in NetworkParameterOverrides>) {
-        action.execute(networkParameterOverrides)
     }
 
     /**

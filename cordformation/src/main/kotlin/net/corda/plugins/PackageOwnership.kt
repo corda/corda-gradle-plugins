@@ -15,7 +15,7 @@ open class PackageOwnership (@get:Input val name: String) {
     @get:Input
     var keystoreAlias: String? = null
 
-    fun toConfigObject(): ConfigObject? {
+    fun toConfigObject(): ConfigObject {
         return ConfigValueFactory.fromMap(mapOf("packageName" to name,
                 "keystore" to keystore,
                 "keystorePassword" to keystorePassword,

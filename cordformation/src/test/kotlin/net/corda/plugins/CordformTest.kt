@@ -3,13 +3,16 @@ package net.corda.plugins
 import net.corda.core.internal.SignedDataWithCert
 import net.corda.core.internal.ThreadLocalToggleField
 import net.corda.core.node.NetworkParameters
+import net.corda.core.serialization.SerializationContext
 import net.corda.core.serialization.SerializationDefaults
 import net.corda.core.serialization.SerializedBytes
 import net.corda.core.serialization.deserialize
 import net.corda.core.serialization.internal.SerializationEnvironment
-import net.corda.nodeapi.internal.network.NetworkBootstrapper
 import net.corda.serialization.internal.AMQP_P2P_CONTEXT
+import net.corda.serialization.internal.CordaSerializationMagic
 import net.corda.serialization.internal.SerializationFactoryImpl
+import net.corda.serialization.internal.amqp.AbstractAMQPSerializationScheme
+import net.corda.serialization.internal.amqp.amqpMagic
 import org.apache.commons.io.IOUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.testkit.runner.GradleRunner
@@ -54,7 +57,7 @@ class CordformTest {
         ThreadLocalToggleField<SerializationEnvironment>("contextSerializationEnv")
         net.corda.core.serialization.internal._contextSerializationEnv.set(SerializationEnvironment.with(
                 SerializationFactoryImpl().apply {
-                    registerScheme(NetworkBootstrapper.AMQPParametersSerializationScheme())
+                    registerScheme(AMQPParametersSerializationScheme())
                 },
                 AMQP_P2P_CONTEXT)
         )
@@ -124,4 +127,13 @@ class CordformTest {
     private fun getNodeCordappJar(nodeName: String, cordappJarName: String) = File(testProjectDir.root, "build/nodes/$nodeName/cordapps/$cordappJarName.jar")
     private fun getNodeCordappConfig(nodeName: String, cordappJarName: String) = File(testProjectDir.root, "build/nodes/$nodeName/cordapps/config/$cordappJarName.conf")
     private fun getNetworkParameterOverrides(nodeName: String) = File(testProjectDir.root, "build/nodes/$nodeName/network-parameters")
+
+    private class AMQPParametersSerializationScheme : AbstractAMQPSerializationScheme(emptyList()) {
+        override fun rpcClientSerializerFactory(context: SerializationContext) = throw UnsupportedOperationException()
+        override fun rpcServerSerializerFactory(context: SerializationContext) = throw UnsupportedOperationException()
+
+        override fun canDeserializeVersion(magic: CordaSerializationMagic, target: SerializationContext.UseCase): Boolean {
+            return magic == amqpMagic && target == SerializationContext.UseCase.P2P
+        }
+    }
 }

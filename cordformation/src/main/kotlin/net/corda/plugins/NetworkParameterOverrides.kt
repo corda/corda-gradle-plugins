@@ -15,7 +15,7 @@ open class NetworkParameterOverrides @Inject constructor(project: Project) {
     @get:Nested
     val packageOwnership: NamedDomainObjectContainer<PackageOwnership> = project.container(PackageOwnership::class.java)
 
-    fun packageOwnership(action: Action<NamedDomainObjectContainer<in PackageOwnership>>) {
+    fun packageOwnership(action: Action<in NamedDomainObjectContainer<PackageOwnership>>) {
         action.execute(packageOwnership)
     }
 
