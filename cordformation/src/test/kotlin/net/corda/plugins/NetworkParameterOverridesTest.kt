@@ -4,19 +4,9 @@ import com.typesafe.config.*
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.api.Project
 import org.gradle.testfixtures.ProjectBuilder
-import org.junit.After
-import org.junit.Before
 import org.junit.Test
 
 class NetworkParameterOverridesTest {
-
-    @Before
-    fun setUp() {
-    }
-
-    @After
-    fun tearDown() {
-    }
 
     @Test
     fun toConfig() {
