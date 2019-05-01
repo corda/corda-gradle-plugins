@@ -4,6 +4,8 @@
 
 ### Version 5.0.0
 
+* `cordformation`: Add support for network parameter overrides.
+
 * `cordapp`: Make file order inside the jar reproducible, and discard file timestamps.
 
 * `cordapp`: Compatibility fix for Gradle 5.2 and above.
