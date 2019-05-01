@@ -18,6 +18,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
@@ -43,6 +44,7 @@ class CordformTest {
         buildFile = testProjectDir.newFile("build.gradle")
     }
 
+    @Ignore
     @Test
     fun `network parameter overrides`() {
         val runner = getStandardGradleRunnerFor("DeploySingleNodeWithNetworkParameterOverrides.gradle")
