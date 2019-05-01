@@ -1,13 +1,15 @@
 package net.corda.plugins
 
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.TaskAction
 import org.yaml.snakeyaml.DumperOptions
-import java.nio.file.Path
-import java.nio.file.Paths
 import org.yaml.snakeyaml.Yaml
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
+import javax.inject.Inject
 
 /**
  * Creates docker-compose file and image definitions based on the configuration of this task in the gradle configuration DSL.
@@ -15,7 +17,7 @@ import java.nio.file.Files
  * See documentation for examples.
  */
 @Suppress("unused")
-open class Dockerform : Baseform() {
+open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(objects) {
     private companion object {
         const val nodeJarName = "corda.jar"
         private val defaultDirectory: Path = Paths.get("build", "docker")
@@ -31,7 +33,7 @@ open class Dockerform : Baseform() {
 
     private val directoryPath: Path = project.projectDir.toPath().resolve(directory)
 
-    @InputFile
+    @get:InputFile
     val dockerComposePath: Path = directoryPath.resolve("docker-compose.yml")
 
     /**

@@ -8,7 +8,9 @@ import org.apache.commons.io.FilenameUtils.removeExtension
 import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ProjectDependency
-import org.gradle.api.tasks.*
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.Optional
 import java.io.File
 import java.nio.charset.StandardCharsets
@@ -45,7 +47,9 @@ open class Node @Inject constructor(private val project: Project) {
         }
 
     private val internalCordapps = mutableListOf<Cordapp>()
-    private val builtCordapp = Cordapp(project)
+    @get:Optional
+    @get:Nested
+    val projectCordapp = project.objects.newInstance(Cordapp::class.java, "", project)
     internal lateinit var nodeDir: File
         @Internal get
         private set
@@ -77,27 +81,27 @@ open class Node @Inject constructor(private val project: Project) {
      *
      * Incorrect configurations will not cause a DSL error.
      */
-    @Optional
-    @Input
+    @get:Optional
+    @get:Input
     var rpcUsers: List<Map<String, Any>> = emptyList()
 
     /**
      * Apply the notary configuration if this node is a notary. The map is the config structure of
      * net.corda.node.services.config.NotaryConfig
      */
-    @Optional
-    @Input
+    @get:Optional
+    @get:Input
     var notary: Map<String, Any> = emptyMap()
 
-    @Optional
-    @Input
+    @get:Optional
+    @get:Input
     var extraConfig: Map<String, Any> = emptyMap()
 
     /**
      * Copy files into the node relative directory './drivers'.
      */
-    @Optional
-    @Input
+    @get:Optional
+    @get:Input
     var drivers: List<String>? = null
 
     /**
@@ -271,7 +275,7 @@ open class Node @Inject constructor(private val project: Project) {
      * @return The created and inserted [Cordapp]
      */
     fun cordapp(coordinates: String, configureClosure: Closure<in Cordapp>): Cordapp {
-        val cordapp = project.configure(Cordapp(coordinates), configureClosure) as Cordapp
+        val cordapp = project.configure(Cordapp(coordinates, project), configureClosure) as Cordapp
         internalCordapps += cordapp
         return cordapp
     }
@@ -326,6 +330,12 @@ open class Node @Inject constructor(private val project: Project) {
         }
     }
 
+    fun cordapp(configureClosure: Closure<in Cordapp>): Cordapp {
+        val cordapp = project.configure(Cordapp(project), configureClosure) as Cordapp
+        internalCordapps += cordapp
+        return cordapp
+    }
+
     /**
      * Configures the default cordapp automatically added to this node from this project
      *
@@ -333,8 +343,8 @@ open class Node @Inject constructor(private val project: Project) {
      * @return The created and inserted [Cordapp]
      */
     fun projectCordapp(configureClosure: Closure<in Cordapp>): Cordapp {
-        project.configure(builtCordapp, configureClosure) as Cordapp
-        return builtCordapp
+        project.configure(projectCordapp, configureClosure) as Cordapp
+        return projectCordapp
     }
 
     /**
@@ -602,7 +612,7 @@ open class Node @Inject constructor(private val project: Project) {
     @Internal
     internal fun getCordappList(): List<ResolvedCordapp> {
         return internalCordapps.mapNotNull(::resolveCordapp).let {
-            if (builtCordapp.deploy) (it + resolveBuiltCordapp()) else it
+            if (projectCordapp.deploy) (it + resolveBuiltCordapp()) else it
         }
     }
 
@@ -635,7 +645,7 @@ open class Node @Inject constructor(private val project: Project) {
 
     private fun resolveBuiltCordapp(): ResolvedCordapp {
         val projectCordappFile = project.tasks.getByName("jar").outputs.files.singleFile.toPath()
-        return ResolvedCordapp(projectCordappFile, builtCordapp.config)
+        return ResolvedCordapp(projectCordappFile, projectCordapp.config)
     }
 
     private fun getOptionalString(path: String): String? {
