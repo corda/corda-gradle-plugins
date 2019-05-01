@@ -20,7 +20,7 @@ open class NetworkParameterOverrides @Inject constructor(project: Project) {
     }
 
     fun toConfig(): Config {
-        val packageOwnershipsList = mutableListOf<ConfigObject?>()
+        val packageOwnershipsList = mutableListOf<ConfigObject>()
         packageOwnership.forEach { packageOwnershipsList.add(it.toConfigObject()) }
         val packageOwnershipsConfigObjectList = ConfigValueFactory.fromIterable(packageOwnershipsList)
 
