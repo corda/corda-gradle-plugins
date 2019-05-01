@@ -52,9 +52,9 @@ class CordformTest {
         val result = runner.build()
 
         assertThat(result.task(":deployNodes")!!.outcome).isEqualTo(TaskOutcome.SUCCESS)
-        assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceWorkflowsJarName)).exists()
-        assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceContractsJarName)).exists()
-        assertThat(getNetworkParameterOverrides(notaryNodeName)).exists()
+        assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceWorkflowsJarName)).isFile()
+        assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceContractsJarName)).isFile()
+        assertThat(getNetworkParameterOverrides(notaryNodeName)).isFile()
 
         ThreadLocalToggleField<SerializationEnvironment>("contextSerializationEnv")
         net.corda.core.serialization.internal._contextSerializationEnv.set(SerializationEnvironment.with(
@@ -75,9 +75,9 @@ class CordformTest {
         val result = runner.build()
 
         assertThat(result.task(":deployNodes")!!.outcome).isEqualTo(TaskOutcome.SUCCESS)
-        assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceWorkflowsJarName)).exists()
-        assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceContractsJarName)).exists()
-        assertThat(getNetworkParameterOverrides(notaryNodeName)).exists()
+        assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceWorkflowsJarName)).isFile()
+        assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceContractsJarName)).isFile()
+        assertThat(getNetworkParameterOverrides(notaryNodeName)).isFile()
     }
 
     @Test
@@ -87,9 +87,9 @@ class CordformTest {
         val result = runner.build()
 
         assertThat(result.task(":deployNodes")!!.outcome).isEqualTo(TaskOutcome.SUCCESS)
-        assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceWorkflowsJarName)).exists()
-        assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceContractsJarName)).exists()
-        assertThat(getNetworkParameterOverrides(notaryNodeName)).exists()
+        assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceWorkflowsJarName)).isFile()
+        assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceContractsJarName)).isFile()
+        assertThat(getNetworkParameterOverrides(notaryNodeName)).isFile()
     }
 
     @Test
@@ -99,10 +99,10 @@ class CordformTest {
         val result = runner.build()
 
         assertThat(result.task(":deployNodes")!!.outcome).isEqualTo(TaskOutcome.SUCCESS)
-        assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceWorkflowsJarName)).exists()
-        assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceContractsJarName)).exists()
-        assertThat(getNodeCordappConfig(notaryNodeName, cordaFinanceWorkflowsJarName)).exists()
-        assertThat(getNodeCordappConfig(notaryNodeName, cordaFinanceContractsJarName)).exists()
+        assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceWorkflowsJarName)).isFile()
+        assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceContractsJarName)).isFile()
+        assertThat(getNodeCordappConfig(notaryNodeName, cordaFinanceWorkflowsJarName)).isFile()
+        assertThat(getNodeCordappConfig(notaryNodeName, cordaFinanceContractsJarName)).isFile()
     }
 
     @Test
@@ -112,8 +112,8 @@ class CordformTest {
         val result = runner.build()
 
         assertThat(result.task(":deployNodes")!!.outcome).isEqualTo(TaskOutcome.SUCCESS)
-        assertThat(getNodeCordappJar(notaryNodeName, localCordappJarName)).exists()
-        assertThat(getNodeCordappConfig(notaryNodeName, localCordappJarName)).exists()
+        assertThat(getNodeCordappJar(notaryNodeName, localCordappJarName)).isFile()
+        assertThat(getNodeCordappConfig(notaryNodeName, localCordappJarName)).isFile()
     }
 
     private fun getStandardGradleRunnerFor(buildFileResourceName: String): GradleRunner {
