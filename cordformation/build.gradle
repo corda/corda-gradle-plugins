@@ -3,10 +3,8 @@ apply plugin: 'java-gradle-plugin'
 
 description 'A small gradle plugin for adding some basic Quasar tasks and configurations to reduce build.gradle bloat.'
 
-buildscript {
-    ext {
-        corda_release_version = '4.0'
-    }
+ext {
+    corda_release_version = '4.0'
 }
 
 repositories {
