@@ -37,7 +37,7 @@ task deployNodes(type: net.corda.plugins.Cordform, dependsOn: [jar]) {
         rpcSettings {
             adminAddress "localhost:10004"
         }
-        cordapp {
+        projectCordapp {
             config "a=b"
         }
     }
