@@ -1,8 +1,7 @@
 buildscript {
     ext {
         corda_group = 'net.corda'
-        corda_release_version = '5.0-SNAPSHOT' // TODO: Set to 5.0 when Corda 5 is released
-        finance_release_version = '4.0'
+        corda_release_version = '4.0'
         jolokia_version = '1.6.0'
     }
 }
@@ -23,8 +22,8 @@ repositories {
 dependencies {
     runtime "$corda_group:corda:$corda_release_version"
     runtime "$corda_group:corda-node-api:$corda_release_version"
-    cordapp "$corda_group:corda-finance-contracts:$finance_release_version"
-    cordapp "$corda_group:corda-finance-workflows:$finance_release_version"
+    cordapp "$corda_group:corda-finance-contracts:$corda_release_version"
+    cordapp "$corda_group:corda-finance-workflows:$corda_release_version"
 }
 
 task deployNodes(type: net.corda.plugins.Cordform) {
@@ -39,7 +38,7 @@ task deployNodes(type: net.corda.plugins.Cordform) {
         rpcSettings {
             adminAddress "localhost:10004"
         }
-        cordapps = ["$corda_group:corda-finance-contracts:$finance_release_version",
-                    "$corda_group:corda-finance-workflows:$finance_release_version"]
+        cordapps = ["$corda_group:corda-finance-contracts:$corda_release_version",
+                    "$corda_group:corda-finance-workflows:$corda_release_version"]
     }
 }
