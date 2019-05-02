@@ -133,6 +133,31 @@ configure(publishProjects) { subproject ->
                     subproject.mavenPom.call(pom)
                 }
             }
+
+            // Create a "special" artifact in the Maven repository so that
+            // Gradle's plugins {} block can find our plugins:
+            //
+            // This artifact would normally be created by setting:
+            //
+            //     gradlePlugin {
+            //         automatedPublishing = true
+            //     }
+            //
+            // except that this would also discard all of our POM customisations.
+            create(subproject.name + "-plugin", MavenPublication) {
+                groupId subproject.group + '.' + subproject.name
+                artifactId subproject.group + '.' + subproject.name + '.gradle.plugin'
+
+                pom {
+                    packaging 'pom'
+                    withXml {
+                        def dependency = asNode().appendNode('dependencies').appendNode('dependency')
+                        dependency.appendNode('groupId', subproject.group)
+                        dependency.appendNode('artifactId', subproject.name)
+                        dependency.appendNode('version', subproject.version)
+                    }
+                }
+            }
         }
     }
 
