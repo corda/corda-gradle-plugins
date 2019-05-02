@@ -3,6 +3,7 @@ package net.corda.plugins
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ModuleDependency
+import org.gradle.api.plugins.JavaPlugin
 import java.io.File
 
 /**
@@ -54,6 +55,10 @@ class Cordformation : Plugin<Project> {
     }
 
     override fun apply(project: Project) {
+        // Apply the Java plugin on the assumption that we're building a JAR.
+        // This will also create the "compile", "compileOnly" and "runtime" configurations.
+        project.pluginManager.apply(JavaPlugin::class.java)
+
         project.configurations.apply {
             Utils.createCompileConfiguration("cordapp", this)
             val cordaRuntime = Utils.createRuntimeConfiguration("cordaRuntime", this)
