@@ -66,9 +66,7 @@ open class JarFilterTask @Inject constructor(objects: ObjectFactory, layouts: Pr
     }
 
     @get:Internal
-    val outputDir: DirectoryProperty = layouts.directoryProperty().apply {
-        set(layouts.buildDirectory.dir("filtered-libs"))
-    }
+    val outputDir: DirectoryProperty = layouts.directoryProperty(layouts.buildDirectory.dir("filtered-libs"))
 
     fun outputDir(dir: File) {
         outputDir.set(dir)
