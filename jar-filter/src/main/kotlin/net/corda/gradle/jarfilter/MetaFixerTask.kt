@@ -36,9 +36,7 @@ open class MetaFixerTask @Inject constructor(objects: ObjectFactory, layouts: Pr
     fun jars(inputs: Any?) = setJars(inputs)
 
     @get:Internal
-    val outputDir: DirectoryProperty = layouts.directoryProperty().apply {
-        set(layouts.buildDirectory.dir("metafixer-libs"))
-    }
+    val outputDir: DirectoryProperty = layouts.directoryProperty(layouts.buildDirectory.dir("metafixer-libs"))
 
     fun outputDir(dir: File) {
         outputDir.set(dir)
