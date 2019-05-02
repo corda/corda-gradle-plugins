@@ -14,7 +14,7 @@
 
 * `cordformation`: Unload `SecurityProvider` instances installed by Network Bootstrapper to prevent linkage exceptions later.
 
-* `cordformation`: Revert `deployNodes` back to using the runtime classpath again. Anything needed solely by `deployNodes` can be added to Gradle's `runtimeOnly` configuration instead.
+* `cordformation`: Revert `deployNodes` back to using the runtime classpath again. Anything needed solely by `deployNodes` can be added to Gradle's `cordaRuntime` configuration instead.
 
 * `cordformation`: Add Jolokia agent to the `cordaRuntime` configuration to prevent the `cordapp` plugin from including it inside the CorDapp.
 
