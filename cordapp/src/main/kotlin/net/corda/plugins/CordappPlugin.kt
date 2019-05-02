@@ -70,7 +70,7 @@ class CordappPlugin @Inject constructor(private val objects: ObjectFactory): Plu
         }
 
         cordappTask.doLast {
-            jarTask.from(getDirectNonCordaDependencies(project).map {file ->
+            jarTask.from(getDirectNonCordaDependencies(project).map { file ->
                 it.logger.info("CorDapp dependency: ${file.name}")
                 project.zipTree(file)
             }).apply {
