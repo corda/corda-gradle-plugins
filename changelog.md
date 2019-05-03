@@ -4,6 +4,8 @@
 
 ### Version 4.0.44
 
+* `cordapp`: Explicitly configure all of the CorDapp's `jar` task properties to ensure the CorDapp has a stable SHA256 hash.
+
 ### Version 4.0.43
 
 * `cordformation`: Add support for network parameter overrides.
