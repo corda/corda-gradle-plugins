@@ -9,6 +9,7 @@ import org.gradle.api.java.archives.Attributes
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.publish.maven.tasks.GenerateMavenPom
+import org.gradle.api.tasks.bundling.ZipEntryCompression.DEFLATED
 import org.gradle.jvm.tasks.Jar
 import java.io.File
 import javax.inject.Inject
@@ -49,14 +50,22 @@ class CordappPlugin @Inject constructor(private val objects: ObjectFactory): Plu
     }
 
     /**
-     * Configures this project's JAR as a Cordapp JAR
+     * Configures this project's JAR as a Cordapp JAR. Ensure that the
+     * JAR is reproducible, i.e. that its SHA256 hash is stable!
      */
     private fun configureCordappJar(project: Project) {
         // Note: project.afterEvaluate did not have full dependency resolution completed, hence a task is used instead
         val cordappTask = project.task("configureCordappFatJar")
         val jarTask = project.tasks.getByName("jar") as Jar
+        jarTask.fileMode = Integer.parseInt("444", 8)
+        jarTask.dirMode = Integer.parseInt("555", 8)
+        jarTask.manifestContentCharset = "UTF-8"
         jarTask.isPreserveFileTimestamps = false
         jarTask.isReproducibleFileOrder = true
+        jarTask.entryCompression = DEFLATED
+        jarTask.includeEmptyDirs = false
+        jarTask.isCaseSensitive = true
+        jarTask.isZip64 = false
         jarTask.doFirst {
             val attributes = jarTask.manifest.attributes
             // check whether metadata has been configured (not mandatory for non-flow, non-contract gradle build files)
