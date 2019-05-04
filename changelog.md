@@ -2,6 +2,8 @@
 
 ## Version 4
 
+### Version 4.0.45
+
 ### Version 4.0.44
 
 * `cordapp`: Explicitly configure all of the CorDapp's `jar` task properties to ensure the CorDapp has a stable SHA256 hash.
