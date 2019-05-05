@@ -48,23 +48,25 @@ pluginBundle {
 }
 
 dependencies {
-    compile project(":cordapp")
+    implementation project(":cordapp")
     // Gradle plugins written in Kotlin will always use Gradle's
     // own provided Kotlin libraries at runtime. So ensure that
     // we don't add Kotlin as a dependency in our published POM.
     compileOnly "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
-    compile "commons-io:commons-io:$commons_io_version"
-    compile "com.typesafe:config:$typesafe_config_version"
+    implementation "commons-io:commons-io:$commons_io_version"
+    implementation "com.typesafe:config:$typesafe_config_version"
 
     noderunner "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 
-    testImplementation "org.jetbrains.kotlin:kotlin-test-junit"
-    testImplementation "junit:junit:$junit_version" // TODO: Unify with core
+    testImplementation "org.jetbrains.kotlin:kotlin-test"
+    testImplementation("org.junit.jupiter:junit-jupiter-api:$junit_jupiter_version")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junit_jupiter_version")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher:$junit_platform_version")
     testImplementation "org.assertj:assertj-core:$assertj_version"
     testImplementation "net.corda:corda-serialization:$corda_release_version"
     testRuntimeOnly "net.corda:corda-node-api:$corda_release_version"
     // Docker-compose file generation
-    compile "org.yaml:snakeyaml:$snake_yaml_version"
+    implementation "org.yaml:snakeyaml:$snake_yaml_version"
 }
 
 task createNodeRunner(type: Jar) {

@@ -53,10 +53,12 @@ dependencies {
     }
     implementation "org.ow2.asm:asm:$asm_version"
 
-    testImplementation "org.jetbrains.kotlin:kotlin-test-junit"
+    testImplementation "org.jetbrains.kotlin:kotlin-test"
     testImplementation "org.jetbrains.kotlin:kotlin-reflect"
     testImplementation "org.assertj:assertj-core:$assertj_version"
     testImplementation "junit:junit:$junit_version"
+    testRuntimeOnly "org.junit.vintage:junit-vintage-engine:$junit_jupiter_version"
+    testRuntimeOnly "org.junit.platform:junit-platform-launcher:$junit_platform_version"
     testImplementation project(':jar-filter:unwanteds')
 
     jacocoRuntime "org.jacoco:org.jacoco.agent:${jacoco.toolVersion}:runtime"

@@ -17,18 +17,17 @@ import org.apache.commons.io.IOUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
-import org.junit.Before
-import org.junit.Ignore
-import org.junit.Rule
-import org.junit.Test
-import org.junit.rules.TemporaryFolder
-import java.io.File
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.io.TempDir
+import java.nio.file.Path
+import java.nio.file.Paths
 
 class CordformTest {
-    @Rule
-    @JvmField
-    val testProjectDir = TemporaryFolder()
-    private lateinit var buildFile: File
+    @TempDir
+    lateinit var testProjectDir: Path
+    private lateinit var buildFile: Path
 
     private companion object {
         const val cordaFinanceWorkflowsJarName = "corda-finance-workflows-4.0"
@@ -39,12 +38,12 @@ class CordformTest {
         private val testGradleUserHome = System.getProperty("test.gradle.user.home", ".")
     }
 
-    @Before
+    @BeforeEach
     fun setup() {
-        buildFile = testProjectDir.newFile("build.gradle")
+        buildFile = testProjectDir.resolve("build.gradle")
     }
 
-    @Ignore
+    @Disabled
     @Test
     fun `network parameter overrides`() {
         val runner = getStandardGradleRunnerFor("DeploySingleNodeWithNetworkParameterOverrides.gradle")
@@ -52,9 +51,9 @@ class CordformTest {
         val result = runner.build()
 
         assertThat(result.task(":deployNodes")!!.outcome).isEqualTo(TaskOutcome.SUCCESS)
-        assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceWorkflowsJarName)).isFile()
-        assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceContractsJarName)).isFile()
-        assertThat(getNetworkParameterOverrides(notaryNodeName)).isFile()
+        assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceWorkflowsJarName)).isRegularFile()
+        assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceContractsJarName)).isRegularFile()
+        assertThat(getNetworkParameterOverrides(notaryNodeName)).isRegularFile()
 
         ThreadLocalToggleField<SerializationEnvironment>("contextSerializationEnv")
         net.corda.core.serialization.internal._contextSerializationEnv.set(SerializationEnvironment.with(
@@ -63,7 +62,7 @@ class CordformTest {
                 },
                 AMQP_P2P_CONTEXT)
         )
-        val serializedBytes = SerializedBytes<SignedDataWithCert<NetworkParameters>>(getNetworkParameterOverrides(notaryNodeName).readBytes())
+        val serializedBytes = SerializedBytes<SignedDataWithCert<NetworkParameters>>(getNetworkParameterOverrides(notaryNodeName).toFile().readBytes())
         val deserialized = serializedBytes.deserialize(SerializationDefaults.SERIALIZATION_FACTORY).raw.deserialize().packageOwnership
         assertThat(deserialized.containsKey("com.mypackagename")).isTrue()
     }
@@ -75,9 +74,9 @@ class CordformTest {
         val result = runner.build()
 
         assertThat(result.task(":deployNodes")!!.outcome).isEqualTo(TaskOutcome.SUCCESS)
-        assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceWorkflowsJarName)).isFile()
-        assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceContractsJarName)).isFile()
-        assertThat(getNetworkParameterOverrides(notaryNodeName)).isFile()
+        assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceWorkflowsJarName)).isRegularFile()
+        assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceContractsJarName)).isRegularFile()
+        assertThat(getNetworkParameterOverrides(notaryNodeName)).isRegularFile()
     }
 
     @Test
@@ -87,9 +86,9 @@ class CordformTest {
         val result = runner.build()
 
         assertThat(result.task(":deployNodes")!!.outcome).isEqualTo(TaskOutcome.SUCCESS)
-        assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceWorkflowsJarName)).isFile()
-        assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceContractsJarName)).isFile()
-        assertThat(getNetworkParameterOverrides(notaryNodeName)).isFile()
+        assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceWorkflowsJarName)).isRegularFile()
+        assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceContractsJarName)).isRegularFile()
+        assertThat(getNetworkParameterOverrides(notaryNodeName)).isRegularFile()
     }
 
     @Test
@@ -99,10 +98,10 @@ class CordformTest {
         val result = runner.build()
 
         assertThat(result.task(":deployNodes")!!.outcome).isEqualTo(TaskOutcome.SUCCESS)
-        assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceWorkflowsJarName)).isFile()
-        assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceContractsJarName)).isFile()
-        assertThat(getNodeCordappConfig(notaryNodeName, cordaFinanceWorkflowsJarName)).isFile()
-        assertThat(getNodeCordappConfig(notaryNodeName, cordaFinanceContractsJarName)).isFile()
+        assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceWorkflowsJarName)).isRegularFile()
+        assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceContractsJarName)).isRegularFile()
+        assertThat(getNodeCordappConfig(notaryNodeName, cordaFinanceWorkflowsJarName)).isRegularFile()
+        assertThat(getNodeCordappConfig(notaryNodeName, cordaFinanceContractsJarName)).isRegularFile()
     }
 
     @Test
@@ -112,23 +111,23 @@ class CordformTest {
         val result = runner.build()
 
         assertThat(result.task(":deployNodes")!!.outcome).isEqualTo(TaskOutcome.SUCCESS)
-        assertThat(getNodeCordappJar(notaryNodeName, localCordappJarName)).isFile()
-        assertThat(getNodeCordappConfig(notaryNodeName, localCordappJarName)).isFile()
+        assertThat(getNodeCordappJar(notaryNodeName, localCordappJarName)).isRegularFile()
+        assertThat(getNodeCordappConfig(notaryNodeName, localCordappJarName)).isRegularFile()
     }
 
     private fun getStandardGradleRunnerFor(buildFileResourceName: String): GradleRunner {
         createBuildFile(buildFileResourceName)
         return GradleRunner.create()
                 .withDebug(true)
-                .withProjectDir(testProjectDir.root)
+                .withProjectDir(testProjectDir.toFile())
                 .withArguments("deployNodes", "-s", "--info", "-g", testGradleUserHome)
                 .withPluginClasspath()
     }
 
-    private fun createBuildFile(buildFileResourceName: String) = IOUtils.copy(javaClass.getResourceAsStream(buildFileResourceName), buildFile.outputStream())
-    private fun getNodeCordappJar(nodeName: String, cordappJarName: String) = File(testProjectDir.root, "build/nodes/$nodeName/cordapps/$cordappJarName.jar")
-    private fun getNodeCordappConfig(nodeName: String, cordappJarName: String) = File(testProjectDir.root, "build/nodes/$nodeName/cordapps/config/$cordappJarName.conf")
-    private fun getNetworkParameterOverrides(nodeName: String) = File(testProjectDir.root, "build/nodes/$nodeName/network-parameters")
+    private fun createBuildFile(buildFileResourceName: String) = IOUtils.copy(javaClass.getResourceAsStream(buildFileResourceName), buildFile.toFile().outputStream())
+    private fun getNodeCordappJar(nodeName: String, cordappJarName: String) = Paths.get(testProjectDir.toFile().absolutePath, "build", "nodes", nodeName, "cordapps", "$cordappJarName.jar")
+    private fun getNodeCordappConfig(nodeName: String, cordappJarName: String) = Paths.get(testProjectDir.toFile().absolutePath, "build", "nodes", nodeName, "cordapps", "config", "$cordappJarName.conf")
+    private fun getNetworkParameterOverrides(nodeName: String) = Paths.get(testProjectDir.toFile().absolutePath, "build", "nodes", nodeName, "network-parameters")
 
     private class AMQPParametersSerializationScheme : AbstractAMQPSerializationScheme(emptyList()) {
         override fun rpcClientSerializerFactory(context: SerializationContext) = throw UnsupportedOperationException()
