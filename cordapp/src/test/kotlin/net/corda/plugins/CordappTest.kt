@@ -4,28 +4,27 @@ import org.apache.commons.io.IOUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
-import org.junit.rules.TemporaryFolder
-import java.io.File
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.io.TempDir
+import java.nio.file.Path
+import java.nio.file.Paths
 import java.util.jar.JarInputStream
 
 class CordappTest {
-    @Rule
-    @JvmField
-    val testProjectDir = TemporaryFolder()
-    private lateinit var buildFile: File
+    @TempDir
+    lateinit var testProjectDir: Path
+    private lateinit var buildFile: Path
 
     private companion object {
         const val cordappJarName = "test-cordapp"
 
-        private val testGradleUserHome = System.getProperty("test.gradle.user.home", ".")
+        private val testGradleUserHome = systemProperty("test.gradle.user.home")
     }
 
-    @Before
+    @BeforeEach
     fun setup() {
-        buildFile = testProjectDir.newFile("build.gradle")
+        buildFile = testProjectDir.resolve("build.gradle")
         installResource(testProjectDir, "settings.gradle")
         installResource(testProjectDir, "repositories.gradle")
     }
@@ -52,9 +51,9 @@ class CordappTest {
         assertThat(result.task(":jar")!!.outcome).isEqualTo(TaskOutcome.SUCCESS)
 
         val jarFile = getCordappJar(cordappJarName)
-        assertThat(jarFile).exists()
+        assertThat(jarFile).isRegularFile()
 
-        JarInputStream(jarFile.inputStream()).use { jar ->
+        JarInputStream(jarFile.toFile().inputStream()).use { jar ->
             val attributes = jar.manifest.mainAttributes
 
             assertThat(attributes.getValue("Name")).isEqualTo(expectedName)
@@ -88,9 +87,9 @@ class CordappTest {
         assertThat(result.task(":jar")!!.outcome).isEqualTo(TaskOutcome.SUCCESS)
 
         val jarFile = getCordappJar(cordappJarName)
-        assertThat(jarFile).exists()
+        assertThat(jarFile).isRegularFile()
 
-        JarInputStream(jarFile.inputStream()).use { jar ->
+        JarInputStream(jarFile.toFile().inputStream()).use { jar ->
             val attributes = jar.manifest.mainAttributes
 
             assertThat(attributes.getValue("Cordapp-Contract-Name")).isEqualTo(expectedContractCordappName)
@@ -124,9 +123,9 @@ class CordappTest {
         assertThat(result.task(":jar")!!.outcome).isEqualTo(TaskOutcome.SUCCESS)
 
         val jarFile = getCordappJar(cordappJarName)
-        assertThat(jarFile).exists()
+        assertThat(jarFile).isRegularFile()
 
-        JarInputStream(jarFile.inputStream()).use { jar ->
+        JarInputStream(jarFile.toFile().inputStream()).use { jar ->
             val attributes = jar.manifest.mainAttributes
 
             assertThat(attributes.getValue("Cordapp-Workflow-Name")).isEqualTo(expectedWorkflowCordappName)
@@ -168,9 +167,9 @@ class CordappTest {
         assertThat(result.task(":jar")!!.outcome).isEqualTo(TaskOutcome.SUCCESS)
 
         val jarFile = getCordappJar(cordappJarName)
-        assertThat(jarFile).exists()
+        assertThat(jarFile).isRegularFile()
 
-        JarInputStream(jarFile.inputStream()).use { jar ->
+        JarInputStream(jarFile.toFile().inputStream()).use { jar ->
             val attributes = jar.manifest.mainAttributes
 
             assertThat(attributes.getValue("Cordapp-Contract-Name")).isEqualTo(expectedContractCordappName)
@@ -217,9 +216,9 @@ class CordappTest {
         assertThat(result.task(":jar")!!.outcome).isEqualTo(TaskOutcome.SUCCESS)
 
         val jarFile = getCordappJar(cordappJarName)
-        assertThat(jarFile).exists()
+        assertThat(jarFile).isRegularFile()
 
-        JarInputStream(jarFile.inputStream()).use { jar ->
+        JarInputStream(jarFile.toFile().inputStream()).use { jar ->
             val attributes = jar.manifest.mainAttributes
 
             assertThat(attributes.getValue("Cordapp-Contract-Name")).isEqualTo(expectedContractCordappName)
@@ -257,11 +256,11 @@ class CordappTest {
     private fun jarTaskRunner(buildFileResourceName: String, extraArgs: List<String> = emptyList()): GradleRunner {
         createBuildFile(buildFileResourceName)
         return GradleRunner.create()
-                .withProjectDir(testProjectDir.root)
+                .withProjectDir(testProjectDir.toFile())
                 .withArguments(listOf("jar", "-s", "--info", "-g", testGradleUserHome) + extraArgs)
                 .withPluginClasspath()
     }
 
-    private fun createBuildFile(buildFileResourceName: String) = IOUtils.copy(javaClass.getResourceAsStream(buildFileResourceName), buildFile.outputStream())
-    private fun getCordappJar(cordappJarName: String) = File(testProjectDir.root, "build/libs/$cordappJarName.jar")
+    private fun createBuildFile(buildFileResourceName: String) = IOUtils.copy(javaClass.getResourceAsStream(buildFileResourceName), buildFile.toFile().outputStream())
+    private fun getCordappJar(cordappJarName: String): Path = Paths.get(testProjectDir.toFile().absolutePath, "build", "libs", "$cordappJarName.jar")
 }
