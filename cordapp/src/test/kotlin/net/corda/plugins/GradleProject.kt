@@ -45,6 +45,7 @@ class GradleProject(private val projectDir: Path, private val reporter: TestRepo
             .build()
         output = result.output
         reporter.publishEntry("stdout", output)
+        println(output)
 
         val taskResult = result.task(":$taskName") ?: fail("No outcome for $taskName task")
         assertEquals(SUCCESS, taskResult.outcome)
