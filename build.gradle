@@ -8,7 +8,9 @@ buildscript {
         artifactory_plugin_version = '4.7.3'
         snake_yaml_version = '1.19'
         commons_io_version = '2.6'
-        assertj_version = '3.9.1'
+        assertj_version = '3.12.1'
+        junit_jupiter_version = '5.4.2'
+        junit_platform_version = '1.4.2'
         junit_version = '4.12'
         asm_version = '6.2.1'
     }
@@ -56,6 +58,8 @@ allprojects {
     }
 
     tasks.withType(Test) {
+        useJUnitPlatform()
+
         // Prevent the project from creating temporary files outside of the build directory.
         systemProperty 'java.io.tmpdir', buildDir.absolutePath
 

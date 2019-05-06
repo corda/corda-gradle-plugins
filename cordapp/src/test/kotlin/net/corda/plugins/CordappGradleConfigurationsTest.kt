@@ -1,62 +1,56 @@
 package net.corda.plugins
 
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.Assert.assertEquals
-import org.junit.BeforeClass
-import org.junit.ClassRule
-import org.junit.Test
-import org.junit.rules.RuleChain
-import org.junit.rules.TemporaryFolder
-import org.junit.rules.TestRule
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestReporter
+import org.junit.jupiter.api.io.TempDir
+import java.nio.file.Path
 import java.util.stream.Collectors.toList
 import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
 
 class CordappGradleConfigurationsTest {
     companion object {
-        private val testProjectDir = TemporaryFolder()
-        private val testProject = GradleProject(testProjectDir)
-            .withBuildScript("""
-            |plugins {
-            |    id 'net.corda.plugins.cordapp'
-            |}
-            |
-            |apply from: 'repositories.gradle'
-            |
-            |version = '1.0-SNAPSHOT'
-            |group = 'com.example'
-            |
-            |dependencies {
-            |    compile "org.slf4j:slf4j-api:1.7.26"
-            |    runtime "org.slf4j:slf4j-simple:1.7.26"
-            |    cordaCompile "com.google.guava:guava:20.0"
-            |    cordaRuntime "javax.servlet:javax.servlet-api:3.1.0"
-            |    runtimeOnly "javax.validation:validation-api:1.1.0.Final"
-            |}
-            |
-            |jar {
-            |    archiveName = 'configurations.jar'
-            |}
-            |
-            |cordapp {
-            |    info {
-            |        name = 'Testing'
-            |        targetPlatformVersion = 5
-            |    }
-            |}
-        """.trimMargin())
-
-        @ClassRule
-        @JvmField
-        val rules: TestRule = RuleChain
-            .outerRule(testProjectDir)
-            .around(testProject)
-
+        private lateinit var testProject: GradleProject
         private lateinit var poms: List<ZipEntry>
 
-        @BeforeClass
+        @BeforeAll
         @JvmStatic
-        fun checkSetup() {
+        fun setup(@TempDir testProjectDir: Path, reporter: TestReporter) {
+            testProject = GradleProject(testProjectDir, reporter)
+                .withBuildScript("""
+                    |plugins {
+                    |    id 'net.corda.plugins.cordapp'
+                    |}
+                    |
+                    |apply from: 'repositories.gradle'
+                    |
+                    |version = '1.0-SNAPSHOT'
+                    |group = 'com.example'
+                    |
+                    |dependencies {
+                    |    compile "org.slf4j:slf4j-api:1.7.26"
+                    |    runtime "org.slf4j:slf4j-simple:1.7.26"
+                    |    cordaCompile "com.google.guava:guava:20.0"
+                    |    cordaRuntime "javax.servlet:javax.servlet-api:3.1.0"
+                    |    runtimeOnly "javax.validation:validation-api:1.1.0.Final"
+                    |}
+                    |
+                    |jar {
+                    |    archiveName = 'configurations.jar'
+                    |}
+                    |
+                    |cordapp {
+                    |    info {
+                    |        name = 'Testing'
+                    |        targetPlatformVersion = 5
+                    |    }
+                    |}
+                """.trimMargin())
+                .build()
+
             val cordapp = testProject.pathOf("build", "libs", "configurations.jar")
             assertThat(cordapp).isRegularFile()
 

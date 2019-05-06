@@ -1,10 +1,11 @@
 package net.corda.plugins
 
 import org.gradle.testkit.runner.GradleRunner
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
-import org.junit.rules.TemporaryFolder
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.io.TempDir
+
+import java.nio.file.Path
 
 import static org.assertj.core.api.Assertions.*
 import static org.gradle.testkit.runner.TaskOutcome.*
@@ -13,10 +14,10 @@ class QuasarPluginTest {
     private static final String TEST_GRADLE_USER_HOME = System.getProperty("test.gradle.user.home", ".")
     private static final String QUASAR_VERSION = QuasarPlugin.defaultVersion
 
-    @Rule
-    public final TemporaryFolder testProjectDir = new TemporaryFolder()
+    @TempDir
+    public Path testProjectDir
 
-    @Before
+    @BeforeEach
     void setup() {
         Utilities.installResource(testProjectDir, "settings.gradle")
     }
@@ -169,11 +170,11 @@ test {
     }
 
     private List<String> runGradleFor(String script) {
-        def buildFile = testProjectDir.newFile("build.gradle")
+        def buildFile = testProjectDir.resolve("build.gradle")
         buildFile.text = script
         def result = GradleRunner.create()
-            .withProjectDir(testProjectDir.getRoot())
-            .withArguments("--info", "build", "-g", TEST_GRADLE_USER_HOME)
+            .withProjectDir(testProjectDir.toFile())
+            .withArguments("--info", "--stacktrace", "build", "-g", TEST_GRADLE_USER_HOME)
             .withPluginClasspath()
             .build()
         println result.output

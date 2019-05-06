@@ -1,14 +1,16 @@
 package net.corda.plugins
 
-import org.junit.rules.TemporaryFolder
+import groovy.transform.CompileStatic
+
 import java.nio.file.Files
 import java.nio.file.Path
 
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING
 
+@CompileStatic
 class Utilities {
-    static long installResource(TemporaryFolder folder, String resourceName) {
-        File buildFile = folder.newFile(resourceName.substring(1 + resourceName.lastIndexOf('/')))
+    static long installResource(Path folder, String resourceName) {
+        Path buildFile = folder.resolve(resourceName.substring(1 + resourceName.lastIndexOf('/')))
         return copyResourceTo(resourceName, buildFile)
     }
 
@@ -22,9 +24,5 @@ class Utilities {
         } finally {
             input.close()
         }
-    }
-
-    static long copyResourceTo(String resourceName, File  target) {
-        return copyResourceTo(resourceName, target.toPath())
     }
 }
