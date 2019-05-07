@@ -21,7 +21,7 @@ dependencies {
 }
 
 jar {
-    baseName = 'delete-object'
+    archiveBaseName = 'delete-object'
 }
 
 import net.corda.gradle.jarfilter.JarFilterTask

@@ -20,7 +20,7 @@ dependencies {
 }
 
 jar {
-    baseName = "kotlin-lambdas"
+    archiveBaseName = "kotlin-lambdas"
 }
 
 scanApi {

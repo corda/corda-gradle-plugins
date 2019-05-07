@@ -21,7 +21,7 @@ dependencies {
 }
 
 jar {
-    baseName = 'delete-lazy'
+    archiveBaseName = 'delete-lazy'
 }
 
 import net.corda.gradle.jarfilter.JarFilterTask

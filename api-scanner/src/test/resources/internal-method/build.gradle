@@ -18,7 +18,7 @@ sourceSets {
 }
 
 jar {
-    baseName = "internal-method"
+    archiveBaseName = "internal-method"
 }
 
 scanApi {

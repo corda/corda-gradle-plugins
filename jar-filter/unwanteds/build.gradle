@@ -12,5 +12,5 @@ dependencies {
 }
 
 jar {
-    archiveName = "${project.name}.jar"
+    archiveFileName = "${project.name}.jar"
 }

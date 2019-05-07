@@ -15,7 +15,7 @@ sourceSets {
 }
 
 jar {
-    baseName = "vararg-method"
+    archiveBaseName = "vararg-method"
 }
 
 scanApi {

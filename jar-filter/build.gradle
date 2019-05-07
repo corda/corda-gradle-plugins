@@ -9,11 +9,10 @@ description 'Deletes or stubs out unwanted elements from Java/Kotlin byte-code.'
 repositories {
     mavenCentral()
     jcenter()
-    maven { url "https://kotlin.bintray.com/kotlinx/" }
 }
 
 ext {
-    kotlin_metadata_version = '0.0.4'
+    kotlin_metadata_version = '0.0.5'
 }
 
 gradlePlugin {

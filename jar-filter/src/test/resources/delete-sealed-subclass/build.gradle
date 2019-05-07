@@ -21,7 +21,7 @@ dependencies {
 }
 
 jar {
-    baseName = 'delete-sealed-subclass'
+    archiveBaseName = 'delete-sealed-subclass'
 }
 
 import net.corda.gradle.jarfilter.JarFilterTask

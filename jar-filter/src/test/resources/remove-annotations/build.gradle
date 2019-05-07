@@ -21,7 +21,7 @@ dependencies {
 }
 
 jar {
-    baseName = 'remove-annotations'
+    archiveBaseName = 'remove-annotations'
 }
 
 import net.corda.gradle.jarfilter.JarFilterTask

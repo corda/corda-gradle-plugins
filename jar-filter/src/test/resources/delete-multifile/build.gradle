@@ -20,7 +20,7 @@ dependencies {
 }
 
 jar {
-    baseName = 'delete-multifile'
+    archiveBaseName = 'delete-multifile'
 }
 
 import net.corda.gradle.jarfilter.JarFilterTask

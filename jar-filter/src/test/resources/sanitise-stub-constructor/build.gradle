@@ -21,7 +21,7 @@ dependencies {
 }
 
 jar {
-    baseName = 'sanitise-stub-constructor'
+    archiveBaseName = 'sanitise-stub-constructor'
 }
 
 import net.corda.gradle.jarfilter.JarFilterTask

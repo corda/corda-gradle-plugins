@@ -28,7 +28,7 @@ import java.io.ByteArrayInputStream
  * filtering annotations in the first place.
  */
 class SanitisingTransformer(visitor: ClassVisitor, logger: Logger, private val unwantedAnnotations: Set<String>)
-    : KotlinBeforeProcessor(ASM6, visitor, logger, mutableMapOf()) {
+    : KotlinBeforeProcessor(ASM7, visitor, logger, mutableMapOf()) {
 
     var isModified: Boolean = false
         private set

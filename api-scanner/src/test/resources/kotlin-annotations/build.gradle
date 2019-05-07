@@ -27,7 +27,7 @@ compileKotlin {
 }
 
 jar {
-    baseName = "kotlin-annotations"
+    archiveBaseName = "kotlin-annotations"
 }
 
 scanApi {

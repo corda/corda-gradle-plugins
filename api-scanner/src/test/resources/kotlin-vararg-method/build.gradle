@@ -20,7 +20,7 @@ dependencies {
 }
 
 jar {
-    baseName = "kotlin-vararg-method"
+    archiveBaseName = "kotlin-vararg-method"
 }
 
 scanApi {

@@ -18,7 +18,7 @@ sourceSets {
 }
 
 jar {
-    baseName = "class-internal-annotation"
+    archiveBaseName = "class-internal-annotation"
 }
 
 scanApi {

@@ -19,7 +19,7 @@ dependencies {
 }
 
 jar {
-    baseName = "annotated-interface"
+    archiveBaseName = "annotated-interface"
 }
 
 scanApi {

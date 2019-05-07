@@ -21,7 +21,7 @@ dependencies {
 }
 
 jar {
-    baseName = 'delete-and-stub'
+    archiveBaseName = 'delete-and-stub'
 }
 
 import net.corda.gradle.jarfilter.JarFilterTask

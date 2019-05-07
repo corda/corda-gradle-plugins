@@ -20,7 +20,7 @@ dependencies {
 }
 
 jar {
-    baseName = 'delete-static-var'
+    archiveBaseName = 'delete-static-var'
 }
 
 import net.corda.gradle.jarfilter.JarFilterTask

@@ -4,6 +4,8 @@
 
 ### Version 5.0.0
 
+* Upgrade to Gradle 5.4.1.
+
 * `cordapp`: Explicitly configure all of the CorDapp's `jar` task properties to ensure the CorDapp has a stable SHA256 hash.
 
 * `cordformation`: Add support for network parameter overrides.

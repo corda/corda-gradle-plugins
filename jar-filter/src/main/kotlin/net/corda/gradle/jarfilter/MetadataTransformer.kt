@@ -222,7 +222,7 @@ internal abstract class MetadataTransformer<out T : MessageLite>(
 
 /**
  * Removes elements from a [kotlin.Metadata] annotation that contains
- * a [ProtoBuf.Class] object in its [data1][kotlin.Metadata.d1] field.
+ * a [ProtoBuf.Class] object in its [data1][kotlin.Metadata.data1] field.
  */
 internal class ClassMetadataTransformer(
     logger: Logger,
@@ -278,7 +278,7 @@ internal class ClassMetadataTransformer(
 
 /**
  * Removes elements from a [kotlin.Metadata] annotation that contains
- * a [ProtoBuf.Package] object in its [data1][kotlin.Metadata.d1] field.
+ * a [ProtoBuf.Package] object in its [data1][kotlin.Metadata.data1] field.
  */
 internal class PackageMetadataTransformer(
     logger: Logger,

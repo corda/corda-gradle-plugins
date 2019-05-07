@@ -21,7 +21,7 @@ dependencies {
 }
 
 jar {
-    baseName = 'delete-constructor'
+    archiveBaseName = 'delete-constructor'
 }
 
 import net.corda.gradle.jarfilter.JarFilterTask
