@@ -2,6 +2,8 @@
 
 ## Version 5
 
+### Version 5.0.1
+
 ### Version 5.0.0
 
 * Upgrade to Gradle 5.4.1 / Kotlin 1.3.21.
