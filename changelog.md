@@ -4,9 +4,17 @@
 
 ### Version 5.0.0
 
-* Upgrade to Gradle 5.4.1.
+* Upgrade to Gradle 5.4.1 / Kotlin 1.3.21.
+
+* `quasar-utils`: Apply the `java` plugin automatically.
+
+## Version 4
+
+### Version 4.0.44
 
 * `cordapp`: Explicitly configure all of the CorDapp's `jar` task properties to ensure the CorDapp has a stable SHA256 hash.
+
+### Version 4.0.43
 
 * `cordformation`: Add support for network parameter overrides.
 
@@ -16,15 +24,15 @@
 
 * `api-scanner`: Compatibility fix for Gradle 5.x.
 
-* `cordformation`: Unload `SecurityProvider` instances installed by Network Bootstrapper to prevent linkage exceptions later.
-
-* `cordformation`: Revert `deployNodes` back to using the runtime classpath again. Anything needed solely by `deployNodes` can be added to Gradle's `cordaRuntime` configuration instead.
+### Version 4.0.42
 
 * `cordformation`: Add Jolokia agent to the `cordaRuntime` configuration to prevent the `cordapp` plugin from including it inside the CorDapp.
 
-* `quasar-utils`: Apply the `java` plugin automatically.
+### Version 4.0.41
 
-## Version 4
+* `cordformation`: Unload `SecurityProvider` instances installed by Network Bootstrapper to prevent linkage exceptions later.
+
+* `cordformation`: Revert `deployNodes` back to using the runtime classpath again. Anything needed solely by `deployNodes` can be added to Gradle's `cordaRuntime` configuration instead.
 
 ### Version 4.0.40
 
