@@ -1,21 +1,24 @@
 package net.corda.plugins;
 
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
-import org.junit.rules.TemporaryFolder;
-import org.junit.rules.TestRule;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.gradle.testkit.runner.TaskOutcome.*;
+import java.io.IOException;
+import java.nio.file.Path;
+
+import static org.assertj.core.api.Assertions.*;
+import static org.gradle.testkit.runner.TaskOutcome.NO_SOURCE;
 
 public class UnscannedJarTest {
-    private final TemporaryFolder testProjectDir = new TemporaryFolder();
-    private final GradleProject testProject = new GradleProject(testProjectDir, "unscanned-jar")
-            .withExpectedOutcome(NO_SOURCE);
+    private GradleProject testProject;
 
-    @Rule
-    public TestRule rules = RuleChain.outerRule(testProjectDir).around(testProject);
+    @BeforeEach
+    public void setup(@TempDir Path testProjectDir) throws IOException {
+        testProject = new GradleProject(testProjectDir, "unscanned-jar")
+            .withExpectedOutcome(NO_SOURCE)
+            .build();
+    }
 
     @Test
     public void testUnscannedJar() {

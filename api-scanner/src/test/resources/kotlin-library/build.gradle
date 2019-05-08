@@ -1,0 +1,30 @@
+plugins {
+    id 'java-library'
+    id 'org.jetbrains.kotlin.jvm' version '$kotlin_version'
+    id 'net.corda.plugins.api-scanner'
+}
+apply from: 'repositories.gradle'
+
+description 'Test API for a library'
+
+sourceSets {
+    main {
+        kotlin {
+            srcDir file("../resources/test/kotlin-library/kotlin")
+        }
+    }
+}
+
+dependencies {
+    api 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
+    implementation 'org.slf4j:slf4j-api:1.7.26'
+    compileOnly files('../../annotations/build/libs/annotations.jar')
+}
+
+jar {
+    archiveBaseName = "kotlin-library"
+}
+
+scanApi {
+    verbose = true
+}
