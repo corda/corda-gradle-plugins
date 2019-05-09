@@ -15,7 +15,7 @@ sourceSets {
 }
 
 dependencies {
-    compile files('../../annotations/build/libs/annotations.jar')
+    compileOnly files('../../annotations/build/libs/annotations.jar')
 }
 
 jar {

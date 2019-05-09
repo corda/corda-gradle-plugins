@@ -52,7 +52,6 @@ public class ApiScanner implements Plugin<Project> {
     }
 
     private static FileCollection compilationClasspath(ConfigurationContainer configurations) {
-        return configurations.getByName("compile")
-                .plus(configurations.getByName("compileOnly"));
+        return configurations.getByName("compileClasspath");
     }
 }

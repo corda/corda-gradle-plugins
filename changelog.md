@@ -4,6 +4,8 @@
 
 ### Version 4.0.45
 
+* `api-scanner`: Update to support Gradle's `java-library` plugin.
+
 * `quasar-utils`: Apply the `java` plugin automatically.
 
 ### Version 4.0.44

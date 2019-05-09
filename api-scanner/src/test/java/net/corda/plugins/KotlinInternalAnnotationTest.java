@@ -1,22 +1,22 @@
 package net.corda.plugins;
 
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
-import org.junit.rules.TemporaryFolder;
-import org.junit.rules.TestRule;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import java.io.IOException;
+import java.nio.file.Path;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class KotlinInternalAnnotationTest {
-    private final TemporaryFolder testProjectDir = new TemporaryFolder();
-    private final GradleProject testProject = new GradleProject(testProjectDir, "kotlin-internal-annotation");
+    private GradleProject testProject;
 
-    @Rule
-    public TestRule rules = RuleChain.outerRule(testProjectDir).around(testProject);
+    @BeforeEach
+    public void setup(@TempDir Path testProjectDir) throws IOException {
+        testProject = new GradleProject(testProjectDir, "kotlin-internal-annotation").build();
+    }
 
     @Test
     public void testKotlinInternalAnnotation() throws IOException {

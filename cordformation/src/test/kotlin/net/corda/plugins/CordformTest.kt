@@ -125,9 +125,9 @@ class CordformTest {
     }
 
     private fun createBuildFile(buildFileResourceName: String) = IOUtils.copy(javaClass.getResourceAsStream(buildFileResourceName), buildFile.toFile().outputStream())
-    private fun getNodeCordappJar(nodeName: String, cordappJarName: String) = Paths.get(testProjectDir.toFile().absolutePath, "build", "nodes", nodeName, "cordapps", "$cordappJarName.jar")
-    private fun getNodeCordappConfig(nodeName: String, cordappJarName: String) = Paths.get(testProjectDir.toFile().absolutePath, "build", "nodes", nodeName, "cordapps", "config", "$cordappJarName.conf")
-    private fun getNetworkParameterOverrides(nodeName: String) = Paths.get(testProjectDir.toFile().absolutePath, "build", "nodes", nodeName, "network-parameters")
+    private fun getNodeCordappJar(nodeName: String, cordappJarName: String) = Paths.get(testProjectDir.toAbsolutePath().toString(), "build", "nodes", nodeName, "cordapps", "$cordappJarName.jar")
+    private fun getNodeCordappConfig(nodeName: String, cordappJarName: String) = Paths.get(testProjectDir.toAbsolutePath().toString(), "build", "nodes", nodeName, "cordapps", "config", "$cordappJarName.conf")
+    private fun getNetworkParameterOverrides(nodeName: String) = Paths.get(testProjectDir.toAbsolutePath().toString(), "build", "nodes", nodeName, "network-parameters")
 
     private class AMQPParametersSerializationScheme : AbstractAMQPSerializationScheme(emptyList()) {
         override fun rpcClientSerializerFactory(context: SerializationContext) = throw UnsupportedOperationException()
