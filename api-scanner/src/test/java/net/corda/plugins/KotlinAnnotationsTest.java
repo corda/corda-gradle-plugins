@@ -1,21 +1,21 @@
 package net.corda.plugins;
 
-import org.junit.ClassRule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
-import org.junit.rules.TemporaryFolder;
-import org.junit.rules.TestRule;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import java.io.IOException;
+import java.nio.file.Path;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 
 public class KotlinAnnotationsTest {
-    private static final TemporaryFolder testProjectDir = new TemporaryFolder();
-    private static final GradleProject testProject = new GradleProject(testProjectDir, "kotlin-annotations");
+    private static GradleProject testProject;
 
-    @ClassRule
-    public static final TestRule rules = RuleChain.outerRule(testProjectDir).around(testProject);
+    @BeforeAll
+    public static void setup(@TempDir Path testProjectDir) throws IOException {
+        testProject = new GradleProject(testProjectDir, "kotlin-annotations").build();
+    }
 
     private static final String[] expectedClassWithDeprecatedFunctions = {
         "public final class net.corda.example.HasDeprecatedFunctions extends java.lang.Object",

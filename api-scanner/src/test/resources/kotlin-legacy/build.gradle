@@ -1,0 +1,28 @@
+plugins {
+    id 'org.jetbrains.kotlin.jvm' version '$kotlin_version'
+    id 'net.corda.plugins.api-scanner'
+}
+apply from: 'repositories.gradle'
+
+description 'Test Legacy Gradle API'
+
+sourceSets {
+    main {
+        kotlin {
+            srcDir file("../resources/test/kotlin-legacy/kotlin")
+        }
+    }
+}
+
+dependencies {
+    compile 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
+    compileOnly files('../../annotations/build/libs/annotations.jar')
+}
+
+jar {
+    archiveBaseName = "kotlin-legacy"
+}
+
+scanApi {
+    verbose = true
+}

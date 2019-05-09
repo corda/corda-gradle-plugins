@@ -29,7 +29,7 @@ class GradleProject(private val projectDir: Path, private val reporter: TestRepo
     var output: String = ""
         private set
 
-    fun pathOf(vararg elements: String): Path = Paths.get(projectDir.toFile().absolutePath, *elements)
+    fun pathOf(vararg elements: String): Path = Paths.get(projectDir.toAbsolutePath().toString(), *elements)
 
     fun build(): GradleProject {
         installResource(projectDir, "repositories.gradle")

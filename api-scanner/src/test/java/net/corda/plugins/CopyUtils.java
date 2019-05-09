@@ -1,9 +1,6 @@
 package net.corda.plugins;
 
-import org.junit.rules.TemporaryFolder;
-
 import javax.annotation.Nonnull;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -17,8 +14,8 @@ public final class CopyUtils {
     private CopyUtils() {
     }
 
-    public static long installResource(@Nonnull TemporaryFolder folder, @Nonnull String resourceName) throws IOException {
-        File buildFile = folder.newFile(resourceName.substring(1 + resourceName.lastIndexOf('/')));
+    public static long installResource(@Nonnull Path folder, @Nonnull String resourceName) throws IOException {
+        Path buildFile = folder.resolve(resourceName.substring(1 + resourceName.lastIndexOf('/')));
         return copyResourceTo(resourceName, buildFile);
     }
 
@@ -28,7 +25,4 @@ public final class CopyUtils {
         }
     }
 
-    public static long copyResourceTo(String resourceName, @Nonnull File target) throws IOException {
-        return copyResourceTo(resourceName, target.toPath());
-    }
 }

@@ -4,6 +4,8 @@
 
 ### Version 5.0.1
 
+* `api-scanner`: Update to support Gradle's `java-library` plugin.
+
 ### Version 5.0.0
 
 * Upgrade to Gradle 5.4.1 / Kotlin 1.3.21.
