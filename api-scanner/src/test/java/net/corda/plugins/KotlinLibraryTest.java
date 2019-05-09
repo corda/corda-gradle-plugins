@@ -9,21 +9,22 @@ import java.nio.file.Path;
 
 import static org.assertj.core.api.Assertions.*;
 
-public class AnnotatedFieldTest {
+public class KotlinLibraryTest {
     private GradleProject testProject;
 
     @BeforeEach
     public void setup(@TempDir Path testProjectDir) throws IOException {
-        testProject = new GradleProject(testProjectDir, "annotated-field").build();
+        testProject = new GradleProject(testProjectDir, "kotlin-library").build();
     }
 
     @Test
-    public void testAnnotatedField() throws IOException {
+    public void testLibraryIsScanned() throws IOException {
         assertThat(testProject.getApiLines())
             .containsSequence(
-                "  @A",
-                "  @B",
-                "  @C",
-                "  public static final String ANNOTATED_FIELD = \"<string-value>\"");
+                "@AnAnnotation",
+                "public final class net.corda.example.ExampleApi extends java.lang.Object",
+                "  public <init>()",
+                "##"
+            );
     }
 }
