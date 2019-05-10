@@ -206,6 +206,44 @@ test {
         }
     }
 
+    @Test
+    void checkNoExclusionsAreUsed() {
+        assertThat(QUASAR_EXCLUSIONS).isNotEmpty()
+
+        def output = runGradleFor """
+buildscript {
+    ext {
+        quasar_exclusions = []
+    }
+}
+
+plugins {
+    id 'net.corda.plugins.quasar-utils' apply false
+}
+
+description 'Show quasar-core added to test JVM arguments'
+
+repositories {
+    mavenCentral()
+}
+
+apply plugin: 'net.corda.plugins.quasar-utils'
+
+jar {
+    enabled = false
+}
+
+test {
+    allJvmArgs.forEach {
+        println "TEST-JVM: \${it}"
+    }
+}
+"""
+        assertThat(output).anyMatch {
+            it.startsWith("TEST-JVM: -javaagent:") && it.endsWith("quasar-core-$QUASAR_VERSION-jdk8.jar")
+        }
+    }
+
     private List<String> runGradleFor(String script) {
         def buildFile = testProjectDir.resolve("build.gradle")
         buildFile.text = script

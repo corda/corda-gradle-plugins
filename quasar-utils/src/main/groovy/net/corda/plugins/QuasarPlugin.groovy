@@ -37,12 +37,17 @@ class QuasarPlugin implements Plugin<Project> {
         // This adds Quasar to the compile classpath WITHOUT any of its transitive dependencies.
         project.dependencies.add("compileOnly", quasar)
 
+        def quasarExclusionsString = ""
+        if (!quasarExclusions.isEmpty()) {
+            quasarExclusionsString = "=x(${quasarExclusions.join(';')})"
+        }
+
         project.tasks.withType(Test) {
-            jvmArgs "-javaagent:${project.configurations.quasar.singleFile}=x(${quasarExclusions.join(';')})"
+            jvmArgs "-javaagent:${project.configurations.quasar.singleFile}$quasarExclusionsString"
             jvmArgs "-Dco.paralleluniverse.fibers.verifyInstrumentation"
         }
         project.tasks.withType(JavaExec) {
-            jvmArgs "-javaagent:${project.configurations.quasar.singleFile}=x(${quasarExclusions.join(';')})"
+            jvmArgs "-javaagent:${project.configurations.quasar.singleFile}$quasarExclusionsString"
             jvmArgs "-Dco.paralleluniverse.fibers.verifyInstrumentation"
         }
     }
