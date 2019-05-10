@@ -106,7 +106,7 @@
 
 ### Version 4.0.25
 
-* `quasar-utils': The plugin now does not require projects to specify `quasar_group` and `qauas
+* `quasar-utils`: The plugin now does not require projects to specify `quasar_group` and `quasar_version`
 
 ### Version 4.0.24
 
