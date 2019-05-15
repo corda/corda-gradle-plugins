@@ -6,6 +6,8 @@
 
 * `api-scanner`: Update to support Gradle's `java-library` plugin.
 
+* `quasar-utils`: Add a `quasar` extension so that we can exclude packages from being instrumented by the Quasar agent.
+
 ### Version 5.0.0
 
 * Upgrade to Gradle 5.4.1 / Kotlin 1.3.21.

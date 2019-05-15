@@ -8,12 +8,11 @@ import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Path
 
 import static org.assertj.core.api.Assertions.assertThat
-import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
+import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 class QuasarPluginTest {
     private static final String TEST_GRADLE_USER_HOME = System.getProperty("test.gradle.user.home", ".")
     private static final String QUASAR_VERSION = QuasarPlugin.defaultVersion
-    private static final List<String> QUASAR_EXCLUSIONS = QuasarPlugin.defaultExclusions
 
     @TempDir
     public Path testProjectDir
@@ -21,6 +20,7 @@ class QuasarPluginTest {
     @BeforeEach
     void setup() {
         Utilities.installResource(testProjectDir, "settings.gradle")
+        Utilities.installResource(testProjectDir, "src/test/java/BasicTest.java")
     }
 
     @Test
@@ -37,6 +37,10 @@ repositories {
 }
 
 apply plugin: 'net.corda.plugins.quasar-utils'
+
+dependencies {
+    testImplementation 'junit:junit:4.12'
+}
 
 jar {
     enabled = false
@@ -82,6 +86,10 @@ repositories {
 
 apply plugin: 'net.corda.plugins.quasar-utils'
 
+dependencies {
+    testImplementation 'junit:junit:4.12'
+}
+
 jar {
     enabled = false
 }
@@ -116,6 +124,10 @@ repositories {
 
 apply plugin: 'net.corda.plugins.quasar-utils'
 
+dependencies {
+    testImplementation 'junit:junit:4.12'
+}
+
 jar {
     enabled = false
 }
@@ -149,19 +161,24 @@ repositories {
 
 apply plugin: 'net.corda.plugins.quasar-utils'
 
+dependencies {
+    testImplementation 'junit:junit:4.12'
+}
+
 jar {
     enabled = false
 }
 
 test {
-    allJvmArgs.forEach {
-        println "TEST-JVM: \${it}"
+    doLast {
+        allJvmArgs.forEach {
+            println "TEST-JVM: \${it}"
+        }
     }
 }
 """
         assertThat(output).anyMatch {
-            it.startsWith("TEST-JVM: -javaagent:") && it.contains("quasar-core-$QUASAR_VERSION-jdk8.jar") &&
-                    it.endsWith("=x(${QUASAR_EXCLUSIONS.join(';')})")
+            it.startsWith("TEST-JVM: -javaagent:") && it.endsWith("quasar-core-$QUASAR_VERSION-jdk8.jar")
         }.anyMatch {
             it == "TEST-JVM: -Dco.paralleluniverse.fibers.verifyInstrumentation"
         }
@@ -169,16 +186,7 @@ test {
 
     @Test
     void checkOverriddenExclusionsAreUsed() {
-        def quasarExclusions = ['test**', 'test.dot**']
-        assertThat(quasarExclusions).isNotEqualTo(QUASAR_EXCLUSIONS)
-
         def output = runGradleFor """
-buildscript {
-    ext {
-        quasar_exclusions = ['${quasarExclusions.join("', '")}']
-    }
-}
-
 plugins {
     id 'net.corda.plugins.quasar-utils' apply false
 }
@@ -191,56 +199,31 @@ repositories {
 
 apply plugin: 'net.corda.plugins.quasar-utils'
 
+dependencies {
+    testImplementation 'junit:junit:4.12'
+}
+
+quasar {
+    excludePackages = [
+        "co.paralleluniverse**",
+        "groovy**"
+    ]
+}
+
 jar {
     enabled = false
 }
 
 test {
-    allJvmArgs.forEach {
-        println "TEST-JVM: \${it}"
-    }
-}
-"""
-        assertThat(output).anyMatch {
-            it.startsWith("TEST-JVM: -javaagent:") && it.endsWith("=x(${quasarExclusions.join(';')})")
+    doLast {
+        allJvmArgs.forEach {
+            println "TEST-JVM: \${it}"
         }
     }
-
-    @Test
-    void checkNoExclusionsAreUsed() {
-        assertThat(QUASAR_EXCLUSIONS).isNotEmpty()
-
-        def output = runGradleFor """
-buildscript {
-    ext {
-        quasar_exclusions = []
-    }
-}
-
-plugins {
-    id 'net.corda.plugins.quasar-utils' apply false
-}
-
-description 'Show quasar-core added to test JVM arguments'
-
-repositories {
-    mavenCentral()
-}
-
-apply plugin: 'net.corda.plugins.quasar-utils'
-
-jar {
-    enabled = false
-}
-
-test {
-    allJvmArgs.forEach {
-        println "TEST-JVM: \${it}"
-    }
 }
 """
         assertThat(output).anyMatch {
-            it.startsWith("TEST-JVM: -javaagent:") && it.endsWith("quasar-core-$QUASAR_VERSION-jdk8.jar")
+            it.startsWith("TEST-JVM: -javaagent:") && it.endsWith('=x(co.paralleluniverse**;groovy**)')
         }
     }
 
@@ -249,14 +232,15 @@ test {
         buildFile.text = script
         def result = GradleRunner.create()
             .withProjectDir(testProjectDir.toFile())
-            .withArguments("--info", "--stacktrace", "build", "-g", TEST_GRADLE_USER_HOME)
+            .withArguments("--info", "--stacktrace", "test", "-g", TEST_GRADLE_USER_HOME)
             .withPluginClasspath()
+            .withDebug(true)
             .build()
         println result.output
 
-        def build = result.task(":build")
+        def build = result.task(":test")
         assertThat(build).isNotNull()
-        assertThat(build.outcome).isEqualTo(UP_TO_DATE)
+        assertThat(build.outcome).isEqualTo(SUCCESS)
 
         return result.output.readLines()
     }
