@@ -49,6 +49,7 @@ changes to this list.
 * Garrett Macey (Wells Fargo)
 * Gavin Thomas (R3)
 * George Marcel Smetana (Bradesco)
+* Gino Cardillo
 * Giulio Katis (Westpac)
 * Giuseppe Cardone (Intesa Sanpaolo)
 * Guy Hochstetler (IBM)

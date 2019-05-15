@@ -6,6 +6,8 @@
 
 * `api-scanner`: Update to support Gradle's `java-library` plugin.
 
+* `quasar-utils`: Add a `quasar` extension so that we can exclude packages from being instrumented by the Quasar agent.
+
 * `quasar-utils`: Apply the `java` plugin automatically.
 
 ### Version 4.0.44
@@ -100,7 +102,7 @@
 
 ### Version 4.0.25
 
-* `quasar-utils': The plugin now does not require projects to specify `quasar_group` and `qauas
+* `quasar-utils`: The plugin now does not require projects to specify `quasar_group` and `quasar_version`
 
 ### Version 4.0.24
 
