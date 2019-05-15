@@ -4,13 +4,15 @@ import groovy.transform.CompileStatic
 
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.Paths
 
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING
 
 @CompileStatic
 class Utilities {
-    static long installResource(Path folder, String resourceName) {
-        Path buildFile = folder.resolve(resourceName.substring(1 + resourceName.lastIndexOf('/')))
+    static long installResource(Path rootDir, String resourceName) {
+        Path buildFile = Paths.get(rootDir.toAbsolutePath().toString(), resourceName.split('/'))
+        Files.createDirectories(buildFile.parent)
         return copyResourceTo(resourceName, buildFile)
     }
 
