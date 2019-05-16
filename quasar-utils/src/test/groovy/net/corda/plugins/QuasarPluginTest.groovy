@@ -7,7 +7,7 @@ import org.junit.jupiter.api.io.TempDir
 
 import java.nio.file.Path
 
-import static org.assertj.core.api.Assertions.assertThat
+import static org.assertj.core.api.Assertions.*
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 class QuasarPluginTest {
@@ -197,6 +197,10 @@ repositories {
     mavenCentral()
 }
 
+ext {
+    quasar_exclusions = [ 'co.paralleluniverse**' ]
+}
+
 apply plugin: 'net.corda.plugins.quasar-utils'
 
 dependencies {
@@ -204,10 +208,7 @@ dependencies {
 }
 
 quasar {
-    excludePackages = [
-        "co.paralleluniverse**",
-        "groovy**"
-    ]
+    excludePackages.addAll 'groovy**', 'org.junit.**'
 }
 
 jar {
@@ -223,19 +224,125 @@ test {
 }
 """
         assertThat(output).anyMatch {
-            it.startsWith("TEST-JVM: -javaagent:") && it.endsWith('=x(co.paralleluniverse**;groovy**)')
+            it.startsWith("TEST-JVM: -javaagent:") && it.endsWith('=x(co.paralleluniverse**;groovy**;org.junit.**)')
+        }
+    }
+
+    @Test
+    void checkAddingExclusionsWithoutAnyDefaults() {
+        def output = runGradleFor """
+plugins {
+    id 'net.corda.plugins.quasar-utils' apply false
+}
+
+description 'Show quasar-core added to test JVM arguments'
+
+repositories {
+    mavenCentral()
+}
+
+apply plugin: 'net.corda.plugins.quasar-utils'
+
+dependencies {
+    testImplementation 'junit:junit:4.12'
+}
+
+quasar {
+    excludePackages.addAll 'groovy**', 'org.junit.**'
+}
+
+jar {
+    enabled = false
+}
+
+test {
+    doLast {
+        allJvmArgs.forEach {
+            println "TEST-JVM: \${it}"
+        }
+    }
+}
+"""
+        assertThat(output).anyMatch {
+            it.startsWith("TEST-JVM: -javaagent:") && it.endsWith('=x(groovy**;org.junit.**)')
+        }
+    }
+
+    @Test
+    void checkDefaultExclusionsCanBeReplaced() {
+        def output = runGradleFor """
+plugins {
+    id 'net.corda.plugins.quasar-utils' apply false
+}
+
+description 'Show quasar-core added to test JVM arguments'
+
+repositories {
+    mavenCentral()
+}
+
+ext {
+    quasar_exclusions = [ 'groovy**', 'java**' ]
+}
+
+apply plugin: 'net.corda.plugins.quasar-utils'
+
+dependencies {
+    testImplementation 'junit:junit:4.12'
+}
+
+quasar {
+    excludePackages = [ 'co.paralleluniverse**', 'org.junit.**' ]
+}
+
+jar {
+    enabled = false
+}
+
+test {
+    doLast {
+        allJvmArgs.forEach {
+            println "TEST-JVM: \${it}"
+        }
+    }
+}
+"""
+        assertThat(output).anyMatch {
+            it.startsWith("TEST-JVM: -javaagent:") && it.endsWith('=x(co.paralleluniverse**;org.junit.**)')
+        }
+    }
+
+    @Test
+    void checkValidationForQuasarExclusionsProperty() {
+        def result = runnerFor("""
+plugins {
+    id 'net.corda.plugins.quasar-utils' apply false
+}
+
+description 'Show quasar-core added to test JVM arguments'
+
+repositories {
+    mavenCentral()
+}
+
+ext {
+    quasar_exclusions = 'stringy thing'
+}
+
+apply plugin: 'net.corda.plugins.quasar-utils'
+""").buildAndFail()
+
+        def output = result.output
+        println output
+
+        def lines = output.readLines()
+        assertThat(lines).anyMatch {
+            it.contains "quasar_exclusions property must be an Iterable<String>"
         }
     }
 
     private List<String> runGradleFor(String script) {
-        def buildFile = testProjectDir.resolve("build.gradle")
-        buildFile.text = script
-        def result = GradleRunner.create()
-            .withProjectDir(testProjectDir.toFile())
-            .withArguments("--info", "--stacktrace", "test", "-g", TEST_GRADLE_USER_HOME)
-            .withPluginClasspath()
-            .withDebug(true)
-            .build()
+        def result = runnerFor(script).build()
         println result.output
 
         def build = result.task(":test")
@@ -243,5 +350,15 @@ test {
         assertThat(build.outcome).isEqualTo(SUCCESS)
 
         return result.output.readLines()
+    }
+
+    private GradleRunner runnerFor(String script) {
+        def buildFile = testProjectDir.resolve("build.gradle")
+        buildFile.text = script
+        return GradleRunner.create()
+            .withProjectDir(testProjectDir.toFile())
+            .withArguments("--info", "--stacktrace", "test", "-g", TEST_GRADLE_USER_HOME)
+            .withPluginClasspath()
+            .withDebug(true)
     }
 }

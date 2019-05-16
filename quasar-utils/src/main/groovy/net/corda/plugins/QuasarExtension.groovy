@@ -13,8 +13,9 @@ class QuasarExtension {
     final Provider<String> exclusions
 
     @Inject
-    QuasarExtension(ObjectFactory objects) {
+    QuasarExtension(ObjectFactory objects, Iterable<? extends String> initialExclusions) {
         excludePackages = objects.listProperty(String)
+        excludePackages.set(initialExclusions)
         exclusions = excludePackages.map { excludes ->
             excludes.isEmpty() ? '' : "=x(${excludes.join(';')})".toString()
         }
