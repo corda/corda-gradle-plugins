@@ -20,6 +20,7 @@ class QuasarPluginTest {
     @BeforeEach
     void setup() {
         Utilities.installResource(testProjectDir, "settings.gradle")
+        Utilities.installResource(testProjectDir, "repositories.gradle")
         Utilities.installResource(testProjectDir, "src/test/java/BasicTest.java")
     }
 
@@ -32,11 +33,8 @@ plugins {
 
 description 'Show quasar-core added to configurations'
     
-repositories {
-    mavenCentral()
-}
-
 apply plugin: 'net.corda.plugins.quasar-utils'
+apply from: 'repositories.gradle'
 
 dependencies {
     testImplementation 'junit:junit:4.12'
@@ -80,11 +78,8 @@ plugins {
 
 description 'Show quasar-core added to configurations'
     
-repositories {
-    mavenCentral()
-}
-
 apply plugin: 'net.corda.plugins.quasar-utils'
+apply from: 'repositories.gradle'
 
 dependencies {
     testImplementation 'junit:junit:4.12'
@@ -118,9 +113,7 @@ plugins {
 
 description 'Show quasar-core added to configurations'
     
-repositories {
-    mavenCentral()
-}
+apply from: 'repositories.gradle'
 
 apply plugin: 'net.corda.plugins.quasar-utils'
 
@@ -155,11 +148,8 @@ plugins {
 
 description 'Show quasar-core added to test JVM arguments'
 
-repositories {
-    mavenCentral()
-}
-
 apply plugin: 'net.corda.plugins.quasar-utils'
+apply from: 'repositories.gradle'
 
 dependencies {
     testImplementation 'junit:junit:4.12'
@@ -193,9 +183,7 @@ plugins {
 
 description 'Show quasar-core added to test JVM arguments'
 
-repositories {
-    mavenCentral()
-}
+apply from: 'repositories.gradle'
 
 ext {
     quasar_exclusions = [ 'co.paralleluniverse**' ]
@@ -237,11 +225,8 @@ plugins {
 
 description 'Show quasar-core added to test JVM arguments'
 
-repositories {
-    mavenCentral()
-}
-
 apply plugin: 'net.corda.plugins.quasar-utils'
+apply from: 'repositories.gradle'
 
 dependencies {
     testImplementation 'junit:junit:4.12'
@@ -277,9 +262,7 @@ plugins {
 
 description 'Show quasar-core added to test JVM arguments'
 
-repositories {
-    mavenCentral()
-}
+apply from: 'repositories.gradle'
 
 ext {
     quasar_exclusions = [ 'groovy**', 'java**' ]
@@ -321,9 +304,7 @@ plugins {
 
 description 'Show quasar-core added to test JVM arguments'
 
-repositories {
-    mavenCentral()
-}
+apply from: 'repositories.gradle'
 
 ext {
     quasar_exclusions = 'stringy thing'
@@ -338,6 +319,74 @@ apply plugin: 'net.corda.plugins.quasar-utils'
         def lines = output.readLines()
         assertThat(lines).anyMatch {
             it.contains "quasar_exclusions property must be an Iterable<String>"
+        }
+    }
+
+    @Test
+    void testEnableVerboseOption() {
+        def output = runGradleFor """
+plugins {
+    id 'net.corda.plugins.quasar-utils' apply false
+}
+apply plugin: 'net.corda.plugins.quasar-utils'
+apply from: 'repositories.gradle'
+
+dependencies {
+    testImplementation 'junit:junit:4.12'
+}
+
+quasar {
+    verbose = true
+}
+
+jar {
+    enabled = false
+}
+
+test {
+    doLast {
+        allJvmArgs.forEach {
+            println "TEST-JVM: \${it}"
+        }
+    }
+}
+"""
+        assertThat(output).anyMatch {
+            it.startsWith("TEST-JVM: -javaagent:") && it.endsWith('=v')
+        }
+    }
+
+    @Test
+    void testEnableDebugOption() {
+        def output = runGradleFor """
+plugins {
+    id 'net.corda.plugins.quasar-utils' apply false
+}
+apply plugin: 'net.corda.plugins.quasar-utils'
+apply from: 'repositories.gradle'
+
+dependencies {
+    testImplementation 'junit:junit:4.12'
+}
+
+quasar {
+    debug = true
+}
+
+jar {
+    enabled = false
+}
+
+test {
+    doLast {
+        allJvmArgs.forEach {
+            println "TEST-JVM: \${it}"
+        }
+    }
+}
+"""
+        assertThat(output).anyMatch {
+            it.startsWith("TEST-JVM: -javaagent:") && it.endsWith('=d')
         }
     }
 
