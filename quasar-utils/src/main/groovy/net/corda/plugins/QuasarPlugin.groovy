@@ -54,13 +54,13 @@ class QuasarPlugin implements Plugin<Project> {
 
         project.tasks.withType(Test) {
             doFirst {
-                jvmArgs "-javaagent:${project.configurations[QUASAR].singleFile}${quasarExtension.exclusions.get()}",
+                jvmArgs "-javaagent:${project.configurations[QUASAR].singleFile}${quasarExtension.options.get()}",
                         "-Dco.paralleluniverse.fibers.verifyInstrumentation"
             }
         }
         project.tasks.withType(JavaExec) {
             doFirst {
-                jvmArgs "-javaagent:${project.configurations[QUASAR].singleFile}${quasarExtension.exclusions.get()}",
+                jvmArgs "-javaagent:${project.configurations[QUASAR].singleFile}${quasarExtension.options.get()}",
                         "-Dco.paralleluniverse.fibers.verifyInstrumentation"
             }
         }
