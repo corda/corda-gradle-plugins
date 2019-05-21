@@ -8,6 +8,8 @@
 
 * `quasar-utils`: Add a `quasar` extension so that we can exclude packages from being instrumented by the Quasar agent. Also expose Quasar's `verbose` and `debug` options using extension properties. And `group`, `version` and `classifier` properties so that we can configure whicn agent artifact to use.
 
+* `quasar-utils`: Remove Quasar's transitive dependencies from Gradle's runtime classpath.
+
 ### Version 5.0.0
 
 * Upgrade to Gradle 5.4.1 / Kotlin 1.3.21.
