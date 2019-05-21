@@ -13,6 +13,7 @@ import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 class QuasarPluginTest {
     private static final String TEST_GRADLE_USER_HOME = System.getProperty("test.gradle.user.home", ".")
     private static final String QUASAR_VERSION = QuasarPlugin.defaultVersion
+    private static final String QUASAR_CLASSIFIER = QuasarPlugin.defaultClassifier
 
     @TempDir
     public Path testProjectDir
@@ -36,26 +37,19 @@ description 'Show quasar-core added to configurations'
 apply plugin: 'net.corda.plugins.quasar-utils'
 apply from: 'repositories.gradle'
 
-dependencies {
-    testImplementation 'junit:junit:4.12'
-}
-
-jar {
-    enabled = false
-}
-
-def configs = configurations.matching { it.name in ['quasar', 'cordaRuntime', 'compileOnly', 'compileClasspath'] }
+def configs = configurations.matching { it.name in ['quasar', 'cordaRuntime', 'compileOnly', 'compileClasspath', 'runtimeClasspath'] }
 configs.collectEntries { [(it.name):it] }.forEach { name, files ->
     files.forEach { file ->
         println "\$name: \${file.name}"
     }
 }
-"""
+""", "jar"
         assertThat(output).containsOnlyOnce(
-            "quasar: quasar-core-$QUASAR_VERSION-jdk8.jar".toString(),
-            "cordaRuntime: quasar-core-$QUASAR_VERSION-jdk8.jar".toString(),
-            "compileOnly: quasar-core-$QUASAR_VERSION-jdk8.jar".toString(),
-            "compileClasspath: quasar-core-$QUASAR_VERSION-jdk8.jar".toString()
+            "quasar: quasar-core-${QUASAR_VERSION}-${QUASAR_CLASSIFIER}.jar".toString(),
+            "cordaRuntime: quasar-core-${QUASAR_VERSION}-${QUASAR_CLASSIFIER}.jar".toString(),
+            "runtimeClasspath: quasar-core-${QUASAR_VERSION}-${QUASAR_CLASSIFIER}.jar".toString(),
+            "compileOnly: quasar-core-${QUASAR_VERSION}-${QUASAR_CLASSIFIER}.jar".toString(),
+            "compileClasspath: quasar-core-${QUASAR_VERSION}-${QUASAR_CLASSIFIER}.jar".toString()
         )
     }
 
@@ -68,7 +62,7 @@ configs.collectEntries { [(it.name):it] }.forEach { name, files ->
 buildscript {
     ext {
         quasar_group = 'co.paralleluniverse'
-        quasar_version = '$quasarVersion'
+        quasar_version = '${quasarVersion}'
     }
 }
 
@@ -81,26 +75,95 @@ description 'Show quasar-core added to configurations'
 apply plugin: 'net.corda.plugins.quasar-utils'
 apply from: 'repositories.gradle'
 
-dependencies {
-    testImplementation 'junit:junit:4.12'
-}
-
-jar {
-    enabled = false
-}
-
-def configs = configurations.matching { it.name in ['quasar', 'cordaRuntime', 'compileOnly', 'compileClasspath'] }
+def configs = configurations.matching { it.name in ['quasar', 'cordaRuntime', 'compileOnly', 'compileClasspath', 'runtimeClasspath'] }
 configs.collectEntries { [(it.name):it] }.forEach { name, files ->
     files.forEach { file ->
         println "\$name: \${file.name}"
     }
 }
-"""
+""", "jar"
         assertThat(output).containsOnlyOnce(
-            "quasar: quasar-core-$quasarVersion-jdk8.jar".toString(),
-            "cordaRuntime: quasar-core-$quasarVersion-jdk8.jar".toString(),
-            "compileOnly: quasar-core-$quasarVersion-jdk8.jar".toString(),
-            "compileClasspath: quasar-core-$quasarVersion-jdk8.jar".toString()
+            "quasar: quasar-core-${quasarVersion}-${QUASAR_CLASSIFIER}.jar".toString(),
+            "cordaRuntime: quasar-core-${quasarVersion}-${QUASAR_CLASSIFIER}.jar".toString(),
+            "runtimeClasspath: quasar-core-${quasarVersion}-${QUASAR_CLASSIFIER}.jar".toString(),
+            "compileOnly: quasar-core-${quasarVersion}-${QUASAR_CLASSIFIER}.jar".toString(),
+            "compileClasspath: quasar-core-${quasarVersion}-${QUASAR_CLASSIFIER}.jar".toString()
+        )
+    }
+
+    @Test
+    void checkLocalOverriddenVersionIsUsed() {
+        def quasarVersion = "0.7.9"
+        assertThat(quasarVersion).isNotEqualTo(QUASAR_VERSION)
+
+        def output = runGradleFor """
+buildscript {
+    ext {
+        quasar_group = 'co.paralleluniverse'
+    }
+}
+
+plugins {
+    id 'net.corda.plugins.quasar-utils' apply false
+}
+
+apply plugin: 'net.corda.plugins.quasar-utils'
+apply from: 'repositories.gradle'
+
+quasar {
+    version = '${quasarVersion}'
+}
+
+def configs = configurations.matching { it.name in ['quasar', 'cordaRuntime', 'compileOnly', 'compileClasspath', 'runtimeClasspath'] }
+configs.collectEntries { [(it.name):it] }.forEach { name, files ->
+    files.forEach { file ->
+        println "\$name: \${file.name}"
+    }
+}
+""", "jar"
+        assertThat(output).containsOnlyOnce(
+            "quasar: quasar-core-${quasarVersion}-${QUASAR_CLASSIFIER}.jar".toString(),
+            "cordaRuntime: quasar-core-${quasarVersion}-${QUASAR_CLASSIFIER}.jar".toString(),
+            "runtimeClasspath: quasar-core-${quasarVersion}-${QUASAR_CLASSIFIER}.jar".toString(),
+            "compileOnly: quasar-core-${quasarVersion}-${QUASAR_CLASSIFIER}.jar".toString(),
+            "compileClasspath: quasar-core-${quasarVersion}-${QUASAR_CLASSIFIER}.jar".toString()
+        )
+    }
+
+    @Test
+    void checkLocalOverriddenClassifierVersionIsUsed() {
+        def quasarVersion = "0.8.0"
+        def quasarClassifier = ''
+        assertThat(quasarVersion).isNotEqualTo(QUASAR_VERSION)
+        assertThat(quasarClassifier).isNotEqualTo(QUASAR_CLASSIFIER)
+
+        def output = runGradleFor """
+plugins {
+    id 'net.corda.plugins.quasar-utils' apply false
+}
+
+apply plugin: 'net.corda.plugins.quasar-utils'
+apply from: 'repositories.gradle'
+
+quasar {
+    group = 'co.paralleluniverse'
+    version = '${quasarVersion}'
+    classifier = '${quasarClassifier}'
+}
+
+def configs = configurations.matching { it.name in ['quasar', 'cordaRuntime', 'compileOnly', 'compileClasspath', 'runtimeClasspath'] }
+configs.collectEntries { [(it.name):it] }.forEach { name, files ->
+    files.forEach { file ->
+        println "\$name: \${file.name}"
+    }
+}
+""", "jar"
+        assertThat(output).containsOnlyOnce(
+            "quasar: quasar-core-${quasarVersion}.jar".toString(),
+            "cordaRuntime: quasar-core-${quasarVersion}.jar".toString(),
+            "runtimeClasspath: quasar-core-${quasarVersion}.jar".toString(),
+            "compileOnly: quasar-core-${quasarVersion}.jar".toString(),
+            "compileClasspath: quasar-core-${quasarVersion}.jar".toString()
         )
     }
 
@@ -117,21 +180,13 @@ apply from: 'repositories.gradle'
 
 apply plugin: 'net.corda.plugins.quasar-utils'
 
-dependencies {
-    testImplementation 'junit:junit:4.12'
-}
-
-jar {
-    enabled = false
-}
-
 def configs = configurations.matching { it.name in ['quasar', 'cordaRuntime', 'compileClasspath', 'compileOnly', 'runtimeClasspath'] }
 configs.collectEntries { [(it.name):it] }.forEach { name, files ->
     files.forEach { file ->
         println "\$name: \${file.name}"
     }
 }
-"""
+""", "jar"
         assertThat(output.findAll { it.startsWith("quasar:") }).hasSize(1)
         assertThat(output.findAll { it.startsWith("cordaRuntime:") }).hasSize(1)
         assertThat(output.findAll { it.startsWith("compileOnly:") }).hasSize(1)
@@ -166,9 +221,9 @@ test {
         }
     }
 }
-"""
+""", "test"
         assertThat(output).anyMatch {
-            it.startsWith("TEST-JVM: -javaagent:") && it.endsWith("quasar-core-$QUASAR_VERSION-jdk8.jar")
+            it.startsWith("TEST-JVM: -javaagent:") && it.endsWith("quasar-core-${QUASAR_VERSION}-${QUASAR_CLASSIFIER}.jar")
         }.anyMatch {
             it == "TEST-JVM: -Dco.paralleluniverse.fibers.verifyInstrumentation"
         }
@@ -210,7 +265,7 @@ test {
         }
     }
 }
-"""
+""", "test"
         assertThat(output).anyMatch {
             it.startsWith("TEST-JVM: -javaagent:") && it.endsWith('=x(co.paralleluniverse**;groovy**;org.junit.**)')
         }
@@ -247,7 +302,7 @@ test {
         }
     }
 }
-"""
+""", "test"
         assertThat(output).anyMatch {
             it.startsWith("TEST-JVM: -javaagent:") && it.endsWith('=x(groovy**;org.junit.**)')
         }
@@ -289,7 +344,7 @@ test {
         }
     }
 }
-"""
+""", "test"
         assertThat(output).anyMatch {
             it.startsWith("TEST-JVM: -javaagent:") && it.endsWith('=x(co.paralleluniverse**;org.junit.**)')
         }
@@ -311,7 +366,7 @@ ext {
 }
 
 apply plugin: 'net.corda.plugins.quasar-utils'
-""").buildAndFail()
+""", "test").buildAndFail()
 
         def output = result.output
         println output
@@ -350,7 +405,7 @@ test {
         }
     }
 }
-"""
+""", "test"
         assertThat(output).anyMatch {
             it.startsWith("TEST-JVM: -javaagent:") && it.endsWith('=v')
         }
@@ -384,29 +439,29 @@ test {
         }
     }
 }
-"""
+""", "test"
         assertThat(output).anyMatch {
             it.startsWith("TEST-JVM: -javaagent:") && it.endsWith('=d')
         }
     }
 
-    private List<String> runGradleFor(String script) {
-        def result = runnerFor(script).build()
+    private List<String> runGradleFor(String script, String taskName) {
+        def result = runnerFor(script, taskName).build()
         println result.output
 
-        def build = result.task(":test")
+        def build = result.task(":$taskName")
         assertThat(build).isNotNull()
         assertThat(build.outcome).isEqualTo(SUCCESS)
 
         return result.output.readLines()
     }
 
-    private GradleRunner runnerFor(String script) {
+    private GradleRunner runnerFor(String script, String taskName) {
         def buildFile = testProjectDir.resolve("build.gradle")
         buildFile.text = script
         return GradleRunner.create()
             .withProjectDir(testProjectDir.toFile())
-            .withArguments("--info", "--stacktrace", "test", "-g", TEST_GRADLE_USER_HOME)
+            .withArguments("--info", "--stacktrace", taskName, "-g", TEST_GRADLE_USER_HOME)
             .withPluginClasspath()
             .withDebug(true)
     }
