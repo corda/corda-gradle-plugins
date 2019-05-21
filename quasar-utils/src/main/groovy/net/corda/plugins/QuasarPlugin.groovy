@@ -1,5 +1,6 @@
 package net.corda.plugins
 
+import groovy.transform.PackageScope
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -16,8 +17,9 @@ import javax.inject.Inject
 class QuasarPlugin implements Plugin<Project> {
 
     private static final String QUASAR = "quasar"
-    static final String defaultGroup = "co.paralleluniverse"
-    static final String defaultVersion = "0.7.10"
+    @PackageScope static final String defaultGroup = "co.paralleluniverse"
+    @PackageScope static final String defaultVersion = "0.7.10"
+    @PackageScope static final String defaultClassifier = "jdk8"
 
     private final ObjectFactory objects
 
@@ -32,35 +34,52 @@ class QuasarPlugin implements Plugin<Project> {
         // This will also create the "compile", "compileOnly" and "runtime" configurations.
         project.pluginManager.apply(JavaPlugin)
 
-        Utils.createRuntimeConfiguration("cordaRuntime", project.configurations)
-        def quasar = project.configurations.create(QUASAR)
-
         def rootProject = project.rootProject
-        def defaultExclusions = rootProject.hasProperty("quasar_exclusions") ? rootProject.property('quasar_exclusions') : Collections.emptyList()
-        if (!(defaultExclusions instanceof Iterable<?>)) {
-            throw new InvalidUserDataException("quasar_exclusions property must be an Iterable<String>")
-        }
-        def quasarExtension = project.extensions.create(QUASAR, QuasarExtension, objects, defaultExclusions)
         def quasarGroup = rootProject.hasProperty('quasar_group') ? rootProject.property('quasar_group') : defaultGroup
         def quasarVersion = rootProject.hasProperty('quasar_version') ? rootProject.property('quasar_version') : defaultVersion
-        def quasarDependency = "${quasarGroup}:quasar-core:${quasarVersion}:jdk8@jar"
-        project.dependencies.add(QUASAR, quasarDependency)
-        project.dependencies.add("cordaRuntime", quasarDependency) {
-            // Ensure that Quasar's transitive dependencies are available at runtime (only).
-            it.transitive = true
+        def quasarClassifier = rootProject.hasProperty('quasar_classifier') ? rootProject.property('quasar_classifier') : defaultClassifier
+        def quasarExclusions = rootProject.hasProperty("quasar_exclusions") ? rootProject.property('quasar_exclusions') : Collections.emptyList()
+        if (!(quasarExclusions instanceof Iterable<?>)) {
+            throw new InvalidUserDataException("quasar_exclusions property must be an Iterable<String>")
         }
+        def quasarExtension = project.extensions.create(QUASAR, QuasarExtension, objects, quasarGroup, quasarVersion, quasarClassifier, quasarExclusions)
+
+        addQuasarDependencies(project, quasarExtension)
+        configureQuasarTasks(project, quasarExtension)
+    }
+
+    private void addQuasarDependencies(Project project, QuasarExtension extension) {
+        def quasar = project.configurations.create(QUASAR)
+        quasar.withDependencies { dependencies ->
+            def quasarDependency = project.dependencies.create(extension.dependency.get()) {
+                it.transitive = false
+            }
+            dependencies.add(quasarDependency)
+        }
+
         // This adds Quasar to the compile classpath WITHOUT any of its transitive dependencies.
         project.dependencies.add("compileOnly", quasar)
 
+        def cordaRuntime = Utils.createRuntimeConfiguration("cordaRuntime", project.configurations)
+        cordaRuntime.withDependencies { dependencies ->
+            def transitiveDependency = project.dependencies.create(extension.dependency.get()) {
+                it.transitive = true
+            }
+            // Ensure that Quasar's transitive dependencies are available at runtime (only).
+            dependencies.add(transitiveDependency)
+        }
+    }
+
+    private void configureQuasarTasks(Project project, QuasarExtension extension) {
         project.tasks.withType(Test) {
             doFirst {
-                jvmArgs "-javaagent:${project.configurations[QUASAR].singleFile}${quasarExtension.options.get()}",
+                jvmArgs "-javaagent:${project.configurations[QUASAR].singleFile}${extension.options.get()}",
                         "-Dco.paralleluniverse.fibers.verifyInstrumentation"
             }
         }
         project.tasks.withType(JavaExec) {
             doFirst {
-                jvmArgs "-javaagent:${project.configurations[QUASAR].singleFile}${quasarExtension.options.get()}",
+                jvmArgs "-javaagent:${project.configurations[QUASAR].singleFile}${extension.options.get()}",
                         "-Dco.paralleluniverse.fibers.verifyInstrumentation"
             }
         }

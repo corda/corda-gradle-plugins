@@ -6,7 +6,7 @@
 
 * `api-scanner`: Update to support Gradle's `java-library` plugin.
 
-* `quasar-utils`: Add a `quasar` extension so that we can exclude packages from being instrumented by the Quasar agent. Also expose Quasar's `verbose` and `debug` options using extension properties.
+* `quasar-utils`: Add a `quasar` extension so that we can exclude packages from being instrumented by the Quasar agent. Also expose Quasar's `verbose` and `debug` options using extension properties. And `group`, `version` and `classifier` properties so that we can configure whicn agent artifact to use.
 
 * `quasar-utils`: Apply the `java` plugin automatically.
 
