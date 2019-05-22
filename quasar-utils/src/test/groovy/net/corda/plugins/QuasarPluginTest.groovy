@@ -191,7 +191,7 @@ configs.collectEntries { [(it.name):it] }.forEach { name, files ->
         assertThat(output.findAll { it.startsWith("cordaRuntime:") }).hasSize(1)
         assertThat(output.findAll { it.startsWith("compileOnly:") }).hasSize(1)
         assertThat(output.findAll { it.startsWith("compileClasspath:") }).hasSize(1)
-        assertThat(output.findAll { it.startsWith("runtimeClasspath:") }).hasSize(1)
+        assertThat(output.findAll { it.startsWith("runtimeClasspath:") }.size()).isGreaterThan(1)
     }
 
     @Test
