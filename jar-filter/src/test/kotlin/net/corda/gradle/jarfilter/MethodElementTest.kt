@@ -1,7 +1,7 @@
 package net.corda.gradle.jarfilter
 
-import org.junit.Assert.*
-import org.junit.Test
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Test
 import org.objectweb.asm.Opcodes.*
 
 class MethodElementTest {

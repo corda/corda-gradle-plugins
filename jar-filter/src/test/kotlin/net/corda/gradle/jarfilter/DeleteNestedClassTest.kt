@@ -3,14 +3,14 @@ package net.corda.gradle.jarfilter
 import net.corda.gradle.jarfilter.asm.classMetadata
 import net.corda.gradle.jarfilter.matcher.isKClass
 import org.assertj.core.api.Assertions.*
-import org.hamcrest.core.IsCollectionContaining.hasItem
+import org.hamcrest.MatcherAssert.assertThat
+import org.hamcrest.core.IsIterableContaining.hasItem
 import org.hamcrest.core.IsNot.not
-import org.junit.Assert.*
-import org.junit.ClassRule
-import org.junit.Test
-import org.junit.rules.RuleChain
-import org.junit.rules.TemporaryFolder
-import org.junit.rules.TestRule
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.io.TempDir
+import java.nio.file.Path
 import kotlin.test.assertFailsWith
 
 class DeleteNestedClassTest {
@@ -28,14 +28,13 @@ class DeleteNestedClassTest {
         private val wantedSubclass = isKClass(WANTED_SUBCLASS)
         private val unwantedSubclass = isKClass(UNWANTED_SUBCLASS)
 
-        private val testProjectDir = TemporaryFolder()
-        private val testProject = JarFilterProject(testProjectDir, "delete-nested-class")
+        private lateinit var testProject: JarFilterProject
 
-        @ClassRule
-        @JvmField
-        val rules: TestRule = RuleChain
-            .outerRule(testProjectDir)
-            .around(testProject)
+        @BeforeAll
+        @JvmStatic
+        fun setup(@TempDir testProjectDir: Path) {
+            testProject = JarFilterProject(testProjectDir, "delete-nested-class").build()
+        }
     }
 
     @Test

@@ -3,15 +3,15 @@ package net.corda.gradle.jarfilter
 import net.corda.gradle.jarfilter.asm.recodeMetadataFor
 import net.corda.gradle.jarfilter.asm.toClass
 import net.corda.gradle.jarfilter.matcher.isFunction
-import org.assertj.core.api.Assertions.*
+import org.assertj.core.api.Assertions.assertThat
 import org.gradle.api.logging.Logger
-import org.hamcrest.core.IsCollectionContaining.*
-import org.junit.Assert.*
-import org.junit.BeforeClass
-import org.junit.Test
+import org.hamcrest.MatcherAssert.assertThat
+import org.hamcrest.core.IsIterableContaining.*
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Test
 import kotlin.reflect.KFunction
 import kotlin.reflect.full.declaredFunctions
-import kotlin.test.fail
 
 class MetaFixFunctionDefaultParameterTest {
     companion object {
@@ -24,7 +24,7 @@ class MetaFixFunctionDefaultParameterTest {
         lateinit var sourceClass: Class<out Any>
         lateinit var fixedClass: Class<out Any>
 
-        @BeforeClass
+        @BeforeAll
         @JvmStatic
         fun setup() {
             val bytecode = recodeMetadataFor<WithFunctionParameters, MetadataTemplate>()
@@ -46,13 +46,13 @@ class MetaFixFunctionDefaultParameterTest {
         assertThat(sourceUnwanted.call(sourceClass.newInstance(), BIG_NUMBER, NUMBER, MESSAGE))
             .isEqualTo("Long: $BIG_NUMBER, Int: $NUMBER, String: $MESSAGE")
 
-        assertTrue("All source parameters should be optional", sourceUnwanted.hasAllOptionalParameters)
+        assertTrue(sourceUnwanted.hasAllOptionalParameters, "All source parameters should be optional")
 
         val sourceWanted = sourceClass.kotlin.declaredFunctions.findOrFail("hasOptionalParams")
         assertThat(sourceWanted.call(sourceClass.newInstance(), MESSAGE))
             .isEqualTo(MESSAGE)
 
-        assertTrue("All source parameters should be optional", sourceWanted.hasAllOptionalParameters)
+        assertTrue(sourceWanted.hasAllOptionalParameters, "All source parameters should be optional")
     }
 
     @Test
@@ -67,13 +67,13 @@ class MetaFixFunctionDefaultParameterTest {
     @Test
     fun `test unwanted default parameters are removed`() {
         val fixedMandatory = fixedClass.kotlin.declaredFunctions.findOrFail("hasMandatoryParams")
-        assertTrue("All fixed parameters should be mandatory", fixedMandatory.hasAllMandatoryParameters)
+        assertTrue(fixedMandatory.hasAllMandatoryParameters, "All fixed parameters should be mandatory")
     }
 
     @Test
     fun `test wanted default parameters are kept`() {
         val fixedOptional = fixedClass.kotlin.declaredFunctions.findOrFail("hasOptionalParams")
-        assertTrue("All fixed parameters should be optional", fixedOptional.hasAllOptionalParameters)
+        assertTrue(fixedOptional.hasAllOptionalParameters, "All fixed parameters should be optional")
     }
 
     @Suppress("UNUSED")

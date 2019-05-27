@@ -3,13 +3,11 @@ package net.corda.gradle.jarfilter
 import org.assertj.core.api.Assertions.*
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome.*
-import org.junit.Assert.*
-import org.junit.ClassRule
-import org.junit.Test
-import org.junit.rules.RuleChain
-import org.junit.rules.TemporaryFolder
-import org.junit.rules.TestRule
-import org.junit.runners.model.Statement
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.io.TempDir
+import java.net.URI
 import java.nio.file.Path
 import java.nio.file.attribute.FileTime
 import java.util.*
@@ -20,57 +18,50 @@ import kotlin.test.fail
 
 class JarFilterTimestampTest {
     companion object {
-        private val testProjectDir = TemporaryFolder()
-        private val sourceJar = DummyJar(testProjectDir, JarFilterTimestampTest::class.java, "timestamps")
-
         private val CONSTANT_TIME: FileTime = FileTime.fromMillis(
             GregorianCalendar(1980, FEBRUARY, 1).apply {
                 timeZone = TimeZone.getTimeZone("UTC")
             }.timeInMillis
         )
 
+        private lateinit var sourceJar: DummyJar
         private lateinit var filteredJar: Path
         private lateinit var output: String
 
-        @ClassRule
-        @JvmField
-        val rules: TestRule = RuleChain
-            .outerRule(testProjectDir)
-            .around(sourceJar)
-            .around(createTestProject())
+        @BeforeAll
+        @JvmStatic
+        fun setup(@TempDir testProjectDir: Path) {
+            sourceJar = DummyJar(testProjectDir, JarFilterTimestampTest::class.java, "timestamps").build()
+            filteredJar = createTestProject(testProjectDir, sourceJar.path.toUri())
+        }
 
-        private fun createTestProject() = TestRule { base, _ ->
-            object : Statement() {
-                override fun evaluate() {
-                    testProjectDir.installResources("gradle.properties", "settings.gradle")
-                    testProjectDir.newFile("build.gradle").writeText("""
-                        |plugins {
-                        |    id 'net.corda.plugins.jar-filter'
-                        |}
-                        |
-                        |import net.corda.gradle.jarfilter.JarFilterTask
-                        |task jarFilter(type: JarFilterTask) {
-                        |    jars file("${sourceJar.path.toUri()}")
-                        |    preserveTimestamps = false
-                        |}
-                        |""".trimMargin())
-                    val result = GradleRunner.create()
-                        .withProjectDir(testProjectDir.root)
-                        .withArguments(getGradleArgsForTasks("jarFilter"))
-                        .withPluginClasspath()
-                        .build()
-                    output = result.output
-                    println(output)
+        private fun createTestProject(testProjectDir: Path, source: URI): Path {
+            testProjectDir.installResources("gradle.properties", "settings.gradle")
+            testProjectDir.resolve("build.gradle").toFile().writeText("""
+                |plugins {
+                |    id 'net.corda.plugins.jar-filter'
+                |}
+                |
+                |import net.corda.gradle.jarfilter.JarFilterTask
+                |task jarFilter(type: JarFilterTask) {
+                |    jars file("$source")
+                |    preserveTimestamps = false
+                |}
+                |""".trimMargin())
+            val result = GradleRunner.create()
+                .withProjectDir(testProjectDir.toFile())
+                .withArguments(getGradleArgsForTasks("jarFilter"))
+                .withPluginClasspath()
+                .build()
+            output = result.output
+            println(output)
 
-                    val jarFilter = result.task(":jarFilter") ?: fail("No outcome for jarFilter task")
-                    assertEquals(SUCCESS, jarFilter.outcome)
+            val jarFilter = result.task(":jarFilter") ?: fail("No outcome for jarFilter task")
+            assertEquals(SUCCESS, jarFilter.outcome)
 
-                    filteredJar = testProjectDir.pathOf("build", "filtered-libs", "timestamps-filtered.jar")
-                    assertThat(filteredJar).isRegularFile()
-
-                    base.evaluate()
-                }
-            }
+            val filtered = testProjectDir.pathOf("build", "filtered-libs", "timestamps-filtered.jar")
+            assertThat(filtered).isRegularFile()
+            return filtered
         }
 
         private val ZipEntry.methodName: String get() = if (method == ZipEntry.STORED) "Stored" else "Deflated"

@@ -5,12 +5,12 @@ import net.corda.gradle.jarfilter.asm.bytecode
 import net.corda.gradle.jarfilter.asm.toClass
 import net.corda.gradle.jarfilter.matcher.isProperty
 import org.gradle.api.logging.Logger
-import org.hamcrest.core.IsCollectionContaining.hasItem
+import org.hamcrest.MatcherAssert.assertThat
+import org.hamcrest.core.IsIterableContaining.hasItem
 import org.hamcrest.core.IsEqual.equalTo
 import org.hamcrest.core.IsNot.not
-import org.junit.Assert.assertArrayEquals
-import org.junit.Assert.assertThat
-import org.junit.Test
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Test
 import org.objectweb.asm.ClassWriter.COMPUTE_MAXS
 import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.jvm.jvmName

@@ -2,14 +2,14 @@ package net.corda.gradle.jarfilter
 
 import net.corda.gradle.jarfilter.matcher.isFunction
 import org.assertj.core.api.Assertions.*
-import org.hamcrest.core.IsCollectionContaining.*
+import org.hamcrest.MatcherAssert.assertThat
+import org.hamcrest.core.IsIterableContaining.*
 import org.hamcrest.core.IsNot.*
-import org.junit.Assert.*
-import org.junit.ClassRule
-import org.junit.Test
-import org.junit.rules.RuleChain
-import org.junit.rules.TemporaryFolder
-import org.junit.rules.TestRule
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.io.TempDir
+import java.nio.file.Path
 import kotlin.reflect.full.declaredFunctions
 import kotlin.test.assertFailsWith
 
@@ -18,16 +18,15 @@ class DeleteOverloadedFunctionTest {
         private const val FUNCTION_CLASS = "net.corda.gradle.HasOverloadedFunction"
         private const val LAMBDA_CLASS = "net.corda.gradle.HasOverloadWithLambda"
 
-        private val testProjectDir = TemporaryFolder()
-        private val testProject = JarFilterProject(testProjectDir, "delete-overloaded-function")
         private val stringData1 = isFunction("stringData", String::class, String::class)
         private val stringData2 = isFunction("stringData", String::class, Int::class, String::class)
+        private lateinit var testProject: JarFilterProject
 
-        @ClassRule
-        @JvmField
-        val rules: TestRule = RuleChain
-            .outerRule(testProjectDir)
-            .around(testProject)
+        @BeforeAll
+        @JvmStatic
+        fun setup(@TempDir testProjectDir: Path) {
+            testProject = JarFilterProject(testProjectDir, "delete-overloaded-function").build()
+        }
     }
 
     @Test

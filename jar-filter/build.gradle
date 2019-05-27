@@ -54,9 +54,10 @@ dependencies {
 
     testImplementation "org.jetbrains.kotlin:kotlin-test"
     testImplementation "org.jetbrains.kotlin:kotlin-reflect"
+    testImplementation "org.hamcrest:hamcrest:$hamcrest_version"
     testImplementation "org.assertj:assertj-core:$assertj_version"
-    testImplementation "junit:junit:$junit_version"
-    testRuntimeOnly "org.junit.vintage:junit-vintage-engine:$junit_jupiter_version"
+    testImplementation "org.junit.jupiter:junit-jupiter-api:$junit_jupiter_version"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junit_jupiter_version"
     testImplementation project(':jar-filter:unwanteds')
 
     jacocoRuntime "org.jacoco:org.jacoco.agent:${jacoco.toolVersion}:runtime"

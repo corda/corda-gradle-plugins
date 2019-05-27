@@ -3,8 +3,8 @@ package net.corda.gradle.jarfilter
 import net.corda.gradle.jarfilter.asm.metadataAs
 import net.corda.gradle.jarfilter.asm.toClass
 import org.gradle.api.logging.Logger
-import org.junit.BeforeClass
-import org.junit.Test
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Test
 import kotlin.reflect.full.declaredFunctions
 import kotlin.test.assertFailsWith
 
@@ -22,7 +22,7 @@ class MetaFixPackageDefaultParameterTest {
         lateinit var sourceClass: Class<out Any>
         lateinit var fixedClass: Class<out Any>
 
-        @BeforeClass
+        @BeforeAll
         @JvmStatic
         fun setup() {
             val defaultParametersClass = Class.forName(DEFAULT_PARAMETERS_CLASS)

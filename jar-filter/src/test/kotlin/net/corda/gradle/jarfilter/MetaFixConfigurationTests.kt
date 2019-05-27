@@ -1,25 +1,23 @@
 package net.corda.gradle.jarfilter
 
-import org.assertj.core.api.Assertions.*
+import org.assertj.core.api.Assertions.assertThat
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.BuildTask
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome.*
-import org.junit.Assert.*
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
-import org.junit.rules.TemporaryFolder
-import kotlin.test.fail
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.io.TempDir
+import java.nio.file.Path
 
 class MetaFixConfigurationTests {
-    @Rule
-    @JvmField
-    val testProjectDir = TemporaryFolder()
-
     private lateinit var output: String
 
-    @Before
+    @TempDir
+    lateinit var testProjectDir: Path
+
+    @BeforeEach
     fun setup() {
         testProjectDir.installResources("gradle.properties", "settings.gradle")
     }
@@ -67,9 +65,9 @@ class MetaFixConfigurationTests {
     }
 
     private fun gradleProject(script: String): GradleRunner {
-        testProjectDir.newFile("build.gradle").writeText(script)
+        testProjectDir.resolve("build.gradle").toFile().writeText(script)
         return GradleRunner.create()
-            .withProjectDir(testProjectDir.root)
+            .withProjectDir(testProjectDir.toFile())
             .withArguments(getBasicArgsForTasks("metafix"))
             .withPluginClasspath()
     }

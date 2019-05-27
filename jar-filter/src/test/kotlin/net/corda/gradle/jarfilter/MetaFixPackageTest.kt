@@ -5,8 +5,8 @@ package net.corda.gradle.jarfilter
 import net.corda.gradle.jarfilter.asm.*
 import net.corda.gradle.jarfilter.matcher.*
 import org.gradle.api.logging.Logger
-import org.junit.BeforeClass
-import org.junit.Test
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Test
 import kotlin.jvm.kotlin
 import kotlin.reflect.full.declaredFunctions
 import kotlin.reflect.full.declaredMembers
@@ -29,7 +29,7 @@ class MetaFixPackageTest {
         private lateinit var sourceClass: Class<out Any>
         private lateinit var fixedClass: Class<out Any>
 
-        @BeforeClass
+        @BeforeAll
         @JvmStatic
         fun setup() {
             val emptyClass = Class.forName(EMPTY_CLASS)

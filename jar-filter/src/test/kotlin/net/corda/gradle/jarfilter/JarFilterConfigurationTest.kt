@@ -5,11 +5,11 @@ import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.BuildTask
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome.*
-import org.junit.Assert.*
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
-import org.junit.rules.TemporaryFolder
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.io.TempDir
+import java.nio.file.Path
 import kotlin.test.fail
 
 class JarFilterConfigurationTest {
@@ -20,13 +20,12 @@ class JarFilterConfigurationTest {
         private const val STUB = "net.corda.gradle.jarfilter.StubMeOut"
     }
 
-    @Rule
-    @JvmField
-    val testProjectDir = TemporaryFolder()
+    @TempDir
+    lateinit var testProjectDir: Path
 
     private lateinit var output: String
 
-    @Before
+    @BeforeEach
     fun setup() {
         testProjectDir.installResources("gradle.properties", "settings.gradle")
     }
@@ -260,9 +259,9 @@ class JarFilterConfigurationTest {
     }
 
     private fun gradleProject(script: String): GradleRunner {
-        testProjectDir.newFile("build.gradle").writeText(script)
+        testProjectDir.resolve("build.gradle").toFile().writeText(script)
         return GradleRunner.create()
-            .withProjectDir(testProjectDir.root)
+            .withProjectDir(testProjectDir.toFile())
             .withArguments(getBasicArgsForTasks("jarFilter"))
             .withPluginClasspath()
     }

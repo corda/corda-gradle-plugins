@@ -3,7 +3,7 @@ package net.corda.gradle.jarfilter
 import net.corda.gradle.jarfilter.asm.*
 import org.assertj.core.api.Assertions.*
 import org.gradle.api.logging.Logger
-import org.junit.Test
+import org.junit.jupiter.api.Test
 import kotlin.reflect.jvm.jvmName
 
 /**

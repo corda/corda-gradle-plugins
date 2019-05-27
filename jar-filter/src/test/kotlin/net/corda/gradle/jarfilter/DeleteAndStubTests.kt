@@ -3,14 +3,14 @@ package net.corda.gradle.jarfilter
 import net.corda.gradle.jarfilter.matcher.*
 import net.corda.gradle.unwanted.*
 import org.assertj.core.api.Assertions.*
-import org.hamcrest.core.IsCollectionContaining.*
+import org.hamcrest.MatcherAssert.assertThat
+import org.hamcrest.core.IsIterableContaining.*
 import org.hamcrest.core.IsNot.*
-import org.junit.Assert.*
-import org.junit.ClassRule
-import org.junit.Test
-import org.junit.rules.RuleChain
-import org.junit.rules.TemporaryFolder
-import org.junit.rules.TestRule
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.io.TempDir
+import java.nio.file.Path
 import kotlin.reflect.full.declaredMemberFunctions
 import kotlin.reflect.full.declaredMemberProperties
 import kotlin.test.assertFailsWith
@@ -24,8 +24,6 @@ class DeleteAndStubTests {
         private const val DELETED_VAL_CLASS = "net.corda.gradle.DeletedValInsideStubbed"
         private const val DELETED_PKG_CLASS = "net.corda.gradle.DeletePackageWithStubbed"
 
-        private val testProjectDir = TemporaryFolder()
-        private val testProject = JarFilterProject(testProjectDir, "delete-and-stub")
         private val stringVal = isProperty("stringVal", String::class)
         private val longVar = isProperty("longVar", Long::class)
         private val getStringVal = isMethod("getStringVal", String::class.java)
@@ -39,12 +37,13 @@ class DeleteAndStubTests {
         private val getUnwantedVal = isMethod("getUnwantedVal", String::class.java)
         private val getUnwantedVar = isMethod("getUnwantedVar", String::class.java)
         private val setUnwantedVar = isMethod("setUnwantedVar", Void.TYPE, String::class.java)
+        private lateinit var testProject: JarFilterProject
 
-        @ClassRule
-        @JvmField
-        val rules: TestRule = RuleChain
-            .outerRule(testProjectDir)
-            .around(testProject)
+        @BeforeAll
+        @JvmStatic
+        fun setup(@TempDir testProjectDir: Path) {
+            testProject = JarFilterProject(testProjectDir, "delete-and-stub").build()
+        }
     }
 
     @Test
