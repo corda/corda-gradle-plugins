@@ -74,12 +74,14 @@ allprojects {
 // "grandchild" project is considered to be internal to its parent.
 def publishProjects = project.childProjects.values()
 
-configure(publishProjects) { subproject ->
+configure(publishProjects) { Project subproject ->
     apply plugin: 'java'
     apply plugin: 'maven-publish'
     apply plugin: 'com.jfrog.bintray'
     apply plugin: 'com.jfrog.artifactory'
     apply plugin: 'com.gradle.plugin-publish'
+
+    evaluationDependsOn(subproject.path)
 
     task sourceJar(type: Jar, dependsOn: subproject.classes) {
         classifier = 'sources'
@@ -147,17 +149,19 @@ configure(publishProjects) { subproject ->
             //     }
             //
             // except that this would also discard all of our POM customisations.
-            create(subproject.name + "-plugin", MavenPublication) {
-                groupId subproject.group + '.' + subproject.name
-                artifactId subproject.group + '.' + subproject.name + '.gradle.plugin'
+            subproject.extensions['gradlePlugin'].plugins.forEach { plugin ->
+                create(subproject.name + '-' + plugin.name, MavenPublication) {
+                    groupId plugin.id
+                    artifactId plugin.id + '.gradle.plugin'
 
-                pom {
-                    packaging 'pom'
-                    withXml {
-                        def dependency = asNode().appendNode('dependencies').appendNode('dependency')
-                        dependency.appendNode('groupId', subproject.group)
-                        dependency.appendNode('artifactId', subproject.name)
-                        dependency.appendNode('version', subproject.version)
+                    pom {
+                        packaging 'pom'
+                        withXml {
+                            def dependency = asNode().appendNode('dependencies').appendNode('dependency')
+                            dependency.appendNode('groupId', subproject.group)
+                            dependency.appendNode('artifactId', subproject.name)
+                            dependency.appendNode('version', subproject.version)
+                        }
                     }
                 }
             }
@@ -183,17 +187,11 @@ configure(publishProjects) { subproject ->
             }
         }
     }
-
-    pluginBundle {
-        mavenCoordinates {
-            groupId = project.group
-        }
-    }
 }
 
 artifactory {
     publish {
-        contextUrl = 'https://ci-artifactory.corda.r3cev.com/artifactory'
+        contextUrl = 'https://software.r3.com/artifactory'
         repository {
             repoKey = 'corda-dev'
             username = System.getenv('CORDA_ARTIFACTORY_USERNAME') ?: System.getProperty('corda.artifactory.username')
