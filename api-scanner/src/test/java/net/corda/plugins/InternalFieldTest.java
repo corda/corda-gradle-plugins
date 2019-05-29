@@ -9,16 +9,16 @@ import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class InternalFieldTest {
+class InternalFieldTest {
     private GradleProject testProject;
 
     @BeforeEach
-    public void setup(@TempDir Path testProjectDir) throws IOException {
+    void setup(@TempDir Path testProjectDir) throws IOException {
         testProject = new GradleProject(testProjectDir, "internal-field").build();
     }
 
     @Test
-    public void testInternalField() throws IOException {
+    void testInternalField() throws IOException {
         assertEquals(
             "public class net.corda.example.WithInternalField extends java.lang.Object\n" +
             "  public <init>()\n" +

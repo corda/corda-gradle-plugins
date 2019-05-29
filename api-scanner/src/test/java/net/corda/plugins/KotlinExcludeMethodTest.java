@@ -9,16 +9,16 @@ import java.nio.file.Path;
 
 import static org.assertj.core.api.Assertions.*;
 
-public class KotlinExcludeMethodTest {
+class KotlinExcludeMethodTest {
     private static GradleProject testProject;
 
     @BeforeAll
-    public static void setup(@TempDir Path testProjectDir) throws IOException {
+    static void setup(@TempDir Path testProjectDir) throws IOException {
         testProject = new GradleProject(testProjectDir, "kotlin-exclude-method").build();
     }
 
     @Test
-    public void testFilteredMethodsAreExcluded() throws IOException {
+    void testFilteredMethodsAreExcluded() throws IOException {
         assertThat(testProject.getApiText())
                 .contains("net.corda.example.ClassWithExtraConstructorGenerated")
                 .doesNotContain("<init>(String, String, kotlin.jvm.internal.DefaultConstructorMarker)");

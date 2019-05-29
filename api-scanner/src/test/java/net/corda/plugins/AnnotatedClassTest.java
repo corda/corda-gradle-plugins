@@ -9,16 +9,16 @@ import java.nio.file.Path;
 
 import static org.assertj.core.api.Assertions.*;
 
-public class AnnotatedClassTest {
+class AnnotatedClassTest {
     private GradleProject testProject;
 
     @BeforeEach
-    public void setup(@TempDir Path testProjectDir) throws IOException {
+    void setup(@TempDir Path testProjectDir) throws IOException {
         testProject = new GradleProject(testProjectDir, "annotated-class").build();
     }
 
     @Test
-    public void testAnnotatedClass() throws IOException {
+    void testAnnotatedClass() throws IOException {
         assertThat(testProject.getApiLines())
             .containsSequence(
                 "@AlsoInherited",

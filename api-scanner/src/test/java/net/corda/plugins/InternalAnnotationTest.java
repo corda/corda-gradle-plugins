@@ -10,16 +10,16 @@ import java.nio.file.Path;
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-public class InternalAnnotationTest {
+class InternalAnnotationTest {
     private GradleProject testProject;
 
     @BeforeEach
-    public void setup(@TempDir Path testProjectDir) throws IOException {
+    void setup(@TempDir Path testProjectDir) throws IOException {
         testProject = new GradleProject(testProjectDir, "internal-annotation").build();
     }
 
     @Test
-    public void testInternalAnnotations() throws IOException {
+    void testInternalAnnotations() throws IOException {
         assertThat(testProject.getOutput())
             .contains("net.corda.core.CordaInternal")
             .contains("net.corda.example.CordaInternal");

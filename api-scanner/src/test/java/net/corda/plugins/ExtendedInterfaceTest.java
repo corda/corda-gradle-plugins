@@ -9,16 +9,16 @@ import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class ExtendedInterfaceTest {
+class ExtendedInterfaceTest {
     private GradleProject testProject;
 
     @BeforeEach
-    public void setup(@TempDir Path testProjectDir) throws IOException {
+    void setup(@TempDir Path testProjectDir) throws IOException {
         testProject = new GradleProject(testProjectDir, "extended-interface").build();
     }
 
     @Test
-    public void testExtendedInterface() throws IOException {
+    void testExtendedInterface() throws IOException {
         assertEquals(
             "public interface net.corda.example.ExtendedInterface extends java.util.concurrent.Future\n" +
             "  public abstract String getName()\n" +
