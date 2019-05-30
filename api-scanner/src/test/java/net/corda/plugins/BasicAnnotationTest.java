@@ -9,16 +9,16 @@ import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class BasicAnnotationTest {
+class BasicAnnotationTest {
     private GradleProject testProject;
 
     @BeforeEach
-    public void setup(@TempDir Path testProjectDir) throws IOException {
+    void setup(@TempDir Path testProjectDir) throws IOException {
         testProject = new GradleProject(testProjectDir, "basic-annotation").build();
     }
 
     @Test
-    public void testBasicAnnotation() throws IOException {
+    void testBasicAnnotation() throws IOException {
         assertEquals(
             "public @interface net.corda.example.BasicAnnotation\n" +
             "##", testProject.getApiText());

@@ -9,11 +9,11 @@ import java.nio.file.Path;
 
 import static org.assertj.core.api.Assertions.*;
 
-public class KotlinAnnotationsTest {
+class KotlinAnnotationsTest {
     private static GradleProject testProject;
 
     @BeforeAll
-    public static void setup(@TempDir Path testProjectDir) throws IOException {
+    static void setup(@TempDir Path testProjectDir) throws IOException {
         testProject = new GradleProject(testProjectDir, "kotlin-annotations").build();
     }
 
@@ -64,32 +64,32 @@ public class KotlinAnnotationsTest {
     };
 
     @Test
-    public void testDeprecatedAnnotation() throws IOException {
+    void testDeprecatedAnnotation() throws IOException {
         assertThat(testProject.getApiLines())
             .containsSequence(expectedClassWithDeprecatedFunctions);
     }
 
     @Test
-    public void testJvmFieldAnnotation() throws IOException {
+    void testJvmFieldAnnotation() throws IOException {
         assertThat(testProject.getApiLines())
             .containsSequence(expectedClassWithJvmField);
     }
 
     @Test
-    public void testJvmStaticAnnotation() throws IOException {
+    void testJvmStaticAnnotation() throws IOException {
         assertThat(testProject.getApiLines())
             .containsSequence(expectedClassWithJvmStaticFunction)
             .containsSequence(expectedClassWithJvmStaticFunctionCompanion);
     }
 
     @Test
-    public void testJvmOverloadedAnnotation() throws IOException {
+    void testJvmOverloadedAnnotation() throws IOException {
         assertThat(testProject.getApiLines())
             .containsSequence(expectedClassWithOverloadedConstructor);
     }
 
     @Test
-    public void testJvmDefaultAnnotation() throws IOException {
+    void testJvmDefaultAnnotation() throws IOException {
         assertThat(testProject.getApiLines())
             .containsSequence(
                 "public interface net.corda.example.HasDefaultMethod",

@@ -2,12 +2,11 @@ package net.corda.gradle.jarfilter
 
 import net.corda.gradle.unwanted.HasUnwantedFun
 import org.assertj.core.api.Assertions.*
-import org.junit.Assert.*
-import org.junit.ClassRule
-import org.junit.Test
-import org.junit.rules.RuleChain
-import org.junit.rules.TemporaryFolder
-import org.junit.rules.TestRule
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.io.TempDir
+import java.nio.file.Path
 import javax.annotation.Resource
 import kotlin.test.assertFailsWith
 
@@ -17,14 +16,13 @@ class StubFunctionOutTest {
         private const val STUB_ME_OUT_ANNOTATION = "net.corda.gradle.jarfilter.StubMeOut"
         private const val PARAMETER_ANNOTATION = "net.corda.gradle.Parameter"
 
-        private val testProjectDir = TemporaryFolder()
-        private val testProject = JarFilterProject(testProjectDir, "stub-function")
+        private lateinit var testProject: JarFilterProject
 
-        @ClassRule
-        @JvmField
-        val rules: TestRule = RuleChain
-            .outerRule(testProjectDir)
-            .around(testProject)
+        @BeforeAll
+        @JvmStatic
+        fun setup(@TempDir testProjectDir: Path) {
+            testProject = JarFilterProject(testProjectDir, "stub-function").build()
+        }
     }
 
     @Test
@@ -38,8 +36,8 @@ class StubFunctionOutTest {
                     assertEquals(MESSAGE, obj.unwantedFun(MESSAGE))
                 }
                 getMethod("unwantedFun", String::class.java).also { method ->
-                    assertTrue("StubMeOut annotation missing", method.isAnnotationPresent (stubMeOut))
-                    assertTrue("Resource annotation missing", method.isAnnotationPresent(Resource::class.java))
+                    assertTrue(method.isAnnotationPresent (stubMeOut), "StubMeOut annotation missing")
+                    assertTrue(method.isAnnotationPresent(Resource::class.java), "Resource annotation missing")
                     method.parameterAnnotations.also { paramAnns ->
                         assertEquals(1, paramAnns.size)
                         assertThat(paramAnns[0])
@@ -60,8 +58,8 @@ class StubFunctionOutTest {
                     }
                 }
                 getMethod("unwantedFun", String::class.java).also { method ->
-                    assertFalse("StubMeOut annotation present", method.isAnnotationPresent(stubMeOut))
-                    assertTrue("Resource annotation missing", method.isAnnotationPresent(Resource::class.java))
+                    assertFalse(method.isAnnotationPresent(stubMeOut), "StubMeOut annotation present")
+                    assertTrue(method.isAnnotationPresent(Resource::class.java), "Resource annotation missing")
                     method.parameterAnnotations.also { paramAnns ->
                         assertEquals(1, paramAnns.size)
                         assertThat(paramAnns[0])

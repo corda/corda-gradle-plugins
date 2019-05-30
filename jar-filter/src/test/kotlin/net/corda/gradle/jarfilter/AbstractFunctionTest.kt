@@ -1,15 +1,15 @@
 package net.corda.gradle.jarfilter
 
 import net.corda.gradle.jarfilter.matcher.*
-import org.hamcrest.core.IsCollectionContaining.hasItem
+import org.hamcrest.MatcherAssert.assertThat
+import org.hamcrest.core.IsIterableContaining.hasItem
 import org.hamcrest.core.IsNot.not
-import org.junit.Assert.*
-import org.junit.ClassRule
-import org.junit.Test
-import org.junit.rules.RuleChain
-import org.junit.rules.TemporaryFolder
-import org.junit.rules.TestRule
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.io.TempDir
 import java.lang.reflect.Modifier.*
+import java.nio.file.Path
 import kotlin.reflect.full.declaredFunctions
 import kotlin.test.assertFailsWith
 
@@ -17,14 +17,13 @@ class AbstractFunctionTest {
     companion object {
         private const val FUNCTION_CLASS = "net.corda.gradle.AbstractFunctions"
 
-        private val testProjectDir = TemporaryFolder()
-        private val testProject = JarFilterProject(testProjectDir, "abstract-function")
+        private lateinit var testProject: JarFilterProject
 
-        @ClassRule
-        @JvmField
-        val rules: TestRule = RuleChain
-            .outerRule(testProjectDir)
-            .around(testProject)
+        @BeforeAll
+        @JvmStatic
+        fun setup(@TempDir testProjectDir: Path) {
+            testProject = JarFilterProject(testProjectDir, "abstract-function").build()
+        }
     }
 
     @Test

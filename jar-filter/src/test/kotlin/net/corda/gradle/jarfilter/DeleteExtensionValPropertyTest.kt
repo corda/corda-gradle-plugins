@@ -4,14 +4,13 @@ import net.corda.gradle.jarfilter.matcher.isMethod
 import net.corda.gradle.jarfilter.matcher.isProperty
 import net.corda.gradle.jarfilter.matcher.javaDeclaredMethods
 import net.corda.gradle.unwanted.HasUnwantedVal
-import org.hamcrest.core.IsCollectionContaining.*
+import org.hamcrest.MatcherAssert.assertThat
+import org.hamcrest.core.IsIterableContaining.*
 import org.hamcrest.core.IsNot.*
-import org.junit.Assert.*
-import org.junit.ClassRule
-import org.junit.Test
-import org.junit.rules.RuleChain
-import org.junit.rules.TemporaryFolder
-import org.junit.rules.TestRule
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.io.TempDir
+import java.nio.file.Path
 import kotlin.reflect.full.declaredMemberExtensionProperties
 import kotlin.reflect.full.declaredMemberProperties
 
@@ -19,16 +18,15 @@ class DeleteExtensionValPropertyTest {
     companion object {
         private const val PROPERTY_CLASS = "net.corda.gradle.HasValExtension"
 
-        private val testProjectDir = TemporaryFolder()
-        private val testProject = JarFilterProject(testProjectDir, "delete-extension-val")
         private val unwantedVal = isProperty("unwantedVal", String::class)
         private val getUnwantedVal = isMethod("getUnwantedVal", String::class.java, List::class.java)
+        private lateinit var testProject: JarFilterProject
 
-        @ClassRule
-        @JvmField
-        val rules: TestRule = RuleChain
-            .outerRule(testProjectDir)
-            .around(testProject)
+        @BeforeAll
+        @JvmStatic
+        fun setup(@TempDir testProjectDir: Path) {
+            testProject = JarFilterProject(testProjectDir, "delete-extension-val").build()
+        }
     }
 
     @Test

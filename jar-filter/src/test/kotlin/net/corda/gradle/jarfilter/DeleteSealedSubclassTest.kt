@@ -2,12 +2,11 @@ package net.corda.gradle.jarfilter
 
 import net.corda.gradle.jarfilter.asm.classMetadata
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.Assert.*
-import org.junit.ClassRule
-import org.junit.Test
-import org.junit.rules.RuleChain
-import org.junit.rules.TemporaryFolder
-import org.junit.rules.TestRule
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.io.TempDir
+import java.nio.file.Path
 import kotlin.test.assertFailsWith
 
 /**
@@ -21,14 +20,13 @@ class DeleteSealedSubclassTest {
         private const val WANTED_SUBCLASS = "net.corda.gradle.WantedSubclass"
         private const val UNWANTED_SUBCLASS = "net.corda.gradle.UnwantedSubclass"
 
-        private val testProjectDir = TemporaryFolder()
-        private val testProject = JarFilterProject(testProjectDir, "delete-sealed-subclass")
+        private lateinit var testProject: JarFilterProject
 
-        @ClassRule
-        @JvmField
-        val rules: TestRule = RuleChain
-            .outerRule(testProjectDir)
-            .around(testProject)
+        @BeforeAll
+        @JvmStatic
+        fun setup(@TempDir testProjectDir: Path) {
+            testProject = JarFilterProject(testProjectDir, "delete-sealed-subclass").build()
+        }
     }
 
     @Test

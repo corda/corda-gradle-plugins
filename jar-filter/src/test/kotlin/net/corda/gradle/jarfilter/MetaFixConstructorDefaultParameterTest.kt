@@ -4,14 +4,14 @@ import net.corda.gradle.jarfilter.asm.recodeMetadataFor
 import net.corda.gradle.jarfilter.asm.toClass
 import net.corda.gradle.jarfilter.matcher.isConstructor
 import net.corda.gradle.unwanted.HasAll
-import org.assertj.core.api.Assertions.*
+import org.assertj.core.api.Assertions.assertThat
 import org.gradle.api.logging.Logger
-import org.hamcrest.core.IsCollectionContaining.*
-import org.junit.Assert.*
-import org.junit.BeforeClass
-import org.junit.Test
+import org.hamcrest.MatcherAssert.assertThat
+import org.hamcrest.core.IsIterableContaining.*
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Test
 import kotlin.reflect.full.primaryConstructor
-import kotlin.test.fail
 
 class MetaFixConstructorDefaultParameterTest {
     companion object {
@@ -24,7 +24,7 @@ class MetaFixConstructorDefaultParameterTest {
         lateinit var sourceClass: Class<out HasAll>
         lateinit var fixedClass: Class<out HasAll>
 
-        @BeforeClass
+        @BeforeAll
         @JvmStatic
         fun setup() {
             val bytecode = recodeMetadataFor<WithConstructorParameters, MetadataTemplate>()
@@ -56,7 +56,7 @@ class MetaFixConstructorDefaultParameterTest {
             assertThat(stringData()).isEqualTo("X$MESSAGE")
         }
 
-        assertTrue("All source parameters should have defaults", sourcePrimary.hasAllOptionalParameters)
+        assertTrue(sourcePrimary.hasAllOptionalParameters, "All source parameters should have defaults")
     }
 
     @Test
@@ -72,14 +72,14 @@ class MetaFixConstructorDefaultParameterTest {
     fun `test fixed primary constructor has mandatory parameters`() {
         val fixedPrimary = fixedClass.kotlin.primaryConstructor
                 ?: fail("fixed primary constructor missing")
-        assertTrue("All fixed parameters should be mandatory", fixedPrimary.hasAllMandatoryParameters)
+        assertTrue(fixedPrimary.hasAllMandatoryParameters, "All fixed parameters should be mandatory")
     }
 
     @Test
     fun `test fixed secondary constructor still has optional parameters`() {
         val fixedSecondary = (fixedClass.kotlin.constructors - fixedClass.kotlin.primaryConstructor).firstOrNull()
                 ?: fail("fixed secondary constructor missing")
-        assertTrue("Some fixed parameters should be optional", fixedSecondary.hasAnyOptionalParameters)
+        assertTrue(fixedSecondary.hasAnyOptionalParameters, "Some fixed parameters should be optional")
     }
 
     class MetadataTemplate(

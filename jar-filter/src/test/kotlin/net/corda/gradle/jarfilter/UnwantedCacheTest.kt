@@ -1,8 +1,9 @@
 package net.corda.gradle.jarfilter
 
-import org.junit.Assert.*
-import org.junit.Before
-import org.junit.Test
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+
 
 class UnwantedCacheTest {
     private companion object {
@@ -13,7 +14,7 @@ class UnwantedCacheTest {
 
     private lateinit var cache: UnwantedCache
 
-    @Before
+    @BeforeEach
     fun setup() {
         cache = UnwantedCache()
     }
