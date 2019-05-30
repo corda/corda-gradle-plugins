@@ -9,16 +9,16 @@ import java.nio.file.Path;
 
 import static org.assertj.core.api.Assertions.*;
 
-public class KotlinLibraryTest {
+class KotlinLibraryTest {
     private GradleProject testProject;
 
     @BeforeEach
-    public void setup(@TempDir Path testProjectDir) throws IOException {
+    void setup(@TempDir Path testProjectDir) throws IOException {
         testProject = new GradleProject(testProjectDir, "kotlin-library").build();
     }
 
     @Test
-    public void testLibraryIsScanned() throws IOException {
+    void testLibraryIsScanned() throws IOException {
         assertThat(testProject.getApiLines())
             .containsSequence(
                 "@AnAnnotation",

@@ -10,18 +10,18 @@ import java.nio.file.Path;
 import static org.assertj.core.api.Assertions.*;
 import static org.gradle.testkit.runner.TaskOutcome.*;
 
-public class GenerateApiTest {
+class GenerateApiTest {
     private GradleProject testProject;
 
     @BeforeEach
-    public void setup(@TempDir Path testProjectDir) throws IOException {
+    void setup(@TempDir Path testProjectDir) throws IOException {
         testProject = new GradleProject(testProjectDir, "generate-api")
             .withTaskName("generateApi")
             .build();
     }
 
     @Test
-    public void testGenerateApi() throws IOException {
+    void testGenerateApi() throws IOException {
         assertThat(testProject.getOutcomeOf("jar")).isEqualTo(SUCCESS);
         assertThat(testProject.getOutcomeOf("scanApi")).isEqualTo(SUCCESS);
         assertThat(testProject.getApiLines())

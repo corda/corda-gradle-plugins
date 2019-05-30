@@ -3,15 +3,14 @@ package net.corda.gradle.jarfilter
 import net.corda.gradle.jarfilter.matcher.isConstructor
 import net.corda.gradle.unwanted.HasInt
 import org.assertj.core.api.Assertions.assertThat
-import org.hamcrest.core.IsCollectionContaining.*
+import org.hamcrest.MatcherAssert.assertThat
+import org.hamcrest.core.IsIterableContaining.*
 import org.hamcrest.core.IsNot.*
-import org.junit.Assert.*
-import org.junit.BeforeClass
-import org.junit.ClassRule
-import org.junit.Test
-import org.junit.rules.RuleChain
-import org.junit.rules.TemporaryFolder
-import org.junit.rules.TestRule
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.io.TempDir
+import java.nio.file.Path
 import kotlin.test.assertFailsWith
 
 class DeleteInnerLambdaTest {
@@ -19,23 +18,17 @@ class DeleteInnerLambdaTest {
         private const val LAMBDA_CLASS = "net.corda.gradle.HasInnerLambda"
         private const val SIZE = 64
 
-        private val testProjectDir = TemporaryFolder()
-        private val testProject = JarFilterProject(testProjectDir, "delete-inner-lambda")
         private val constructInt = isConstructor(LAMBDA_CLASS, Int::class)
         private val constructBytes = isConstructor(LAMBDA_CLASS, ByteArray::class)
 
+        private lateinit var testProject: JarFilterProject
         private lateinit var sourceClasses: List<String>
         private lateinit var filteredClasses: List<String>
 
-        @ClassRule
-        @JvmField
-        val rules: TestRule = RuleChain
-            .outerRule(testProjectDir)
-            .around(testProject)
-
-        @BeforeClass
+        @BeforeAll
         @JvmStatic
-        fun setup() {
+        fun setup(@TempDir testProjectDir: Path) {
+            testProject = JarFilterProject(testProjectDir, "delete-inner-lambda").build()
             sourceClasses = testProject.sourceJar.getClassNames(LAMBDA_CLASS)
             filteredClasses = testProject.filteredJar.getClassNames(LAMBDA_CLASS)
         }

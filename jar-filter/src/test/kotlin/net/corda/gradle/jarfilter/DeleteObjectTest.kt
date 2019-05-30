@@ -2,13 +2,11 @@ package net.corda.gradle.jarfilter
 
 import net.corda.gradle.unwanted.HasUnwantedFun
 import org.assertj.core.api.Assertions.*
-import org.junit.Assert.*
-import org.junit.BeforeClass
-import org.junit.ClassRule
-import org.junit.Test
-import org.junit.rules.RuleChain
-import org.junit.rules.TemporaryFolder
-import org.junit.rules.TestRule
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.io.TempDir
+import java.nio.file.Path
 import kotlin.test.assertFailsWith
 
 class DeleteObjectTest {
@@ -18,20 +16,14 @@ class DeleteObjectTest {
         private const val UNWANTED_OBJ_FIELD = "unwantedObj"
         private const val UNWANTED_FUN_METHOD = "unwantedFun"
 
-        private val testProjectDir = TemporaryFolder()
-        private val testProject = JarFilterProject(testProjectDir, "delete-object")
+        private lateinit var testProject: JarFilterProject
         private lateinit var sourceClasses: List<String>
         private lateinit var filteredClasses: List<String>
 
-        @ClassRule
-        @JvmField
-        val rules: TestRule = RuleChain
-            .outerRule(testProjectDir)
-            .around(testProject)
-
-        @BeforeClass
+        @BeforeAll
         @JvmStatic
-        fun setup() {
+        fun setup(@TempDir testProjectDir: Path) {
+            testProject = JarFilterProject(testProjectDir, "delete-object").build()
             sourceClasses = testProject.sourceJar.getClassNames(OBJECT_CLASS)
             filteredClasses = testProject.filteredJar.getClassNames(OBJECT_CLASS)
         }

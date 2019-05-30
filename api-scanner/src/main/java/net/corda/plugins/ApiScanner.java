@@ -10,6 +10,7 @@ import org.gradle.jvm.tasks.Jar;
 
 import javax.annotation.Nonnull;
 
+@SuppressWarnings("unused")
 public class ApiScanner implements Plugin<Project> {
 
     /**
@@ -44,9 +45,7 @@ public class ApiScanner implements Plugin<Project> {
         // Declare this ScanApi task to be a dependency of any GenerateApi tasks belonging to any of our ancestors.
         Project target = project;
         while (target != null) {
-            target.getTasks().withType(GenerateApi.class, generateTask -> {
-                generateTask.dependsOn(scanProvider);
-            });
+            target.getTasks().withType(GenerateApi.class, generateTask -> generateTask.dependsOn(scanProvider));
             target = target.getParent();
         }
     }

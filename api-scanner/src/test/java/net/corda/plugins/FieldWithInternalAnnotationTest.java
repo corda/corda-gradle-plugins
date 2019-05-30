@@ -10,16 +10,16 @@ import java.nio.file.Path;
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-public class FieldWithInternalAnnotationTest {
+class FieldWithInternalAnnotationTest {
     private GradleProject testProject;
 
     @BeforeEach
-    public void setup(@TempDir Path testProjectDir) throws IOException {
+    void setup(@TempDir Path testProjectDir) throws IOException {
         testProject = new GradleProject(testProjectDir, "field-internal-annotation").build();
     }
 
     @Test
-    public void testFieldWithInternalAnnotations() throws IOException {
+    void testFieldWithInternalAnnotations() throws IOException {
         assertThat(testProject.getOutput())
             .contains("net.corda.example.field.InvisibleAnnotation")
             .contains("net.corda.example.field.LocalInvisibleAnnotation");

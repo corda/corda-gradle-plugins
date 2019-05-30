@@ -1,9 +1,7 @@
 @file:JvmName("Utilities")
 package net.corda.gradle.jarfilter
 
-import org.junit.AssumptionViolatedException
-import org.junit.rules.TemporaryFolder
-import java.io.File
+import org.opentest4j.TestAbortedException
 import java.io.IOException
 import java.net.MalformedURLException
 import java.net.URLClassLoader
@@ -29,7 +27,7 @@ private val classLoader: ClassLoader = object {}.javaClass.classLoader
 // which means that it must not be thrown when this class loads.
 private val testGradleUserHomeValue: String? = System.getProperty("test.gradle.user.home")
 private val testGradleUserHome: String get() = testGradleUserHomeValue
-    ?: throw AssumptionViolatedException("System property 'test.gradle.user.home' not set.")
+    ?: throw TestAbortedException("System property 'test.gradle.user.home' not set.")
 
 fun getGradleArgsForTasks(vararg taskNames: String): MutableList<String> = getBasicArgsForTasks(*taskNames).apply { add("--info") }
 fun getBasicArgsForTasks(vararg taskNames: String): MutableList<String> = mutableListOf(*taskNames, "--stacktrace", "-g", testGradleUserHome)
@@ -42,17 +40,14 @@ fun copyResourceTo(resourceName: String, target: Path) {
 }
 
 @Throws(IOException::class)
-fun copyResourceTo(resourceName: String, target: File) = copyResourceTo(resourceName, target.toPath())
-
-@Throws(IOException::class)
-fun TemporaryFolder.installResources(vararg resourceNames: String) {
+fun Path.installResources(vararg resourceNames: String) {
     resourceNames.forEach { installResource(it) }
 }
 
 @Throws(IOException::class)
-fun TemporaryFolder.installResource(resourceName: String): File = newFile(resourceName.fileName).let { file ->
-    copyResourceTo(resourceName, file)
-    file
+fun Path.installResource(resourceName: String): Path = resolve(resourceName.fileName).let { path ->
+    copyResourceTo(resourceName, path)
+    path
 }
 
 private val String.fileName: String get() = substring(1 + lastIndexOf('/'))
@@ -60,7 +55,7 @@ private val String.fileName: String get() = substring(1 + lastIndexOf('/'))
 val String.toPackageFormat: String get() = replace('/', '.')
 fun pathsOf(vararg types: KClass<*>): Set<String> = types.map { it.java.name.toPathFormat }.toSet()
 
-fun TemporaryFolder.pathOf(vararg elements: String): Path = Paths.get(root.absolutePath, *elements)
+fun Path.pathOf(vararg elements: String): Path = Paths.get(toAbsolutePath().toString(), *elements)
 
 fun arrayOfJunk(size: Int) = ByteArray(size).apply {
     for (i in 0 until size) {

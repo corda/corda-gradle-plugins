@@ -2,14 +2,14 @@ package net.corda.gradle.jarfilter
 
 import net.corda.gradle.jarfilter.matcher.*
 import net.corda.gradle.unwanted.HasUnwantedVal
-import org.hamcrest.core.IsCollectionContaining.*
+import org.hamcrest.MatcherAssert.assertThat
+import org.hamcrest.core.IsIterableContaining.*
 import org.hamcrest.core.IsNot.*
-import org.junit.Assert.*
-import org.junit.ClassRule
-import org.junit.Test
-import org.junit.rules.RuleChain
-import org.junit.rules.TemporaryFolder
-import org.junit.rules.TestRule
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.io.TempDir
+import java.nio.file.Path
 import kotlin.reflect.full.declaredMemberProperties
 import kotlin.test.assertFailsWith
 
@@ -19,16 +19,15 @@ class DeleteValPropertyTest {
         private const val GETTER_CLASS = "net.corda.gradle.HasValGetterForDelete"
         private const val JVM_FIELD_CLASS = "net.corda.gradle.HasValJvmFieldForDelete"
 
-        private val testProjectDir = TemporaryFolder()
-        private val testProject = JarFilterProject(testProjectDir, "delete-val-property")
         private val unwantedVal = isProperty("unwantedVal", String::class)
         private val getUnwantedVal = isMethod("getUnwantedVal", String::class.java)
+        private lateinit var testProject: JarFilterProject
 
-        @ClassRule
-        @JvmField
-        val rules: TestRule = RuleChain
-            .outerRule(testProjectDir)
-            .around(testProject)
+        @BeforeAll
+        @JvmStatic
+        fun setup(@TempDir testProjectDir: Path) {
+            testProject = JarFilterProject(testProjectDir, "delete-val-property").build()
+        }
     }
 
     @Test

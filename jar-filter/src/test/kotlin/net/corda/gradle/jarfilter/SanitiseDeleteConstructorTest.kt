@@ -4,32 +4,30 @@ import net.corda.gradle.jarfilter.matcher.*
 import net.corda.gradle.unwanted.HasInt
 import net.corda.gradle.unwanted.HasLong
 import net.corda.gradle.unwanted.HasString
-import org.assertj.core.api.Assertions.*
-import org.hamcrest.core.IsCollectionContaining.hasItem
-import org.junit.Assert.*
-import org.junit.ClassRule
-import org.junit.Test
-import org.junit.rules.RuleChain
-import org.junit.rules.TemporaryFolder
-import org.junit.rules.TestRule
+import org.assertj.core.api.Assertions.assertThat
+import org.hamcrest.MatcherAssert.assertThat
+import org.hamcrest.core.IsIterableContaining.hasItem
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.io.TempDir
+import java.nio.file.Path
 import kotlin.jvm.kotlin
 import kotlin.reflect.full.primaryConstructor
 import kotlin.test.assertFailsWith
-import kotlin.test.fail
 
 class SanitiseDeleteConstructorTest {
     companion object {
         private const val COMPLEX_CONSTRUCTOR_CLASS = "net.corda.gradle.HasOverloadedComplexConstructorToDelete"
         private const val COUNT_INITIAL_OVERLOADED = 1
         private const val COUNT_INITIAL_MULTIPLE = 2
-        private val testProjectDir = TemporaryFolder()
-        private val testProject = JarFilterProject(testProjectDir, "sanitise-delete-constructor")
+        private lateinit var testProject: JarFilterProject
 
-        @ClassRule
-        @JvmField
-        val rules: TestRule = RuleChain
-            .outerRule(testProjectDir)
-            .around(testProject)
+        @BeforeAll
+        @JvmStatic
+        fun setup(@TempDir testProjectDir: Path) {
+            testProject = JarFilterProject(testProjectDir, "sanitise-delete-constructor").build()
+        }
     }
 
     @Test
@@ -77,7 +75,7 @@ class SanitiseDeleteConstructorTest {
                 val primary = kotlin.primaryConstructor ?: fail("primary constructor missing")
                 assertThat(primary.call(BIG_NUMBER).longData()).isEqualTo(BIG_NUMBER)
 
-                assertNull("no-arg constructor exists", kotlin.noArgConstructor)
+                assertNull(kotlin.noArgConstructor, "no-arg constructor exists")
                 assertFailsWith<NoSuchMethodException> { getDeclaredConstructor() }
             }
         }
@@ -128,7 +126,7 @@ class SanitiseDeleteConstructorTest {
                 val primary = kotlin.primaryConstructor ?: fail("primary constructor missing")
                 assertThat(primary.call(NUMBER).intData()).isEqualTo(NUMBER)
 
-                assertNull("no-arg constructor exists", kotlin.noArgConstructor)
+                assertNull(kotlin.noArgConstructor, "no-arg constructor exists")
                 assertFailsWith<NoSuchMethodException> { getDeclaredConstructor() }
             }
         }
@@ -179,7 +177,7 @@ class SanitiseDeleteConstructorTest {
                 val primary = kotlin.primaryConstructor ?: fail("primary constructor missing")
                 assertThat(primary.call(MESSAGE).stringData()).isEqualTo(MESSAGE)
 
-                assertNull("no-arg constructor exists", kotlin.noArgConstructor)
+                assertNull(kotlin.noArgConstructor, "no-arg constructor exists")
                 assertFailsWith<NoSuchMethodException> { getDeclaredConstructor() }
             }
         }
