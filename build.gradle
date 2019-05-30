@@ -27,7 +27,7 @@ buildscript {
 }
 
 plugins {
-    id 'com.gradle.plugin-publish' version '0.10.0' apply false
+    id 'com.gradle.plugin-publish' version '0.10.1' apply false
 }
 
 apply plugin: 'com.jfrog.artifactory'
