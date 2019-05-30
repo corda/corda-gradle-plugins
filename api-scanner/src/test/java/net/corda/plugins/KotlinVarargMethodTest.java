@@ -9,11 +9,11 @@ import java.nio.file.Path;
 
 import static org.assertj.core.api.Assertions.*;
 
-public class KotlinVarargMethodTest {
+class KotlinVarargMethodTest {
     private GradleProject testProject;
 
     @BeforeEach
-    public void setup(@TempDir Path testProjectDir) throws IOException {
+    void setup(@TempDir Path testProjectDir) throws IOException {
         testProject = new GradleProject(testProjectDir, "kotlin-vararg-method").build();
     }
 
@@ -30,7 +30,7 @@ public class KotlinVarargMethodTest {
     };
 
     @Test
-    public void testKotlinVarargMethod() throws IOException {
+    void testKotlinVarargMethod() throws IOException {
         assertThat(testProject.getApiLines())
             .containsSequence(expectedInterfaceWithVarargMethod)
             .containsSequence(expectedInterfaceWithArrayVarargMethod);

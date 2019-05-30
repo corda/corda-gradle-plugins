@@ -1,27 +1,24 @@
 package net.corda.gradle.jarfilter
 
 import net.corda.gradle.unwanted.HasUnwantedVar
-import org.junit.Assert.*
-import org.junit.ClassRule
-import org.junit.Test
-import org.junit.rules.RuleChain
-import org.junit.rules.TemporaryFolder
-import org.junit.rules.TestRule
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.io.TempDir
+import java.nio.file.Path
 import kotlin.test.assertFailsWith
 
 class StubVarPropertyTest {
     companion object {
         private const val GETTER_CLASS = "net.corda.gradle.HasUnwantedGetForStub"
         private const val SETTER_CLASS = "net.corda.gradle.HasUnwantedSetForStub"
+        private lateinit var testProject: JarFilterProject
 
-        private val testProjectDir = TemporaryFolder()
-        private val testProject = JarFilterProject(testProjectDir, "stub-var-property")
-
-        @ClassRule
-        @JvmField
-        val rules: TestRule = RuleChain
-            .outerRule(testProjectDir)
-            .around(testProject)
+        @BeforeAll
+        @JvmStatic
+        fun setup(@TempDir testProjectDir: Path) {
+            testProject = JarFilterProject(testProjectDir, "stub-var-property").build()
+        }
     }
 
     @Test

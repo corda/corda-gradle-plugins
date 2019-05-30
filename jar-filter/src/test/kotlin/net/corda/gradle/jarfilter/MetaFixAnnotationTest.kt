@@ -4,9 +4,9 @@ import net.corda.gradle.jarfilter.asm.bytecode
 import net.corda.gradle.jarfilter.asm.toClass
 import net.corda.gradle.jarfilter.matcher.isConstructor
 import org.gradle.api.logging.Logger
-import org.hamcrest.core.IsCollectionContaining.*
-import org.junit.Assert.*
-import org.junit.Test
+import org.hamcrest.MatcherAssert.assertThat
+import org.hamcrest.core.IsIterableContaining.*
+import org.junit.jupiter.api.Test
 
 class MetaFixAnnotationTest {
     companion object {

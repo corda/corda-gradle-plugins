@@ -9,16 +9,16 @@ import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class InternalMethodTest {
+class InternalMethodTest {
     private GradleProject testProject;
 
     @BeforeEach
-    public void setup(@TempDir Path testProjectDir) throws IOException {
+    void setup(@TempDir Path testProjectDir) throws IOException {
         testProject = new GradleProject(testProjectDir, "internal-method").build();
     }
 
     @Test
-    public void testInternalMethod() throws IOException {
+    void testInternalMethod() throws IOException {
         assertEquals(
             "public class net.corda.example.WithInternalMethod extends java.lang.Object\n" +
             "  public <init>()\n" +

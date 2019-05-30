@@ -10,18 +10,18 @@ import java.nio.file.Path;
 import static org.assertj.core.api.Assertions.*;
 import static org.gradle.testkit.runner.TaskOutcome.NO_SOURCE;
 
-public class UnscannedJarTest {
+class UnscannedJarTest {
     private GradleProject testProject;
 
     @BeforeEach
-    public void setup(@TempDir Path testProjectDir) throws IOException {
+    void setup(@TempDir Path testProjectDir) throws IOException {
         testProject = new GradleProject(testProjectDir, "unscanned-jar")
             .withExpectedOutcome(NO_SOURCE)
             .build();
     }
 
     @Test
-    public void testUnscannedJar() {
+    void testUnscannedJar() {
         assertThat(testProject.getOutcomeOf("jar")).isNull();
         assertThat(testProject.getOutcomeOf("otherJar")).isNull();
     }

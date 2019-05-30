@@ -5,14 +5,14 @@ import net.corda.gradle.unwanted.HasAll
 import net.corda.gradle.unwanted.HasInt
 import net.corda.gradle.unwanted.HasLong
 import net.corda.gradle.unwanted.HasString
-import org.hamcrest.core.IsCollectionContaining.hasItem
+import org.hamcrest.MatcherAssert.assertThat
+import org.hamcrest.core.IsIterableContaining.hasItem
 import org.hamcrest.core.IsNot.not
-import org.junit.Assert.*
-import org.junit.ClassRule
-import org.junit.Test
-import org.junit.rules.RuleChain
-import org.junit.rules.TemporaryFolder
-import org.junit.rules.TestRule
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.io.TempDir
+import java.nio.file.Path
 import kotlin.jvm.kotlin
 import kotlin.reflect.full.primaryConstructor
 import kotlin.test.assertFailsWith
@@ -24,14 +24,13 @@ class DeleteConstructorTest {
         private const val INT_PRIMARY_CONSTRUCTOR_CLASS = "net.corda.gradle.PrimaryIntConstructorToDelete"
         private const val SECONDARY_CONSTRUCTOR_CLASS = "net.corda.gradle.HasConstructorToDelete"
 
-        private val testProjectDir = TemporaryFolder()
-        private val testProject = JarFilterProject(testProjectDir, "delete-constructor")
+        private lateinit var testProject: JarFilterProject
 
-        @ClassRule
-        @JvmField
-        val rules: TestRule = RuleChain
-            .outerRule(testProjectDir)
-            .around(testProject)
+        @BeforeAll
+        @JvmStatic
+        fun setup(@TempDir testProjectDir: Path) {
+            testProject = JarFilterProject(testProjectDir, "delete-constructor").build()
+        }
     }
 
     @Test
@@ -51,7 +50,7 @@ class DeleteConstructorTest {
             cl.load<HasLong>(SECONDARY_CONSTRUCTOR_CLASS).apply {
                 assertFailsWith<NoSuchMethodException> { getDeclaredConstructor(Long::class.java) }
                 assertThat("<init>(J) still exists", kotlin.constructors, not(hasItem(longConstructor)))
-                assertNotNull("primary constructor missing", kotlin.primaryConstructor)
+                assertNotNull(kotlin.primaryConstructor, "primary constructor missing")
             }
         }
     }
@@ -73,7 +72,7 @@ class DeleteConstructorTest {
             cl.load<HasString>(SECONDARY_CONSTRUCTOR_CLASS).apply {
                 assertFailsWith<NoSuchMethodException> { getDeclaredConstructor(String::class.java) }
                 assertThat("<init>(String) still exists", kotlin.constructors, not(hasItem(stringConstructor)))
-                assertNotNull("primary constructor missing", kotlin.primaryConstructor)
+                assertNotNull(kotlin.primaryConstructor, "primary constructor missing")
             }
         }
     }
@@ -89,7 +88,7 @@ class DeleteConstructorTest {
                     assertEquals("<nothing>", it.stringData())
                 }
                 assertThat("<init>(Int) not found", kotlin.constructors, hasItem(intConstructor))
-                assertNotNull("primary constructor missing", kotlin.primaryConstructor)
+                assertNotNull(kotlin.primaryConstructor, "primary constructor missing")
             }
         }
     }
@@ -112,7 +111,7 @@ class DeleteConstructorTest {
             cl.load<HasString>(STRING_PRIMARY_CONSTRUCTOR_CLASS).apply {
                 assertFailsWith<NoSuchMethodException> { getDeclaredConstructor(String::class.java) }
                 assertThat("<init>(String) still exists", kotlin.constructors, not(hasItem(stringConstructor)))
-                assertNull("primary constructor still exists", kotlin.primaryConstructor)
+                assertNull(kotlin.primaryConstructor, "primary constructor still exists")
             }
         }
     }
@@ -135,7 +134,7 @@ class DeleteConstructorTest {
             cl.load<HasLong>(LONG_PRIMARY_CONSTRUCTOR_CLASS).apply {
                 assertFailsWith<NoSuchMethodException> { getDeclaredConstructor(Long::class.java) }
                 assertThat("<init>(J) still exists", kotlin.constructors, not(hasItem(longConstructor)))
-                assertNull("primary constructor still exists", kotlin.primaryConstructor)
+                assertNull(kotlin.primaryConstructor, "primary constructor still exists")
             }
         }
     }
@@ -158,7 +157,7 @@ class DeleteConstructorTest {
             cl.load<HasInt>(INT_PRIMARY_CONSTRUCTOR_CLASS).apply {
                 assertFailsWith<NoSuchMethodException> { getDeclaredConstructor(Int::class.java) }
                 assertThat("<init>(I) still exists", kotlin.constructors, not(hasItem(intConstructor)))
-                assertNull("primary constructor still exists", kotlin.primaryConstructor)
+                assertNull(kotlin.primaryConstructor, "primary constructor still exists")
             }
         }
     }

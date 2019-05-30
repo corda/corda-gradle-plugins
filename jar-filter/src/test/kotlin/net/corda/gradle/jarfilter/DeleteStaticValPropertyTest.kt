@@ -1,10 +1,9 @@
 package net.corda.gradle.jarfilter
 
-import org.junit.ClassRule
-import org.junit.Test
-import org.junit.rules.RuleChain
-import org.junit.rules.TemporaryFolder
-import org.junit.rules.TestRule
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.io.TempDir
+import java.nio.file.Path
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
@@ -15,14 +14,13 @@ class DeleteStaticValPropertyTest {
         private const val DEFAULT_NUMBER: Int = 123456
         private object LocalBlob
 
-        private val testProjectDir = TemporaryFolder()
-        private val testProject = JarFilterProject(testProjectDir, "delete-static-val")
+        private lateinit var testProject: JarFilterProject
 
-        @ClassRule
-        @JvmField
-        val rules: TestRule = RuleChain
-            .outerRule(testProjectDir)
-            .around(testProject)
+        @BeforeAll
+        @JvmStatic
+        fun setup(@TempDir testProjectDir: Path) {
+            testProject = JarFilterProject(testProjectDir, "delete-static-val").build()
+        }
     }
 
     @Test

@@ -9,16 +9,16 @@ import java.nio.file.Path;
 
 import static org.assertj.core.api.Assertions.*;
 
-public class AnnotatedFieldTest {
+class AnnotatedFieldTest {
     private GradleProject testProject;
 
     @BeforeEach
-    public void setup(@TempDir Path testProjectDir) throws IOException {
+    void setup(@TempDir Path testProjectDir) throws IOException {
         testProject = new GradleProject(testProjectDir, "annotated-field").build();
     }
 
     @Test
-    public void testAnnotatedField() throws IOException {
+    void testAnnotatedField() throws IOException {
         assertThat(testProject.getApiLines())
             .containsSequence(
                 "  @A",

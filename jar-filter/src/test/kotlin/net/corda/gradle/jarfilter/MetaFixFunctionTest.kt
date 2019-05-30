@@ -4,10 +4,11 @@ import net.corda.gradle.unwanted.*
 import net.corda.gradle.jarfilter.asm.*
 import net.corda.gradle.jarfilter.matcher.*
 import org.gradle.api.logging.Logger
-import org.hamcrest.core.IsCollectionContaining.hasItem
+import org.hamcrest.MatcherAssert.assertThat
+import org.hamcrest.core.IsIterableContaining.hasItem
 import org.hamcrest.core.IsNot.not
-import org.junit.Assert.*
-import org.junit.Test
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Test
 import kotlin.jvm.kotlin
 import kotlin.reflect.full.declaredFunctions
 

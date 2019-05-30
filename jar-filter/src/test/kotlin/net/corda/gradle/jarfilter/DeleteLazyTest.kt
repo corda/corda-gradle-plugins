@@ -3,15 +3,14 @@ package net.corda.gradle.jarfilter
 import net.corda.gradle.jarfilter.matcher.*
 import net.corda.gradle.unwanted.HasUnwantedVal
 import org.assertj.core.api.Assertions.*
-import org.hamcrest.core.IsCollectionContaining.*
+import org.hamcrest.MatcherAssert.assertThat
+import org.hamcrest.core.IsIterableContaining.*
 import org.hamcrest.core.IsNot.*
-import org.junit.Assert.*
-import org.junit.BeforeClass
-import org.junit.ClassRule
-import org.junit.Test
-import org.junit.rules.RuleChain
-import org.junit.rules.TemporaryFolder
-import org.junit.rules.TestRule
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.io.TempDir
+import java.nio.file.Path
 import kotlin.reflect.full.declaredMemberProperties
 import kotlin.test.assertFailsWith
 
@@ -19,22 +18,16 @@ class DeleteLazyTest {
     companion object {
         private const val LAZY_VAL_CLASS = "net.corda.gradle.HasLazyVal"
 
-        private val testProjectDir = TemporaryFolder()
-        private val testProject = JarFilterProject(testProjectDir, "delete-lazy")
         private val unwantedVal = isProperty("unwantedVal", String::class)
         private val getUnwantedVal = isMethod("getUnwantedVal", String::class.java)
+        private lateinit var testProject: JarFilterProject
         private lateinit var sourceClasses: List<String>
         private lateinit var filteredClasses: List<String>
 
-        @ClassRule
-        @JvmField
-        val rules: TestRule = RuleChain
-            .outerRule(testProjectDir)
-            .around(testProject)
-
-        @BeforeClass
+        @BeforeAll
         @JvmStatic
-        fun setup() {
+        fun setup(@TempDir testProjectDir: Path) {
+            testProject = JarFilterProject(testProjectDir, "delete-lazy").build()
             sourceClasses = testProject.sourceJar.getClassNames(LAZY_VAL_CLASS)
             filteredClasses = testProject.filteredJar.getClassNames(LAZY_VAL_CLASS)
         }

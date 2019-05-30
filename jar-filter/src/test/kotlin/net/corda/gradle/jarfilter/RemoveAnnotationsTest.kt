@@ -3,26 +3,24 @@ package net.corda.gradle.jarfilter
 import net.corda.gradle.unwanted.HasUnwantedFun
 import net.corda.gradle.unwanted.HasUnwantedVal
 import net.corda.gradle.unwanted.HasUnwantedVar
-import org.junit.Assert.*
-import org.junit.ClassRule
-import org.junit.Test
-import org.junit.rules.RuleChain
-import org.junit.rules.TemporaryFolder
-import org.junit.rules.TestRule
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.io.TempDir
+import java.nio.file.Path
 
 class RemoveAnnotationsTest {
     companion object {
         private const val ANNOTATED_CLASS = "net.corda.gradle.HasUnwantedAnnotations"
         private const val REMOVE_ME_CLASS = "net.corda.gradle.jarfilter.RemoveMe"
 
-        private val testProjectDir = TemporaryFolder()
-        private val testProject = JarFilterProject(testProjectDir, "remove-annotations")
+        private lateinit var testProject: JarFilterProject
 
-        @ClassRule
-        @JvmField
-        val rules: TestRule = RuleChain
-            .outerRule(testProjectDir)
-            .around(testProject)
+        @BeforeAll
+        @JvmStatic
+        fun setup(@TempDir testProjectDir: Path) {
+            testProject = JarFilterProject(testProjectDir, "remove-annotations").build()
+        }
     }
 
     @Test

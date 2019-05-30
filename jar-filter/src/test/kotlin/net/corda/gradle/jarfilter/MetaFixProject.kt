@@ -3,55 +3,47 @@ package net.corda.gradle.jarfilter
 import org.assertj.core.api.Assertions.*
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome.*
-import org.junit.Assert.*
-import org.junit.rules.TemporaryFolder
-import org.junit.rules.TestRule
-import org.junit.runner.Description
-import org.junit.runners.model.Statement
+import org.junit.jupiter.api.Assertions.*
 import java.io.FileNotFoundException
 import java.nio.file.Path
 import kotlin.test.fail
 
 @Suppress("UNUSED")
-class MetaFixProject(private val projectDir: TemporaryFolder, private val name: String) : TestRule {
+class MetaFixProject(private val projectDir: Path, private val name: String) {
     private var _sourceJar: Path? = null
     val sourceJar: Path get() = _sourceJar ?: throw FileNotFoundException("Input not found")
 
     private var _metafixedJar: Path? = null
     val metafixedJar: Path get() = _metafixedJar ?: throw FileNotFoundException("Output not found")
 
-    private var _output: String = ""
-    val output: String get() = _output
+    var output: String = ""
+        private set
 
-    override fun apply(base: Statement, description: Description): Statement {
-        return object : Statement() {
-            override fun evaluate() {
-                projectDir.installResources(
-                    "$name/build.gradle",
-                    "repositories.gradle",
-                    "gradle.properties",
-                    "settings.gradle"
-                )
+    fun build(): MetaFixProject {
+        projectDir.installResources(
+            "$name/build.gradle",
+            "repositories.gradle",
+            "gradle.properties",
+            "settings.gradle"
+        )
 
-                val result = GradleRunner.create()
-                    .withProjectDir(projectDir.root)
-                    .withArguments(getGradleArgsForTasks("metafix"))
-                    .withPluginClasspath()
-                    .build()
-                _output = result.output
-                println(output)
+        val result = GradleRunner.create()
+            .withProjectDir(projectDir.toFile())
+            .withArguments(getGradleArgsForTasks("metafix"))
+            .withPluginClasspath()
+            .build()
+        output = result.output
+        println(output)
 
-                val metafix = result.task(":metafix") ?: fail("No outcome for metafix task")
-                assertEquals(SUCCESS, metafix.outcome)
+        val metafix = result.task(":metafix") ?: fail("No outcome for metafix task")
+        assertEquals(SUCCESS, metafix.outcome)
 
-                _sourceJar = projectDir.pathOf("build", "libs", "$name.jar")
-                assertThat(sourceJar).isRegularFile()
+        _sourceJar = projectDir.pathOf("build", "libs", "$name.jar")
+        assertThat(sourceJar).isRegularFile()
 
-                _metafixedJar = projectDir.pathOf("build", "metafixer-libs", "$name-metafixed.jar")
-                assertThat(metafixedJar).isRegularFile()
+        _metafixedJar = projectDir.pathOf("build", "metafixer-libs", "$name-metafixed.jar")
+        assertThat(metafixedJar).isRegularFile()
 
-                base.evaluate()
-            }
-        }
+        return this
     }
 }

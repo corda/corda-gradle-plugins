@@ -3,7 +3,7 @@ package net.corda.gradle.jarfilter
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.InvalidUserDataException
-import org.junit.Test
+import org.junit.jupiter.api.Test
 import java.io.IOException
 import kotlin.test.assertFailsWith
 
