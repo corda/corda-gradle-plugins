@@ -2,6 +2,8 @@
 
 ## Version 4
 
+### Version 4.0.46
+
 ### Version 4.0.45
 
 * `api-scanner`: Update to support Gradle's `java-library` plugin.
