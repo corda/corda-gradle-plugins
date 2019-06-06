@@ -63,7 +63,7 @@ open class Node @Inject constructor(private val project: Project) {
     internal var rpcPort = 10003
         @Input get
         private set
-    var config = ConfigFactory.empty()
+    internal var config = ConfigFactory.empty()
 
     /**
      * Name of the node. Node will be placed in directory based on this name - all lowercase with whitespaces removed.
@@ -457,16 +457,13 @@ open class Node @Inject constructor(private val project: Project) {
     }
 
     fun runtimeVersion(): String {
-        val releaseVersion = project.ext<String>("corda_release_version")
-        val releaseVersionInParent = project.rootProject.ext<String>("corda_release_version")
+        val releaseVersion = project.findPropertyInHierarchy<String>("corda_release_version")
         val runtimeJarVersion = project.configuration("cordaRuntime").dependencies.filterNot { it.name.contains("web") }.singleOrNull()?.version
-        if (releaseVersion == null && releaseVersionInParent == null && runtimeJarVersion == null) {
+        if (releaseVersion == null && runtimeJarVersion == null) {
             throw IllegalStateException("Could not find a valid definition of corda version to use")
         } else {
-            return listOfNotNull(releaseVersion, releaseVersionInParent, runtimeJarVersion).first()
+            return listOfNotNull(releaseVersion, runtimeJarVersion).first()
         }
-
-
     }
 
     /**
@@ -474,11 +471,8 @@ open class Node @Inject constructor(private val project: Project) {
      */
     private fun installAgentJar() {
         // TODO: improve how we re-use existing declared external variables from root gradle.build
-        val jolokiaVersion = try {
-            project.rootProject.ext<String>("jolokia_version")
-        } catch (e: Exception) {
-            "1.6.0"
-        }
+        val jolokiaVersion = project.findPropertyInHierarchy<String>("jolokia_version") ?: "1.6.0"
+
         val agentJar = project.configuration("runtime").files {
             (it.group == "org.jolokia") &&
                     (it.name == "jolokia-jvm") &&
