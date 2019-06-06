@@ -18,8 +18,8 @@ import javax.inject.Inject
  */
 @Suppress("unused")
 open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(objects) {
+
     private companion object {
-        const val nodeJarName = "corda.jar"
         private val defaultDirectory: Path = Paths.get("build", "docker")
 
         private const val dockerComposeFileVersion = "3"
@@ -33,8 +33,16 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
 
     private val directoryPath: Path = project.projectDir.toPath().resolve(directory)
 
-    @get:InputFile
-    val dockerComposePath: Path = directoryPath.resolve("docker-compose.yml")
+
+    val dockerComposePath: Path
+        @get:InputFile
+        get() {
+            val wantedPath = directoryPath.resolve("docker-compose.yml")
+            if (!Files.exists(wantedPath)) {
+                Files.createFile(wantedPath)
+            }
+            return wantedPath
+        }
 
     /**
      * This task action will create and install the nodes based on the node configurations added.
@@ -43,18 +51,35 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
     fun build() {
         project.logger.lifecycle("Running Cordform task")
         initializeConfiguration()
-        nodes.forEach(Node::installDockerConfig)
+        nodes.forEach { it -> it.installDockerConfig(22022) }
         installCordaJar()
         nodes.forEach(Node::installDrivers)
+        generateKeystoreAndSignCordappJar()
+        generateExcludedWhitelist()
         bootstrapNetwork()
-        nodes.forEach(Node::installCordapps)
         nodes.forEach(Node::buildDocker)
 
 
         // Transform nodes path the absolute ones
-        val services = nodes.map { it.containerName to mapOf(
-                "build" to directoryPath.resolve(it.nodeDir.name).toAbsolutePath().toString(),
-                "ports" to listOf(it.rpcPort)) }.toMap()
+        val services = nodes.map {
+            val nodeBuildDir = directoryPath.resolve(it.nodeDir.name).toAbsolutePath().toString()
+
+            it.containerName to mapOf(
+                    "volumes" to listOf(
+                            "$nodeBuildDir/node.conf:/etc/corda/node.conf",
+                            "$nodeBuildDir/certificates:/opt/corda/certificates",
+                            "$nodeBuildDir/logs:/opt/corda/logs",
+                            "$nodeBuildDir/persistence:/opt/corda/persistence",
+                            "$nodeBuildDir/cordapps:/opt/corda/cordapps",
+                            "$nodeBuildDir/network-parameters:/opt/corda/network-parameters",
+                            "$nodeBuildDir/additional-node-infos:/opt/corda/additional-node-infos",
+                            "$nodeBuildDir/drivers:/opt/corda/drivers"
+
+                    ),
+                    "ports" to listOf(it.rpcPort, it.config.getInt("sshd.port")),
+                    "image" to "corda/corda-zulu-${it.runtimeVersion().toLowerCase()}"
+            )
+        }.toMap()
 
 
         val dockerComposeObject = mapOf(
@@ -66,3 +91,4 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
         Files.write(dockerComposePath, dockerComposeContent.toByteArray(StandardCharsets.UTF_8))
     }
 }
+

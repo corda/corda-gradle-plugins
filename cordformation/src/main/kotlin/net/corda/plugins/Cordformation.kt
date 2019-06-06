@@ -49,6 +49,7 @@ class Cordformation : Plugin<Project> {
                 require(jar.isFile) { "$jar either does not exist or is not a file" }
                 return jar
             }
+
         }
 
         val executableFileMode = "0755".toInt(8)
@@ -65,7 +66,7 @@ class Cordformation : Plugin<Project> {
             Utils.createChildConfiguration(CORDFORMATION_TYPE, cordaRuntime, this)
         }
         // TODO: improve how we re-use existing declared external variables from root gradle.build
-        val jolokiaVersion = try { project.rootProject.ext<String>("jolokia_version") } catch (e: Exception) { "1.6.0" }
+        val jolokiaVersion = project.rootProject.ext("jolokia_version") ?: "1.6.0"
         val jolokia = project.dependencies.add(CORDFORMATION_TYPE, "org.jolokia:jolokia-jvm:$jolokiaVersion:agent")
         // The Jolokia agent is a fat jar really, so we don't want its transitive dependencies.
         (jolokia as ModuleDependency).isTransitive = false

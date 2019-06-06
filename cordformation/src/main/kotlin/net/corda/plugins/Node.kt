@@ -63,7 +63,7 @@ open class Node @Inject constructor(private val project: Project) {
     internal var rpcPort = 10003
         @Input get
         private set
-    private var config = ConfigFactory.empty()
+    var config = ConfigFactory.empty()
 
     /**
      * Name of the node. Node will be placed in directory based on this name - all lowercase with whitespaces removed.
@@ -109,9 +109,10 @@ open class Node @Inject constructor(private val project: Project) {
      *
      * @return This node's P2P address.
      */
-    val p2pAddress: String
+    @get:Optional
+    val p2pAddress: String?
         @Input
-        get() = config.getString("p2pAddress")
+        get() = getOptionalString("p2pAddress")
 
     /**
      * Returns the RPC address for this node, or null if one hasn't been specified.
@@ -267,6 +268,10 @@ open class Node @Inject constructor(private val project: Project) {
         config = config.withValue("sshd.port", ConfigValueFactory.fromAnyRef(sshdPort))
     }
 
+    fun sshdPort() {
+        config.getInt("sshd.port")
+    }
+
     /**
      * Install a cordapp to this node
      *
@@ -370,14 +375,8 @@ open class Node @Inject constructor(private val project: Project) {
     }
 
     internal fun buildDocker() {
-        project.copy {
-            it.apply {
-                from(Cordformation.getPluginFile(project, "Dockerfile"))
-                from(Cordformation.getPluginFile(project, "run-corda.sh"))
-                into("$nodeDir/")
-            }
-        }
-        installAgentJar()
+        installDrivers()
+        installCordapps()
         installCordappConfigs()
     }
 
@@ -455,6 +454,19 @@ open class Node @Inject constructor(private val project: Project) {
                 rename(webJar.name, webJarName)
             }
         }
+    }
+
+    fun runtimeVersion(): String {
+        val releaseVersion = project.ext<String>("corda_release_version")
+        val releaseVersionInParent = project.rootProject.ext<String>("corda_release_version")
+        val runtimeJarVersion = project.configuration("cordaRuntime").dependencies.filterNot { it.name.contains("web") }.singleOrNull()?.version
+        if (releaseVersion == null && releaseVersionInParent == null && runtimeJarVersion == null) {
+            throw IllegalStateException("Could not find a valid definition of corda version to use")
+        } else {
+            return listOfNotNull(releaseVersion, releaseVersionInParent, runtimeJarVersion).first()
+        }
+
+
     }
 
     /**
@@ -536,19 +548,24 @@ open class Node @Inject constructor(private val project: Project) {
     /**
      * Installs the Dockerized configuration file to the root directory and detokenises it.
      */
-    internal fun installDockerConfig() {
+    internal fun installDockerConfig(defaultSsh: Int) {
         configureProperties()
+        if (!config.hasPath("sshd.port")) {
+            sshdPort(defaultSsh)
+        }
         val dockerConf = config
                 .withValue("p2pAddress", ConfigValueFactory.fromAnyRef("$containerName:$p2pPort"))
                 .withValue("rpcSettings.address", ConfigValueFactory.fromAnyRef("$containerName:${rpcSettings.port}"))
                 .withValue("rpcSettings.adminAddress", ConfigValueFactory.fromAnyRef("$containerName:${rpcSettings.adminPort}"))
                 .withValue("detectPublicIp", ConfigValueFactory.fromAnyRef(false))
+                .withValue("dataSourceProperties.dataSource.url", ConfigValueFactory.fromAnyRef("jdbc:h2:file:./persistence/persistence;DB_CLOSE_ON_EXIT=FALSE;WRITE_DELAY=0;LOCK_TIMEOUT=10000"))
 
-        createNodeAndWebServerConfigFiles(dockerConf)
+        config = dockerConf
+        createNodeAndWebServerConfigFiles(config)
     }
 
     private fun createNodeAndWebServerConfigFiles(config: Config) {
-        val tmpConfFile = createTempConfigFile(createNodeConfig().root(), "node.conf")
+        val tmpConfFile = createTempConfigFile(createNodeConfig(config).root(), "node.conf")
         appendOptionalConfig(tmpConfFile)
         project.copy {
             it.apply {
@@ -567,7 +584,8 @@ open class Node @Inject constructor(private val project: Project) {
         }
     }
 
-    private fun createNodeConfig() = config.withoutPath("webAddress").withoutPath("useHTTPS")
+    private fun createNodeConfig(configToUse: Config? = null) = configToUse?.withoutPath("webAddress")?.withoutPath("useHTTPS")
+            ?: config.withoutPath("webAddress").withoutPath("useHTTPS")
 
     private fun createWebserverConfig(): Config {
         val webConfig = config.copyKeysTo(ConfigFactory.empty(),
