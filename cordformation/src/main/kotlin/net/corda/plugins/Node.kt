@@ -109,8 +109,9 @@ open class Node @Inject constructor(private val project: Project) {
      *
      * @return This node's P2P address.
      */
-    @get:Optional
+
     val p2pAddress: String?
+        @Optional
         @Input
         get() = getOptionalString("p2pAddress")
 
