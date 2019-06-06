@@ -14,7 +14,13 @@ import kotlin.math.max
  * accessor to the "ext" extension (See: ExtraPropertiesExtension)
  */
 @Suppress("UNCHECKED_CAST")
-fun <T : Any> Project.ext(name: String): T = (extensions.findByName("ext") as ExtraPropertiesExtension).get(name) as T
+fun <T : Any> Project.ext(name: String): T? {
+    return try {
+        (extensions.findByName("ext") as ExtraPropertiesExtension).get(name) as T
+    } catch (e: ExtraPropertiesExtension.UnknownPropertyException) {
+        null
+    }
+}
 fun Project.configuration(name: String): Configuration = configurations.single { it.name == name }
 
 class Utils {
