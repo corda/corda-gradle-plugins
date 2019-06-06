@@ -38,7 +38,8 @@ class Cordformation : Plugin<Project> {
          * @return A file handle to the file in the JAR.
          */
         fun verifyAndGetRuntimeJar(project: Project, jarName: String): File {
-            val releaseVersion = project.rootProject.ext<String>("corda_release_version")
+            val releaseVersion = project.findPropertyInHierarchy<String>("corda_release_version")
+                    ?: throw IllegalStateException("Could not find a valid declaration of \"corda_release_version\"")
             val maybeJar = project.configuration("runtime").filter {
                 "$jarName-$releaseVersion.jar" in it.toString() || "$jarName-enterprise-$releaseVersion.jar" in it.toString()
             }
@@ -66,7 +67,7 @@ class Cordformation : Plugin<Project> {
             Utils.createChildConfiguration(CORDFORMATION_TYPE, cordaRuntime, this)
         }
         // TODO: improve how we re-use existing declared external variables from root gradle.build
-        val jolokiaVersion = project.rootProject.ext("jolokia_version") ?: "1.6.0"
+        val jolokiaVersion = project.findPropertyInHierarchy("jolokia_version") ?: "1.6.0"
         val jolokia = project.dependencies.add(CORDFORMATION_TYPE, "org.jolokia:jolokia-jvm:$jolokiaVersion:agent")
         // The Jolokia agent is a fat jar really, so we don't want its transitive dependencies.
         (jolokia as ModuleDependency).isTransitive = false

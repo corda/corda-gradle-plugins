@@ -20,22 +20,24 @@ import javax.inject.Inject
 open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(objects) {
 
     private companion object {
-        private val defaultDirectory: Path = Paths.get("build", "docker")
+        private const val DEFAULT_SSH_PORT = 22022;
+        private val DEFAULT_DIRECTORY: Path = Paths.get("build", "docker")
 
-        private const val dockerComposeFileVersion = "3"
+        private const val COMPOSE_SPEC_VERSION = "3"
 
-        private val yamlOptions = DumperOptions().apply {
+        private val YAML_FORMAT_OPTIONS = DumperOptions().apply {
             indent = 2
             defaultFlowStyle = DumperOptions.FlowStyle.BLOCK
         }
-        private val yaml = Yaml(yamlOptions)
+
+        private val YAML_MAPPER = Yaml(YAML_FORMAT_OPTIONS)
     }
 
     private val directoryPath: Path = project.projectDir.toPath().resolve(directory)
 
 
     val dockerComposePath: Path
-        @get:InputFile
+        @InputFile
         get() {
             val wantedPath = directoryPath.resolve("docker-compose.yml")
             if (!Files.exists(wantedPath)) {
@@ -49,9 +51,9 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
      */
     @TaskAction
     fun build() {
-        project.logger.lifecycle("Running Cordform task")
+        project.logger.lifecycle("Running DockerForm task")
         initializeConfiguration()
-        nodes.forEach { it -> it.installDockerConfig(22022) }
+        nodes.forEach { it -> it.installDockerConfig(DEFAULT_SSH_PORT) }
         installCordaJar()
         nodes.forEach(Node::installDrivers)
         generateKeystoreAndSignCordappJar()
@@ -83,10 +85,10 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
 
 
         val dockerComposeObject = mapOf(
-                "version" to dockerComposeFileVersion,
+                "version" to COMPOSE_SPEC_VERSION,
                 "services" to services)
 
-        val dockerComposeContent = yaml.dump(dockerComposeObject)
+        val dockerComposeContent = YAML_MAPPER.dump(dockerComposeObject)
 
         Files.write(dockerComposePath, dockerComposeContent.toByteArray(StandardCharsets.UTF_8))
     }
