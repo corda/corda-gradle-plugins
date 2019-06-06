@@ -4,6 +4,8 @@
 
 ### Version 4.0.46
 
+* `cordformation`: Use official corda docker images for DockerForm
+
 ### Version 4.0.45
 
 * `api-scanner`: Update to support Gradle's `java-library` plugin.
