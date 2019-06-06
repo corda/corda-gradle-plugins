@@ -4,6 +4,8 @@
 
 ### Version 5.0.2
 
+* `cordformation`: Migrate DockerForm task to use the official Corda images
+
 ### Version 5.0.1
 
 * `api-scanner`: Update to support Gradle's `java-library` plugin.
