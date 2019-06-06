@@ -471,7 +471,7 @@ open class Node @Inject constructor(private val project: Project) {
      */
     private fun installAgentJar() {
         // TODO: improve how we re-use existing declared external variables from root gradle.build
-        val jolokiaVersion = project.findPropertyInHierarchy<String>("jolokia_version") ?: "1.6.0"
+        val jolokiaVersion = project.findPropertyInHierarchy("jolokia_version") ?: "1.6.0"
 
         val agentJar = project.configuration("runtime").files {
             (it.group == "org.jolokia") &&
