@@ -3,45 +3,19 @@ package net.corda.plugins
 import net.corda.core.internal.SignedDataWithCert
 import net.corda.core.internal.ThreadLocalToggleField
 import net.corda.core.node.NetworkParameters
-import net.corda.core.serialization.SerializationContext
 import net.corda.core.serialization.SerializationDefaults
 import net.corda.core.serialization.SerializedBytes
 import net.corda.core.serialization.deserialize
 import net.corda.core.serialization.internal.SerializationEnvironment
 import net.corda.serialization.internal.AMQP_P2P_CONTEXT
-import net.corda.serialization.internal.CordaSerializationMagic
 import net.corda.serialization.internal.SerializationFactoryImpl
-import net.corda.serialization.internal.amqp.AbstractAMQPSerializationScheme
-import net.corda.serialization.internal.amqp.amqpMagic
-import org.apache.commons.io.IOUtils
 import org.assertj.core.api.Assertions.assertThat
-import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.io.TempDir
-import java.nio.file.Path
-import java.nio.file.Paths
 
-class CordformTest {
-    @TempDir
-    lateinit var testProjectDir: Path
-    private lateinit var buildFile: Path
+class CordformTest : BaseformTest() {
 
-    private companion object {
-        const val cordaFinanceWorkflowsJarName = "corda-finance-workflows-4.0"
-        const val cordaFinanceContractsJarName = "corda-finance-contracts-4.0"
-        const val localCordappJarName = "locally-built-cordapp"
-        const val notaryNodeName = "Notary Service"
-
-        private val testGradleUserHome = System.getProperty("test.gradle.user.home", ".")
-    }
-
-    @BeforeEach
-    fun setup() {
-        buildFile = testProjectDir.resolve("build.gradle")
-    }
 
     @Disabled
     @Test
@@ -115,26 +89,6 @@ class CordformTest {
         assertThat(getNodeCordappConfig(notaryNodeName, localCordappJarName)).isRegularFile()
     }
 
-    private fun getStandardGradleRunnerFor(buildFileResourceName: String): GradleRunner {
-        createBuildFile(buildFileResourceName)
-        return GradleRunner.create()
-                .withDebug(true)
-                .withProjectDir(testProjectDir.toFile())
-                .withArguments("deployNodes", "-s", "--info", "-g", testGradleUserHome)
-                .withPluginClasspath()
-    }
 
-    private fun createBuildFile(buildFileResourceName: String) = IOUtils.copy(javaClass.getResourceAsStream(buildFileResourceName), buildFile.toFile().outputStream())
-    private fun getNodeCordappJar(nodeName: String, cordappJarName: String) = Paths.get(testProjectDir.toAbsolutePath().toString(), "build", "nodes", nodeName, "cordapps", "$cordappJarName.jar")
-    private fun getNodeCordappConfig(nodeName: String, cordappJarName: String) = Paths.get(testProjectDir.toAbsolutePath().toString(), "build", "nodes", nodeName, "cordapps", "config", "$cordappJarName.conf")
-    private fun getNetworkParameterOverrides(nodeName: String) = Paths.get(testProjectDir.toAbsolutePath().toString(), "build", "nodes", nodeName, "network-parameters")
 
-    private class AMQPParametersSerializationScheme : AbstractAMQPSerializationScheme(emptyList()) {
-        override fun rpcClientSerializerFactory(context: SerializationContext) = throw UnsupportedOperationException()
-        override fun rpcServerSerializerFactory(context: SerializationContext) = throw UnsupportedOperationException()
-
-        override fun canDeserializeVersion(magic: CordaSerializationMagic, target: SerializationContext.UseCase): Boolean {
-            return magic == amqpMagic && target == SerializationContext.UseCase.P2P
-        }
-    }
 }

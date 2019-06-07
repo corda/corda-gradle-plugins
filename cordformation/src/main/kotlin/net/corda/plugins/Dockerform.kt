@@ -41,6 +41,7 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
         get() {
             val wantedPath = directoryPath.resolve("docker-compose.yml")
             if (!Files.exists(wantedPath)) {
+                Files.createDirectories(wantedPath.parent)
                 Files.createFile(wantedPath)
             }
             return wantedPath
