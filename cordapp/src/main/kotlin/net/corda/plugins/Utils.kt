@@ -13,16 +13,8 @@ import kotlin.math.max
  * accessor to the "ext" extension (See: ExtraPropertiesExtension)
  */
 
-fun <T : Any> Project.findPropertyInHierarchy(name: String): T? {
-    var projectToVisit: Project? = this
-    while (projectToVisit != null) {
-        if (projectToVisit.hasProperty(name)) {
-            return projectToVisit.property(name) as T
-        } else {
-            projectToVisit = projectToVisit.parent
-        }
-    }
-    return null
+fun <T : Any> Project.findRootProperty(name: String): T? {
+    return rootProject.property(name) as T?
 }
 
 fun Project.configuration(name: String): Configuration = configurations.single { it.name == name }

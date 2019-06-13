@@ -20,7 +20,7 @@ import javax.inject.Inject
 open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(objects) {
 
     private companion object {
-        private const val DEFAULT_SSH_PORT = 22022;
+        private const val DEFAULT_SSH_PORT = 22022
         private val DEFAULT_DIRECTORY: Path = Paths.get("build", "docker")
 
         private const val COMPOSE_SPEC_VERSION = "3"
