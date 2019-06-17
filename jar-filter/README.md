@@ -180,6 +180,8 @@ $ ../gradlew jar-filter:jacocoTestReport
 The Kotlin compiler encodes information about each class inside its `@kotlin.Metadata` annotation.
 
 ```kotlin
+package kotlin
+
 import kotlin.annotation.AnnotationRetention.*
 
 @Retention(RUNTIME)
@@ -191,36 +193,15 @@ annotation class Metadata {
 }
 ```
 
-This is an internal feature of Kotlin which is read by Kotlin Reflection. There is no public API
-for writing this information, and the content format of arrays `d1` and `d2` depends upon the
-"class kind" `k`. For the kinds that we are interested in, `d1` contains a buffer of ProtoBuf
-data and `d2` contains an array of `String` identifiers which the ProtoBuf data refers to by index.
-
-Although ProtoBuf generates functions for both reading and writing the data buffer, the
-Kotlin Reflection artifact only contains the functions for reading. This is almost certainly
-because the writing functionality has been removed from the `kotlin-reflect` JAR using
-ProGuard. However, the complete set of generated ProtoBuf classes is still available in the
-`kotlin-compiler-embeddable` JAR. The `jar-filter:kotlin-metadata` module uses ProGuard to
-extracts these classes into a new `kotlin-metdata` JAR, discarding any classes that the
-ProtoBuf ones do not need and obfuscating any other ones that they do.
-
-The custom `kotlin-metadata` object was originally created as a workaround for
-[KT-18621](https://youtrack.jetbrains.com/issue/KT-18621). However, reducing the number of unwanted
-classes on the classpath anyway can only be a Good Thing<sup>(TM)</sup>.
-
-At runtime, `JarFilter` decompiles the ProtoBuf buffer into POJOs, deletes the elements that
-no longer exist in the byte-code and then recompiles the POJOs into a new ProtoBuf buffer. The
-`@Metadata` annotation is then rewritten using this new buffer for `d1` and the _original_ `String`
-identifiers for `d2`. While some of these identifiers are very likely no longer used after this,
-removing them would also require re-indexing the ProtoBuf data. It is therefore simpler just to
-leave them as harmless cruft in the byte-code's constant pool.
-
-The majority of `JarFilter`'s unit tests use Kotlin and Java reflection and so should not be
-brittle as Kotlin evolves because `kotlin-reflect` is public API. Also, Kotlin's requirement that
-it remain backwards-compatible with itself should imply that the ProtoBuf logic shouldn't change
-(much). However, the ProtoBuf classes are still internal to Kotlin and so it _is_ possible that they
-will occasionally move between packages. This has already happened for Kotlin 1.2.3x -> 1.2.4x, but
-I am hoping this means that they will not move again for a while.
+This is an internal feature of Kotlin which is read by Kotlin Reflection. The public API for
+manipulating this information is `kotlin-metadata-jvm`, and requires that we first extract the `d1`
+and `d2` fields from the `@kotlin.Metadata` annotation using (say) the ASM library. The data format
+for these arrays depends upon the "class kind" `k`. For the kinds that we are interested in, `d1`
+contains a buffer of ProtoBuf data and `d2` contains an array of `String` identifiers which the
+ProtoBuf data refers to by index. The `kotlin-metadata-jvm` library translates this ProtoBuf data
+into recognisable value objects so that we can remove those elements corresponding to the deleted
+byte-code. The library then converts the remaining elements back into ProtoBuf arrays that ASM can
+write into `kotlin.Metadata` annotation.
 
 ### JARs vs ZIPs
 The `JarFilter` and `MetaFixer` tasks _deliberately_ use `ZipFile` and `ZipOutputStream` rather

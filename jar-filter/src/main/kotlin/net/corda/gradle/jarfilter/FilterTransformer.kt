@@ -1,5 +1,7 @@
 package net.corda.gradle.jarfilter
 
+import kotlinx.metadata.KmClass
+import kotlinx.metadata.KmPackage
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.logging.Logger
 import org.objectweb.asm.*
@@ -18,7 +20,7 @@ import org.objectweb.asm.Opcodes.*
 class FilterTransformer private constructor (
     visitor: ClassVisitor,
     logger: Logger,
-    kotlinMetadata: MutableMap<String, List<String>>,
+    kotlinMetadata: MutableMap<String, Array<String>>,
     private val removeAnnotations: Set<String>,
     private val deleteAnnotations: Set<String>,
     private val stubAnnotations: Set<String>,
@@ -175,7 +177,7 @@ class FilterTransformer private constructor (
     /**
      * Removes the deleted methods and fields from the Kotlin Class metadata.
      */
-    override fun processClassMetadata(data1: List<String>, data2: List<String>): List<String> {
+    override fun processClassMetadata(kmClass: KmClass): KmClass? {
         val partitioned = deletedMethods.groupBy(MethodElement::isConstructor)
         val prefix = "$className$"
         return ClassMetadataTransformer(
@@ -186,22 +188,20 @@ class FilterTransformer private constructor (
                 deletedNestedClasses = unwantedElements.classes.filter { it.startsWith(prefix) }.map { it.drop(prefix.length) },
                 deletedClasses = unwantedElements.classes,
                 handleExtraMethod = ::delete,
-                data1 = data1,
-                data2 = data2)
+                kmClass = kmClass)
             .transform()
     }
 
     /**
      * Removes the deleted methods and fields from the Kotlin Package metadata.
      */
-    override fun processPackageMetadata(data1: List<String>, data2: List<String>): List<String> {
+    override fun processPackageMetadata(kmPackage: KmPackage): KmPackage? {
         return PackageMetadataTransformer(
                 logger = logger,
                 deletedFields = unwantedFields,
                 deletedFunctions = deletedMethods,
                 handleExtraMethod = ::delete,
-                data1 = data1,
-                data2 = data2)
+                kmPackage = kmPackage)
             .transform()
     }
 

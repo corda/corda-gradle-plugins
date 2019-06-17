@@ -1,7 +1,10 @@
 @file:JvmName("KotlinMetadata")
 package net.corda.gradle.jarfilter
 
+import kotlinx.metadata.KmClass
+import kotlinx.metadata.KmPackage
 import kotlinx.metadata.jvm.KotlinClassHeader
+import kotlinx.metadata.jvm.KotlinClassMetadata
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.Logger
 import org.objectweb.asm.AnnotationVisitor
@@ -17,11 +20,6 @@ const val KOTLIN_METADATA_EXTRA_INT_NAME = "xi"
 const val KOTLIN_METADATA_EXTRA_STRING_NAME = "xs"
 const val KOTLIN_METADATA_PACKAGE_NAME= "pn"
 
-private const val KOTLIN_CLASS: Int = KotlinClassHeader.CLASS_KIND
-private const val KOTLIN_FILE: Int = KotlinClassHeader.FILE_FACADE_KIND
-private const val KOTLIN_SYNTHETIC: Int = KotlinClassHeader.SYNTHETIC_CLASS_KIND
-private const val KOTLIN_MULTIFILE_PART: Int = KotlinClassHeader.MULTI_FILE_CLASS_PART_KIND
-
 /**
  * Kotlin support: Loads the ProtoBuf data from the [kotlin.Metadata] annotation.
  */
@@ -29,16 +27,21 @@ abstract class KotlinAwareVisitor(
     api: Int,
     visitor: ClassVisitor,
     protected val logger: Logger,
-    protected val kotlinMetadata: MutableMap<String, List<String>>
+    protected val kotlinMetadata: MutableMap<String, Array<String>>
 ) : ClassVisitor(api, visitor) {
 
     private var classKind: Int = 0
+    private var extraInt: Int? = null
+    private var extraString: String? = null
+    private var packageName: String? = null
+    private var metadataVersion: IntArray? = null
+    private var bytecodeVersion: IntArray? = null
 
     open val hasUnwantedElements: Boolean get() = kotlinMetadata.isNotEmpty()
     protected open val level: LogLevel = LogLevel.INFO
 
-    protected abstract fun processClassMetadata(data1: List<String>, data2: List<String>): List<String>
-    protected abstract fun processPackageMetadata(data1: List<String>, data2: List<String>): List<String>
+    protected abstract fun processClassMetadata(kmClass: KmClass): KmClass?
+    protected abstract fun processPackageMetadata(kmPackage: KmPackage): KmPackage?
     protected abstract fun processKotlinAnnotation()
 
     override fun visitAnnotation(descriptor: String, visible: Boolean): AnnotationVisitor? {
@@ -52,23 +55,56 @@ abstract class KotlinAwareVisitor(
             val data1 = kotlinMetadata.remove(KOTLIN_METADATA_DATA_FIELD_NAME)
             val data2 = kotlinMetadata.remove(KOTLIN_METADATA_STRINGS_FIELD_NAME)
             if (data1 != null && data1.isNotEmpty() && data2 != null) {
-                processMetadata(data1, data2).apply {
-                    if (isNotEmpty()) {
-                        kotlinMetadata[KOTLIN_METADATA_DATA_FIELD_NAME] = this
-                        kotlinMetadata[KOTLIN_METADATA_STRINGS_FIELD_NAME] = data2
-                    }
+                val header = KotlinClassHeader(
+                    classKind,
+                    metadataVersion,
+                    bytecodeVersion,
+                    data1,
+                    data2,
+                    extraString,
+                    packageName,
+                    extraInt
+                )
+                processMetadata(header)?.also {
+                    kotlinMetadata[KOTLIN_METADATA_DATA_FIELD_NAME] = it.data1
+                    kotlinMetadata[KOTLIN_METADATA_STRINGS_FIELD_NAME] = it.data2
                 }
             }
         }
     }
 
-    private fun processMetadata(data1: List<String>, data2: List<String>): List<String> {
-        return when (classKind) {
-            KOTLIN_CLASS -> processClassMetadata(data1, data2)
-            KOTLIN_FILE, KOTLIN_MULTIFILE_PART -> processPackageMetadata(data1, data2)
-            KOTLIN_SYNTHETIC -> {
+    private fun processClassMetadata(header: KotlinClassHeader, metadata: KotlinClassMetadata.Class): KotlinClassHeader? {
+        val kmClass = processClassMetadata(metadata.toKmClass()) ?: return null
+        return KotlinClassMetadata.Class.Writer()
+            .apply(kmClass::accept)
+            .write(header.metadataVersion, header.bytecodeVersion, header.extraInt)
+            .header
+    }
+
+    private fun processFileFacadeMetadata(header: KotlinClassHeader, metadata: KotlinClassMetadata.FileFacade): KotlinClassHeader? {
+        val kmPackage = processPackageMetadata(metadata.toKmPackage()) ?: return null
+        return KotlinClassMetadata.FileFacade.Writer()
+            .apply(kmPackage::accept)
+            .write(header.metadataVersion, header.bytecodeVersion, header.extraInt)
+            .header
+    }
+
+    private fun processMultiFileClassPartMetadata(header: KotlinClassHeader, metadata: KotlinClassMetadata.MultiFileClassPart): KotlinClassHeader? {
+        val kmPackage = processPackageMetadata(metadata.toKmPackage()) ?: return null
+        return KotlinClassMetadata.MultiFileClassPart.Writer()
+            .apply(kmPackage::accept)
+            .write(metadata.facadeClassName, header.metadataVersion, header.bytecodeVersion, header.extraInt)
+            .header
+    }
+
+    private fun processMetadata(header: KotlinClassHeader): KotlinClassHeader? {
+        return when (val metadata = KotlinClassMetadata.read(header)) {
+            is KotlinClassMetadata.Class -> processClassMetadata(header, metadata)
+            is KotlinClassMetadata.FileFacade -> processFileFacadeMetadata(header, metadata)
+            is KotlinClassMetadata.MultiFileClassPart -> processMultiFileClassPartMetadata(header, metadata)
+            is KotlinClassMetadata.SyntheticClass -> {
                 logger.log(level,"-- synthetic class ignored")
-                emptyList()
+                null
             }
             else -> {
                 /*
@@ -76,15 +112,20 @@ abstract class KotlinAwareVisitor(
                  * expect data1=[list of multi-file-part classes], data2=null.
                  */
                 logger.log(level,"-- unsupported class-kind {}", classKind)
-                emptyList()
+                null
             }
         }
     }
 
     private inner class KotlinMetadataAdaptor(av: AnnotationVisitor): AnnotationVisitor(api, av) {
         override fun visit(name: String?, value: Any?) {
-            if (name == KOTLIN_KIND_FIELD_NAME) {
-                classKind = value as Int
+            when (name) {
+                KOTLIN_KIND_FIELD_NAME -> classKind = value as Int
+                KOTLIN_BYTECODE_VERSION_NAME -> bytecodeVersion = value as IntArray?
+                KOTLIN_METADATA_VERSION_NAME -> metadataVersion = value as IntArray?
+                KOTLIN_METADATA_PACKAGE_NAME -> packageName = value as String?
+                KOTLIN_METADATA_EXTRA_INT_NAME -> extraInt = value as Int?
+                KOTLIN_METADATA_EXTRA_STRING_NAME -> extraString = value as String?
             }
             super.visit(name, value)
         }
@@ -116,7 +157,7 @@ abstract class KotlinAwareVisitor(
 
         override fun visitEnd() {
             super.visitEnd()
-            kotlinMetadata[name] = data
+            kotlinMetadata[name] = data.toTypedArray()
             logger.debug("-- read @Metadata.{}[{}]", name, data.size)
         }
     }
@@ -130,7 +171,7 @@ abstract class KotlinAfterProcessor(
     api: Int,
     visitor: ClassVisitor,
     logger: Logger,
-    kotlinMetadata: MutableMap<String, List<String>>
+    kotlinMetadata: MutableMap<String, Array<String>>
 ) : KotlinAwareVisitor(api, visitor, logger, kotlinMetadata) {
 
     /**
@@ -157,7 +198,7 @@ abstract class KotlinBeforeProcessor(
     api: Int,
     visitor: ClassVisitor,
     logger: Logger,
-    kotlinMetadata: MutableMap<String, List<String>>
+    kotlinMetadata: MutableMap<String, Array<String>>
 ) : KotlinAwareVisitor(api, visitor, logger, kotlinMetadata) {
 
     /**

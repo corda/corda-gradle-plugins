@@ -20,7 +20,7 @@ fun ByteArray.accept(visitor: (ClassVisitor) -> ClassVisitor): ByteArray {
 
 private val String.resourceName: String get() = "$toPathFormat.class"
 val Class<*>.resourceName get() = name.resourceName
-val Class<*>.bytecode: ByteArray get() = classLoader.getResourceAsStream(resourceName).use { it.readBytes() }
+val Class<*>.bytecode: ByteArray get() = classLoader.getResourceAsStream(resourceName).use(InputStream::readBytes)
 val Class<*>.descriptor: String get() = name.descriptor
 
 /**
@@ -37,7 +37,7 @@ private class BytecodeClassLoader(
     parent: ClassLoader
 ) : ClassLoader(parent) {
     internal fun createClass(): Class<*> {
-        return defineClass(className, bytecode, 0, bytecode.size).apply { resolveClass(this) }
+        return defineClass(className, bytecode, 0, bytecode.size).apply(::resolveClass)
     }
 
     // Ensure that the class we create also honours Class<*>.bytecode (above).

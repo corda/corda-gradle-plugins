@@ -31,6 +31,7 @@ class MetaFixProject(private val projectDir: Path, private val name: String) {
             .withProjectDir(projectDir.toFile())
             .withArguments(getGradleArgsForTasks("metafix"))
             .withPluginClasspath()
+            .withDebug(true)
             .build()
         output = result.output
         println(output)
