@@ -29,6 +29,7 @@ class JarFilterProject(private val projectDir: Path, private val name: String) {
             .withProjectDir(projectDir.toFile())
             .withArguments(getGradleArgsForTasks("jarFilter"))
             .withPluginClasspath()
+            .withDebug(true)
             .build()
         output = result.output
         println(output)

@@ -1,15 +1,12 @@
 @file:JvmName("Elements")
 package net.corda.gradle.jarfilter
 
-import kotlinx.metadata.internal.metadata.ProtoBuf
-import kotlinx.metadata.internal.metadata.deserialization.Flags.*
-import kotlinx.metadata.internal.metadata.deserialization.NameResolver
-import kotlinx.metadata.internal.metadata.deserialization.TypeTable
-import kotlinx.metadata.internal.metadata.jvm.JvmProtoBuf
-import kotlinx.metadata.internal.metadata.jvm.deserialization.ClassMapperLite
-import kotlinx.metadata.internal.metadata.jvm.deserialization.JvmMemberSignature
-import kotlinx.metadata.internal.metadata.jvm.deserialization.JvmProtoBufUtil
-import kotlinx.metadata.internal.protobuf.GeneratedMessageLite.*
+import kotlinx.metadata.ClassName
+import kotlinx.metadata.Flag.ValueParameter.DECLARES_DEFAULT_VALUE
+import kotlinx.metadata.KmValueParameter
+import kotlinx.metadata.flagsOf
+import kotlinx.metadata.jvm.JvmFieldSignature
+import kotlinx.metadata.jvm.JvmMethodSignature
 import org.objectweb.asm.Opcodes.ACC_SYNTHETIC
 import java.util.*
 
@@ -17,7 +14,7 @@ private const val DEFAULT_CONSTRUCTOR_MARKER = "ILkotlin/jvm/internal/DefaultCon
 private const val DEFAULT_FUNCTION_MARKER = "ILjava/lang/Object;"
 private const val DUMMY_PASSES = 1
 
-private val DECLARES_DEFAULT_VALUE_MASK: Int = DECLARES_DEFAULT_VALUE.toFlags(true).inv()
+private val DECLARES_DEFAULT_VALUE_MASK: Int = flagsOf(DECLARES_DEFAULT_VALUE).inv()
 
 abstract class Element(val name: String, val descriptor: String) {
     private var lifetime: Int = DUMMY_PASSES
@@ -85,8 +82,7 @@ val String.extensionType: String get() = substring(0, 1 + indexOf(')'))
  * Returns a fully-qualified class name as it would exist
  * in the byte-code, e.g. as "a/b/c/ClassName$Nested".
  */
-fun NameResolver.getClassInternalName(idx: Int): String
-    = getQualifiedClassName(idx).replace('.', '$')
+fun ClassName.toInternalName(): ClassName = replace('.', '$')
 
 /**
  * Construct the signatures of the synthetic methods that
@@ -106,91 +102,24 @@ fun String.toKotlinDefaultFunction(classDescriptor: String): String {
 }
 
 /**
- * Convert Kotlin getter/setter method data to [MethodElement] objects.
+ * Convert Kotlin method data to [MethodElement] objects.
  */
-internal fun JvmProtoBuf.JvmPropertySignature.toGetter(nameResolver: NameResolver): MethodElement? {
-    return if (hasGetter()) { getter?.toMethodElement(nameResolver) } else { null }
-}
-
-internal fun JvmProtoBuf.JvmPropertySignature.toSetter(nameResolver: NameResolver): MethodElement? {
-    return if (hasSetter()) { setter?.toMethodElement(nameResolver) } else { null }
-}
-
-internal fun JvmProtoBuf.JvmMethodSignature.toMethodElement(nameResolver: NameResolver)
-    = MethodElement(nameResolver.getString(name), nameResolver.getString(desc))
-
-internal fun JvmMemberSignature.Method.toMethodElement() = MethodElement(name, desc)
+fun JvmMethodSignature.toMethodElement() = MethodElement(name, desc)
 
 /**
- * This logic is based heavily on [JvmProtoBufUtil.getJvmFieldSignature].
+ * Convert Kotlin field data to [FieldElement] objects.
  */
-internal fun JvmProtoBuf.JvmPropertySignature.toFieldElement(property: ProtoBuf.Property, nameResolver: NameResolver, typeTable: TypeTable): FieldElement {
-    var nameId = property.name
-    var descId = -1
-
-    if (hasField()) {
-        if (field.hasName()) {
-            nameId = field.name
-        }
-        if (field.hasDesc()) {
-            descId = field.desc
-        }
-    }
-
-    val descriptor = if (descId == -1) {
-        val returnType = property.returnType(typeTable)
-        if (returnType.hasClassName()) {
-            ClassMapperLite.mapClass(nameResolver.getQualifiedClassName(returnType.className))
-        } else {
-            "?"
-        }
-    } else {
-        nameResolver.getString(descId)
-    }
-
-    return FieldElement(nameResolver.getString(nameId), descriptor)
-}
+fun JvmFieldSignature.toFieldElement() = FieldElement(name, desc)
 
 /**
- * Rewrites metadata for function and constructor parameters.
+ * Removes the "has a default value" flag from a constructor/function parameter.
  */
-internal fun ProtoBuf.Constructor.Builder.updateValueParameters(
-    updater: (ProtoBuf.ValueParameter) -> ProtoBuf.ValueParameter
-): ProtoBuf.Constructor.Builder {
-    for (idx in 0 until valueParameterList.size) {
-        setValueParameter(idx, updater(valueParameterList[idx]))
+fun KmValueParameter.clearDeclaresDefaultValue(): KmValueParameter {
+    if (DECLARES_DEFAULT_VALUE(flags)) {
+        flags = flags and DECLARES_DEFAULT_VALUE_MASK
     }
     return this
 }
 
-internal fun ProtoBuf.Function.Builder.updateValueParameters(
-    updater: (ProtoBuf.ValueParameter) -> ProtoBuf.ValueParameter
-): ProtoBuf.Function.Builder {
-    for (idx in 0 until valueParameterList.size) {
-        setValueParameter(idx, updater(valueParameterList[idx]))
-    }
-    return this
-}
-
-internal fun ProtoBuf.ValueParameter.clearDeclaresDefaultValue(): ProtoBuf.ValueParameter {
-    return if (DECLARES_DEFAULT_VALUE.get(flags)) {
-        toBuilder().setFlags(flags and DECLARES_DEFAULT_VALUE_MASK).build()
-    } else {
-        this
-    }
-}
-
-internal val List<ProtoBuf.ValueParameter>.hasAnyDefaultValues
-    get() = any { DECLARES_DEFAULT_VALUE.get(it.flags) }
-
-internal fun ProtoBuf.Property.returnType(typeTable: TypeTable): ProtoBuf.Type {
-    return when {
-        hasReturnType() -> returnType
-        hasReturnTypeId() -> typeTable[returnTypeId]
-        else -> throw IllegalStateException("No returnType in ProtoBuf.Property")
-    }
-}
-
-internal fun <M : ExtendableMessage<M>, T> ExtendableMessage<M>.getExtensionOrNull(extension: GeneratedExtension<M, T>): T? {
-    return if (hasExtension(extension)) getExtension(extension) else null
-}
+val List<KmValueParameter>.hasAnyDefaultValues
+    get() = any { DECLARES_DEFAULT_VALUE(it.flags) }

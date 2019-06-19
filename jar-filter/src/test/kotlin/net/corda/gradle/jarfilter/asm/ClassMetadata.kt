@@ -1,28 +1,18 @@
 package net.corda.gradle.jarfilter.asm
 
 import kotlinx.metadata.ClassName
-import kotlinx.metadata.Flags
-import kotlinx.metadata.KmClassVisitor
+import kotlinx.metadata.KmClass
+import net.corda.gradle.jarfilter.toInternalName
 import net.corda.gradle.jarfilter.toPackageFormat
 
-internal class ClassMetadata : KmClassVisitor() {
-    private var className: ClassName = ""
+class ClassMetadata(metadata: KmClass) {
+    private val className: ClassName = metadata.name.toPackageFormat
 
-    private val _sealedSubclasses: MutableList<ClassName> = mutableListOf()
-    val sealedSubclasses: List<ClassName> get() = _sealedSubclasses
-
-    private val _nestedClasses: MutableList<ClassName> = mutableListOf()
-    val nestedClasses: List<ClassName> get() = _nestedClasses
-
-    override fun visit(flags: Flags, name: ClassName) {
-        className = name.toPackageFormat
+    val sealedSubclasses: List<ClassName> = metadata.sealedSubclasses.map {
+        it.toInternalName().toPackageFormat
     }
 
-    override fun visitNestedClass(name: String) {
-        _nestedClasses += "$className\$$name"
-    }
-
-    override fun visitSealedSubclass(name: ClassName) {
-        _sealedSubclasses += name.replace('.', '$').toPackageFormat
+    val nestedClasses: List<ClassName> = metadata.nestedClasses.map { name ->
+        "$className\$$name"
     }
 }
