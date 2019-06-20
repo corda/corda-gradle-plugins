@@ -14,7 +14,7 @@ import kotlin.math.max
  */
 
 fun <T : Any> Project.findRootProperty(name: String): T? {
-    return rootProject.findProperty(name) as? T?
+    return rootProject.findProperty(name) as? T
 }
 
 fun Project.configuration(name: String): Configuration = configurations.single { it.name == name }
