@@ -18,51 +18,80 @@ import javax.inject.Inject
  */
 @Suppress("unused")
 open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(objects) {
+
     private companion object {
-        const val nodeJarName = "corda.jar"
-        private val defaultDirectory: Path = Paths.get("build", "docker")
+        private const val DEFAULT_SSH_PORT = 22022
+        private val DEFAULT_DIRECTORY: Path = Paths.get("build", "docker")
 
-        private const val dockerComposeFileVersion = "3"
+        private const val COMPOSE_SPEC_VERSION = "3"
 
-        private val yamlOptions = DumperOptions().apply {
+        private val YAML_FORMAT_OPTIONS = DumperOptions().apply {
             indent = 2
             defaultFlowStyle = DumperOptions.FlowStyle.BLOCK
         }
-        private val yaml = Yaml(yamlOptions)
+
+        private val YAML_MAPPER = Yaml(YAML_FORMAT_OPTIONS)
     }
 
     private val directoryPath: Path = project.projectDir.toPath().resolve(directory)
 
-    @get:InputFile
-    val dockerComposePath: Path = directoryPath.resolve("docker-compose.yml")
+
+    val dockerComposePath: Path
+        @InputFile
+        get() {
+            val wantedPath = directoryPath.resolve("docker-compose.yml")
+            if (!Files.exists(wantedPath)) {
+                Files.createDirectories(wantedPath.parent)
+                Files.createFile(wantedPath)
+            }
+            return wantedPath
+        }
 
     /**
      * This task action will create and install the nodes based on the node configurations added.
      */
     @TaskAction
     fun build() {
-        project.logger.lifecycle("Running Cordform task")
+        project.logger.lifecycle("Running DockerForm task")
         initializeConfiguration()
-        nodes.forEach(Node::installDockerConfig)
+        nodes.forEach { it -> it.installDockerConfig(DEFAULT_SSH_PORT) }
         installCordaJar()
         nodes.forEach(Node::installDrivers)
+        generateKeystoreAndSignCordappJar()
+        generateExcludedWhitelist()
         bootstrapNetwork()
-        nodes.forEach(Node::installCordapps)
         nodes.forEach(Node::buildDocker)
 
 
         // Transform nodes path the absolute ones
-        val services = nodes.map { it.containerName to mapOf(
-                "build" to directoryPath.resolve(it.nodeDir.name).toAbsolutePath().toString(),
-                "ports" to listOf(it.rpcPort)) }.toMap()
+        val services = nodes.map {
+            val nodeBuildDir = directoryPath.resolve(it.nodeDir.name).toAbsolutePath().toString()
+
+            it.containerName to mapOf(
+                    "volumes" to listOf(
+                            "$nodeBuildDir/node.conf:/etc/corda/node.conf",
+                            "$nodeBuildDir/certificates:/opt/corda/certificates",
+                            "$nodeBuildDir/logs:/opt/corda/logs",
+                            "$nodeBuildDir/persistence:/opt/corda/persistence",
+                            "$nodeBuildDir/cordapps:/opt/corda/cordapps",
+                            "$nodeBuildDir/network-parameters:/opt/corda/network-parameters",
+                            "$nodeBuildDir/additional-node-infos:/opt/corda/additional-node-infos",
+                            "$nodeBuildDir/drivers:/opt/corda/drivers"
+
+                    ),
+                    "ports" to listOf(it.rpcPort, it.config.getInt("sshd.port")),
+                    "image" to "corda/corda-zulu-${it.runtimeVersion().toLowerCase()}"
+            )
+        }.toMap()
 
 
         val dockerComposeObject = mapOf(
-                "version" to dockerComposeFileVersion,
+                "version" to COMPOSE_SPEC_VERSION,
                 "services" to services)
 
-        val dockerComposeContent = yaml.dump(dockerComposeObject)
+        val dockerComposeContent = YAML_MAPPER.dump(dockerComposeObject)
 
         Files.write(dockerComposePath, dockerComposeContent.toByteArray(StandardCharsets.UTF_8))
     }
 }
+

@@ -3,7 +3,6 @@ package net.corda.plugins
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
-import org.gradle.api.plugins.ExtraPropertiesExtension
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardCopyOption
@@ -13,8 +12,11 @@ import kotlin.math.max
  * Mimics the "project.ext" functionality in groovy which provides a direct
  * accessor to the "ext" extension (See: ExtraPropertiesExtension)
  */
-@Suppress("UNCHECKED_CAST")
-fun <T : Any> Project.ext(name: String): T = (extensions.findByName("ext") as ExtraPropertiesExtension).get(name) as T
+
+fun <T : Any> Project.findRootProperty(name: String): T? {
+    return rootProject.findProperty(name) as? T
+}
+
 fun Project.configuration(name: String): Configuration = configurations.single { it.name == name }
 
 class Utils {
@@ -40,14 +42,15 @@ class Utils {
         }
 
         @JvmStatic
-        fun compareVersions(v1 : String, v2 : String) : Int {
-            fun parseVersionString(v : String) = v.split(".").flatMap { it.split("-") }.map {
+        fun compareVersions(v1: String, v2: String): Int {
+            fun parseVersionString(v: String) = v.split(".").flatMap { it.split("-") }.map {
                 try {
                     Integer.valueOf(it)!!
-                } catch (e : NumberFormatException) {
+                } catch (e: NumberFormatException) {
                     -1
                 }
             }
+
             val parsed1 = parseVersionString(v1)
             val parsed2 = parseVersionString(v2)
             for (i in 0 until max(parsed1.count(), parsed2.count())) {

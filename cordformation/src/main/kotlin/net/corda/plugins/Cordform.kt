@@ -61,6 +61,11 @@ open class Cordform @Inject constructor(objects: ObjectFactory) : Baseform(objec
     fun build() {
         project.logger.lifecycle("Running Cordform task")
         initializeConfiguration()
+        nodes.forEach {
+            if (it.p2pAddress == null) {
+                throw IllegalStateException("p2pAddress / p2pPort is required when not running dockerized nodes, it is missing in ${it.name}")
+            }
+        }
         nodes.forEach(Node::installConfig)
         installCordaJar()
         generateExcludedWhitelist()
