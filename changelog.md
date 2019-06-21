@@ -6,6 +6,8 @@
 
 * `cordformation`: Migrate DockerForm task to use the official Corda images
 
+* `publish-utils`: Generate appropriate `compile` and `runtime` dependencies when publishing from a given Gradle configuration.
+
 ### Version 5.0.1
 
 * `api-scanner`: Update to support Gradle's `java-library` plugin.

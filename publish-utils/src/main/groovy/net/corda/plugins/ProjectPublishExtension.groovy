@@ -1,15 +1,19 @@
 package net.corda.plugins
 
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.model.ObjectFactory
 import org.gradle.util.ConfigureUtil
+
+import javax.inject.Inject
 
 class ProjectPublishExtension {
     private final PublishTasks task
     private final MavenDependencyExtension dependencyConfig
 
-    ProjectPublishExtension(PublishTasks task) {
+    @Inject
+    ProjectPublishExtension(ObjectFactory objects, PublishTasks task) {
         this.task = task
-        this.dependencyConfig = new MavenDependencyExtension()
+        this.dependencyConfig = objects.newInstance(MavenDependencyExtension)
     }
 
     /**
