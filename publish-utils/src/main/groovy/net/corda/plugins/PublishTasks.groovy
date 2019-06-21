@@ -2,6 +2,7 @@ package net.corda.plugins
 
 import org.gradle.api.*
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ResolvedConfiguration
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.publish.maven.MavenPublication
@@ -91,24 +92,23 @@ class PublishTasks implements Plugin<Project> {
 
     void fromConfiguration(MavenPom pom, ResolvedConfiguration configuration) {
         pom.withXml {
-            // Ensure that we use these artifacts' published names, because
-            // these aren't necessarily the same as their internal names.
-            def artifactDependencies = configuration.resolvedArtifacts.collectEntries {
-                [ (it.moduleVersion.id):it.name ]
-            }
-            def dependenciesNode = asNode().appendNode('dependencies')
+            Node dependenciesNode = asNode().appendNode('dependencies')
+            MavenMapper mapper = new MavenMapper(project.configurations, configuration)
 
             configuration.firstLevelModuleDependencies.each {
-                def dependencyNode = dependenciesNode.appendNode('dependency')
+                ModuleVersionIdentifier id = it.module.id
+
+                Node dependencyNode = dependenciesNode.appendNode('dependency')
                 dependencyNode.appendNode('groupId', it.moduleGroup)
-                dependencyNode.appendNode('artifactId', artifactDependencies[it.module.id])
+                dependencyNode.appendNode('artifactId', mapper.getModuleNameFor(id))
                 dependencyNode.appendNode('version', it.moduleVersion)
+
                 /*
-                 * Ideally, I would like to be able to select one of "compile", "runtime"
-                 * or "provided" based on the value of each ResolvedDependency.configuration
-                 * field. However, this isn't providing me with enough information (yet?).
+                 * Choose "compile" or "runtime" scope, depending on which Gradle
+                 * configuration(s) this dependency belongs to. Or use the default
+                 * scope if it can't be found at all.
                  */
-                dependencyNode.appendNode('scope', publishConfig.dependencyConfig.defaultScope)
+                dependencyNode.appendNode('scope', mapper.getScopeFor(id, publishConfig.dependencyConfig.defaultScope))
             }
         }
     }
@@ -187,7 +187,7 @@ class PublishTasks implements Plugin<Project> {
         if (project == project.rootProject) {
             project.extensions.create("bintrayConfig", BintrayConfigExtension)
         }
-        publishConfig = project.extensions.create("publish", ProjectPublishExtension, this)
+        publishConfig = project.extensions.create("publish", ProjectPublishExtension, project.objects, this)
     }
 
     void createConfigurations() {
