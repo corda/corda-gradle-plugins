@@ -3,6 +3,7 @@ package net.corda.plugins
 import groovy.transform.CompileStatic
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
+import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ResolvedConfiguration
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
@@ -67,7 +68,7 @@ class MavenMapper {
     ) {
         Configuration configuration = configurations.findByName(configName)
         if (configuration) {
-            return configuration.allDependencies.iterator().collect { dep ->
+            return configuration.allDependencies.iterator().collect { Dependency dep ->
                 ModuleVersionIdentifier id = DefaultModuleVersionIdentifier.newId(dep.group, dep.name, dep.version)
                 String alias = publishedAliases[id]
                 alias == null ? id : DefaultModuleVersionIdentifier.newId(id.group, alias, id.version)
