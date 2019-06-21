@@ -2,6 +2,8 @@
 
 ## Version 5
 
+### Version 5.0.3
+
 ### Version 5.0.2
 
 * `cordformation`: Migrate DockerForm task to use the official Corda images
