@@ -4,6 +4,8 @@
 
 ### Version 4.0.46
 
+* `publish-utils`: Generate appropriate `compile` and `runtime` dependencies when publishing from a given Gradle configuration.
+
 ### Version 4.0.45
 
 * `api-scanner`: Update to support Gradle's `java-library` plugin.
