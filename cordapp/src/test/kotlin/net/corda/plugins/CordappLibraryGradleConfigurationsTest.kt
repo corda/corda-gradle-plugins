@@ -11,7 +11,7 @@ import java.util.stream.Collectors.toList
 import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
 
-class CordappGradleConfigurationsTest {
+class CordappLibraryGradleConfigurationsTest {
     companion object {
         private lateinit var testProject: GradleProject
         private lateinit var poms: List<ZipEntry>
@@ -22,6 +22,7 @@ class CordappGradleConfigurationsTest {
             testProject = GradleProject(testProjectDir, reporter)
                 .withBuildScript("""
                     |plugins {
+                    |    id 'java-library'
                     |    id 'net.corda.plugins.cordapp'
                     |}
                     |
@@ -35,6 +36,7 @@ class CordappGradleConfigurationsTest {
                     |    runtime "commons-io:commons-io:2.4"
                     |    cordaCompile "com.google.guava:guava:20.0"
                     |    cordaRuntime "javax.servlet:javax.servlet-api:3.1.0"
+                    |    api "javax.annotation:javax.annotation-api:1.3.2"
                     |    implementation "javax.persistence:javax.persistence-api:2.2"
                     |    runtimeOnly "javax.validation:validation-api:1.1.0.Final"
                     |}
@@ -64,6 +66,14 @@ class CordappGradleConfigurationsTest {
     @Test
     fun testCorrectNumberOfIncludes() {
         assertEquals(2, poms.size)
+    }
+
+    @Test
+    fun testApiExcluded() {
+        assertThat(testProject.output)
+            .doesNotContain("CorDapp dependency: javax.annotation-api-1.3.2.jar")
+        assertThat(poms)
+            .noneMatch { it.name == "META-INF/maven/javax.annotation/javax.annotation-api/pom.xml" }
     }
 
     @Test
