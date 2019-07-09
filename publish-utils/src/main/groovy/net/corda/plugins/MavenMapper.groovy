@@ -1,6 +1,5 @@
 package net.corda.plugins
 
-import groovy.transform.CompileStatic
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.Dependency
@@ -8,7 +7,6 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ResolvedConfiguration
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 
-@CompileStatic
 class MavenMapper {
     private final Map<ModuleVersionIdentifier, String> publishedAliases
     private final Set<ModuleVersionIdentifier> apiElements
