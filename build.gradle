@@ -8,7 +8,7 @@ buildscript {
         snake_yaml_version = '1.19'
         commons_io_version = '2.6'
         assertj_version = '3.12.1'
-        junit_jupiter_version = '5.4.2'
+        junit_jupiter_version = '5.5.0'
         hamcrest_version = '2.1'
         asm_version = '7.1'
     }

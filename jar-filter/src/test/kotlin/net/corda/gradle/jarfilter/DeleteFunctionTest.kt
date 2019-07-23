@@ -19,8 +19,10 @@ class DeleteFunctionTest {
     companion object {
         private const val FUNCTION_CLASS = "net.corda.gradle.HasFunctionToDelete"
         private const val INDIRECT_CLASS = "net.corda.gradle.HasIndirectFunctionToDelete"
+        private const val DEFAULT_VALUE_CLASS = "net.corda.gradle.HasFunctionWithDefaultParameter"
 
         private val unwantedFun = isFunction("unwantedFun", String::class, String::class)
+        private val javaUnwantedFun = isMethod("unwantedFun", String::class.java, String::class.java)
         private lateinit var testProject: JarFilterProject
 
         @BeforeAll
@@ -33,7 +35,7 @@ class DeleteFunctionTest {
     @Test
     fun deleteFunction() {
         classLoaderFor(testProject.sourceJar).use { cl ->
-            cl.load<HasUnwantedFun>(FUNCTION_CLASS).apply {
+            with(cl.load<HasUnwantedFun>(FUNCTION_CLASS)) {
                 newInstance().also {
                     assertEquals(MESSAGE, it.unwantedFun(MESSAGE))
                 }
@@ -42,7 +44,7 @@ class DeleteFunctionTest {
         }
 
         classLoaderFor(testProject.filteredJar).use { cl ->
-            cl.load<HasUnwantedFun>(FUNCTION_CLASS).apply {
+            with(cl.load<HasUnwantedFun>(FUNCTION_CLASS)) {
                 newInstance().also {
                     assertFailsWith<AbstractMethodError> { it.unwantedFun(MESSAGE) }
                 }
@@ -56,7 +58,7 @@ class DeleteFunctionTest {
         val stringData = isFunction("stringData", String::class)
 
         classLoaderFor(testProject.sourceJar).use { cl ->
-            cl.load<HasUnwantedFun>(INDIRECT_CLASS).apply {
+            with(cl.load<HasUnwantedFun>(INDIRECT_CLASS)) {
                 getDeclaredConstructor(String::class.java).newInstance(MESSAGE).also {
                     assertEquals(MESSAGE, it.unwantedFun(MESSAGE))
                     assertEquals(MESSAGE, (it as HasString).stringData())
@@ -67,13 +69,44 @@ class DeleteFunctionTest {
         }
 
         classLoaderFor(testProject.filteredJar).use { cl ->
-            cl.load<HasUnwantedFun>(INDIRECT_CLASS).apply {
+            with(cl.load<HasUnwantedFun>(INDIRECT_CLASS)) {
                 getDeclaredConstructor(String::class.java).newInstance(MESSAGE).also {
                     assertFailsWith<AbstractMethodError> { it.unwantedFun(MESSAGE) }
                     assertFailsWith<AbstractMethodError> { (it as HasString).stringData() }
                 }
                 assertThat("unwantedFun(String) still exists", kotlin.declaredFunctions, not(hasItem(unwantedFun)))
                 assertThat("stringData still exists", kotlin.declaredFunctions, not(hasItem(stringData)))
+            }
+        }
+    }
+
+    @Test
+    fun deleteFunctionWithDefaultParameter() {
+        classLoaderFor(testProject.sourceJar).use { cl ->
+            with(cl.load<Any>(DEFAULT_VALUE_CLASS)) {
+                assertThat("Kotlin unwantedFun(String) not found", kotlin.declaredFunctions, hasItem(unwantedFun))
+                assertThat("Java unwantedFun(String) is missing", declaredMethods.toList(), hasItem(javaUnwantedFun))
+
+                val javaDefaultUnwantedFun = isMethod("unwantedFun\$default", String::class.java, this, String::class.java, Integer.TYPE, Any::class.java)
+                assertThat("Java unwantedFun\$default(String) is missing", declaredMethods.toList(), hasItem(javaDefaultUnwantedFun))
+
+                val function = kotlin.declaredFunctions.single { it.name == "unwantedFun" }
+                newInstance().also {
+                    assertEquals(MESSAGE, function.call(it, MESSAGE))
+                    assertEquals(DEFAULT_MESSAGE, function.callBy(mapOf(function.parameters[0] to it)))
+                }
+            }
+        }
+
+        classLoaderFor(testProject.filteredJar).use { cl ->
+            with(cl.load<Any>(DEFAULT_VALUE_CLASS)) {
+                assertThat("Kotlin unwantedFun(String) still exists", kotlin.declaredFunctions, not(hasItem(unwantedFun)))
+                assertThat("Java unwantedFun(String) still exists", declaredMethods.toList(), not(hasItem(javaUnwantedFun)))
+
+                val javaDefaultUnwantedFun = isMethod("unwantedFun\$default", String::class.java, this, String::class.java, Integer.TYPE, Any::class.java)
+                assertThat("Java unwantedFun\$default(String) still exists", declaredMethods.toList(), not(hasItem(javaDefaultUnwantedFun)))
+
+                assertNotNull(newInstance())
             }
         }
     }
