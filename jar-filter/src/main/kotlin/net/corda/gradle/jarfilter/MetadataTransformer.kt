@@ -22,6 +22,8 @@ abstract class MetadataTransformer<out T : KmDeclarationContainer>(
     private val properties: MutableList<KmProperty> = metadata.properties
     private val typeAliases: MutableList<KmTypeAlias> = metadata.typeAliases
 
+    protected open val classDescriptor: String = ""
+
     protected abstract fun filter(): Int
 
     fun transform(): T? {
@@ -42,6 +44,12 @@ abstract class MetadataTransformer<out T : KmDeclarationContainer>(
                 if (signature == deleted) {
                     logger.info("-- removing function: {}", deleted.signature)
                     functions.removeAt(idx)
+
+                    if (function.valueParameters.hasAnyDefaultValues) {
+                        // Ensure we remove the synthetic "$default" method
+                        // too, because it may not have been annotated.
+                        deleted.asKotlinDefaultFunction(classDescriptor)?.run(::deleteExtra)
+                    }
                     return true
                 }
             }
@@ -127,6 +135,8 @@ class ClassMetadataTransformer(
     private val nestedClassNames = kmClass.nestedClasses
     private val sealedSubclassNames = kmClass.sealedSubclasses
     private val constructors = kmClass.constructors
+
+    override val classDescriptor = "L${className.toInternalName()};"
 
     override fun filter(): Int = (
         filterProperties()
