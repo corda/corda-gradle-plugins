@@ -15,7 +15,7 @@ abstract class MetadataTransformer<out T : KmDeclarationContainer>(
     protected val logger: Logger,
     private val deletedFields: Collection<FieldElement>,
     private val deletedFunctions: Collection<MethodElement>,
-    private val handleExtraMethod: (MethodElement) -> Unit,
+    protected val handleExtraMethod: (MethodElement) -> Unit,
     protected val metadata: T
 ) {
     private val functions: MutableList<KmFunction> = metadata.functions
@@ -167,6 +167,12 @@ class ClassMetadataTransformer(
                     logger.info("-- removing constructor: {}", deleted.signature)
                 }
                 constructors.removeAt(idx)
+
+                if (constructor.valueParameters.hasAnyDefaultValues) {
+                    // Ensure we remove the synthetic constructor
+                    // too, because it may not have been annotated.
+                    deleted.asKotlinDefaultConstructor()?.run(::deleteExtra)
+                }
                 return true
             } else if (signature == deletedPrimary) {
                 constructor.valueParameters.forEach { value ->
@@ -177,6 +183,14 @@ class ClassMetadataTransformer(
             }
         }
         return false
+    }
+
+    private fun deleteExtra(cons: MethodElement) {
+        if (!deletedConstructors.contains(cons)) {
+            logger.info("-- identified extra constructor {} for deletion", cons.signature)
+            handleExtraMethod(cons)
+            filterConstructor(cons)
+        }
     }
 
     private fun filterNestedClasses(): Int {

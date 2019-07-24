@@ -6,7 +6,8 @@ import org.objectweb.asm.Opcodes.*
 
 class MethodElementTest {
     private companion object {
-        private const val DESCRIPTOR = "(Z)Ljava/lang/String;"
+        private const val FUNCTION_DESCRIPTOR = "(Z)Ljava/lang/String;"
+        private const val CONSTRUCTOR_DESCRIPTOR = "(Ljava/lang/String;)V"
         private const val CLASS_DESCRIPTOR = "Ljava/util/List;"
     }
 
@@ -14,11 +15,11 @@ class MethodElementTest {
     fun testMethodsMatchByNameAndDescriptor() {
         val elt = MethodElement(
             name = "getThing",
-            descriptor = DESCRIPTOR,
+            descriptor = FUNCTION_DESCRIPTOR,
             access = ACC_PUBLIC or ACC_ABSTRACT or ACC_FINAL
         )
-        assertEquals(MethodElement(name="getThing", descriptor=DESCRIPTOR), elt)
-        assertNotEquals(MethodElement(name="getOther", descriptor=DESCRIPTOR), elt)
+        assertEquals(MethodElement(name="getThing", descriptor=FUNCTION_DESCRIPTOR), elt)
+        assertNotEquals(MethodElement(name="getOther", descriptor=FUNCTION_DESCRIPTOR), elt)
         assertNotEquals(MethodElement(name="getThing", descriptor="()J"), elt)
     }
 
@@ -26,7 +27,7 @@ class MethodElementTest {
     fun testBasicMethodVisibleName() {
         val elt = MethodElement(
             name = "getThing",
-            descriptor = DESCRIPTOR,
+            descriptor = FUNCTION_DESCRIPTOR,
             access = ACC_PUBLIC
         )
         assertEquals("getThing", elt.visibleName)
@@ -36,7 +37,7 @@ class MethodElementTest {
     fun testMethodVisibleNameWithSuffix() {
         val elt = MethodElement(
             name = "getThing\$extra",
-            descriptor = DESCRIPTOR,
+            descriptor = FUNCTION_DESCRIPTOR,
             access = ACC_PUBLIC
         )
         assertEquals("getThing", elt.visibleName)
@@ -46,7 +47,7 @@ class MethodElementTest {
     fun testSyntheticMethodSuffix() {
         val elt = MethodElement(
             name = "getThing\$extra",
-            descriptor = DESCRIPTOR,
+            descriptor = FUNCTION_DESCRIPTOR,
             access = ACC_PUBLIC or ACC_SYNTHETIC
         )
         assertTrue(elt.isKotlinSynthetic("extra"))
@@ -58,7 +59,7 @@ class MethodElementTest {
     fun testPublicMethodSuffix() {
         val elt = MethodElement(
             name = "getThing\$extra",
-            descriptor = DESCRIPTOR,
+            descriptor = FUNCTION_DESCRIPTOR,
             access = ACC_PUBLIC
         )
         assertFalse(elt.isKotlinSynthetic("extra"))
@@ -68,7 +69,7 @@ class MethodElementTest {
     fun testMethodDoesNotExpire() {
         val elt = MethodElement(
             name = "getThing\$extra",
-            descriptor = DESCRIPTOR,
+            descriptor = FUNCTION_DESCRIPTOR,
             access = ACC_PUBLIC
         )
         assertFalse(elt.isDummy)
@@ -81,7 +82,7 @@ class MethodElementTest {
     fun testArtificialMethodDoesExpire() {
         val elt = MethodElement(
             name = "getThing\$extra",
-            descriptor = DESCRIPTOR
+            descriptor = FUNCTION_DESCRIPTOR
         )
         assertTrue(elt.isDummy)
         assertFalse(elt.isExpired)
@@ -90,10 +91,10 @@ class MethodElementTest {
     }
 
     @Test
-    fun testDefaultMethodForMethod() {
+    fun testDefaultFunctionForMethod() {
         val elt = MethodElement(
             name = "getThing",
-            descriptor = DESCRIPTOR,
+            descriptor = FUNCTION_DESCRIPTOR,
             access = ACC_PUBLIC
         )
         val defaultElt = elt.asKotlinDefaultFunction(CLASS_DESCRIPTOR) ?: fail("Cannot be null")
@@ -103,7 +104,7 @@ class MethodElementTest {
     }
 
     @Test
-    fun testDefaultMethodForDefaultMethod() {
+    fun testDefaultFunctionForDefaultMethod() {
         val elt = MethodElement(
             name = "getThing\$default",
             descriptor = "(ZILjava/lang/Object;)Ljava/lang/String;",
@@ -114,11 +115,44 @@ class MethodElementTest {
     }
 
     @Test
-    fun testDefaultForInvalidMethod() {
+    fun testDefaultFunctionForInvalidMethod() {
         val elt = MethodElement(
             name = "thing",
             descriptor = "Ljava/lang/String;"
         )
         assertNull(elt.asKotlinDefaultFunction(CLASS_DESCRIPTOR))
+    }
+
+    @Test
+    fun testDefaultConstructorForConstructor() {
+        val elt = MethodElement(
+            name = "<init>",
+            descriptor = CONSTRUCTOR_DESCRIPTOR,
+            access = ACC_PUBLIC
+        )
+        val defaultElt = elt.asKotlinDefaultConstructor() ?: fail("Cannot be null")
+        assertEquals("<init>", defaultElt.name)
+        assertEquals("(Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V", defaultElt.descriptor)
+        assertTrue(defaultElt.isDummy)
+    }
+
+    @Test
+    fun testDefaultConstructorForDefaultConstructor() {
+        val elt = MethodElement(
+            name = "<init>",
+            descriptor = "(Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V",
+            access = ACC_PUBLIC or ACC_SYNTHETIC
+        )
+        val defaultElt = elt.asKotlinDefaultConstructor() ?: fail("Cannot be null")
+        assertSame(elt, defaultElt)
+    }
+
+    @Test
+    fun testDefaultConstructorForInvalidConstructor() {
+        val elt = MethodElement(
+            name = "<init>",
+            descriptor = "Ljava/lang/String;"
+        )
+        assertNull(elt.asKotlinDefaultConstructor())
     }
 }

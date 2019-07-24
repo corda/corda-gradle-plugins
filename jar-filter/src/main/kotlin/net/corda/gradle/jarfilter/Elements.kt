@@ -60,6 +60,18 @@ class MethodElement(name: String, descriptor: String, val access: Int = DUMMY_ME
         }
     }
 
+    fun asKotlinDefaultConstructor(): MethodElement? {
+        val markerIdx = descriptor.lastIndexOf(')')
+        return when {
+            descriptor.contains(DEFAULT_CONSTRUCTOR_MARKER) -> this
+            markerIdx >= 0 -> MethodElement(
+                name = name,
+                descriptor = (descriptor.substring(0, markerIdx) + DEFAULT_CONSTRUCTOR_MARKER + descriptor.substring(markerIdx))
+            )
+            else -> null
+        }
+    }
+
     fun asKotlinDefaultFunction(classDescriptor: String): MethodElement? {
         val markerIdx = descriptor.lastIndexOf(')')
         return when {
