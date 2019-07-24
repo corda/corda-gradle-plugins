@@ -46,7 +46,7 @@ class SanitiseDeleteConstructorTest {
         val longConstructor = isConstructor(longClass, Long::class)
 
         classLoaderFor(testProject.sourceJar).use { cl ->
-            cl.load<HasLong>(longClass).apply {
+            with(cl.load<HasLong>(longClass)) {
                 getDeclaredConstructor(Long::class.java).newInstance(BIG_NUMBER).also {
                     assertEquals(BIG_NUMBER, it.longData())
                 }
@@ -64,7 +64,7 @@ class SanitiseDeleteConstructorTest {
         }
 
         classLoaderFor(testProject.filteredJar).use { cl ->
-            cl.load<HasLong>(longClass).apply {
+            with(cl.load<HasLong>(longClass)) {
                 getDeclaredConstructor(Long::class.java).newInstance(BIG_NUMBER).also {
                     assertEquals(BIG_NUMBER, it.longData())
                 }
@@ -97,7 +97,7 @@ class SanitiseDeleteConstructorTest {
         val intConstructor = isConstructor(intClass, Int::class)
 
         classLoaderFor(testProject.sourceJar).use { cl ->
-            cl.load<HasInt>(intClass).apply {
+            with(cl.load<HasInt>(intClass)) {
                 getDeclaredConstructor(Int::class.java).newInstance(NUMBER).also {
                     assertEquals(NUMBER, it.intData())
                 }
@@ -115,7 +115,7 @@ class SanitiseDeleteConstructorTest {
         }
 
         classLoaderFor(testProject.filteredJar).use { cl ->
-            cl.load<HasInt>(intClass).apply {
+            with(cl.load<HasInt>(intClass)) {
                 getDeclaredConstructor(Int::class.java).newInstance(NUMBER).also {
                     assertEquals(NUMBER, it.intData())
                 }
@@ -148,7 +148,7 @@ class SanitiseDeleteConstructorTest {
         val stringConstructor = isConstructor(stringClass, String::class)
 
         classLoaderFor(testProject.sourceJar).use { cl ->
-            cl.load<HasString>(stringClass).apply {
+            with(cl.load<HasString>(stringClass)) {
                 getDeclaredConstructor(String::class.java).newInstance(MESSAGE).also {
                     assertEquals(MESSAGE, it.stringData())
                 }
@@ -166,7 +166,7 @@ class SanitiseDeleteConstructorTest {
         }
 
         classLoaderFor(testProject.filteredJar).use { cl ->
-            cl.load<HasString>(stringClass).apply {
+            with(cl.load<HasString>(stringClass)) {
                 getDeclaredConstructor(String::class.java).newInstance(MESSAGE).also {
                     assertEquals(MESSAGE, it.stringData())
                 }
@@ -188,7 +188,7 @@ class SanitiseDeleteConstructorTest {
         val complexConstructor = isConstructor(COMPLEX_CONSTRUCTOR_CLASS, Int::class, String::class)
 
         classLoaderFor(testProject.sourceJar).use { cl ->
-            cl.load<Any>(COMPLEX_CONSTRUCTOR_CLASS).apply {
+            with(cl.load<Any>(COMPLEX_CONSTRUCTOR_CLASS)) {
                 kotlin.constructors.apply {
                     assertThat("<init>(Int,String) not found", this, hasItem(complexConstructor))
                     assertEquals(1, this.size)
@@ -212,7 +212,7 @@ class SanitiseDeleteConstructorTest {
         }
 
         classLoaderFor(testProject.filteredJar).use { cl ->
-            cl.load<Any>(COMPLEX_CONSTRUCTOR_CLASS).apply {
+            with(cl.load<Any>(COMPLEX_CONSTRUCTOR_CLASS)) {
                 kotlin.constructors.apply {
                     assertThat("<init>(Int,String) not found", this, hasItem(complexConstructor))
                     assertEquals(1, this.size)
