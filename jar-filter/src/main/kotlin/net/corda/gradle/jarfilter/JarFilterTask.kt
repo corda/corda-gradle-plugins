@@ -134,6 +134,7 @@ open class JarFilterTask @Inject constructor(objects: ObjectFactory, layouts: Pr
 
     private inner class Filter(inFile: File, private val annotationValues: FilterAnnotations.Values) {
         private val unwantedElements = UnwantedCache()
+        private val initialUnwanted: UnwantedMap = mutableMapOf()
         private val source: Path = inFile.toPath()
         private val target: Path = toFiltered(inFile).get().asFile.toPath()
 
@@ -231,7 +232,7 @@ open class JarFilterTask @Inject constructor(objects: ObjectFactory, layouts: Pr
         private inner class SanitisingPass(input: Path) : Pass(input) {
             override fun transform(inBytes: ByteArray): ByteArray {
                 return ClassWriter(0).let { writer ->
-                    val transformer = SanitisingTransformer(writer, logger, descriptorsForSanitising)
+                    val transformer = SanitisingTransformer(writer, logger, descriptorsForSanitising, initialUnwanted)
                     ClassReader(inBytes).accept(transformer, 0)
                     isModified = isModified or transformer.isModified
                     writer.toByteArray()
@@ -246,6 +247,7 @@ open class JarFilterTask @Inject constructor(objects: ObjectFactory, layouts: Pr
                 var transformer = FilterTransformer(
                     visitor = writer,
                     logger = logger,
+                    importExtra = { className: String -> initialUnwanted.remove(className) },
                     removeAnnotations = descriptorsForRemove,
                     deleteAnnotations = descriptorsForDelete,
                     stubAnnotations = descriptorsForStub,
