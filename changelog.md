@@ -4,6 +4,8 @@
 
 ### Version 5.0.3
 
+* `jar-filter`: Support for byte-code compiled by Kotlin >= 1.3.40 (See [KT-30289](https://youtrack.jetbrains.com/issue/KT-30289)).
+
 ### Version 5.0.2
 
 * `cordformation`: Migrate DockerForm task to use the official Corda images
