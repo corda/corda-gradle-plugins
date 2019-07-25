@@ -15,8 +15,8 @@ class DeleteStaticFunctionTest {
     companion object {
         private const val FUNCTION_CLASS = "net.corda.gradle.StaticFunctionsToDelete"
 
-        private val unwantedInline = isMethod("unwantedInline", Any::class.java, String::class.java, Class::class.java)
-        private val defaultUnwantedInline = isMethod("unwantedInline\$default", Any::class.java, String::class.java, Class::class.java, Integer.TYPE, Any::class.java)
+        private val unwantedInline = isMethod("unwantedInlineToDelete", Any::class.java, String::class.java, Class::class.java)
+        private val defaultUnwantedInline = isMethod("unwantedInlineToDelete\$default", Any::class.java, String::class.java, Class::class.java, Integer.TYPE, Any::class.java)
         private lateinit var testProject: JarFilterProject
 
         @BeforeAll
@@ -93,15 +93,15 @@ class DeleteStaticFunctionTest {
     fun deleteInlineFunction() {
         classLoaderFor(testProject.sourceJar).use { cl ->
             with(cl.load<Any>(FUNCTION_CLASS)) {
-                assertThat("unwantedInline(String, Class) missing", declaredMethods.toList(), hasItem(unwantedInline))
-                assertThat("unwantedInline\$default(String, Class) missing", declaredMethods.toList(), hasItem(defaultUnwantedInline))
+                assertThat("unwantedInlineToDelete(String, Class) missing", declaredMethods.toList(), hasItem(unwantedInline))
+                assertThat("unwantedInlineToDelete\$default(String, Class) missing", declaredMethods.toList(), hasItem(defaultUnwantedInline))
             }
         }
 
         classLoaderFor(testProject.filteredJar).use { cl ->
             with(cl.load<Any>(FUNCTION_CLASS)) {
-                assertThat("unwantedInline(String, Class) still exists", declaredMethods.toList(), not(hasItem(unwantedInline)))
-                assertThat("unwantedInline\$default(String, Class) still exists", declaredMethods.toList(), not(hasItem(defaultUnwantedInline)))
+                assertThat("unwantedInlineToDelete(String, Class) still exists", declaredMethods.toList(), not(hasItem(unwantedInline)))
+                assertThat("unwantedInlineToDelete\$default(String, Class) still exists", declaredMethods.toList(), not(hasItem(defaultUnwantedInline)))
             }
         }
     }

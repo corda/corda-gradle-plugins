@@ -16,6 +16,7 @@ abstract class MetadataTransformer<out T : KmDeclarationContainer>(
     private val deletedFields: Collection<FieldElement>,
     private val deletedFunctions: Collection<MethodElement>,
     protected val handleExtraMethod: (MethodElement) -> Unit,
+    protected val handleSyntheticMethod: (MethodElement, MethodElement) -> Unit,
     protected val metadata: T
 ) {
     private val functions: MutableList<KmFunction> = metadata.functions
@@ -27,10 +28,24 @@ abstract class MetadataTransformer<out T : KmDeclarationContainer>(
     protected abstract fun filter(): Int
 
     fun transform(): T? {
+        doBeforeFiltering()
         return if (filter() == 0) {
             null
         } else {
             metadata
+        }
+    }
+
+    protected open fun doBeforeFiltering() {
+        for (function in functions) {
+            if (function.valueParameters.hasAnyDefaultValues) {
+                val method = function.signature?.toMethodElement() ?: continue
+                val synthetic = method.asKotlinDefaultFunction(classDescriptor) ?: continue
+
+                // The synthetic "$default" method may not have been annotated,
+                // so ensure we handle it in the same way as its "host" method.
+                handleSyntheticMethod(synthetic, method)
+            }
         }
     }
 
@@ -44,12 +59,6 @@ abstract class MetadataTransformer<out T : KmDeclarationContainer>(
                 if (signature == deleted) {
                     logger.info("-- removing function: {}", deleted.signature)
                     functions.removeAt(idx)
-
-                    if (function.valueParameters.hasAnyDefaultValues) {
-                        // Ensure we remove the synthetic "$default" method
-                        // too, because it may not have been annotated.
-                        deleted.asKotlinDefaultFunction(classDescriptor)?.run(::deleteExtra)
-                    }
                     return true
                 }
             }
@@ -123,12 +132,14 @@ class ClassMetadataTransformer(
     private val deletedNestedClasses: Collection<String>,
     private val deletedClasses: Collection<String>,
     handleExtraMethod: (MethodElement) -> Unit,
+    handleSyntheticMethod: (MethodElement, MethodElement) -> Unit,
     kmClass: KmClass
 ) : MetadataTransformer<KmClass>(
     logger,
     deletedFields,
     deletedFunctions,
     handleExtraMethod,
+    handleSyntheticMethod,
     metadata = kmClass
 ) {
     private val className = kmClass.name
@@ -137,6 +148,20 @@ class ClassMetadataTransformer(
     private val constructors = kmClass.constructors
 
     override val classDescriptor = "L${className.toInternalName()};"
+
+    override fun doBeforeFiltering() {
+        super.doBeforeFiltering()
+        for (constructor in constructors) {
+            if (constructor.valueParameters.hasAnyDefaultValues) {
+                val method = constructor.signature?.toMethodElement() ?: continue
+                val synthetic = method.asKotlinDefaultConstructor() ?: continue
+
+                // The synthetic "$default" method may not have been annotated,
+                // so ensure we handle it in the same way as its "host" method.
+                handleSyntheticMethod(synthetic, method)
+            }
+        }
+    }
 
     override fun filter(): Int = (
         filterProperties()
@@ -167,12 +192,6 @@ class ClassMetadataTransformer(
                     logger.info("-- removing constructor: {}", deleted.signature)
                 }
                 constructors.removeAt(idx)
-
-                if (constructor.valueParameters.hasAnyDefaultValues) {
-                    // Ensure we remove the synthetic constructor
-                    // too, because it may not have been annotated.
-                    deleted.asKotlinDefaultConstructor()?.run(::deleteExtra)
-                }
                 return true
             } else if (signature == deletedPrimary) {
                 constructor.valueParameters.forEach { value ->
@@ -183,14 +202,6 @@ class ClassMetadataTransformer(
             }
         }
         return false
-    }
-
-    private fun deleteExtra(cons: MethodElement) {
-        if (!deletedConstructors.contains(cons)) {
-            logger.info("-- identified extra constructor {} for deletion", cons.signature)
-            handleExtraMethod(cons)
-            filterConstructor(cons)
-        }
     }
 
     private fun filterNestedClasses(): Int {
@@ -240,12 +251,14 @@ class PackageMetadataTransformer(
     deletedFields: Collection<FieldElement>,
     deletedFunctions: Collection<MethodElement>,
     handleExtraMethod: (MethodElement) -> Unit,
+    handleSyntheticMethod: (MethodElement, MethodElement) -> Unit,
     kmPackage: KmPackage
 ) : MetadataTransformer<KmPackage>(
     logger,
     deletedFields,
     deletedFunctions,
     handleExtraMethod,
+    handleSyntheticMethod,
     metadata = kmPackage
 ) {
     override fun filter(): Int = (

@@ -20,3 +20,8 @@ val staticSeed: Int get() = seed
 fun unwantedVoidToStub() {
     ++seed
 }
+
+@StubMeOut
+inline fun <reified T : Any> String.unwantedInlineToStub(type: Class<T> = T::class.java): T {
+    return type.getDeclaredConstructor(javaClass).newInstance("<default-value>") as T
+}

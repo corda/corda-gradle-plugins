@@ -14,6 +14,6 @@ fun unwantedIntToDelete(value: Int): Int = value
 fun unwantedLongToDelete(value: Long): Long = value
 
 @DeleteMe
-inline fun <reified T : Any> String.unwantedInline(type: Class<T> = T::class.java): T {
+inline fun <reified T : Any> String.unwantedInlineToDelete(type: Class<T> = T::class.java): T {
     return type.getDeclaredConstructor(javaClass).newInstance("<default-value>") as T
 }

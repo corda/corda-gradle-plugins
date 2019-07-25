@@ -171,6 +171,7 @@ class FilterTransformer private constructor (
          * them after a fixed number of passes.
          */
         deletedMethods.removeIf(MethodElement::isExpired)
+        stubbedMethods.removeIf(MethodElement::isExpired)
         unwantedFields.removeIf(FieldElement::isExpired)
     }
 
@@ -188,6 +189,7 @@ class FilterTransformer private constructor (
                 deletedNestedClasses = unwantedElements.classes.filter { it.startsWith(prefix) }.map { it.drop(prefix.length) },
                 deletedClasses = unwantedElements.classes,
                 handleExtraMethod = ::delete,
+                handleSyntheticMethod = ::filterExtra,
                 kmClass = kmClass)
             .transform()
     }
@@ -201,6 +203,7 @@ class FilterTransformer private constructor (
                 deletedFields = unwantedFields,
                 deletedFunctions = deletedMethods,
                 handleExtraMethod = ::delete,
+                handleSyntheticMethod = ::filterExtra,
                 kmPackage = kmPackage)
             .transform()
     }
@@ -213,6 +216,21 @@ class FilterTransformer private constructor (
         if (deletedMethods.add(method) && stubbedMethods.remove(method)) {
             logger.warn("-- method {}{} will be deleted instead of stubbed out",
                          method.name, method.descriptor)
+        }
+    }
+
+    /**
+     * Callback function to handle [extra] method in the same manner as [template].
+     */
+    private fun filterExtra(extra: MethodElement, template: MethodElement) {
+        if (deletedMethods.contains(template)) {
+            if (deletedMethods.add(extra)) {
+                logger.info("-- also identified method {}{} for deletion", extra.name, extra.descriptor)
+            }
+        } else if (stubbedMethods.contains(template)) {
+            if (stubbedMethods.add(extra)) {
+                logger.info("-- also identified method {}{} for stubbing out", extra.name, extra.descriptor)
+            }
         }
     }
 
