@@ -17,7 +17,8 @@ private const val DUMMY_PASSES = 1
 
 private val DECLARES_DEFAULT_VALUE_MASK: Int = flagsOf(DECLARES_DEFAULT_VALUE).inv()
 
-typealias UnwantedMap = MutableMap<ClassName, MutableList<Pair<String, MethodElement>>>
+typealias AnnotatedMethod = Pair<String, MethodElement>
+typealias UnwantedMap = MutableMap<ClassName, MutableList<AnnotatedMethod>>
 
 abstract class Element(val name: String, val descriptor: String) {
     private var lifetime: Int = DUMMY_PASSES

@@ -156,7 +156,7 @@ class ClassMetadataTransformer(
                 val method = constructor.signature?.toMethodElement() ?: continue
                 val synthetic = method.asKotlinDefaultConstructor() ?: continue
 
-                // The synthetic "$default" method may not have been annotated,
+                // The synthetic "default values" constructor may not have been annotated,
                 // so ensure we handle it in the same way as its "host" method.
                 handleSyntheticMethod(synthetic, method)
             }
