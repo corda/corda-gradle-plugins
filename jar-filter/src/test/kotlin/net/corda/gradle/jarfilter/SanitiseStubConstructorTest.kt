@@ -243,6 +243,12 @@ class SanitiseStubConstructorTest {
                 assertThat(assertFailsWith<InvocationTargetException> { getDeclaredConstructor(String::class.java).newInstance(MESSAGE) }.targetException)
                     .hasMessage("Method has been deleted")
             }
+
+            assertThat(testProject.output).containsSequence(
+                "Class net/corda/gradle/HasOverloadedComplexConstructorToStub",
+                "- Stubbed out method <init>(ILjava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V",
+                "- Stubbed out method <init>(Ljava/lang/String;)V"
+            )
         }
     }
 

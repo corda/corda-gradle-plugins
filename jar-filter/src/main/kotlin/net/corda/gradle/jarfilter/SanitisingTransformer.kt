@@ -32,7 +32,7 @@ class SanitisingTransformer(
         private set
     override val level: LogLevel = LogLevel.DEBUG
 
-    private var className: String = "(unknown)"
+    private var className: ClassName = "(unknown)"
     private var primaryConstructor: MethodElement? = null
     private var hasDefaultValues: Boolean = false
 

@@ -145,6 +145,9 @@ class StubStaticFunctionTest {
         }
 
         assertThat(testProject.output)
-            .contains(" method unwantedInlineToStub\$default(Ljava/lang/String;Ljava/lang/Class;ILjava/lang/Object;)Ljava/lang/Object; for stubbing out")
+            .contains(
+                "- Stubbed out method unwantedInlineToStub(Ljava/lang/String;Ljava/lang/Class;)Ljava/lang/Object;",
+                "- Stubbed out method unwantedInlineToStub\$default(Ljava/lang/String;Ljava/lang/Class;ILjava/lang/Object;)Ljava/lang/Object;"
+            )
     }
 }

@@ -20,7 +20,7 @@ abstract class MetaFixerTransformer<out T : KmDeclarationContainer>(
     private val properties: MutableList<KmProperty> = metadata.properties
     private val functions: MutableList<KmFunction> = metadata.functions
 
-    protected open val classDescriptor: String = ""
+    protected open val classDescriptor: ClassName = ""
 
     protected abstract fun filter(): Int
 

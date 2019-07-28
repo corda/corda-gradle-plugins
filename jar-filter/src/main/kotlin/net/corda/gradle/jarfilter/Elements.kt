@@ -75,7 +75,7 @@ class MethodElement(name: String, descriptor: String, val access: Int = DUMMY_ME
         }
     }
 
-    fun asKotlinDefaultFunction(classDescriptor: String): MethodElement? {
+    fun asKotlinDefaultFunction(classDescriptor: ClassName): MethodElement? {
         val markerIdx = descriptor.lastIndexOf(')')
         return when {
             suffix == "default" -> this

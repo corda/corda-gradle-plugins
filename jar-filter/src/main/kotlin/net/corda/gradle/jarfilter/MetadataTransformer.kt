@@ -23,7 +23,7 @@ abstract class MetadataTransformer<out T : KmDeclarationContainer>(
     private val properties: MutableList<KmProperty> = metadata.properties
     private val typeAliases: MutableList<KmTypeAlias> = metadata.typeAliases
 
-    protected open val classDescriptor: String = ""
+    protected open val classDescriptor: ClassName = ""
 
     protected abstract fun filter(): Int
 
