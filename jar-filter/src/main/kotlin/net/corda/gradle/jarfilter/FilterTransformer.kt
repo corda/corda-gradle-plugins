@@ -1,5 +1,6 @@
 package net.corda.gradle.jarfilter
 
+import kotlinx.metadata.ClassName
 import kotlinx.metadata.KmClass
 import kotlinx.metadata.KmPackage
 import org.gradle.api.InvalidUserDataException
@@ -21,6 +22,7 @@ class FilterTransformer private constructor (
     visitor: ClassVisitor,
     logger: Logger,
     kotlinMetadata: MutableMap<String, Array<String>>,
+    private val importExtra: (ClassName) -> List<AnnotatedMethod>?,
     private val removeAnnotations: Set<String>,
     private val deleteAnnotations: Set<String>,
     private val stubAnnotations: Set<String>,
@@ -32,6 +34,7 @@ class FilterTransformer private constructor (
     constructor(
         visitor: ClassVisitor,
         logger: Logger,
+        importExtra: (ClassName) -> List<AnnotatedMethod>?,
         removeAnnotations: Set<String>,
         deleteAnnotations: Set<String>,
         stubAnnotations: Set<String>,
@@ -40,6 +43,7 @@ class FilterTransformer private constructor (
         visitor = visitor,
         logger = logger,
         kotlinMetadata = mutableMapOf(),
+        importExtra = importExtra,
         removeAnnotations = removeAnnotations,
         deleteAnnotations = deleteAnnotations,
         stubAnnotations = stubAnnotations,
@@ -68,6 +72,7 @@ class FilterTransformer private constructor (
         visitor = visitor,
         logger = logger,
         kotlinMetadata = kotlinMetadata,
+        importExtra =  { null },
         removeAnnotations = removeAnnotations,
         deleteAnnotations = deleteAnnotations,
         stubAnnotations = stubAnnotations,
@@ -163,7 +168,21 @@ class FilterTransformer private constructor (
              */
             kotlinMetadata.clear()
         }
+
+        /*
+         * Import extra method references to be filtered.
+         * These will have been generated elsewhere, and
+         * MUST be added here before we start removing
+         * anything from the Kotlin metadata so that the
+         * metadata update doesn't miss anything.
+         */
+        importExtra(className)?.forEach { (descriptor, method) -> filterExtra(descriptor, method) }
+
+        /*
+         * Process Kotlin metadata in the parent method.
+         */
         super.visitEnd()
+
         /*
          * Some elements were created based on unreliable information,
          * such as Kotlin @Metadata annotations. We cannot rely on
@@ -171,6 +190,7 @@ class FilterTransformer private constructor (
          * them after a fixed number of passes.
          */
         deletedMethods.removeIf(MethodElement::isExpired)
+        stubbedMethods.removeIf(MethodElement::isExpired)
         unwantedFields.removeIf(FieldElement::isExpired)
     }
 
@@ -188,6 +208,7 @@ class FilterTransformer private constructor (
                 deletedNestedClasses = unwantedElements.classes.filter { it.startsWith(prefix) }.map { it.drop(prefix.length) },
                 deletedClasses = unwantedElements.classes,
                 handleExtraMethod = ::delete,
+                handleSyntheticMethod = ::filterExtra,
                 kmClass = kmClass)
             .transform()
     }
@@ -201,6 +222,7 @@ class FilterTransformer private constructor (
                 deletedFields = unwantedFields,
                 deletedFunctions = deletedMethods,
                 handleExtraMethod = ::delete,
+                handleSyntheticMethod = ::filterExtra,
                 kmPackage = kmPackage)
             .transform()
     }
@@ -213,6 +235,39 @@ class FilterTransformer private constructor (
         if (deletedMethods.add(method) && stubbedMethods.remove(method)) {
             logger.warn("-- method {}{} will be deleted instead of stubbed out",
                          method.name, method.descriptor)
+        }
+    }
+
+    /**
+     * Add [method] to the correct list of pending filter operations,
+     * based on the given [annotation] descriptor.
+     */
+    private fun filterExtra(annotation: String, method: MethodElement) {
+        when (annotation) {
+            in deleteAnnotations -> deleteExtra(method)
+            in stubAnnotations -> stubExtra(method)
+        }
+    }
+
+    /**
+     * Callback function to handle [extra] method in the same manner as [template].
+     */
+    private fun filterExtra(extra: MethodElement, template: MethodElement) {
+        when (template) {
+            in deletedMethods -> deleteExtra(extra)
+            in stubbedMethods -> stubExtra(extra)
+        }
+    }
+
+    private fun deleteExtra(method: MethodElement) {
+        if (deletedMethods.add(method)) {
+            logger.info("-- also identified method {}{} for deletion", method.name, method.descriptor)
+        }
+    }
+
+    private fun stubExtra(method: MethodElement) {
+        if (stubbedMethods.add(method)) {
+            logger.info("-- also identified method {}{} for stubbing out", method.name, method.descriptor)
         }
     }
 

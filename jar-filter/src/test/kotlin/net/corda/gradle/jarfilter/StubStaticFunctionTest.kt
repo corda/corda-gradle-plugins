@@ -1,9 +1,12 @@
 package net.corda.gradle.jarfilter
 
+import net.corda.gradle.jarfilter.matcher.isMethod
 import org.assertj.core.api.Assertions.*
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
+import org.hamcrest.MatcherAssert.assertThat
+import org.hamcrest.core.IsIterableContaining.hasItem
 import java.lang.reflect.InvocationTargetException
 import java.nio.file.Path
 import kotlin.test.*
@@ -12,6 +15,8 @@ class StubStaticFunctionTest {
     companion object {
         private const val FUNCTION_CLASS = "net.corda.gradle.StaticFunctionsToStub"
 
+        private val unwantedInline = isMethod("unwantedInlineToStub", Any::class.java, String::class.java, Class::class.java)
+        private val defaultUnwantedInline = isMethod("unwantedInlineToStub\$default", Any::class.java, String::class.java, Class::class.java, Integer.TYPE, Any::class.java)
         private lateinit var testProject: JarFilterProject
 
         @BeforeAll
@@ -121,5 +126,28 @@ class StubStaticFunctionTest {
                 assertEquals(0, staticSeed.invoke(null))
             }
         }
+    }
+
+    @Test
+    fun stubInlineFunction() {
+        classLoaderFor(testProject.sourceJar).use { cl ->
+            with(cl.load<Any>(FUNCTION_CLASS)) {
+                assertThat("unwantedInlineToStub(String, Class) missing", declaredMethods.toList(), hasItem(unwantedInline))
+                assertThat("unwantedInlineToStub\$default(String, Class) missing", declaredMethods.toList(), hasItem(defaultUnwantedInline))
+            }
+        }
+
+        classLoaderFor(testProject.filteredJar).use { cl ->
+            with(cl.load<Any>(FUNCTION_CLASS)) {
+                assertThat("unwantedInlineToStub(String, Class) still exists", declaredMethods.toList(), hasItem(unwantedInline))
+                assertThat("unwantedInlineToStub\$default(String, Class) still exists", declaredMethods.toList(), hasItem(defaultUnwantedInline))
+            }
+        }
+
+        assertThat(testProject.output)
+            .contains(
+                "- Stubbed out method unwantedInlineToStub(Ljava/lang/String;Ljava/lang/Class;)Ljava/lang/Object;",
+                "- Stubbed out method unwantedInlineToStub\$default(Ljava/lang/String;Ljava/lang/Class;ILjava/lang/Object;)Ljava/lang/Object;"
+            )
     }
 }

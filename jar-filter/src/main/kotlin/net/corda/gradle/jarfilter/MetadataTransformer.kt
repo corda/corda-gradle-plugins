@@ -15,20 +15,37 @@ abstract class MetadataTransformer<out T : KmDeclarationContainer>(
     protected val logger: Logger,
     private val deletedFields: Collection<FieldElement>,
     private val deletedFunctions: Collection<MethodElement>,
-    private val handleExtraMethod: (MethodElement) -> Unit,
+    protected val handleExtraMethod: (MethodElement) -> Unit,
+    protected val handleSyntheticMethod: (MethodElement, MethodElement) -> Unit,
     protected val metadata: T
 ) {
     private val functions: MutableList<KmFunction> = metadata.functions
     private val properties: MutableList<KmProperty> = metadata.properties
     private val typeAliases: MutableList<KmTypeAlias> = metadata.typeAliases
 
+    protected open val classDescriptor: ClassName = ""
+
     protected abstract fun filter(): Int
 
     fun transform(): T? {
+        doBeforeFiltering()
         return if (filter() == 0) {
             null
         } else {
             metadata
+        }
+    }
+
+    protected open fun doBeforeFiltering() {
+        for (function in functions) {
+            if (function.valueParameters.hasAnyDefaultValues) {
+                val method = function.signature?.toMethodElement() ?: continue
+                val synthetic = method.asKotlinDefaultFunction(classDescriptor) ?: continue
+
+                // The synthetic "$default" method may not have been annotated,
+                // so ensure we handle it in the same way as its "host" method.
+                handleSyntheticMethod(synthetic, method)
+            }
         }
     }
 
@@ -115,18 +132,36 @@ class ClassMetadataTransformer(
     private val deletedNestedClasses: Collection<String>,
     private val deletedClasses: Collection<String>,
     handleExtraMethod: (MethodElement) -> Unit,
+    handleSyntheticMethod: (MethodElement, MethodElement) -> Unit,
     kmClass: KmClass
 ) : MetadataTransformer<KmClass>(
     logger,
     deletedFields,
     deletedFunctions,
     handleExtraMethod,
+    handleSyntheticMethod,
     metadata = kmClass
 ) {
     private val className = kmClass.name
     private val nestedClassNames = kmClass.nestedClasses
     private val sealedSubclassNames = kmClass.sealedSubclasses
     private val constructors = kmClass.constructors
+
+    override val classDescriptor = "L${className.toInternalName()};"
+
+    override fun doBeforeFiltering() {
+        super.doBeforeFiltering()
+        for (constructor in constructors) {
+            if (constructor.valueParameters.hasAnyDefaultValues) {
+                val method = constructor.signature?.toMethodElement() ?: continue
+                val synthetic = method.asKotlinDefaultConstructor() ?: continue
+
+                // The synthetic "default values" constructor may not have been annotated,
+                // so ensure we handle it in the same way as its "host" method.
+                handleSyntheticMethod(synthetic, method)
+            }
+        }
+    }
 
     override fun filter(): Int = (
         filterProperties()
@@ -216,12 +251,14 @@ class PackageMetadataTransformer(
     deletedFields: Collection<FieldElement>,
     deletedFunctions: Collection<MethodElement>,
     handleExtraMethod: (MethodElement) -> Unit,
+    handleSyntheticMethod: (MethodElement, MethodElement) -> Unit,
     kmPackage: KmPackage
 ) : MetadataTransformer<KmPackage>(
     logger,
     deletedFields,
     deletedFunctions,
     handleExtraMethod,
+    handleSyntheticMethod,
     metadata = kmPackage
 ) {
     override fun filter(): Int = (

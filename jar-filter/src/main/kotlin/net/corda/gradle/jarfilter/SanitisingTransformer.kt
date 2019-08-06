@@ -21,15 +21,20 @@ import org.objectweb.asm.Opcodes.*
  * It will become superfluous when Kotlin allows us to target only the secondary constructors with our
  * filtering annotations in the first place.
  */
-class SanitisingTransformer(visitor: ClassVisitor, logger: Logger, private val unwantedAnnotations: Set<String>)
-    : KotlinBeforeProcessor(ASM7, visitor, logger, mutableMapOf()) {
+class SanitisingTransformer(
+    visitor: ClassVisitor,
+    logger: Logger,
+    private val unwantedAnnotations: Set<String>,
+    private val syntheticMethods: UnwantedMap
+) : KotlinBeforeProcessor(ASM7, visitor, logger, mutableMapOf()) {
 
     var isModified: Boolean = false
         private set
     override val level: LogLevel = LogLevel.DEBUG
 
-    private var className: String = "(unknown)"
+    private var className: ClassName = "(unknown)"
     private var primaryConstructor: MethodElement? = null
+    private var hasDefaultValues: Boolean = false
 
     override fun processPackageMetadata(kmPackage: KmPackage): KmPackage? = null
 
@@ -38,6 +43,7 @@ class SanitisingTransformer(visitor: ClassVisitor, logger: Logger, private val u
             if (IS_PRIMARY(constructor.flags)) {
                 val signature = constructor.signature ?: break
                 primaryConstructor = signature.toMethodElement()
+                hasDefaultValues = constructor.valueParameters.hasAnyDefaultValues
                 logger.log(level, "Class {} has primary constructor {}", className, signature.asString())
                 break
             }
@@ -60,6 +66,20 @@ class SanitisingTransformer(visitor: ClassVisitor, logger: Logger, private val u
         override fun visitAnnotation(descriptor: String, visible: Boolean): AnnotationVisitor? {
             if (unwantedAnnotations.contains(descriptor)) {
                 logger.info("Sanitising annotation {} from method {}.{}{}", descriptor, className, method.name, method.descriptor)
+
+                /*
+                 * As of Kotlin 1.3.40, we can no longer assume that the synthetic constructors
+                 * generated to support default parameter values will receive user annotations.
+                 * We must record what we would expect those annotations to have been.
+                 */
+                if (hasDefaultValues) {
+                    method.asKotlinDefaultConstructor()?.also { syn ->
+                        logger.info("- applying {} to synthetic {}{}", descriptor, syn.name, syn.descriptor)
+                        syntheticMethods.computeIfAbsent(className) { mutableListOf() }
+                            .add(descriptor to syn)
+                    }
+                }
+
                 isModified = true
                 return null
             }

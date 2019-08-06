@@ -16,7 +16,7 @@ class MetaFixProject(private val projectDir: Path, private val name: String) {
     private var _metafixedJar: Path? = null
     val metafixedJar: Path get() = _metafixedJar ?: throw FileNotFoundException("Output not found")
 
-    var output: String = ""
+    var output: List<String> = emptyList()
         private set
 
     fun build(): MetaFixProject {
@@ -33,8 +33,8 @@ class MetaFixProject(private val projectDir: Path, private val name: String) {
             .withPluginClasspath()
             .withDebug(true)
             .build()
-        output = result.output
-        println(output)
+        println(result.output)
+        output = result.output.lines()
 
         val metafix = result.task(":metafix") ?: fail("No outcome for metafix task")
         assertEquals(SUCCESS, metafix.outcome)

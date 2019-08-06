@@ -1,6 +1,10 @@
 package net.corda.gradle.jarfilter
 
+import net.corda.gradle.jarfilter.matcher.isMethod
 import org.assertj.core.api.Assertions.*
+import org.hamcrest.MatcherAssert.assertThat
+import org.hamcrest.core.IsIterableContaining.hasItem
+import org.hamcrest.core.IsNot.not
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
@@ -11,6 +15,8 @@ class DeleteStaticFunctionTest {
     companion object {
         private const val FUNCTION_CLASS = "net.corda.gradle.StaticFunctionsToDelete"
 
+        private val unwantedInline = isMethod("unwantedInlineToDelete", Any::class.java, String::class.java, Class::class.java)
+        private val defaultUnwantedInline = isMethod("unwantedInlineToDelete\$default", Any::class.java, String::class.java, Class::class.java, Integer.TYPE, Any::class.java)
         private lateinit var testProject: JarFilterProject
 
         @BeforeAll
@@ -79,6 +85,23 @@ class DeleteStaticFunctionTest {
         classLoaderFor(testProject.filteredJar).use { cl ->
             cl.load<Any>(FUNCTION_CLASS).apply {
                 assertFailsWith<NoSuchMethodException> { getMethod("unwantedIntToDelete", Int::class.java) }
+            }
+        }
+    }
+
+    @Test
+    fun deleteInlineFunction() {
+        classLoaderFor(testProject.sourceJar).use { cl ->
+            with(cl.load<Any>(FUNCTION_CLASS)) {
+                assertThat("unwantedInlineToDelete(String, Class) missing", declaredMethods.toList(), hasItem(unwantedInline))
+                assertThat("unwantedInlineToDelete\$default(String, Class) missing", declaredMethods.toList(), hasItem(defaultUnwantedInline))
+            }
+        }
+
+        classLoaderFor(testProject.filteredJar).use { cl ->
+            with(cl.load<Any>(FUNCTION_CLASS)) {
+                assertThat("unwantedInlineToDelete(String, Class) still exists", declaredMethods.toList(), not(hasItem(unwantedInline)))
+                assertThat("unwantedInlineToDelete\$default(String, Class) still exists", declaredMethods.toList(), not(hasItem(defaultUnwantedInline)))
             }
         }
     }

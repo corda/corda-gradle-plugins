@@ -7,14 +7,18 @@ import kotlinx.metadata.KmValueParameter
 import kotlinx.metadata.flagsOf
 import kotlinx.metadata.jvm.JvmFieldSignature
 import kotlinx.metadata.jvm.JvmMethodSignature
-import org.objectweb.asm.Opcodes.ACC_SYNTHETIC
+import org.objectweb.asm.Opcodes.*
 import java.util.*
 
 private const val DEFAULT_CONSTRUCTOR_MARKER = "ILkotlin/jvm/internal/DefaultConstructorMarker;"
 private const val DEFAULT_FUNCTION_MARKER = "ILjava/lang/Object;"
+private const val DUMMY_METHOD: Int = ACC_PUBLIC or ACC_PROTECTED or ACC_PRIVATE
 private const val DUMMY_PASSES = 1
 
 private val DECLARES_DEFAULT_VALUE_MASK: Int = flagsOf(DECLARES_DEFAULT_VALUE).inv()
+
+typealias AnnotatedMethod = Pair<String, MethodElement>
+typealias UnwantedMap = MutableMap<ClassName, MutableList<AnnotatedMethod>>
 
 abstract class Element(val name: String, val descriptor: String) {
     private var lifetime: Int = DUMMY_PASSES
@@ -23,7 +27,7 @@ abstract class Element(val name: String, val descriptor: String) {
 }
 
 
-class MethodElement(name: String, descriptor: String, val access: Int = 0) : Element(name, descriptor) {
+class MethodElement(name: String, descriptor: String, val access: Int = DUMMY_METHOD) : Element(name, descriptor) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other?.javaClass != javaClass) return false
@@ -32,11 +36,12 @@ class MethodElement(name: String, descriptor: String, val access: Int = 0) : Ele
     }
     override fun hashCode(): Int = Objects.hash(name, descriptor)
     override fun toString(): String = "MethodElement[name=$name, descriptor=$descriptor, access=$access]"
-    override val isExpired: Boolean get() = access == 0 && super.isExpired
+    override val isExpired: Boolean get() = isDummy && super.isExpired
     val isConstructor: Boolean get() = isObjectConstructor || isClassConstructor
     val isClassConstructor: Boolean get() = name == "<clinit>"
     val isObjectConstructor: Boolean get() = name == "<init>"
     val isVoidFunction: Boolean get() = !isConstructor && descriptor.endsWith(")V")
+    val isDummy: Boolean get() = access == DUMMY_METHOD
 
     private val suffix: String
     val visibleName: String
@@ -55,6 +60,30 @@ class MethodElement(name: String, descriptor: String, val access: Int = 0) : Ele
             MethodElement(name, descriptor.removeRange(markerIdx, markerIdx + DEFAULT_CONSTRUCTOR_MARKER.length))
         } else {
             null
+        }
+    }
+
+    fun asKotlinDefaultConstructor(): MethodElement? {
+        val markerIdx = descriptor.lastIndexOf(')')
+        return when {
+            descriptor.contains(DEFAULT_CONSTRUCTOR_MARKER) -> this
+            markerIdx >= 0 -> MethodElement(
+                name = name,
+                descriptor = (descriptor.substring(0, markerIdx) + DEFAULT_CONSTRUCTOR_MARKER + descriptor.substring(markerIdx))
+            )
+            else -> null
+        }
+    }
+
+    fun asKotlinDefaultFunction(classDescriptor: ClassName): MethodElement? {
+        val markerIdx = descriptor.lastIndexOf(')')
+        return when {
+            suffix == "default" -> this
+            descriptor.startsWith('(') && markerIdx >= 1 -> MethodElement(
+                name = "$name\$default",
+                descriptor = ('(' + classDescriptor + descriptor.substring(1, markerIdx) + DEFAULT_FUNCTION_MARKER + descriptor.substring(markerIdx))
+            )
+            else -> null
         }
     }
 }

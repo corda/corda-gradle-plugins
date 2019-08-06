@@ -31,6 +31,7 @@ class StaticFieldRemovalTest {
                 FilterTransformer(
                     visitor = writer,
                     logger = logger,
+                    importExtra = { null },
                     removeAnnotations = emptySet(),
                     deleteAnnotations = setOf(Deletable::class.jvmName.descriptor),
                     stubAnnotations = emptySet(),

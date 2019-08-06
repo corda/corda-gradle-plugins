@@ -47,7 +47,7 @@ class SanitiseStubConstructorTest {
         val longConstructor = isConstructor(longClass, Long::class)
 
         classLoaderFor(testProject.sourceJar).use { cl ->
-            cl.load<HasLong>(longClass).apply {
+            with(cl.load<HasLong>(longClass)) {
                 getDeclaredConstructor(Long::class.java).newInstance(BIG_NUMBER).also {
                     assertEquals(BIG_NUMBER, it.longData())
                 }
@@ -65,7 +65,7 @@ class SanitiseStubConstructorTest {
         }
 
         classLoaderFor(testProject.filteredJar).use { cl ->
-            cl.load<HasLong>(longClass).apply {
+            with(cl.load<HasLong>(longClass)) {
                 getDeclaredConstructor(Long::class.java).newInstance(BIG_NUMBER).also {
                     assertEquals(BIG_NUMBER, it.longData())
                 }
@@ -102,7 +102,7 @@ class SanitiseStubConstructorTest {
         val intConstructor = isConstructor(intClass, Int::class)
 
         classLoaderFor(testProject.sourceJar).use { cl ->
-            cl.load<HasInt>(intClass).apply {
+            with(cl.load<HasInt>(intClass)) {
                 getDeclaredConstructor(Int::class.java).newInstance(NUMBER).also {
                     assertEquals(NUMBER, it.intData())
                 }
@@ -120,7 +120,7 @@ class SanitiseStubConstructorTest {
         }
 
         classLoaderFor(testProject.filteredJar).use { cl ->
-            cl.load<HasInt>(intClass).apply {
+            with(cl.load<HasInt>(intClass)) {
                 getDeclaredConstructor(Int::class.java).newInstance(NUMBER).also {
                     assertEquals(NUMBER, it.intData())
                 }
@@ -157,7 +157,7 @@ class SanitiseStubConstructorTest {
         val stringConstructor = isConstructor(stringClass, String::class)
 
         classLoaderFor(testProject.sourceJar).use { cl ->
-            cl.load<HasString>(stringClass).apply {
+            with(cl.load<HasString>(stringClass)) {
                 getDeclaredConstructor(String::class.java).newInstance(MESSAGE).also {
                     assertEquals(MESSAGE, it.stringData())
                 }
@@ -175,7 +175,7 @@ class SanitiseStubConstructorTest {
         }
 
         classLoaderFor(testProject.filteredJar).use { cl ->
-            cl.load<HasString>(stringClass).apply {
+            with(cl.load<HasString>(stringClass)) {
                 getDeclaredConstructor(String::class.java).newInstance(MESSAGE).also {
                     assertEquals(MESSAGE, it.stringData())
                 }
@@ -201,7 +201,7 @@ class SanitiseStubConstructorTest {
         val complexConstructor = isConstructor(COMPLEX_CONSTRUCTOR_CLASS, Int::class, String::class)
 
         classLoaderFor(testProject.sourceJar).use { cl ->
-            cl.load<Any>(COMPLEX_CONSTRUCTOR_CLASS).apply {
+            with(cl.load<Any>(COMPLEX_CONSTRUCTOR_CLASS)) {
                 kotlin.constructors.apply {
                     assertThat("<init>(Int,String) not found", this, hasItem(complexConstructor))
                     assertEquals(1, this.size)
@@ -225,7 +225,7 @@ class SanitiseStubConstructorTest {
         }
 
         classLoaderFor(testProject.filteredJar).use { cl ->
-            cl.load<Any>(COMPLEX_CONSTRUCTOR_CLASS).apply {
+            with(cl.load<Any>(COMPLEX_CONSTRUCTOR_CLASS)) {
                 kotlin.constructors.apply {
                     assertThat("<init>(Int,String) not found", this, hasItem(complexConstructor))
                     assertEquals(1, this.size)
@@ -243,6 +243,12 @@ class SanitiseStubConstructorTest {
                 assertThat(assertFailsWith<InvocationTargetException> { getDeclaredConstructor(String::class.java).newInstance(MESSAGE) }.targetException)
                     .hasMessage("Method has been deleted")
             }
+
+            assertThat(testProject.output).containsSequence(
+                "Class net/corda/gradle/HasOverloadedComplexConstructorToStub",
+                "- Stubbed out method <init>(ILjava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V",
+                "- Stubbed out method <init>(Ljava/lang/String;)V"
+            )
         }
     }
 

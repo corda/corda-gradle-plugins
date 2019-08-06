@@ -14,7 +14,7 @@ class JarFilterProject(private val projectDir: Path, private val name: String) {
     private var _filteredJar: Path? = null
     val filteredJar: Path get() = _filteredJar ?: throw FileNotFoundException("Output not found")
 
-    var output: String = ""
+    var output: List<String> = emptyList()
         private set
 
     fun build(): JarFilterProject {
@@ -31,8 +31,8 @@ class JarFilterProject(private val projectDir: Path, private val name: String) {
             .withPluginClasspath()
             .withDebug(true)
             .build()
-        output = result.output
-        println(output)
+        println(result.output)
+        output = result.output.lines()
 
         val jarFilter = result.task(":jarFilter") ?: fail("No outcome for jarFilter task")
         assertEquals(SUCCESS, jarFilter.outcome)

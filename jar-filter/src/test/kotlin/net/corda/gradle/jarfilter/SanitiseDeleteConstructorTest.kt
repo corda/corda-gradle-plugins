@@ -5,8 +5,12 @@ import net.corda.gradle.unwanted.HasInt
 import net.corda.gradle.unwanted.HasLong
 import net.corda.gradle.unwanted.HasString
 import org.assertj.core.api.Assertions.assertThat
+import org.hamcrest.CoreMatchers.hasItems
+import org.hamcrest.Matcher
 import org.hamcrest.MatcherAssert.assertThat
+import org.hamcrest.core.IsEqual.equalTo
 import org.hamcrest.core.IsIterableContaining.hasItem
+import org.hamcrest.core.IsNot.not
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -19,8 +23,8 @@ import kotlin.test.assertFailsWith
 class SanitiseDeleteConstructorTest {
     companion object {
         private const val COMPLEX_CONSTRUCTOR_CLASS = "net.corda.gradle.HasOverloadedComplexConstructorToDelete"
-        private const val COUNT_INITIAL_OVERLOADED = 1
-        private const val COUNT_INITIAL_MULTIPLE = 2
+
+        private val isDefaultConstructorMarker = equalTo("kotlin.jvm.internal.DefaultConstructorMarker")
         private lateinit var testProject: JarFilterProject
 
         @BeforeAll
@@ -33,27 +37,30 @@ class SanitiseDeleteConstructorTest {
     @Test
     fun deleteOverloadedLongConstructor() = checkClassWithLongParameter(
         "net.corda.gradle.HasOverloadedLongConstructorToDelete",
-        COUNT_INITIAL_OVERLOADED
+        listOf(
+            arrayOf(),
+            arrayOf(matches(java.lang.Long.TYPE), matches(Integer.TYPE), isDefaultConstructorMarker)
+        )
     )
 
     @Test
     fun deleteMultipleLongConstructor() = checkClassWithLongParameter(
         "net.corda.gradle.HasMultipleLongConstructorsToDelete",
-        COUNT_INITIAL_MULTIPLE
+        listOf(arrayOf())
     )
 
-    private fun checkClassWithLongParameter(longClass: String, initialCount: Int) {
+    private fun checkClassWithLongParameter(longClass: String, deleted: List<Array<Matcher<in String>>>) {
         val longConstructor = isConstructor(longClass, Long::class)
+        val deletedConstructors = deleted.map { args -> isConstructor(equalTo(longClass), *args) }.toTypedArray()
 
         classLoaderFor(testProject.sourceJar).use { cl ->
-            cl.load<HasLong>(longClass).apply {
+            with(cl.load<HasLong>(longClass)) {
+                assertThat("Java constructors not found", constructors.toList(), hasItems(*deletedConstructors))
+
                 getDeclaredConstructor(Long::class.java).newInstance(BIG_NUMBER).also {
                     assertEquals(BIG_NUMBER, it.longData())
                 }
-                kotlin.constructors.apply {
-                    assertThat("<init>(J) not found", this, hasItem(longConstructor))
-                    assertEquals(initialCount, this.size)
-                }
+                assertThat("<init>(J) not found", kotlin.constructors, hasItem(longConstructor))
                 val primary = kotlin.primaryConstructor ?: fail("primary constructor missing")
                 assertThat(primary.call(BIG_NUMBER).longData()).isEqualTo(BIG_NUMBER)
 
@@ -64,7 +71,11 @@ class SanitiseDeleteConstructorTest {
         }
 
         classLoaderFor(testProject.filteredJar).use { cl ->
-            cl.load<HasLong>(longClass).apply {
+            with(cl.load<HasLong>(longClass)) {
+                deletedConstructors.forEach { deleted ->
+                    assertThat("Java constructor still exists", constructors.toList(), not(hasItem(deleted)))
+                }
+
                 getDeclaredConstructor(Long::class.java).newInstance(BIG_NUMBER).also {
                     assertEquals(BIG_NUMBER, it.longData())
                 }
@@ -84,27 +95,30 @@ class SanitiseDeleteConstructorTest {
     @Test
     fun deleteOverloadedIntConstructor() = checkClassWithIntParameter(
         "net.corda.gradle.HasOverloadedIntConstructorToDelete",
-        COUNT_INITIAL_OVERLOADED
+        listOf(
+            arrayOf(),
+            arrayOf(matches(Integer.TYPE), matches(Integer.TYPE), isDefaultConstructorMarker)
+        )
     )
 
     @Test
     fun deleteMultipleIntConstructor() = checkClassWithIntParameter(
         "net.corda.gradle.HasMultipleIntConstructorsToDelete",
-        COUNT_INITIAL_MULTIPLE
+        listOf(arrayOf())
     )
 
-    private fun checkClassWithIntParameter(intClass: String, initialCount: Int) {
+    private fun checkClassWithIntParameter(intClass: String, deleted: List<Array<Matcher<in String>>>) {
         val intConstructor = isConstructor(intClass, Int::class)
+        val deletedConstructors = deleted.map { args -> isConstructor(equalTo(intClass), *args) }.toTypedArray()
 
         classLoaderFor(testProject.sourceJar).use { cl ->
-            cl.load<HasInt>(intClass).apply {
+            with(cl.load<HasInt>(intClass)) {
+                assertThat("Java constructors not found", constructors.toList(), hasItems(*deletedConstructors))
+
                 getDeclaredConstructor(Int::class.java).newInstance(NUMBER).also {
                     assertEquals(NUMBER, it.intData())
                 }
-                kotlin.constructors.apply {
-                    assertThat("<init>(I) not found", this, hasItem(intConstructor))
-                    assertEquals(initialCount, this.size)
-                }
+                assertThat("<init>(I) not found", kotlin.constructors, hasItem(intConstructor))
                 val primary = kotlin.primaryConstructor ?: fail("primary constructor missing")
                 assertThat(primary.call(NUMBER).intData()).isEqualTo(NUMBER)
 
@@ -115,7 +129,11 @@ class SanitiseDeleteConstructorTest {
         }
 
         classLoaderFor(testProject.filteredJar).use { cl ->
-            cl.load<HasInt>(intClass).apply {
+            with(cl.load<HasInt>(intClass)) {
+                deletedConstructors.forEach { deleted ->
+                    assertThat("Java constructor still exists", constructors.toList(), not(hasItem(deleted)))
+                }
+
                 getDeclaredConstructor(Int::class.java).newInstance(NUMBER).also {
                     assertEquals(NUMBER, it.intData())
                 }
@@ -135,27 +153,28 @@ class SanitiseDeleteConstructorTest {
     @Test
     fun deleteOverloadedStringConstructor() = checkClassWithStringParameter(
         "net.corda.gradle.HasOverloadedStringConstructorToDelete",
-        COUNT_INITIAL_OVERLOADED
+        listOf(
+            arrayOf(),
+            arrayOf(matches(String::class.java), matches(Integer.TYPE), isDefaultConstructorMarker)
+        )
     )
 
     @Test
     fun deleteMultipleStringConstructor() = checkClassWithStringParameter(
         "net.corda.gradle.HasMultipleStringConstructorsToDelete",
-        COUNT_INITIAL_MULTIPLE
+        listOf(arrayOf())
     )
 
-    private fun checkClassWithStringParameter(stringClass: String, initialCount: Int) {
+    private fun checkClassWithStringParameter(stringClass: String, deleted: List<Array<Matcher<in String>>>) {
         val stringConstructor = isConstructor(stringClass, String::class)
+        val deletedConstructors = deleted.map { args -> isConstructor(equalTo(stringClass), *args) }.toTypedArray()
 
         classLoaderFor(testProject.sourceJar).use { cl ->
-            cl.load<HasString>(stringClass).apply {
+            with(cl.load<HasString>(stringClass)) {
                 getDeclaredConstructor(String::class.java).newInstance(MESSAGE).also {
                     assertEquals(MESSAGE, it.stringData())
                 }
-                kotlin.constructors.apply {
-                    assertThat("<init>(String) not found", this, hasItem(stringConstructor))
-                    assertEquals(initialCount, this.size)
-                }
+                assertThat("<init>(String) not found", kotlin.constructors, hasItem(stringConstructor))
                 val primary = kotlin.primaryConstructor ?: fail("primary constructor missing")
                 assertThat(primary.call(MESSAGE).stringData()).isEqualTo(MESSAGE)
 
@@ -166,7 +185,11 @@ class SanitiseDeleteConstructorTest {
         }
 
         classLoaderFor(testProject.filteredJar).use { cl ->
-            cl.load<HasString>(stringClass).apply {
+            with(cl.load<HasString>(stringClass)) {
+                deletedConstructors.forEach { deleted ->
+                    assertThat("Java constructor still exists", constructors.toList(), not(hasItem(deleted)))
+                }
+
                 getDeclaredConstructor(String::class.java).newInstance(MESSAGE).also {
                     assertEquals(MESSAGE, it.stringData())
                 }
@@ -186,9 +209,15 @@ class SanitiseDeleteConstructorTest {
     @Test
     fun deleteOverloadedComplexConstructor() {
         val complexConstructor = isConstructor(COMPLEX_CONSTRUCTOR_CLASS, Int::class, String::class)
+        val syntheticConstructor = isConstructor(
+            equalTo(COMPLEX_CONSTRUCTOR_CLASS),
+            matches(Integer.TYPE), matches(String::class.java), matches(Integer.TYPE), isDefaultConstructorMarker
+        )
 
         classLoaderFor(testProject.sourceJar).use { cl ->
-            cl.load<Any>(COMPLEX_CONSTRUCTOR_CLASS).apply {
+            with(cl.load<Any>(COMPLEX_CONSTRUCTOR_CLASS)) {
+                assertThat("synthetic <init>(int,String) not found", constructors.toList(), hasItem(syntheticConstructor))
+
                 kotlin.constructors.apply {
                     assertThat("<init>(Int,String) not found", this, hasItem(complexConstructor))
                     assertEquals(1, this.size)
@@ -212,7 +241,9 @@ class SanitiseDeleteConstructorTest {
         }
 
         classLoaderFor(testProject.filteredJar).use { cl ->
-            cl.load<Any>(COMPLEX_CONSTRUCTOR_CLASS).apply {
+            with(cl.load<Any>(COMPLEX_CONSTRUCTOR_CLASS)) {
+                assertThat("synthetic <init>(int,String) still exists", constructors.toList(), not(hasItem(syntheticConstructor)))
+
                 kotlin.constructors.apply {
                     assertThat("<init>(Int,String) not found", this, hasItem(complexConstructor))
                     assertEquals(1, this.size)
