@@ -1,3 +1,6 @@
 repositories {
     mavenCentral()
+    maven {
+        url 'https://software.r3.com/artifactory/corda-dependencies'
+    }
 }

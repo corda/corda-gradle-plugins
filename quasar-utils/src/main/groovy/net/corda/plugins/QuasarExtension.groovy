@@ -35,12 +35,15 @@ class QuasarExtension {
      * - debug
      * - verbose
      * - globs of packages not to instrument.
+     * - globs of classloaders not to instrument.
      */
     final Property<Boolean> debug
 
     final Property<Boolean> verbose
 
     final ListProperty<String> excludePackages
+
+    final ListProperty<String> excludeClassLoaders
 
     @PackageScope
     final Provider<String> options
@@ -51,7 +54,8 @@ class QuasarExtension {
         String defaultGroup,
         String defaultVersion,
         String defaultClassifier,
-        Iterable<? extends String> initialExclusions
+        Iterable<? extends String> initialPackageExclusions,
+        Iterable<? extends String> initialClassLoaderExclusions
     ) {
         group = objects.property(String).convention(defaultGroup)
         version = objects.property(String).convention(defaultVersion)
@@ -67,21 +71,28 @@ class QuasarExtension {
         debug = objects.property(Boolean).convention(false)
         verbose = objects.property(Boolean).convention(false)
         excludePackages = objects.listProperty(String)
-        excludePackages.set(initialExclusions)
-        options = excludePackages.flatMap { excludes ->
-            debug.flatMap { isDebug ->
-                verbose.map { isVerbose ->
-                    def builder = new StringBuilder('=')
-                    if (isDebug) {
-                        builder.append('d')
+        excludePackages.set(initialPackageExclusions)
+        excludeClassLoaders = objects.listProperty(String)
+        excludeClassLoaders.set(initialClassLoaderExclusions)
+        options = excludePackages.flatMap { packages ->
+            excludeClassLoaders.flatMap { classLoaders ->
+                debug.flatMap { isDebug ->
+                    verbose.map { isVerbose ->
+                        def builder = new StringBuilder('=')
+                        if (isDebug) {
+                            builder.append('d')
+                        }
+                        if (isVerbose) {
+                            builder.append('v')
+                        }
+                        if (!packages.isEmpty()) {
+                            builder.append('x(').append(packages.join(';')).append(')')
+                        }
+                        if (!classLoaders.isEmpty()) {
+                            builder.append('l(').append(classLoaders.join(';')).append(')')
+                        }
+                        builder.length() == 1 ? '' : builder.toString()
                     }
-                    if (isVerbose) {
-                        builder.append('v')
-                    }
-                    if (!excludes.isEmpty()) {
-                        builder.append('x(').append(excludes.join(';')).append(')')
-                    }
-                    builder.length() == 1 ? '' : builder.toString()
                 }
             }
         }

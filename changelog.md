@@ -4,7 +4,10 @@
 
 ### Version 5.0.3
 
-* `webserver`: The `corda-webserver` component has been renamed to `corda-testserver.`
+* `quasar-utils`: Add `excludeClassLoaders` option to the `quasar` extension. This option requires Quasar 0.7.12_r3 and above, excluding 0.8.0.
+
+* `cordformation`: The `corda-webserver` component has been renamed to `corda-testserver.`
+
 * `jar-filter`: Support for byte-code compiled by Kotlin >= 1.3.40 (See [KT-30289](https://youtrack.jetbrains.com/issue/KT-30289)).
 
 ### Version 5.0.2
