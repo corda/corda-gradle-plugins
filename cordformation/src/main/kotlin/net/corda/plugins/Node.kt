@@ -25,7 +25,7 @@ open class Node @Inject constructor(private val project: Project) {
     internal data class ResolvedCordapp(val jarFile: Path, val config: String?)
 
     private companion object {
-        const val webJarName = "corda-webserver.jar"
+        const val webJarName = "corda-testserver.jar"
         const val configFileProperty = "configFile"
         const val DEFAULT_HOST = "localhost"
     }
@@ -442,7 +442,12 @@ open class Node @Inject constructor(private val project: Project) {
         // If no webserver JAR is provided, the default development webserver is used.
         val webJar = if (webserverJar == null) {
             project.logger.lifecycle("Using default development webserver.")
-            Cordformation.verifyAndGetRuntimeJar(project, "corda-webserver")
+            try {
+                Cordformation.verifyAndGetRuntimeJar(project, "corda-testserver")
+            } catch (e: IllegalStateException) {
+                project.logger.lifecycle("Detecting older version of corda. Falling back to the old webserver.")
+                Cordformation.verifyAndGetRuntimeJar(project, "corda-webserver")
+            }
         } else {
             project.logger.lifecycle("Using custom webserver: $webserverJar.")
             File(webserverJar)

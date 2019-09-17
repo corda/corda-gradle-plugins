@@ -4,6 +4,7 @@
 
 ### Version 5.0.3
 
+* `webserver`: The `corda-webserver` component has been renamed to `corda-testserver.`
 * `jar-filter`: Support for byte-code compiled by Kotlin >= 1.3.40 (See [KT-30289](https://youtrack.jetbrains.com/issue/KT-30289)).
 
 ### Version 5.0.2

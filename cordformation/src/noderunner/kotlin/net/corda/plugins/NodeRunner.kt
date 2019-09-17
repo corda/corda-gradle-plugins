@@ -7,7 +7,8 @@ import java.util.*
 private const val HEADLESS_FLAG = "--headless"
 private const val CAPSULE_DEBUG_FLAG = "--capsule-debug"
 private const val CORDA_JAR_NAME = "corda.jar"
-private const val CORDA_WEBSERVER_JAR_NAME = "corda-webserver.jar"
+private const val CORDA_WEBSERVER_JAR_NAME = "corda-testserver.jar"
+private const val OLD_CORDA_WEBSERVER_JAR_NAME = "corda-webserver.jar"
 private const val CORDA_CONFIG_NAME = "node.conf"
 private const val CORDA_WEBSERVER_CONFIG_NAME = "web-server.conf"
 private val CORDA_HEADLESS_ARGS = listOf("--no-local-shell")
@@ -63,7 +64,7 @@ private fun startNode(nodeDir: File, headless: Boolean, jvmArgs: List<String>, j
 }
 
 private fun startWebserver(nodeDir: File, headless: Boolean, jvmArgs: List<String>, javaArgs: List<String>): Process? {
-    val jarFile = nodeDir.resolve(CORDA_WEBSERVER_JAR_NAME)
+    val jarFile = nodeDir.resolve(CORDA_WEBSERVER_JAR_NAME).let { if (it.exists()) it else nodeDir.resolve(OLD_CORDA_WEBSERVER_JAR_NAME) }
     return if(!jarFile.isFile) {
         null
     } else if(!nodeDir.resolve(CORDA_WEBSERVER_CONFIG_NAME).isFile) {
