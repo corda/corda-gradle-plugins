@@ -2,7 +2,7 @@ import static org.gradle.api.JavaVersion.*
 
 buildscript {
     ext {
-        gradle_plugins_version = '5.0.3-SNAPSHOT'
+        gradle_plugins_version = '5.0.4-SNAPSHOT'
         typesafe_config_version = '1.3.1'
         kotlin_version = '1.3.21'
         snake_yaml_version = '1.19'
