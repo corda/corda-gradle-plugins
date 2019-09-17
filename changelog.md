@@ -2,6 +2,8 @@
 
 ## Version 5
 
+### Version 5.0.4
+
 ### Version 5.0.3
 
 * `quasar-utils`: Add `excludeClassLoaders` option to the `quasar` extension. This option requires Quasar 0.7.12_r3 and above, excluding 0.8.0.
