@@ -445,7 +445,7 @@ open class Node @Inject constructor(private val project: Project) {
             try {
                 Cordformation.verifyAndGetRuntimeJar(project, "corda-testserver")
             } catch (e: IllegalStateException) {
-                project.logger.lifecycle("Detecting older version of of corda. Falling back to the old webserver.")
+                project.logger.lifecycle("Detecting older version of corda. Falling back to the old webserver.")
                 Cordformation.verifyAndGetRuntimeJar(project, "corda-webserver")
             }
         } else {
