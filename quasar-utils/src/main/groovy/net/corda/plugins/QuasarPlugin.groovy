@@ -38,11 +38,16 @@ class QuasarPlugin implements Plugin<Project> {
         def quasarGroup = rootProject.hasProperty('quasar_group') ? rootProject.property('quasar_group') : defaultGroup
         def quasarVersion = rootProject.hasProperty('quasar_version') ? rootProject.property('quasar_version') : defaultVersion
         def quasarClassifier = rootProject.hasProperty('quasar_classifier') ? rootProject.property('quasar_classifier') : defaultClassifier
-        def quasarExclusions = rootProject.hasProperty("quasar_exclusions") ? rootProject.property('quasar_exclusions') : Collections.emptyList()
-        if (!(quasarExclusions instanceof Iterable<?>)) {
+        def quasarPackageExclusions = rootProject.hasProperty("quasar_exclusions") ? rootProject.property('quasar_exclusions') : Collections.emptyList()
+        if (!(quasarPackageExclusions instanceof Iterable<?>)) {
             throw new InvalidUserDataException("quasar_exclusions property must be an Iterable<String>")
         }
-        def quasarExtension = project.extensions.create(QUASAR, QuasarExtension, objects, quasarGroup, quasarVersion, quasarClassifier, quasarExclusions)
+        def quasarClassLoaderExclusions = rootProject.hasProperty("quasar_classloader_exclusions") ? rootProject.property('quasar_classloader_exclusions') : Collections.emptyList()
+        if (!(quasarClassLoaderExclusions instanceof Iterable<?>)) {
+            throw new InvalidUserDataException("quasar_classloader_exclusions property must be an Iterable<String>")
+        }
+        def quasarExtension = project.extensions.create(QUASAR, QuasarExtension, objects,
+                quasarGroup, quasarVersion, quasarClassifier, quasarPackageExclusions, quasarClassLoaderExclusions)
 
         addQuasarDependencies(project, quasarExtension)
         configureQuasarTasks(project, quasarExtension)

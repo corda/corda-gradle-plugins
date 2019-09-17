@@ -20,6 +20,7 @@ class QuasarPluginTest {
 
     @BeforeEach
     void setup() {
+        Utilities.installResource(testProjectDir, "gradle.properties")
         Utilities.installResource(testProjectDir, "settings.gradle")
         Utilities.installResource(testProjectDir, "repositories.gradle")
         Utilities.installResource(testProjectDir, "src/test/java/BasicTest.java")
@@ -442,6 +443,41 @@ test {
 """, "test"
         assertThat(output).anyMatch {
             it.startsWith("TEST-JVM: -javaagent:") && it.endsWith('=d')
+        }
+    }
+
+    @Test
+    void testExcludeClassLoaders() {
+        def output = runGradleFor """
+plugins {
+    id 'net.corda.plugins.quasar-utils' apply false
+}
+apply plugin: 'net.corda.plugins.quasar-utils'
+apply from: 'repositories.gradle'
+
+dependencies {
+    testImplementation 'junit:junit:4.12'
+}
+
+quasar {
+    version = '0.7.12_r3'
+    excludeClassLoaders = [ 'net.corda.**', 'org.testing.*' ]
+}
+
+jar {
+    enabled = false
+}
+
+test {
+    doLast {
+        allJvmArgs.forEach {
+            println "TEST-JVM: \${it}"
+        }
+    }
+}
+""", "test"
+        assertThat(output).anyMatch {
+            it.startsWith("TEST-JVM: -javaagent:") && it.endsWith('=l(net.corda.**;org.testing.*)')
         }
     }
 
