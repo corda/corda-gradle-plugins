@@ -41,7 +41,8 @@ class Cordformation : Plugin<Project> {
             val releaseVersion = project.findRootProperty<String>("corda_release_version")
                     ?: throw IllegalStateException("Could not find a valid declaration of \"corda_release_version\"")
             val maybeJar = project.configuration("runtime").filter {
-                "$jarName-$releaseVersion.jar" in it.toString() || "$jarName-enterprise-$releaseVersion.jar" in it.toString()
+                it.toString().contains("$jarName-enterprise-$releaseVersion(-*)?.jar".toRegex()) ||
+                it.toString().contains("$jarName-$releaseVersion(-.*)?.jar".toRegex())
             }
             if (maybeJar.isEmpty) {
                 throw IllegalStateException("No $jarName JAR found. Have you deployed the Corda project to Maven? Looked for \"$jarName-$releaseVersion.jar\"")
