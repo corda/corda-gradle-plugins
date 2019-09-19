@@ -2,7 +2,13 @@
 
 ## Version 5
 
+### Version 5.0.5
+
 ### Version 5.0.4
+
+* `cordformation`: remove hard dependency on java 1.8 for macos in runnodes (and allow for usage of JAVA_HOME if set)
+
+* `cordformation`: add support for classifier (eg. jdk11) in detection of corda.jar file.  
 
 ### Version 5.0.3
 
