@@ -37,12 +37,16 @@ class Cordformation : Plugin<Project> {
          * @param jarName The name of the JAR you wish to access.
          * @return A file handle to the file in the JAR.
          */
+        private const val VERSION_ID_PATTERN = "\\d\\.\\d(-SNAPSHOT|-RC\\d{2}|.\\d{8})?"
+        private val CORDA_JAR_REGEX = ".*corda-$VERSION_ID_PATTERN(-.*)?\\.jar\$".toRegex(RegexOption.IGNORE_CASE)
+        private val CORDA_ENT_JAR_REGEX = ".*corda-enterprise-$VERSION_ID_PATTERN(-.*)?\\.jar\$".toRegex(RegexOption.IGNORE_CASE)
+
         fun verifyAndGetRuntimeJar(project: Project, jarName: String): File {
             val releaseVersion = project.findRootProperty<String>("corda_release_version")
                     ?: throw IllegalStateException("Could not find a valid declaration of \"corda_release_version\"")
             val maybeJar = project.configuration("runtime").filter {
-                it.toString().contains("$jarName-enterprise-$releaseVersion(-*)?.jar".toRegex()) ||
-                it.toString().contains("$jarName-$releaseVersion(-.*)?.jar".toRegex())
+                it.toString().contains(CORDA_ENT_JAR_REGEX) ||
+                it.toString().contains(CORDA_JAR_REGEX)
             }
             if (maybeJar.isEmpty) {
                 throw IllegalStateException("No $jarName JAR found. Have you deployed the Corda project to Maven? Looked for \"$jarName-$releaseVersion.jar\"")
