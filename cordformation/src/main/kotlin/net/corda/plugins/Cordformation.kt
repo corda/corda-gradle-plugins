@@ -40,8 +40,10 @@ class Cordformation : Plugin<Project> {
         fun verifyAndGetRuntimeJar(project: Project, jarName: String): File {
             val releaseVersion = project.findRootProperty<String>("corda_release_version")
                     ?: throw IllegalStateException("Could not find a valid declaration of \"corda_release_version\"")
+            // need to cater for optional classifier (eg. corda-4.3-jdk11.jar)
+            val pattern = "\\Q$jarName\\E(-enterprise)?-\\Q$releaseVersion\\E(-.+)?\\.jar\$".toRegex()
             val maybeJar = project.configuration("runtime").filter {
-                "$jarName-$releaseVersion.jar" in it.toString() || "$jarName-enterprise-$releaseVersion.jar" in it.toString()
+                it.toString().contains(pattern)
             }
             if (maybeJar.isEmpty) {
                 throw IllegalStateException("No $jarName JAR found. Have you deployed the Corda project to Maven? Looked for \"$jarName-$releaseVersion.jar\"")
@@ -50,7 +52,6 @@ class Cordformation : Plugin<Project> {
                 require(jar.isFile) { "$jar either does not exist or is not a file" }
                 return jar
             }
-
         }
 
         val executableFileMode = "0755".toInt(8)
