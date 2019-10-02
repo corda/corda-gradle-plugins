@@ -22,6 +22,7 @@ changes to this list.
 * Austin Moothart (R3)
 * Barry Childe (HSBC)
 * Barry Flower (Westpac)
+* Ben Shi (GROW Super)
 * Benjamin Abineri (R3)
 * Benoit Lafontaine (OCTO)
 * Berit Bourgonje (ING)
