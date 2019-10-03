@@ -89,6 +89,30 @@ class CordformTest : BaseformTest() {
         assertThat(getNodeCordappConfig(notaryNodeName, localCordappJarName)).isRegularFile()
     }
 
+    @Test
+    fun `regex matching used by verifyAndGetRuntimeJar()`() {
+        val jarName = "corda"
 
+        var releaseVersion = "4.3"
+        var pattern = "\\Q$jarName\\E(-enterprise)?-\\Q$releaseVersion\\E(-.+)?\\.jar\$".toRegex()
+        assertThat("corda-4.3.jar".contains(pattern)).isTrue()
+        assertThat("corda-4.3.jar".contains(pattern)).isTrue()
+        assertThat("corda-4.3.jarBla".contains(pattern)).isFalse()
+        assertThat("bla\\bla\\bla\\corda-4.3.jar".contains(pattern)).isTrue()
+        assertThat("corda-4.3-jdk11.jar".contains(pattern)).isTrue()
+        assertThat("corda-4.3jdk11.jar".contains(pattern)).isFalse()
+        assertThat("bla\\bla\\bla\\corda-enterprise-4.3.jar".contains(pattern)).isTrue()
+        assertThat("corda-enterprise-4.3.jar".contains(pattern)).isTrue()
+        assertThat("corda-enterprise-4.3-jdk11.jar".contains(pattern)).isTrue()
 
+        releaseVersion = "4.3-RC01"
+        pattern = "\\Q$jarName\\E(-enterprise)?-\\Q$releaseVersion\\E(-.+)?\\.jar\$".toRegex()
+        assertThat("corda-4.3-RC01.jar".contains(pattern)).isTrue()
+        assertThat("corda-4.3RC01.jar".contains(pattern)).isFalse()
+
+        releaseVersion = "4.3.20190925"
+        pattern = "\\Q$jarName\\E(-enterprise)?-\\Q$releaseVersion\\E(-.+)?\\.jar\$".toRegex()
+        assertThat("corda-4.3.20190925.jar".contains(pattern)).isTrue()
+        assertThat("corda-4.3.20190925-TEST.jar".contains(pattern)).isTrue()
+    }
 }
