@@ -401,9 +401,9 @@ open class Node @Inject constructor(private val project: Project) {
         }
         // Parsing O= & OU= part directly because importing BouncyCastle provider in Cordformation causes problems
         // with loading our custom X509EdDSAEngine.
-        val attributes = name!!.trim().split(",")
-        val organizationName = attributes.find { it.trim().startsWith("O=") }?.substringAfter("=")
-        val organizationUnit = attributes.find { it.trim().startsWith("OU=") }?.substringAfter("=")
+        val attributes = name!!.trim().split(",").map(String::trim)
+        val organizationName = attributes.find { it.startsWith("O=") }?.substringAfter("=")
+        val organizationUnit = attributes.find { it.startsWith("OU=") }?.substringAfter("=")
         val dirName = when {
             organizationName.isNullOrBlank() -> name
             organizationUnit.isNullOrBlank() -> organizationName

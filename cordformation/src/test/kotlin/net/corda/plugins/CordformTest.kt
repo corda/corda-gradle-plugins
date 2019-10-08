@@ -34,7 +34,7 @@ class CordformTest {
         const val cordaFinanceContractsJarName = "corda-finance-contracts-4.0"
         const val localCordappJarName = "locally-built-cordapp"
         const val notaryNodeName = "NotaryService"
-
+        const val notaryNodeUnitName = "_OrgUnit"
         private val testGradleUserHome = System.getProperty("test.gradle.user.home", ".")
     }
 
@@ -90,6 +90,19 @@ class CordformTest {
         assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceContractsJarName)).isRegularFile()
         assertThat(getNetworkParameterOverrides(notaryNodeName)).isRegularFile()
     }
+
+    @Test
+    fun `a node with cordapp dependency with OU in name`() {
+        val runner = getStandardGradleRunnerFor("DeploySingleNodeWithCordappWithOU.gradle")
+
+        val result = runner.build()
+
+        assertThat(result.task(":deployNodes")!!.outcome).isEqualTo(TaskOutcome.SUCCESS)
+        assertThat(getNodeCordappJar(notaryNodeName + notaryNodeUnitName, cordaFinanceWorkflowsJarName)).isRegularFile()
+        assertThat(getNodeCordappJar(notaryNodeName + notaryNodeUnitName, cordaFinanceContractsJarName)).isRegularFile()
+        assertThat(getNetworkParameterOverrides(notaryNodeName + notaryNodeUnitName)).isRegularFile()
+    }
+
 
     @Test
     fun `deploy a node with cordapp config`() {
