@@ -22,7 +22,7 @@ open class BaseformTest {
         const val cordaFinanceContractsJarName = "corda-finance-contracts-4.0"
         const val localCordappJarName = "locally-built-cordapp"
         const val notaryNodeName = "NotaryService"
-        const val notaryNodeUnitName = "_OrgUnit"
+        const val notaryNodeUnitName = "OrgUnit"
 
         private val testGradleUserHome = System.getProperty("test.gradle.user.home", ".")
     }
