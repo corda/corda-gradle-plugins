@@ -6,6 +6,8 @@
 
 * `publish-utils`: Generate appropriate `compile` and `runtime` dependencies when publishing from a given Gradle configuration.
 
+* `cordformation`: Add support for OU when generating nodes directories.
+
 ### Version 4.0.45
 
 * `api-scanner`: Update to support Gradle's `java-library` plugin.

@@ -399,13 +399,20 @@ open class Node @Inject constructor(private val project: Project) {
             project.logger.error("Node has a null name - cannot create node")
             throw IllegalStateException("Node has a null name - cannot create node")
         }
-        // Parsing O= part directly because importing BouncyCastle provider in Cordformation causes problems
+        // Parsing O= & OU= part directly because importing BouncyCastle provider in Cordformation causes problems
         // with loading our custom X509EdDSAEngine.
-        val organizationName = name!!.trim().split(",").firstOrNull { it.startsWith("O=") }?.substringAfter("=")
-        val dirName = organizationName ?: name
+        val attributes = name!!.trim().split(",").map(String::trim)
+        val organizationName = attributes.find { it.startsWith("O=") }?.substringAfter("=")
+        val organizationUnit = attributes.find { it.startsWith("OU=") }?.substringAfter("=")
+        val dirName = when {
+            organizationName.isNullOrBlank() -> name
+            organizationUnit.isNullOrBlank() -> organizationName
+            else -> organizationName + '_' + organizationUnit
+        }
+
         containerName = dirName!!.replace("\\s++".toRegex(), "-").toLowerCase()
         this.rootDir = rootDir.toFile()
-        nodeDir = File(this.rootDir, dirName.replace("\\s", ""))
+        nodeDir = File(this.rootDir, dirName.replace("\\s++".toRegex(), ""))
         Files.createDirectories(nodeDir.toPath())
     }
 
