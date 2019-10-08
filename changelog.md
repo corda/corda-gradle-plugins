@@ -4,6 +4,8 @@
 
 ### Version 5.0.5
 
+* `cordformation`: Add support for OU when generating nodes directories.
+
 ### Version 5.0.4
 
 * `cordformation`: remove hard dependency on java 1.8 for macos in runnodes (and allow for usage of JAVA_HOME if set)
