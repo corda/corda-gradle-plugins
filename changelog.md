@@ -2,6 +2,8 @@
 
 ## Version 4
 
+### Version 4.0.47
+
 ### Version 4.0.46
 
 * `publish-utils`: Generate appropriate `compile` and `runtime` dependencies when publishing from a given Gradle configuration.
