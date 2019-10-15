@@ -66,6 +66,19 @@ class CordformTest : BaseformTest() {
     }
 
     @Test
+    fun `a node with cordapp dependency with OU in name`() {
+        val runner = getStandardGradleRunnerFor("DeploySingleNodeWithCordappWithOU.gradle")
+
+        val result = runner.build()
+        val notaryFullName = "${notaryNodeName}_${notaryNodeUnitName}"
+
+        assertThat(result.task(":deployNodes")!!.outcome).isEqualTo(TaskOutcome.SUCCESS)
+        assertThat(getNodeCordappJar(notaryFullName, cordaFinanceWorkflowsJarName)).isRegularFile()
+        assertThat(getNodeCordappJar(notaryFullName, cordaFinanceContractsJarName)).isRegularFile()
+        assertThat(getNetworkParameterOverrides(notaryFullName)).isRegularFile()
+    }
+
+    @Test
     fun `deploy a node with cordapp config`() {
         val runner = getStandardGradleRunnerFor("DeploySingleNodeWithCordappConfig.gradle")
 
