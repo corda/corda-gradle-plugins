@@ -1,0 +1,38 @@
+import net.corda.plugins.GenerateApi
+
+plugins {
+    id 'java'
+    id 'net.corda.plugins.api-scanner' apply false
+}
+
+description 'Test generating API file when scanApi sets classifier from global property'
+
+ext {
+    // Must be set before the API Scanner plugin is applied.
+    cordaScanApiClassifier = 'target'
+}
+
+apply plugin: 'net.corda.plugins.api-scanner'
+apply from: 'repositories.gradle'
+
+sourceSets {
+    main {
+        java {
+            srcDir file('../resources/test/generate-scan-property-classifier/java')
+        }
+    }
+}
+
+jar {
+    archiveBaseName = 'scanned'
+    archiveClassifier = 'target'
+}
+
+scanApi {
+    verbose = true
+}
+
+task generateApi(type: GenerateApi) {
+    baseName = 'generate-scan-property-classifier'
+    version = ''
+}

@@ -7,27 +7,28 @@ import org.junit.jupiter.api.io.TempDir;
 import java.io.IOException;
 import java.nio.file.Path;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.gradle.testkit.runner.TaskOutcome.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.gradle.testkit.runner.TaskOutcome.SKIPPED;
+import static org.gradle.testkit.runner.TaskOutcome.SUCCESS;
 
-class GenerateApiTest {
+class GenerateScanClassifierTest {
     private GradleProject testProject;
 
     @BeforeEach
     void setup(@TempDir Path testProjectDir) throws IOException {
-        testProject = new GradleProject(testProjectDir, "generate-api")
+        testProject = new GradleProject(testProjectDir, "generate-scan-classifier")
             .withTaskName("generateApi")
             .build();
     }
 
     @Test
-    void testGenerateApi() throws IOException {
+    void testApiScanWithClassifier() throws IOException {
         assertThat(testProject.getOutcomeOf("jar")).isEqualTo(SUCCESS);
         assertThat(testProject.getOutcomeOf("scanApi")).isEqualTo(SUCCESS);
         assertThat(testProject.getOutcomeOf("generateApi")).isEqualTo(SUCCESS);
         assertThat(testProject.getApiLines())
             .contains(
-                "public class net.corda.example.SimpleClass extends java.lang.Object",
+                "public class net.corda.example.WhenScanHasClassifier extends java.lang.Object",
                 "  public <init>()",
                 "##"
             );

@@ -6,6 +6,8 @@
 
 * `cordformation`: Add support for OU when generating nodes directories.
 
+* `api-scanner`: Each `scanApi` task can now be configured to target the jar task that has a specific classifier. By default, it will scan the jar that has no classifier but this default can be set globally via the `cordaScanApiClassifier` property.
+
 ### Version 5.0.4
 
 * `cordformation`: remove hard dependency on java 1.8 for macos in runnodes (and allow for usage of JAVA_HOME if set)

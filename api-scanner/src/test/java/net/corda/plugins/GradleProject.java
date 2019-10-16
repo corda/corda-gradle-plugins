@@ -93,6 +93,7 @@ public class GradleProject {
             .withProjectDir(projectDir.toFile())
             .withArguments(getGradleArgsForTasks(taskName))
             .withPluginClasspath()
+            .withDebug(true)
             .build();
         output = result.getOutput();
         System.out.println(output);
