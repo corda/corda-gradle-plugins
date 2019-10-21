@@ -24,6 +24,7 @@ class GenerateEmptyApiTest {
     void testGenerateEmptyApi() throws IOException {
         assertThat(testProject.getOutcomeOf("jar")).isNull();
         assertThat(testProject.getOutcomeOf("scanApi")).isEqualTo(NO_SOURCE);
+        assertThat(testProject.getOutcomeOf("generateApi")).isEqualTo(SUCCESS);
         assertThat(testProject.getApiLines()).isEmpty();
     }
 }
