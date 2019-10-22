@@ -6,8 +6,8 @@ import java.util.*
 
 private const val HEADLESS_FLAG = "--headless"
 private const val CAPSULE_DEBUG_FLAG = "--capsule-debug"
-private const val BASE_DEBUG_PORT_FLAG = "-Dnet.corda.noderunner.debug.port="
-private const val BASE_MONITORING_PORT_FLAG = "-Dnet.corda.noderunner.monitoring.port="
+private const val BASE_DEBUG_PORT_FLAG = "--debug.port="
+private const val BASE_MONITORING_PORT_FLAG = "--monitoring.port="
 private const val CORDA_JAR_NAME = "corda.jar"
 private const val CORDA_WEBSERVER_JAR_NAME = "corda-testserver.jar"
 private const val OLD_CORDA_WEBSERVER_JAR_NAME = "corda-webserver.jar"
@@ -42,19 +42,19 @@ fun main(args: Array<String>) {
     val headless = ((!isTmux() && GraphicsEnvironment.isHeadless()) || args.contains(HEADLESS_FLAG))
     val capsuleDebugMode = args.contains(CAPSULE_DEBUG_FLAG)
     try{
-        base_debug_port = Integer.valueOf(args.first { it -> it.contains(BASE_DEBUG_PORT_FLAG)}.removePrefix(BASE_DEBUG_PORT_FLAG))
+        base_debug_port = Integer.valueOf(args.first { it -> it.startsWith(BASE_DEBUG_PORT_FLAG)}.removePrefix(BASE_DEBUG_PORT_FLAG))
         println("base_debug_port set to: $base_debug_port")
-    }catch(e: Throwable){
+    }catch(e: NumberFormatException){
         println("base_debug_port set to default： $base_debug_port")
     }
     try{
-        base_monitoring_port = Integer.valueOf(args.first { it -> it.contains(BASE_MONITORING_PORT_FLAG)}.removePrefix(BASE_MONITORING_PORT_FLAG))
+        base_monitoring_port = Integer.valueOf(args.first { it -> it.startsWith(BASE_MONITORING_PORT_FLAG)}.removePrefix(BASE_MONITORING_PORT_FLAG))
         println("base_monitoring_port set to: $base_monitoring_port")
-    }catch(e: Throwable){
+    }catch(e: NumberFormatException){
         println("base_monitoring_port set to default: $base_monitoring_port")
     }
     val workingDir = File(System.getProperty("user.dir"))
-    val javaArgs = args.filter { it != HEADLESS_FLAG && it != CAPSULE_DEBUG_FLAG && !it.contains(BASE_DEBUG_PORT_FLAG) && !it.contains(BASE_MONITORING_PORT_FLAG) }
+    val javaArgs = args.filter { it != HEADLESS_FLAG && it != CAPSULE_DEBUG_FLAG && !it.startsWith(BASE_DEBUG_PORT_FLAG) && !it.startsWith(BASE_MONITORING_PORT_FLAG) }
     val jvmArgs = if (capsuleDebugMode) listOf("-Dcapsule.log=verbose") else emptyList()
     println("Starting nodes in $workingDir")
     workingDir.listFiles { file -> file.isDirectory }.forEach { dir ->
