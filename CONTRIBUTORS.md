@@ -138,4 +138,5 @@ changes to this list.
 * Viktor Kolomeyko (R3)
 * Wawrzek Niewodniczanski (R3)
 * Wei Wu Zhang (Commonwealth Bank of Australia)
+* William Yang
 * Zabrina Smith (Northern Trust)
