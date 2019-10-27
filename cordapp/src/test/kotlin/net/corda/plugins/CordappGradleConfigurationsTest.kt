@@ -32,7 +32,7 @@ class CordappGradleConfigurationsTest {
                     |
                     |dependencies {
                     |    compile "org.slf4j:slf4j-api:1.7.26"
-                    |    runtime "commons-io:commons-io:2.4"
+                    |    runtime "commons-io:commons-io:2.6"
                     |    cordaCompile "com.google.guava:guava:20.0"
                     |    cordaRuntime "javax.servlet:javax.servlet-api:3.1.0"
                     |    implementation "javax.persistence:javax.persistence-api:2.2"
@@ -77,7 +77,7 @@ class CordappGradleConfigurationsTest {
     @Test
     fun testRuntimeIncluded() {
         assertThat(testProject.output)
-            .contains("CorDapp dependency: commons-io-2.4.jar")
+            .contains("CorDapp dependency: commons-io-2.6.jar")
         assertThat(poms)
             .anyMatch { it.name == "META-INF/maven/commons-io/commons-io/pom.xml" }
     }

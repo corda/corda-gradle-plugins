@@ -8,7 +8,6 @@ description 'Deletes or stubs out unwanted elements from Java/Kotlin byte-code.'
 
 repositories {
     mavenCentral()
-    jcenter()
     maven { url "https://kotlin.bintray.com/kotlinx/" }
 }
 

@@ -5,7 +5,6 @@ description 'Turns a project into a cordapp project that produces cordapp fat JA
 
 repositories {
     mavenCentral()
-    jcenter()
 }
 
 gradlePlugin {
