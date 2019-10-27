@@ -6,7 +6,6 @@ description "Generates a summary of the artifact's public API"
 
 repositories {
     mavenCentral()
-    jcenter()
 }
 
 gradlePlugin {
