@@ -4,7 +4,6 @@ description 'Test artifacts for the jar-filter plugin.'
 
 repositories {
     mavenCentral()
-    jcenter()
 }
 
 dependencies {
