@@ -10,6 +10,8 @@
 
 * `cordformation`: Add `--base-debug-port=` and `--base-monitoring-port=` options to the `runnodes` script to change the port numbers that the script will begin incrementing from.
 
+* `api-scanner`: Add `excludePackages` option to the `scanApi` task.
+
 ### Version 5.0.4
 
 * `cordformation`: remove hard dependency on java 1.8 for macos in runnodes (and allow for usage of JAVA_HOME if set)

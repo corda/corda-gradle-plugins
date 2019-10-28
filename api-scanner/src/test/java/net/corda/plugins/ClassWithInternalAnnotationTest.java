@@ -24,5 +24,9 @@ class ClassWithInternalAnnotationTest {
         assertEquals("public class net.corda.example.AnnotatedClass extends java.lang.Object\n" +
             "  public <init>()\n" +
             "##", testProject.getApiText());
+
+        // Make this explicit - the InternalClass has NOT been included!
+        assertThat(testProject.getOutput()).contains("net.corda.example.InternalClass");
+        assertThat(testProject.getApiText()).doesNotContain("class net.corda.example.InternalClass ");
     }
 }

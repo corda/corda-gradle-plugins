@@ -54,8 +54,8 @@ public class ApiPrintWriter extends PrintWriter {
         println();
     }
 
-    public void println(MethodInfo method, String indentation) {
-        append(asAnnotations(method.getAnnotationNames(), indentation));
+    public void println(MethodInfo method, List<String> visibleAnnotations, String indentation) {
+        append(asAnnotations(visibleAnnotations, indentation));
         append(indentation);
         if (method.getModifiersStr() != null) {
             append(method.getModifiersStr()).append(' ');
@@ -79,8 +79,8 @@ public class ApiPrintWriter extends PrintWriter {
         println(')');
     }
 
-    public void println(FieldInfo field, String indentation) {
-        append(asAnnotations(field.getAnnotationNames(), indentation))
+    public void println(FieldInfo field, List<String> visibleAnnotations, String indentation) {
+        append(asAnnotations(visibleAnnotations, indentation))
             .append(indentation)
             .append(field.getModifierStr())
             .append(' ')

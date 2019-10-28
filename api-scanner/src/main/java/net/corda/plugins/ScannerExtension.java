@@ -2,12 +2,12 @@ package net.corda.plugins;
 
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.SetProperty;
 
 import javax.inject.Inject;
 import java.util.List;
 import java.util.Map;
 
-import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 
 @SuppressWarnings({"unused", "WeakerAccess"})
@@ -15,12 +15,15 @@ public class ScannerExtension {
 
     private boolean verbose;
     private boolean enabled = true;
-    private List<String> excludeClasses = emptyList();
+    private final SetProperty<String> excludeClasses;
     private Map<String, List<String>> excludeMethods = emptyMap();
+    private final SetProperty<String> excludePackages;
     private final Property<String> targetClassifier;
 
     @Inject
     public ScannerExtension(ObjectFactory objectFactory, String defaultClassifier) {
+        excludeClasses = objectFactory.setProperty(String.class);
+        excludePackages = objectFactory.setProperty(String.class);
         targetClassifier = objectFactory.property(String.class).convention(defaultClassifier);
     }
 
@@ -40,12 +43,8 @@ public class ScannerExtension {
         this.enabled = enabled;
     }
 
-    public List<String> getExcludeClasses() {
+    public SetProperty<String> getExcludeClasses() {
         return excludeClasses;
-    }
-
-    public void setExcludeClasses(List<String> excludeClasses) {
-        this.excludeClasses = excludeClasses;
     }
 
     public Map<String, List<String>> getExcludeMethods() {
@@ -54,6 +53,10 @@ public class ScannerExtension {
 
     public void setExcludeMethods(Map<String, List<String>> excludeMethods) {
         this.excludeMethods = excludeMethods;
+    }
+
+    public SetProperty<String> getExcludePackages() {
+        return excludePackages;
     }
 
     public Property<String> getTargetClassifier() {
