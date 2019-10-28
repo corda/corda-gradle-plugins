@@ -4,6 +4,8 @@
 
 ### Version 4.0.47
 
+* `cordformation`: Add `--base-debug-port=` and `--base-monitoring-port=` options to the `runnodes` script to change the port numbers that the script will begin incrementing from.
+
 ### Version 4.0.46
 
 * `publish-utils`: Generate appropriate `compile` and `runtime` dependencies when publishing from a given Gradle configuration.
