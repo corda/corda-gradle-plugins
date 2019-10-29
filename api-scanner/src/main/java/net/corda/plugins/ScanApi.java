@@ -3,11 +3,15 @@ package net.corda.plugins;
 import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner;
 import io.github.lukehutch.fastclasspathscanner.scanner.*;
 import org.gradle.api.DefaultTask;
+import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.*;
 import org.gradle.api.tasks.Console;
 
+import javax.inject.Inject;
 import java.io.*;
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Inherited;
@@ -23,7 +27,7 @@ import java.util.stream.StreamSupport;
 import static java.util.Collections.*;
 import static java.util.stream.Collectors.*;
 
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "WeakerAccess"})
 public class ScanApi extends DefaultTask {
     private static final int CLASS_MASK = Modifier.classModifiers();
     private static final int INTERFACE_MASK = Modifier.interfaceModifiers() & ~Modifier.ABSTRACT;
@@ -70,15 +74,18 @@ public class ScanApi extends DefaultTask {
 
     private final ConfigurableFileCollection sources;
     private final ConfigurableFileCollection classpath;
-    private final Set<String> excludeClasses;
+    private final SetProperty<String> excludePackages;
+    private final SetProperty<String> excludeClasses;
     private final Map<String, Set<String>> excludeMethods;
     private final File outputDir;
     private boolean verbose;
 
-    public ScanApi() {
+    @Inject
+    public ScanApi(ObjectFactory objectFactory) {
         sources = getProject().files();
         classpath = getProject().files();
-        excludeClasses = new LinkedHashSet<>();
+        excludePackages = objectFactory.setProperty(String.class);
+        excludeClasses = objectFactory.setProperty(String.class);
         excludeMethods = new LinkedHashMap<>();
         outputDir = new File(getProject().getBuildDir(), "api");
     }
@@ -104,13 +111,21 @@ public class ScanApi extends DefaultTask {
     }
 
     @Input
-    public Collection<String> getExcludeClasses() {
-        return unmodifiableSet(excludeClasses);
+    public SetProperty<String> getExcludePackages() {
+        return excludePackages;
     }
 
-    void setExcludeClasses(Collection<String> excludeClasses) {
-        this.excludeClasses.clear();
-        this.excludeClasses.addAll(excludeClasses);
+    void setExcludePackages(SetProperty<String> excludePackages) {
+        this.excludePackages.set(excludePackages);
+    }
+
+    @Input
+    public SetProperty<String> getExcludeClasses() {
+        return excludeClasses;
+    }
+
+    void setExcludeClasses(SetProperty<String> excludeClasses) {
+        this.excludeClasses.set(excludeClasses);
     }
 
     @Input
@@ -153,6 +168,7 @@ public class ScanApi extends DefaultTask {
             }
         } catch (IOException e) {
             getLogger().error("Failed to write API file", e);
+            throw new InvalidUserCodeException(e.getMessage(), e);
         }
     }
 
@@ -233,13 +249,15 @@ public class ScanApi extends DefaultTask {
         }
 
         private String[] getScanSpecification() {
-            String[] spec = new String[2 + excludeClasses.size()];
+            Set<String> allExcludes = new LinkedHashSet<>(excludePackages.get());
+            allExcludes.addAll(excludeClasses.get());
+            String[] spec = new String[2 + allExcludes.size()];
             spec[0] = "!";     // Don't blacklist system classes from the output.
             spec[1] = "-dir:"; // Ignore classes on the filesystem.
 
             int i = 2;
-            for (String excludeClass : excludeClasses) {
-                spec[i++] = '-' + excludeClass;
+            for (String exclude : allExcludes) {
+                spec[i++] = '-' + exclude;
             }
             return spec;
         }
@@ -276,6 +294,11 @@ public class ScanApi extends DefaultTask {
                 if (classInfo.isAnnotation() && !isVisibleAnnotation(className)) {
                     // Exclude these annotations from the output,
                     // e.g. because they're internal to Kotlin or Corda.
+                    return;
+                }
+
+                if (hasInternalAnnotation(classInfo.getNamesOfDirectAnnotations())) {
+                    // Excludes classes annotated with any @CordaInternal annotation.
                     return;
                 }
 
@@ -322,7 +345,7 @@ public class ScanApi extends DefaultTask {
                         && isValid(method.getModifiers(), METHOD_MASK) // Excludes bridge methods
                         && !hasInternalAnnotation(method.getAnnotationNames()) // Excludes methods annotated as @CordaInternal
                         && !isKotlinInternalScope(method)) {
-                    writer.println(filterAnnotationsFor(method), "  ");
+                    writer.println(method, filterNames(method.getAnnotationInfo()), "  ");
                 }
             }
         }
@@ -333,7 +356,7 @@ public class ScanApi extends DefaultTask {
                 if (isVisible(field.getModifiers())
                         && isValid(field.getModifiers(), FIELD_MASK)
                         && !hasInternalAnnotation(field.getAnnotationNames())) {
-                    writer.println(filterAnnotationsFor(field), "  ");
+                    writer.println(field, filterNames(field.getAnnotationInfo()), "  ");
                 }
             }
         }
@@ -393,37 +416,12 @@ public class ScanApi extends DefaultTask {
                 .collect(toList());
         }
 
-        private MethodInfo filterAnnotationsFor(MethodInfo method) {
-            return new MethodInfo(
-                method.getClassName(),
-                method.getMethodName(),
-                method.getAnnotationInfo()
-                    .stream()
-                    .filter(this::isVisibleAnnotation)
-                    .sorted()
-                    .collect(toList()),
-                method.getModifiers(),
-                method.getTypeDescriptorStr(),
-                method.getTypeSignatureStr(),
-                method.getParameterNames(),
-                method.getParameterModifiers(),
-                method.getParameterAnnotationInfo()
-            );
-        }
-
-        private FieldInfo filterAnnotationsFor(FieldInfo field) {
-            return new FieldInfo(
-                field.getClassName(),
-                field.getFieldName(),
-                field.getModifiers(),
-                field.getTypeDescriptorStr(),
-                field.getTypeSignatureStr(),
-                field.getConstFinalValue(),
-                field.getAnnotationInfo().stream()
-                    .filter(this::isVisibleAnnotation)
-                    .sorted()
-                    .collect(toList())
-            );
+        private List<String> filterNames(Collection<AnnotationInfo> annotations) {
+            return annotations.stream()
+                .filter(this::isVisibleAnnotation)
+                .sorted()
+                .map(AnnotationInfo::getAnnotationName)
+                .collect(toList());
         }
 
         private boolean isVisibleAnnotation(AnnotationInfo annotation) {

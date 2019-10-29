@@ -34,12 +34,21 @@ scanApi {
     // Enable / disable the task within this module.
     enabled = {true|false}
 
+    // The `archiveClassifier` value for the Jar artifact that will be scanned.
+    // This is empty by default, to select the module's primary Jar artifact.
+    targetClassifier = '<classifier>'
+
     // Names of classes that should be excluded from the output.
     excludeClasses = [
         ...
     ]
 
-    //Methods that should be excluded from the output.
+    // Names of packages that should be excluded from the output.
+    excludePackages = [
+        ...
+    ]
+
+    // Methods that should be excluded from the output.
     excludeMethods = [
         "class_name": [
             "method_1_signature",
