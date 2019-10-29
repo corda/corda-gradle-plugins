@@ -2,6 +2,8 @@
 
 ## Version 5
 
+### Version 5.0.6
+
 ### Version 5.0.5
 
 * `cordformation`: Add support for OU when generating nodes directories.
