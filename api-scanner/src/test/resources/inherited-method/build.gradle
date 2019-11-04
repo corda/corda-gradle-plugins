@@ -1,0 +1,23 @@
+plugins {
+    id 'java'
+    id 'net.corda.plugins.api-scanner'
+}
+apply from: 'repositories.gradle'
+
+description 'Test behaviour of an inherited method'
+
+sourceSets {
+    main {
+        java {
+            srcDir file("../resources/test/inherited-method/java")
+        }
+    }
+}
+
+jar {
+    archiveBaseName = 'inherited-method'
+}
+
+scanApi {
+    verbose = true
+}

@@ -14,7 +14,9 @@ class KotlinAnnotationsTest {
 
     @BeforeAll
     static void setup(@TempDir Path testProjectDir) throws IOException {
-        testProject = new GradleProject(testProjectDir, "kotlin-annotations").build();
+        testProject = new GradleProject(testProjectDir, "kotlin-annotations")
+            .withResource("kotlin.gradle")
+            .build();
     }
 
     private static final String[] expectedClassWithDeprecatedFunctions = {
@@ -76,10 +78,29 @@ class KotlinAnnotationsTest {
     }
 
     @Test
-    void testJvmStaticAnnotation() throws IOException {
+    void testJvmStaticFunctionAnnotation() throws IOException {
         assertThat(testProject.getApiLines())
             .containsSequence(expectedClassWithJvmStaticFunction)
             .containsSequence(expectedClassWithJvmStaticFunctionCompanion);
+    }
+
+    @Test
+    void testJvmStaticFieldAnnotation() throws IOException {
+        assertThat(testProject.getApiLines())
+            .containsSequence(
+                "public final class net.corda.example.HasJvmStaticField extends java.lang.Object",
+                "  public <init>()",
+                "  @NotNull",
+                "  public static final String getStringValue()",
+                "  public static final net.corda.example.HasJvmStaticField$Companion Companion",
+                "##"
+            ).containsSequence(
+                "public static final class net.corda.example.HasJvmStaticField$Companion extends java.lang.Object",
+                "  public <init>(kotlin.jvm.internal.DefaultConstructorMarker)",
+                "  @NotNull",
+                "  public final String getStringValue()",
+                "##"
+            );
     }
 
     @Test

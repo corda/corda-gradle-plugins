@@ -14,7 +14,9 @@ class KotlinVarargMethodTest {
 
     @BeforeEach
     void setup(@TempDir Path testProjectDir) throws IOException {
-        testProject = new GradleProject(testProjectDir, "kotlin-vararg-method").build();
+        testProject = new GradleProject(testProjectDir, "kotlin-vararg-method")
+            .withResource("kotlin.gradle")
+            .build();
     }
 
     private static final String[] expectedInterfaceWithVarargMethod = {

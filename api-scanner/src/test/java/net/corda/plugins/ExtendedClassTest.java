@@ -28,7 +28,7 @@ class ExtendedClassTest {
     @Test
     void testImplementingClass() throws IOException {
         assertThat(testProject.getApiLines()).containsSequence(
-            "public class net.corda.example.ImplementingClass extends java.lang.Object implements java.io.Closeable",
+            "public class net.corda.example.ImplementingClass extends java.lang.Object implements java.io.Closeable, java.lang.AutoCloseable",
             "  public <init>()",
             "  public void close()",
             "##");

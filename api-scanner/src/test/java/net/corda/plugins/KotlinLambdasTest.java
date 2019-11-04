@@ -15,7 +15,9 @@ class KotlinLambdasTest {
 
     @BeforeEach
     void setup(@TempDir Path testProjectDir) throws IOException {
-        testProject = new GradleProject(testProjectDir, "kotlin-lambdas").build();
+        testProject = new GradleProject(testProjectDir, "kotlin-lambdas")
+            .withResource("kotlin.gradle")
+            .build();
     }
 
     @Test

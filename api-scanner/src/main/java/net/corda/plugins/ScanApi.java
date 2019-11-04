@@ -1,7 +1,6 @@
 package net.corda.plugins;
 
-import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner;
-import io.github.lukehutch.fastclasspathscanner.scanner.*;
+import io.github.classgraph.*;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.file.ConfigurableFileCollection;
@@ -45,6 +44,7 @@ public class ScanApi extends DefaultTask {
     private static final int FIELD_MASK = Modifier.fieldModifiers();
     private static final int VISIBILITY_MASK = Modifier.PUBLIC | Modifier.PROTECTED;
 
+    private static final String ENUM_BASE_CLASS = "java.lang.Enum";
     private static final String DONOTIMPLEMENT_ANNOTATION_NAME = "net.corda.core.DoNotImplement";
     private static final String INTERNAL_ANNOTATION_NAME = ".CordaInternal";
     private static final String DEFAULT_INTERNAL_ANNOTATION = "net.corda.core" + INTERNAL_ANNOTATION_NAME;
@@ -220,73 +220,70 @@ public class ScanApi extends DefaultTask {
                 scan(writer, appLoader);
             } catch (IOException e) {
                 getLogger().error("API scan has failed", e);
+                throw new InvalidUserCodeException(e.getMessage(), e);
             }
         }
 
         void scan(ApiPrintWriter writer, ClassLoader appLoader) {
-            Set<String> inherited = new HashSet<>();
-            ScanResult result = new FastClasspathScanner(getScanSpecification())
-                .matchAllAnnotationClasses(annotation -> {
-                    if (annotation.isAnnotationPresent(Inherited.class)) {
-                        inherited.add(annotation.getName());
-                    }
-                })
-                .overrideClassLoaders(appLoader)
-                .ignoreParentClassLoaders()
-                .ignoreMethodVisibility()
-                .ignoreFieldVisibility()
-                .enableMethodInfo()
-                .enableFieldInfo()
-                .verbose(verbose)
-                .scan();
-            inheritedAnnotations = unmodifiableSet(inherited);
-            loadAnnotationCaches(result);
-            getLogger().info("Annotations:");
-            getLogger().info("- Inherited: {}", inheritedAnnotations);
-            getLogger().info("- Internal:  {}", internalAnnotations);
-            getLogger().info("- Invisible: {}", invisibleAnnotations);
-            writeApis(writer, result);
-        }
-
-        private String[] getScanSpecification() {
-            Set<String> allExcludes = new LinkedHashSet<>(excludePackages.get());
-            allExcludes.addAll(excludeClasses.get());
-            String[] spec = new String[2 + allExcludes.size()];
-            spec[0] = "!";     // Don't blacklist system classes from the output.
-            spec[1] = "-dir:"; // Ignore classes on the filesystem.
-
-            int i = 2;
-            for (String exclude : allExcludes) {
-                spec[i++] = '-' + exclude;
+            try (ScanResult result = new ClassGraph()
+                    .blacklistPackages(excludePackages.get().toArray(new String[0]))
+                    .blacklistClasses(excludeClasses.get().toArray(new String[0]))
+                    .overrideClassLoaders(appLoader)
+                    .ignoreParentClassLoaders()
+                    .ignoreMethodVisibility()
+                    .ignoreFieldVisibility()
+                    .disableDirScanning()
+                    .enableStaticFinalFieldConstantInitializerValues()
+                    .enableExternalClasses()
+                    .enableAnnotationInfo()
+                    .enableClassInfo()
+                    .enableMethodInfo()
+                    .enableFieldInfo()
+                    .verbose(verbose)
+                    .scan()) {
+                loadAnnotationCaches(result);
+                getLogger().info("Annotations:");
+                getLogger().info("- Inherited: {}", inheritedAnnotations);
+                getLogger().info("- Internal:  {}", internalAnnotations);
+                getLogger().info("- Invisible: {}", invisibleAnnotations);
+                writeApis(writer, result);
             }
-            return spec;
         }
 
         private void loadAnnotationCaches(ScanResult result) {
-            Set<String> internal = result.getNamesOfAllAnnotationClasses().stream()
+            ClassInfoList scannedAnnotations = result.getAllAnnotations();
+            Set<String> internal = scannedAnnotations.getNames().stream()
                 .filter(s -> s.endsWith(INTERNAL_ANNOTATION_NAME))
                 .collect(toCollection(LinkedHashSet::new));
             internal.add(DEFAULT_INTERNAL_ANNOTATION);
             internalAnnotations = unmodifiableSet(internal);
 
             Set<String> invisible = internalAnnotations.stream()
-                .flatMap(a -> result.getNamesOfAnnotationsWithMetaAnnotation(a).stream())
+                .flatMap(a -> scannedAnnotations
+                                .filter(i -> i.hasAnnotation(a))
+                                .getNames()
+                                .stream())
                 .collect(toCollection(LinkedHashSet::new));
             invisible.addAll(ANNOTATION_BLACKLIST);
             invisible.addAll(internal);
             invisibleAnnotations = unmodifiableSet(invisible);
+
+            List<String> inherited = scannedAnnotations
+                .filter(a -> a.loadClass().isAnnotationPresent(Inherited.class))
+                .getNames();
+            inheritedAnnotations = unmodifiableSet(new LinkedHashSet<>(inherited));
         }
 
         private void writeApis(ApiPrintWriter writer, ScanResult result) {
-            Map<String, ClassInfo> allInfo = result.getClassNameToClassInfo();
-            result.getNamesOfAllClasses().forEach(className -> {
+            Map<String, ClassInfo> allInfo = result.getAllClassesAsMap();
+            result.getAllClasses().getNames().forEach(className -> {
                 if (className.contains(".internal.")) {
                     // These classes belong to internal Corda packages.
                     return;
                 }
 
                 ClassInfo classInfo = allInfo.get(className);
-                if (classInfo.getClassLoaders() == null) {
+                if (classInfo.isExternalClass()) {
                     // Ignore classes that belong to one of our target ClassLoader's parents.
                     return;
                 }
@@ -297,18 +294,18 @@ public class ScanApi extends DefaultTask {
                     return;
                 }
 
-                if (hasInternalAnnotation(classInfo.getNamesOfDirectAnnotations())) {
+                if (hasInternalAnnotation(classInfo.getAnnotations().directOnly().getNames())) {
                     // Excludes classes annotated with any @CordaInternal annotation.
                     return;
                 }
 
-                Class<?> javaClass = result.classNameToClassRef(className);
+                Class<?> javaClass = result.loadClass(className, false);
                 if (!isVisible(javaClass.getModifiers())) {
                     // Excludes private and package-protected classes
                     return;
                 }
 
-                if (classInfo.getFullyQualifiedContainingMethodName() != null) {
+                if (classInfo.getFullyQualifiedDefiningMethodName() != null) {
                     // Ignore Kotlin auto-generated internal classes
                     // which are not part of the api
                     return;
@@ -321,8 +318,8 @@ public class ScanApi extends DefaultTask {
                 }
 
                 writeClass(writer, classInfo);
-                writeMethods(writer, classInfo.getMethodAndConstructorInfo());
-                writeFields(writer, classInfo.getFieldInfo());
+                writeMethods(writer, classInfo.getDeclaredMethodAndConstructorInfo());
+                writeFields(writer, classInfo.getDeclaredFieldInfo());
                 writer.println("##");
             });
         }
@@ -340,12 +337,15 @@ public class ScanApi extends DefaultTask {
         private void writeMethods(ApiPrintWriter writer, List<MethodInfo> methods) {
             sort(methods);
             for (MethodInfo method : methods) {
+                AnnotationInfoList methodAnnotations = method.getAnnotationInfo().directOnly();
                 if (isVisible(method.getModifiers()) // Only public and protected methods
                         && !isExcluded(method) // Filter out methods explicitly excluded
                         && isValid(method.getModifiers(), METHOD_MASK) // Excludes bridge methods
-                        && !hasInternalAnnotation(method.getAnnotationNames()) // Excludes methods annotated as @CordaInternal
+                        // Excludes methods annotated as @CordaInternal
+                        && !hasInternalAnnotation(methodAnnotations.getNames())
+                        && !isEnumConstructor(method)
                         && !isKotlinInternalScope(method)) {
-                    writer.println(method, filterNames(method.getAnnotationInfo()), "  ");
+                    writer.println(method, methodAnnotations.filter(this::isVisibleAnnotation), "  ");
                 }
             }
         }
@@ -353,10 +353,11 @@ public class ScanApi extends DefaultTask {
         private void writeFields(ApiPrintWriter writer, List<FieldInfo> fields) {
             sort(fields);
             for (FieldInfo field : fields) {
+                AnnotationInfoList fieldAnnotations = field.getAnnotationInfo().directOnly();
                 if (isVisible(field.getModifiers())
                         && isValid(field.getModifiers(), FIELD_MASK)
-                        && !hasInternalAnnotation(field.getAnnotationNames())) {
-                    writer.println(field, filterNames(field.getAnnotationInfo()), "  ");
+                        && !hasInternalAnnotation(fieldAnnotations.getNames())) {
+                    writer.println(field, fieldAnnotations.filter(this::isVisibleAnnotation), "  ");
                 }
             }
         }
@@ -368,7 +369,9 @@ public class ScanApi extends DefaultTask {
                     try {
                         return (int) classTypeMethod.invoke(metadata);
                     } catch (IllegalAccessException | InvocationTargetException e) {
-                        getLogger().error("Failed to read Kotlin annotation", e);
+                        Throwable ex = (e instanceof InvocationTargetException) ? e.getCause() : e;
+                        getLogger().error("Failed to read Kotlin annotation", ex);
+                        throw new InvalidUserCodeException(ex.getMessage(), ex);
                     }
                 }
             }
@@ -377,7 +380,7 @@ public class ScanApi extends DefaultTask {
 
         private Names toNames(Collection<ClassInfo> classes) {
             Map<Boolean, List<String>> partitioned = classes.stream()
-                .map(ClassInfo::getClassName)
+                .map(ClassInfo::getName)
                 .filter(ScanApi::isApplicationClass)
                 .collect(partitioningBy(this::isVisibleAnnotation, toCollection(ArrayList::new)));
             List<String> visible = partitioned.get(true);
@@ -393,16 +396,16 @@ public class ScanApi extends DefaultTask {
 
         private Set<ClassInfo> readClassAnnotationsFor(ClassInfo classInfo) {
             // The annotation ordering doesn't matter, as they will be sorted later.
-            Set<ClassInfo> annotations = new HashSet<>(classInfo.getAnnotations());
+            Set<ClassInfo> annotations = new HashSet<>(classInfo.getAnnotations().directOnly());
             annotations.addAll(selectInheritedAnnotations(classInfo.getSuperclasses()));
-            annotations.addAll(selectInheritedAnnotations(classInfo.getImplementedInterfaces()));
+            annotations.addAll(selectInheritedAnnotations(classInfo.getInterfaces().getImplementedInterfaces()));
             return annotations;
         }
 
         private Set<ClassInfo> readInterfaceAnnotationsFor(ClassInfo classInfo) {
             // The annotation ordering doesn't matter, as they will be sorted later.
-            Set<ClassInfo> annotations = new HashSet<>(classInfo.getAnnotations());
-            annotations.addAll(selectInheritedAnnotations(classInfo.getSuperinterfaces()));
+            Set<ClassInfo> annotations = new HashSet<>(classInfo.getAnnotations().directOnly());
+            annotations.addAll(selectInheritedAnnotations(classInfo.getInterfaces()));
             return annotations;
         }
 
@@ -411,21 +414,13 @@ public class ScanApi extends DefaultTask {
          */
         private List<ClassInfo> selectInheritedAnnotations(Collection<ClassInfo> classes) {
             return classes.stream()
-                .flatMap(cls -> cls.getAnnotations().stream())
-                .filter(ann -> inheritedAnnotations.contains(ann.getClassName()))
-                .collect(toList());
-        }
-
-        private List<String> filterNames(Collection<AnnotationInfo> annotations) {
-            return annotations.stream()
-                .filter(this::isVisibleAnnotation)
-                .sorted()
-                .map(AnnotationInfo::getAnnotationName)
+                .flatMap(cls -> cls.getAnnotations().directOnly().stream())
+                .filter(ann -> inheritedAnnotations.contains(ann.getName()))
                 .collect(toList());
         }
 
         private boolean isVisibleAnnotation(AnnotationInfo annotation) {
-            return isVisibleAnnotation(annotation.getAnnotationName());
+            return isVisibleAnnotation(annotation.getName());
         }
 
         private boolean isVisibleAnnotation(String className) {
@@ -443,7 +438,14 @@ public class ScanApi extends DefaultTask {
     }
 
     private static boolean isKotlinInternalScope(MethodInfo method) {
-        return method.getMethodName().indexOf('$') >= 0;
+        return method.getName().indexOf('$') >= 0;
+    }
+
+    // Kotlin 1.2 declares Enum constructors as protected, although
+    // both Java and Kotlin 1.3 declare them as private. But exclude
+    // them because Enum classes are final anyway.
+    private static boolean isEnumConstructor(MethodInfo method) {
+        return method.isConstructor() && method.getClassInfo().extendsSuperclass(ENUM_BASE_CLASS);
     }
 
     private static boolean isValid(int modifiers, int mask) {
@@ -451,8 +453,8 @@ public class ScanApi extends DefaultTask {
     }
 
     private boolean isExcluded(MethodInfo method) {
-        final String methodSignature = method.getMethodName() + method.getTypeDescriptorStr();
-        final String className = method.getClassName();
+        final String methodSignature = method.getName() + method.getTypeDescriptorStr();
+        final String className = method.getClassInfo().getName();
 
         return this.excludeMethods.containsKey(className) &&
                 this.excludeMethods.get(className).contains(methodSignature);
