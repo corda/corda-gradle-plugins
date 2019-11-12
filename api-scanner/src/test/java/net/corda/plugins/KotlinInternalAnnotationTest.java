@@ -15,7 +15,9 @@ class KotlinInternalAnnotationTest {
 
     @BeforeEach
     void setup(@TempDir Path testProjectDir) throws IOException {
-        testProject = new GradleProject(testProjectDir, "kotlin-internal-annotation").build();
+        testProject = new GradleProject(testProjectDir, "kotlin-internal-annotation")
+            .withResource("kotlin.gradle")
+            .build();
     }
 
     @Test

@@ -24,15 +24,24 @@ class AnnotatedInterfaceTest {
                 "@AlsoInherited",
                 "@IsInherited",
                 "@NotInherited",
-                "public interface net.corda.example.HasInheritedAnnotation")
+                "public interface net.corda.example.HasInheritedAnnotation",
+                "##")
             .containsSequence(
                 "@AlsoInherited",
                 "@IsInherited",
-                "public interface net.corda.example.InheritingAnnotations extends net.corda.example.HasInheritedAnnotation")
+                "public interface net.corda.example.InheritingAnnotations extends net.corda.example.HasInheritedAnnotation",
+                "##")
             .containsSequence(
                 "@DoNotImplement",
                 "@AnAnnotation",
-                "public interface net.corda.example.DoNotImplementAnnotation"
+                "public interface net.corda.example.DoNotImplementAnnotation",
+                "##"
+            ).containsSequence(
+                "@AlsoInherited",
+                "@IsInherited",
+                "public class net.corda.example.BaseClass extends java.lang.Object implements net.corda.example.InheritingAnnotations",
+                "  public <init>()",
+                "##"
             );
     }
 }

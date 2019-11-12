@@ -1,0 +1,30 @@
+plugins {
+    id 'net.corda.plugins.api-scanner'
+    id 'org.jetbrains.kotlin.jvm' version '$kotlin_version'
+}
+apply from: 'repositories.gradle'
+
+description 'Test appearance of Kotlin const field'
+
+sourceSets {
+    main {
+        kotlin {
+            srcDir file("../resources/test/kotlin-constant/kotlin")
+        }
+    }
+}
+
+dependencies {
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
+    implementation 'org.jetbrains.kotlin:kotlin-reflect'
+}
+
+apply from: 'kotlin.gradle'
+
+jar {
+    archiveBaseName = "kotlin-constant"
+}
+
+scanApi {
+    verbose = true
+}

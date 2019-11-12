@@ -43,6 +43,11 @@ public class GradleProject {
         this.output = "";
     }
 
+    public GradleProject withResource(String resourceName) throws IOException {
+        installResource(projectDir, resourceName);
+        return this;
+    }
+
     public GradleProject withTaskName(String taskName) {
         this.taskName = taskName;
         return this;

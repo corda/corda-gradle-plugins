@@ -21,6 +21,8 @@ dependencies {
     compileOnly files('../../annotations/build/libs/annotations.jar')
 }
 
+apply from: 'kotlin.gradle'
+
 jar {
     archiveBaseName = "kotlin-library"
 }

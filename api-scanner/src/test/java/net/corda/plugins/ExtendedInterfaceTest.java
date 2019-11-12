@@ -7,7 +7,7 @@ import org.junit.jupiter.api.io.TempDir;
 import java.io.IOException;
 import java.nio.file.Path;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 class ExtendedInterfaceTest {
     private GradleProject testProject;
@@ -19,10 +19,11 @@ class ExtendedInterfaceTest {
 
     @Test
     void testExtendedInterface() throws IOException {
-        assertEquals(
-            "public interface net.corda.example.ExtendedInterface extends java.util.concurrent.Future\n" +
-            "  public abstract String getName()\n" +
-            "  public abstract void setName(String)\n" +
-            "##", testProject.getApiText());
+        assertThat(testProject.getApiLines()).containsSequence(
+            "public interface net.corda.example.ExtendedInterface extends java.lang.Appendable, java.lang.Comparable, java.util.concurrent.Future",
+            "  public abstract String getName()",
+            "  public abstract void setName(String)",
+            "##"
+        );
     }
 }

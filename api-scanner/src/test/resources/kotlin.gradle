@@ -1,0 +1,10 @@
+import static org.gradle.api.JavaVersion.VERSION_1_8
+
+compileKotlin {
+    kotlinOptions {
+        jvmTarget = VERSION_1_8
+        apiVersion = "1.2"
+        languageVersion = "1.2"
+        freeCompilerArgs = ['-Xjvm-default=enable']
+    }
+}

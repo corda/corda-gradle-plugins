@@ -14,7 +14,9 @@ class KotlinExcludeMethodTest {
 
     @BeforeAll
     static void setup(@TempDir Path testProjectDir) throws IOException {
-        testProject = new GradleProject(testProjectDir, "kotlin-exclude-method").build();
+        testProject = new GradleProject(testProjectDir, "kotlin-exclude-method")
+            .withResource("kotlin.gradle")
+            .build();
     }
 
     @Test

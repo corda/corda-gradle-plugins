@@ -14,7 +14,9 @@ class KotlinLegacyTest {
 
     @BeforeEach
     void setup(@TempDir Path testProjectDir) throws IOException {
-        testProject = new GradleProject(testProjectDir, "kotlin-legacy").build();
+        testProject = new GradleProject(testProjectDir, "kotlin-legacy")
+            .withResource("kotlin.gradle")
+            .build();
     }
 
     @Test

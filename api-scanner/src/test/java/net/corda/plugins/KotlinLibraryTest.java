@@ -14,7 +14,9 @@ class KotlinLibraryTest {
 
     @BeforeEach
     void setup(@TempDir Path testProjectDir) throws IOException {
-        testProject = new GradleProject(testProjectDir, "kotlin-library").build();
+        testProject = new GradleProject(testProjectDir, "kotlin-library")
+            .withResource("kotlin.gradle")
+            .build();
     }
 
     @Test
