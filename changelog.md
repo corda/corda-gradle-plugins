@@ -2,6 +2,8 @@
 
 ## Version 5
 
+### Version 5.0.7
+
 ### Version 5.0.6
 
 `api-scanner`: Update FastClasspathScanner 2.18.2 to ClassGraph 4.8.53. This will break the API scan output in the follwing ways:
