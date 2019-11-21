@@ -4,9 +4,11 @@
 
 ### Version 5.0.7
 
+`distributed-testing`: Added the distributed testing plugin that can be use used to parallelize the tests of a given repository
+
 ### Version 5.0.6
 
-`api-scanner`: Update FastClasspathScanner 2.18.2 to ClassGraph 4.8.53. This will break the API scan output in the follwing ways:
+`api-scanner`: Update FastClasspathScanner 2.18.2 to ClassGraph 4.8.53. This will break the API scan output in the following ways:
  - No longer show constructors for subclasses of `Enum`. (Only relevant for Kotlin 1.2.)
  - Implemented interfaces are now displayed in ascending alphanumerical order.
 
