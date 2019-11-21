@@ -6,8 +6,8 @@ import org.apache.commons.compress.archivers.ArchiveOutputStream;
 import org.apache.commons.compress.archivers.ArchiveStreamFactory;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -90,14 +90,14 @@ public class TestDurationArtifactsTest {
         List<Tuple2<String, Long>> results
                 = TestDurationArtifacts.fromJunitXml(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)));
 
-        Assert.assertNotNull(results);
+        Assertions.assertNotNull(results);
 
-        Assert.assertFalse("Should have results", results.isEmpty());
-        Assert.assertEquals(results.size(), 2);
-        Assert.assertEquals(CLASSNAME + "." + "TEST-A", results.get(0).getFirst());
-        Assert.assertEquals(111_000_000_000L, results.get(0).getSecond().longValue());
-        Assert.assertEquals(CLASSNAME + "." + "TEST-B", results.get(1).getFirst());
-        Assert.assertEquals(222_200_000_000L, results.get(1).getSecond().longValue());
+        Assertions.assertFalse(results.isEmpty(), "Should have results");
+        Assertions.assertEquals(results.size(), 2);
+        Assertions.assertEquals(CLASSNAME + "." + "TEST-A", results.get(0).getFirst());
+        Assertions.assertEquals(111_000_000_000L, results.get(0).getSecond().longValue());
+        Assertions.assertEquals(CLASSNAME + "." + "TEST-B", results.get(1).getFirst());
+        Assertions.assertEquals(222_200_000_000L, results.get(1).getSecond().longValue());
     }
 
     @Test
@@ -111,14 +111,14 @@ public class TestDurationArtifactsTest {
         List<Tuple2<String, Long>> results
                 = TestDurationArtifacts.fromJunitXml(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)));
 
-        Assert.assertNotNull(results);
+        Assertions.assertNotNull(results);
 
-        Assert.assertFalse("Should have results", results.isEmpty());
-        Assert.assertEquals(results.size(), 2);
-        Assert.assertEquals(CLASSNAME + "." + "TEST-A", results.get(0).getFirst());
-        Assert.assertEquals(0L, results.get(0).getSecond().longValue());
-        Assert.assertEquals(CLASSNAME + "." + "TEST-B", results.get(1).getFirst());
-        Assert.assertEquals(0L, results.get(1).getSecond().longValue());
+        Assertions.assertFalse(results.isEmpty(), "Should have results");
+        Assertions.assertEquals(results.size(), 2);
+        Assertions.assertEquals(CLASSNAME + "." + "TEST-A", results.get(0).getFirst());
+        Assertions.assertEquals(0L, results.get(0).getSecond().longValue());
+        Assertions.assertEquals(CLASSNAME + "." + "TEST-B", results.get(1).getFirst());
+        Assertions.assertEquals(0L, results.get(1).getSecond().longValue());
     }
 
     @Test
@@ -132,14 +132,14 @@ public class TestDurationArtifactsTest {
         List<Tuple2<String, Long>> results
                 = TestDurationArtifacts.fromJunitXml(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)));
 
-        Assert.assertNotNull(results);
+        Assertions.assertNotNull(results);
 
-        Assert.assertFalse("Should have results", results.isEmpty());
-        Assert.assertEquals(2, results.size());
-        Assert.assertEquals(CLASSNAME + "." + "TEST-A", results.get(0).getFirst());
-        Assert.assertEquals(0L, results.get(0).getSecond().longValue());
-        Assert.assertEquals(CLASSNAME + "." + "TEST-B", results.get(1).getFirst());
-        Assert.assertEquals(0L, results.get(1).getSecond().longValue());
+        Assertions.assertFalse(results.isEmpty(), "Should have results");
+        Assertions.assertEquals(2, results.size());
+        Assertions.assertEquals(CLASSNAME + "." + "TEST-A", results.get(0).getFirst());
+        Assertions.assertEquals(0L, results.get(0).getSecond().longValue());
+        Assertions.assertEquals(CLASSNAME + "." + "TEST-B", results.get(1).getFirst());
+        Assertions.assertEquals(0L, results.get(1).getSecond().longValue());
     }
 
     @Test
@@ -161,20 +161,20 @@ public class TestDurationArtifactsTest {
             outputStream.write(csv.getBytes(StandardCharsets.UTF_8));
             outputStream.closeEntry();
         }
-        Assert.assertNotEquals(0, byteStream.toByteArray().length);
+        Assertions.assertNotEquals(0, byteStream.toByteArray().length);
 
         ByteArrayInputStream inputStream = new ByteArrayInputStream(byteStream.toByteArray());
         Tests tests = new Tests();
-        Assert.assertTrue(tests.isEmpty());
+        Assertions.assertTrue(tests.isEmpty());
 
         TestDurationArtifacts.addTestsFromZippedCsv(tests, inputStream);
 
-        Assert.assertFalse(tests.isEmpty());
-        Assert.assertEquals(2, tests.size());
-        Assert.assertEquals(55L, tests.getDuration(testA));
-        Assert.assertEquals(33L, tests.getDuration(testB));
+        Assertions.assertFalse(tests.isEmpty());
+        Assertions.assertEquals(2, tests.size());
+        Assertions.assertEquals(55L, tests.getDuration(testA));
+        Assertions.assertEquals(33L, tests.getDuration(testB));
 
-        Assert.assertEquals(44L, tests.getMeanDurationForTests());
+        Assertions.assertEquals(44L, tests.getMeanDurationForTests());
     }
 
     void putIntoArchive(@NotNull final ArchiveOutputStream outputStream,
@@ -220,17 +220,17 @@ public class TestDurationArtifactsTest {
             outputStream.flush();
         }
 
-        Assert.assertNotEquals(0, byteStream.toByteArray().length);
+        Assertions.assertNotEquals(0, byteStream.toByteArray().length);
         ByteArrayInputStream inputStream = new ByteArrayInputStream(byteStream.toByteArray());
 
         Tests tests = new Tests();
-        Assert.assertTrue(tests.isEmpty());
+        Assertions.assertTrue(tests.isEmpty());
 
         TestDurationArtifacts.addTestsFromZippedCsv(tests, inputStream);
 
-        Assert.assertFalse(tests.isEmpty());
-        Assert.assertEquals(3, tests.size());
-        Assert.assertEquals((55 + 33 + 22) / 3, tests.getMeanDurationForTests());
+        Assertions.assertFalse(tests.isEmpty());
+        Assertions.assertEquals(3, tests.size());
+        Assertions.assertEquals((55 + 33 + 22) / 3, tests.getMeanDurationForTests());
     }
 
 //    // Uncomment to test a file.
@@ -240,7 +240,7 @@ public class TestDurationArtifactsTest {
 ////    public void testZipFile() throws FileNotFoundException {
 ////        File f = new File(System.getProperty("tests.zip", "/tests.zip");
 ////        List<Tuple2<String, Long>> results = BucketingAllocatorTask.fromZippedXml(new BufferedInputStream(new FileInputStream(f)));
-////        Assert.assertFalse("Should have results", results.isEmpty());
+////        Assertions.assertFalse("Should have results", results.isEmpty());
 ////        System.out.println("Results = " + results.size());
 ////        System.out.println(results.toString());
 ////    }
@@ -257,9 +257,9 @@ public class TestDurationArtifactsTest {
         Properties.setRootProjectType(cordaType);
         System.setProperty(key, expected);
 
-        Assert.assertEquals(expected, System.getProperty(key));
-        Assert.assertNotEquals(expected, Properties.getGitBranch());
-        Assert.assertEquals("release-os-4.3", Properties.getGitBranch());
+        Assertions.assertEquals(expected, System.getProperty(key));
+        Assertions.assertNotEquals(expected, Properties.getGitBranch());
+        Assertions.assertEquals("release-os-4.3", Properties.getGitBranch());
     }
 
     @Test
@@ -282,9 +282,9 @@ public class TestDurationArtifactsTest {
         System.setProperty("git.target.branch", git_target_branch);
         System.setProperty("artifactory.password", artifactory_password);
         System.setProperty("artifactory.username", artifactory_username);
-        Assert.assertTrue(TestDurationArtifacts.tests.isEmpty());
+        Assertions.assertTrue(TestDurationArtifacts.tests.isEmpty());
         TestDurationArtifacts.loadTests();
-        Assert.assertFalse(TestDurationArtifacts.tests.isEmpty());
+        Assertions.assertFalse(TestDurationArtifacts.tests.isEmpty());
     }
 
     @Test
@@ -296,7 +296,7 @@ public class TestDurationArtifactsTest {
         }
 
         List<Path> testXmlFiles = TestDurationArtifacts.getTestXmlFiles(Paths.get(xmlRoot));
-        Assert.assertFalse(testXmlFiles.isEmpty());
+        Assertions.assertFalse(testXmlFiles.isEmpty());
 
         for (Path testXmlFile : testXmlFiles.stream().sorted().collect(Collectors.toList())) {
         //    System.out.println(testXmlFile.toString());

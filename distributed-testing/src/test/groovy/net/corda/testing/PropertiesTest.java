@@ -1,9 +1,9 @@
 package net.corda.testing;
 
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class PropertiesTest {
     private static String username = "me";
@@ -12,7 +12,7 @@ public class PropertiesTest {
     private static String branch = "mine";
     private static String targetBranch = "master";
 
-    @Before
+    @BeforeEach
     public void setUp() {
         System.setProperty("git.branch", branch);
         System.setProperty("git.target.branch", targetBranch);
@@ -20,7 +20,7 @@ public class PropertiesTest {
         System.setProperty("artifactory.password", password);
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         System.setProperty("git.branch", "");
         System.setProperty("git.target.branch", "");
@@ -31,33 +31,33 @@ public class PropertiesTest {
     @Test
     public void cordaType() {
     Properties.setRootProjectType(cordaType);
-        Assert.assertEquals(cordaType, Properties.getRootProjectType());
+        Assertions.assertEquals(cordaType, Properties.getRootProjectType());
     }
 
     @Test
     public void getUsername() {
-        Assert.assertEquals(username, Properties.getUsername());
+        Assertions.assertEquals(username, Properties.getUsername());
     }
 
     @Test
     public void getPassword() {
-        Assert.assertEquals(password, Properties.getPassword());
+        Assertions.assertEquals(password, Properties.getPassword());
     }
 
     @Test
     public void getGitBranch() {
-        Assert.assertEquals(branch, Properties.getGitBranch());
+        Assertions.assertEquals(branch, Properties.getGitBranch());
     }
 
     @Test
     public void getTargetGitBranch() {
-        Assert.assertEquals(targetBranch, Properties.getTargetGitBranch());
+        Assertions.assertEquals(targetBranch, Properties.getTargetGitBranch());
     }
 
     @Test
     public void getPublishJunitTests() {
-        Assert.assertFalse(Properties.getPublishJunitTests());
+        Assertions.assertFalse(Properties.getPublishJunitTests());
         System.setProperty("publish.junit", "true");
-        Assert.assertTrue(Properties.getPublishJunitTests());
+        Assertions.assertTrue(Properties.getPublishJunitTests());
     }
 }
