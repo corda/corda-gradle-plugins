@@ -8,6 +8,7 @@ import io.fabric8.kubernetes.client.utils.Serialization;
 import net.corda.testing.retry.Retry;
 import okhttp3.Response;
 import org.gradle.api.DefaultTask;
+import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.tasks.TaskAction;
 import org.jetbrains.annotations.NotNull;
 
@@ -83,14 +84,14 @@ public class KubesTest extends DefaultTask {
             try {
                 return it.get().getBinaryResults();
             } catch (InterruptedException | ExecutionException e) {
-                throw new RuntimeException(e);
+                throw new InvalidUserCodeException("Exception occurred ", e);
             }
         }).flatMap(Collection::stream).collect(Collectors.toList()));
         this.containerResults = futures.stream().map(it -> {
             try {
                 return it.get();
             } catch (InterruptedException | ExecutionException e) {
-                throw new RuntimeException(e);
+                throw new InvalidUserCodeException("Exception occurred ", e);
             }
         }).collect(Collectors.toList());
     }
@@ -119,11 +120,11 @@ public class KubesTest extends DefaultTask {
             getProject().getLogger().quiet("Completed Token refresh");
 
             if (resultCodeOfRefresh != 0) {
-                throw new RuntimeException("Failed to invoke kubectl to refresh tokens");
+                throw new InvalidUserCodeException("Failed to invoke kubectl to refresh tokens");
             }
 
         } catch (InterruptedException | IOException e) {
-            throw new RuntimeException(e);
+            throw new InvalidUserCodeException("Exception occurred ", e);
         }
 
         io.fabric8.kubernetes.client.Config config = new io.fabric8.kubernetes.client.ConfigBuilder()
@@ -244,7 +245,7 @@ public class KubesTest extends DefaultTask {
                 if (resCode != 0 && testRetries.getAndIncrement() < numberOfRetries - 1) {
                     downloadTestXmlFromPod(namespace, createdPod);
                     getProject().getLogger().lifecycle("There are test failures in this pod. Retrying failed tests!!!");
-                    throw new RuntimeException("There are test failures in this pod");
+                    throw new InvalidUserCodeException("There are test failures in this pod");
                 } else {
                     binaryResults = downloadTestXmlFromPod(namespace, createdPod);
                 }
@@ -265,7 +266,7 @@ public class KubesTest extends DefaultTask {
         } catch (Retry.RetryException e) {
             Pod pod = getKubernetesClient().pods().inNamespace(namespace).create(buildPodRequest(podName, pvc, sidecarImage != null));
             downloadTestXmlFromPod(namespace, pod);
-            throw new RuntimeException("Failed to build in pod " + podName + " (" + podNumber + "/" + numberOfPods + ") in " + numberOfRetries + " attempts", e);
+            throw new InvalidUserCodeException("Failed to build in pod " + podName + " (" + podNumber + "/" + numberOfPods + ") in " + numberOfRetries + " attempts", e);
         }
     }
 
@@ -450,7 +451,7 @@ public class KubesTest extends DefaultTask {
             try {
                 client.pods().inNamespace(pod.getMetadata().getNamespace()).withName(pod.getMetadata().getName()).waitUntilReady(DEFAULT_POD_ALLOCATION_TIMEOUT, TimeUnit.MINUTES);
             } catch (InterruptedException e) {
-                throw new RuntimeException(e);
+                throw new InvalidUserCodeException("Exception occurred", e);
             }
             getProject().getLogger().lifecycle("pod " + pod.getMetadata().getName() + " has started, executing build");
         }
