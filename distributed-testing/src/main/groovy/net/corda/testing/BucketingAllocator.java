@@ -3,10 +3,7 @@ package net.corda.testing;
 //Why Java?! because sometimes types are useful.
 
 import groovy.lang.Tuple2;
-import org.gradle.api.tasks.TaskAction;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -17,7 +14,6 @@ import java.util.stream.IntStream;
 import static net.corda.testing.ListTests.DISTRIBUTION_PROPERTY;
 
 public class BucketingAllocator {
-    private static final Logger LOG = LoggerFactory.getLogger(BucketingAllocator.class);
     private final List<TestsForForkContainer> forkContainers;
     private final Supplier<Tests> timedTestsProvider;
     private List<Tuple2<TestLister, Object>> sources = new ArrayList<>();
