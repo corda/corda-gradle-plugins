@@ -39,7 +39,6 @@ public class BucketingAllocator {
         return forkContainers.get(fork).getTestsForTask(testTask);
     }
 
-    @TaskAction
     public void generateTestPlan() {
         Tests allTestsFromFile = timedTestsProvider.get();
         List<Tuple2<String, Object>> allDiscoveredTests = getTestsOnClasspathOfTestingTasks();
