@@ -4,13 +4,13 @@
 
 ### Version 5.0.7
 
-`publish-utils`: Fix NPE for dependencies without group, name or version when generating POMs from custom Gradle configurations.
+* `publish-utils`: Fix NPE for dependencies without group, name or version when generating POMs from custom Gradle configurations.
 
 ### Version 5.0.6
 
-`api-scanner`: Update FastClasspathScanner 2.18.2 to ClassGraph 4.8.53. This will break the API scan output in the follwing ways:
- - No longer show constructors for subclasses of `Enum`. (Only relevant for Kotlin 1.2.)
- - Implemented interfaces are now displayed in ascending alphanumerical order.
+* `api-scanner`: Update FastClasspathScanner 2.18.2 to ClassGraph 4.8.53. This will break the API scan output in the follwing ways:
+    * No longer show constructors for subclasses of `Enum`. (Only relevant for Kotlin 1.2.)
+    * Implemented interfaces are now displayed in ascending alphanumerical order.
 
 ### Version 5.0.5
 
