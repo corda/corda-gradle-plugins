@@ -31,9 +31,9 @@ public class KubesTest extends DefaultTask {
      */
     private static final String REGISTRY_CREDENTIALS_SECRET_NAME = "regcred";
 
-    private static int DEFAULT_K8S_TIMEOUT_VALUE_MILLIES = 60 * 1_000;
-    private static int DEFAULT_K8S_WEBSOCKET_TIMEOUT = DEFAULT_K8S_TIMEOUT_VALUE_MILLIES * 30;
-    private static int DEFAULT_POD_ALLOCATION_TIMEOUT = 60;
+    private static final int DEFAULT_K8S_TIMEOUT_VALUE_MILLIES = 60 * 1_000;
+    private static final int DEFAULT_K8S_WEBSOCKET_TIMEOUT = DEFAULT_K8S_TIMEOUT_VALUE_MILLIES * 30;
+    private static final int DEFAULT_POD_ALLOCATION_TIMEOUT = 60;
 
     String dockerTag;
     String fullTaskToExecutePath;
