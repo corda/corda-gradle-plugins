@@ -68,7 +68,10 @@ class MavenMapper {
     ) {
         Configuration configuration = configurations.findByName(configName)
         if (configuration) {
-            return configuration.allDependencies.iterator().collect { Dependency dep ->
+            return configuration.allDependencies.iterator().findAll { Dependency dep ->
+                dep.version && dep.group
+            }.collect {
+                Dependency dep = (Dependency) it
                 ModuleVersionIdentifier id = DefaultModuleVersionIdentifier.newId(dep.group, dep.name, dep.version)
                 String alias = publishedAliases[id]
                 alias == null ? id : DefaultModuleVersionIdentifier.newId(id.group, alias, id.version)

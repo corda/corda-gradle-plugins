@@ -4,6 +4,8 @@
 
 ### Version 5.0.7
 
+`publish-utils`: Fix NPE for dependencies without group, name or version when generating POMs from custom Gradle configurations.
+
 `distributed-testing`: Added the distributed testing plugin that can be use used to parallelize the tests of a given repository
 
 ### Version 5.0.6
