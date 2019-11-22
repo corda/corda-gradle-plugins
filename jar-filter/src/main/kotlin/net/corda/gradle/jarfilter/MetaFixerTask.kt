@@ -21,6 +21,11 @@ import javax.inject.Inject
 
 @Suppress("Unused")
 open class MetaFixerTask @Inject constructor(objects: ObjectFactory, layouts: ProjectLayout) : DefaultTask() {
+    init {
+        description = "Rewrites kotlin.Metadata annotations to match their classes' methods and fields."
+        group = GROUP_NAME
+    }
+
     private val _jars: ConfigurableFileCollection = project.files()
     @get:SkipWhenEmpty
     @get:InputFiles

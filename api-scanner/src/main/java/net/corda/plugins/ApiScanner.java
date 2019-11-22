@@ -12,6 +12,7 @@ import javax.annotation.Nonnull;
 
 @SuppressWarnings("unused")
 public class ApiScanner implements Plugin<Project> {
+    static final String GROUP_NAME = "Corda API";
 
     /**
      * Identify the Gradle Jar tasks creating jars
