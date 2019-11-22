@@ -30,6 +30,11 @@ open class JarFilterTask @Inject constructor(objects: ObjectFactory, layouts: Pr
         private const val DEFAULT_MAX_PASSES = 5
     }
 
+    init {
+        description = "Deletes user-specified methods and fields from class byte-code."
+        group = GROUP_NAME
+    }
+
     private val _jars: ConfigurableFileCollection = project.files()
     @get:SkipWhenEmpty
     @get:InputFiles

@@ -17,6 +17,7 @@ public class ApiScanner implements Plugin<Project> {
     private static final String CLASSIFIER_PROPERTY_NAME = "cordaScanApiClassifier";
     private static final String DEFAULT_CLASSIFIER = "";
     private static final String SCAN_TASK_NAME = "scanApi";
+    static final String GROUP_NAME = "Corda API";
 
     /**
      * Identify the Gradle Jar tasks creating jars

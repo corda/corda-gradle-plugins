@@ -33,6 +33,10 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
         private val YAML_MAPPER = Yaml(YAML_FORMAT_OPTIONS)
     }
 
+    init {
+        description = "Creates a docker-compose file and image definitions for a deployment of Corda Nodes."
+    }
+
     private val directoryPath: Path = project.projectDir.toPath().resolve(directory)
 
 

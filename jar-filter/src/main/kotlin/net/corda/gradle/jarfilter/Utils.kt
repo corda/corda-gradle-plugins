@@ -14,6 +14,8 @@ import java.util.zip.ZipEntry.STORED
 import kotlin.math.max
 import kotlin.text.RegexOption.*
 
+const val GROUP_NAME = "JarFilter"
+
 val JAR_PATTERN = "(\\.jar)\$".toRegex(IGNORE_CASE)
 
 // Use the same constant file timestamp as Gradle.

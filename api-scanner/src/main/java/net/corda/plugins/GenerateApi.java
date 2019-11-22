@@ -11,6 +11,7 @@ import java.nio.file.Files;
 
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toList;
+import static net.corda.plugins.ApiScanner.GROUP_NAME;
 
 @SuppressWarnings("unused")
 public class GenerateApi extends DefaultTask {
@@ -20,7 +21,8 @@ public class GenerateApi extends DefaultTask {
     private String version;
 
     public GenerateApi() {
-        setGroup("Corda API");
+        setGroup(GROUP_NAME);
+        setDescription("Aggregates API scan results found in any sub-projects into a single output.");
         outputDir = new File(getProject().getBuildDir(), "api");
         baseName = "api-" + getProject().getName();
         version = getProject().getVersion().toString();
