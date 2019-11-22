@@ -25,6 +25,7 @@ import java.util.stream.StreamSupport;
 
 import static java.util.Collections.*;
 import static java.util.stream.Collectors.*;
+import static net.corda.plugins.ApiScanner.GROUP_NAME;
 
 @SuppressWarnings({"unused", "WeakerAccess"})
 public class ScanApi extends DefaultTask {
@@ -88,6 +89,8 @@ public class ScanApi extends DefaultTask {
         excludeClasses = objectFactory.setProperty(String.class);
         excludeMethods = new LinkedHashMap<>();
         outputDir = new File(getProject().getBuildDir(), "api");
+        setDescription("Summarises the target JAR's public and protected API elements.");
+        setGroup(GROUP_NAME);
     }
 
     @SkipWhenEmpty

@@ -34,6 +34,11 @@ open class Baseform(objects: ObjectFactory) : DefaultTask() {
 
     private companion object {
         const val nodeJarName = "corda.jar"
+        const val GROUP_NAME = "Cordformation"
+    }
+
+    init {
+        group = GROUP_NAME
     }
 
     @get:Input

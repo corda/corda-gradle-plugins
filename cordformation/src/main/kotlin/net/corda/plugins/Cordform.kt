@@ -12,8 +12,8 @@ import javax.inject.Inject
  */
 @Suppress("unused")
 open class Cordform @Inject constructor(objects: ObjectFactory) : Baseform(objects) {
-    internal companion object {
-        const val nodeJarName = "corda.jar"
+    init {
+        description = "Creates and configures a deployment of Corda Node directories."
     }
 
     /**
