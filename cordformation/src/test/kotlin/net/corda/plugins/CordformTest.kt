@@ -17,6 +17,7 @@ class CordformTest : BaseformTest() {
     @Test
     fun `network parameter overrides`() {
         val runner = getStandardGradleRunnerFor("DeploySingleNodeWithNetworkParameterOverrides.gradle")
+        installResource("testkeystore")
 
         val result = runner.build()
 
