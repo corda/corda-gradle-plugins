@@ -1,7 +1,7 @@
 buildscript {
     ext {
         corda_group = 'net.corda'
-        corda_release_version = '4.1-RC01' // TODO: Set to 4.1 when Corda 4.1 is released
+        corda_release_version = '4.2'
         finance_release_version = '4.0'
         jolokia_version = '1.6.0'
     }
@@ -16,7 +16,6 @@ repositories {
     mavenCentral()
     maven { url 'https://ci-artifactory.corda.r3cev.com/artifactory/corda-dev' }
     maven { url 'https://ci-artifactory.corda.r3cev.com/artifactory/corda-releases' }
-    maven { url 'https://jitpack.io' }
 }
 
 dependencies {

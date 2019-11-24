@@ -318,7 +318,7 @@ public class ScanApi extends DefaultTask {
             sort(methods);
             for (MethodInfo method : methods) {
                 if (isVisible(method.getModifiers()) // Only public and protected methods
-                        && !isExcluded(filterAnnotationsFor(method)) // Filter out methods explicitly excluded
+                        && !isExcluded(method) // Filter out methods explicitly excluded
                         && isValid(method.getModifiers(), METHOD_MASK) // Excludes bridge methods
                         && !hasInternalAnnotation(method.getAnnotationNames()) // Excludes methods annotated as @CordaInternal
                         && !isKotlinInternalScope(method)) {
@@ -452,9 +452,9 @@ public class ScanApi extends DefaultTask {
         return (modifiers & mask) == modifiers;
     }
 
-    private boolean isExcluded(MethodInfo methodWithoutAnnotations) {
-        final String methodSignature = methodWithoutAnnotations.getMethodName() + methodWithoutAnnotations.getTypeDescriptorStr();
-        final String className = methodWithoutAnnotations.getClassName();
+    private boolean isExcluded(MethodInfo method) {
+        final String methodSignature = method.getMethodName() + method.getTypeDescriptorStr();
+        final String className = method.getClassName();
 
         return this.excludeMethods.containsKey(className) &&
                 this.excludeMethods.get(className).contains(methodSignature);
