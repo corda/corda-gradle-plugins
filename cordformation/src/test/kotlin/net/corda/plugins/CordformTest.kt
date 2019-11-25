@@ -18,9 +18,9 @@ import org.assertj.core.api.Assertions.assertThat
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
+import java.io.FileNotFoundException
 import java.nio.file.Path
 import java.nio.file.Paths
 
@@ -43,10 +43,10 @@ class CordformTest {
         buildFile = testProjectDir.resolve("build.gradle")
     }
 
-    @Disabled
     @Test
     fun `network parameter overrides`() {
         val runner = getStandardGradleRunnerFor("DeploySingleNodeWithNetworkParameterOverrides.gradle")
+        installResource("testkeystore")
 
         val result = runner.build()
 
@@ -141,6 +141,13 @@ class CordformTest {
     private fun getNodeCordappJar(nodeName: String, cordappJarName: String) = Paths.get(testProjectDir.toAbsolutePath().toString(), "build", "nodes", nodeName, "cordapps", "$cordappJarName.jar")
     private fun getNodeCordappConfig(nodeName: String, cordappJarName: String) = Paths.get(testProjectDir.toAbsolutePath().toString(), "build", "nodes", nodeName, "cordapps", "config", "$cordappJarName.conf")
     private fun getNetworkParameterOverrides(nodeName: String) = Paths.get(testProjectDir.toAbsolutePath().toString(), "build", "nodes", nodeName, "network-parameters")
+
+    private fun installResource(resourceName: String) {
+        val buildFile = testProjectDir.resolve(resourceName.substring(1 + resourceName.lastIndexOf('/')))
+        javaClass.classLoader.getResourceAsStream(resourceName)?.use { input ->
+            IOUtils.copy(input, buildFile.toFile().outputStream())
+        } ?: throw FileNotFoundException(resourceName)
+    }
 
     private class AMQPParametersSerializationScheme : AbstractAMQPSerializationScheme(emptyList()) {
         override fun rpcClientSerializerFactory(context: SerializationContext) = throw UnsupportedOperationException()
