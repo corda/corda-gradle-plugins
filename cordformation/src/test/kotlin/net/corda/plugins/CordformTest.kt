@@ -11,16 +11,13 @@ import net.corda.serialization.internal.AMQP_P2P_CONTEXT
 import net.corda.serialization.internal.SerializationFactoryImpl
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.testkit.runner.TaskOutcome
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
 class CordformTest : BaseformTest() {
-
-
-    @Disabled
     @Test
     fun `network parameter overrides`() {
         val runner = getStandardGradleRunnerFor("DeploySingleNodeWithNetworkParameterOverrides.gradle")
+        installResource("testkeystore")
 
         val result = runner.build()
 

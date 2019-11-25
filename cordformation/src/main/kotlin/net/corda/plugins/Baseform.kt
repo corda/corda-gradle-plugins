@@ -246,7 +246,7 @@ open class Baseform(objects: ObjectFactory) : DefaultTask() {
                 // Call NetworkBootstrapper.bootstrap
                 invokeBootstrap(networkBootstrapperClass, rootDir, allCordapps)
             } catch (e: InvocationTargetException) {
-                throw e.cause!!.let { InvalidUserCodeException(it.message ?: "", it) }
+                throw e.cause!!.let { InvalidUserDataException(it.message ?: "", it) }
             } finally {
                 // Clean up anything else that could prevent the
                 // Network Bootstrapper jar from being unloaded.
@@ -291,7 +291,7 @@ open class Baseform(objects: ObjectFactory) : DefaultTask() {
                 bootstrapMethod.invoke(networkBootstrapperClass.newInstance(), rootDir, allCordapps, networkParameterOverrides.toConfig().root().render(ConfigRenderOptions.concise()))
             }
         } catch (e: NoSuchMethodException) {
-            throw InvalidUserCodeException("Unrecognised configuration options passed. Please ensure you're using the correct 'corda-node-api' version on Gradle's runtime classpath.", e.cause!!)
+            throw InvalidUserDataException("Unrecognised configuration options passed. Please ensure you're using the correct 'corda-node-api' version on Gradle's runtime classpath.", e)
         }
     }
 
