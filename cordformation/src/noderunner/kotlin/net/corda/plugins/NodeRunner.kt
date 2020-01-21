@@ -1,7 +1,10 @@
 package net.corda.plugins
 
 import java.awt.GraphicsEnvironment
+import java.io.BufferedWriter
 import java.io.File
+import java.io.FileOutputStream
+import java.io.OutputStreamWriter
 import java.util.*
 
 private const val HEADLESS_FLAG = "--headless"
@@ -102,27 +105,60 @@ private class NodeRunner(baseDebugPort: Int, baseMonitoringPort: Int) {
     }
 
     private fun startWindowed(command: List<String>, workingDir: File, nodeName: String): Process {
+
+        val createTempScriptFile = {
+            val tmpFile: File = File.createTempFile("corda_node_script_launcher", "")
+            BufferedWriter(OutputStreamWriter(FileOutputStream(tmpFile))).use {
+                //Start shell to keep window open unless java terminated normally or due to SIGTERM:
+                it.write("""
+                        #!/bin/sh
+                        set -v
+                        unlink $tmpFile
+                        cd "$workingDir"
+                        command -v rlwrap
+                        if [ ${'$'}? -eq 0 ]
+                        then
+                            rlwrap -H ~/.crash_history --always-readline ${command.joinToString(" ")}; [ ${'$'}? -eq 0 -o ${'$'}? -eq 143 ] || sh
+                        else
+                            ${command.joinToString(" ")}; [ ${'$'}? -eq 0 -o ${'$'}? -eq 143 ] || sh
+                        fi
+                    """.trimIndent())
+            }
+            tmpFile.setExecutable(true)
+            tmpFile
+        }
         val params = when (os) {
             OS.MACOS -> {
-                listOf("osascript", "-e", """tell app "Terminal"
-    activate
-    delay 0.5
-    tell app "System Events" to tell process "Terminal" to keystroke "t" using command down
-    delay 0.5
-    do script "bash -c 'cd \"$workingDir\" ; \"${command.joinToString("""\" \"""")}\" && exit'" in selected tab of the front window
-end tell""")
+                val tmpFile = createTempScriptFile()
+                listOf("osascript", "-e", """
+                    tell app "Terminal"
+                        activate
+                        delay 0.5
+                        tell app "System Events" to tell process "Terminal" to keystroke "t" using command down
+                        delay 0.5
+                        do script "bash \"$tmpFile\" && exit" in selected tab of the front window
+                    end tell
+                """.trimIndent())
             }
             OS.WINDOWS -> {
                 listOf("cmd", "/C", "start ${command.joinToString(" ") { windowsSpaceEscape(it) }}")
             }
             OS.LINUX -> {
-                // Start shell to keep window open unless java terminated normally or due to SIGTERM:
-                val unixCommand = "${unixCommand(command)}; [ $? -eq 0 -o $? -eq 143 ] || sh"
-                if (isTmux()) {
-                    listOf("tmux", "new-window", "-n", nodeName, unixCommand)
-                } else {
-                    listOf("xterm", "-T", nodeName, "-e", unixCommand)
-                }
+                val tmpFile = createTempScriptFile()
+                val shellScript = """
+                    NODE_NAME='$nodeName'
+                    COMMAND="$tmpFile"
+                    if [ -n ${'$'}{CORDA_NODE_RUNNER_TERMINAL_COMMAND+x} ]
+                    then
+                        eval ${'$'}CORDA_NODE_RUNNER_TERMINAL_COMMAND
+                    elif [ -n ${'$'}{TMUX+x} ]
+                    then
+                        tmux new-window -n "${'$'}{NODE_NAME}" "${'$'}{COMMAND}"
+                    else
+                        xterm -T "${'$'}{NODE_NAME}" -e "${'$'}{COMMAND}"
+                    fi
+                """.trimIndent()
+                listOf("sh", "-c", shellScript)
             }
         }
         println("Running command: ${params.joinToString(" ")}")
@@ -169,5 +205,4 @@ private fun isTmux() = System.getenv("TMUX")?.isNotEmpty() ?: false
 // Replace below is to fix an issue with spaces in paths on Windows.
 // Quoting the entire path does not work, only the space or directory within the path.
 private fun windowsSpaceEscape(s:String) = s.replace(" ", "\" \"")
-private fun unixCommand(command: List<String>) = command.map(::quotedFormOf).joinToString(" ")
 private fun getJavaPath(): String = File(File(System.getProperty("java.home"), "bin"), "java").path
