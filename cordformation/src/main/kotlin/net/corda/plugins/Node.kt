@@ -248,6 +248,22 @@ open class Node @Inject constructor(private val project: Project) {
         config = config.withValue("h2port", ConfigValueFactory.fromAnyRef(h2Port))
     }
 
+    /**
+     * This section is used to configure the JDBC connection and database driver used for the node’s persistence.
+     */
+    fun dataSourceProperties(options: DataSourceProperties) {
+        config = options.addTo("dataSourceProperties", config)
+    }
+
+    /**
+     * This section is used to configure the JDBC connection and database driver used for the node’s persistence.
+     */
+    fun dataSourceProperties(configureClosure: Closure<in DataSourceProperties>) {
+        val dataSource = project.configure(DataSourceProperties(), configureClosure) as DataSourceProperties
+        dataSourceProperties(dataSource)
+    }
+
+
     fun useTestClock(useTestClock: Boolean) {
         config = config.withValue("useTestClock", ConfigValueFactory.fromAnyRef(useTestClock))
     }
