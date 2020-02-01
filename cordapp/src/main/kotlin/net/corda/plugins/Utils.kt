@@ -33,8 +33,6 @@ class Utils {
             return createChildConfiguration(name, configurations.single { it.name == "compile" }, configurations)
         }
 
-        // This function is called from the groovy quasar-utils plugin.
-        @JvmStatic
         fun createRuntimeConfiguration(name: String, configurations: ConfigurationContainer): Configuration {
             return createChildConfiguration(name, configurations.single { it.name == "runtime" }, configurations)
         }
