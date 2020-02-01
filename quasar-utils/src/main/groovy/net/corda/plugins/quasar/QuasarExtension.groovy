@@ -1,4 +1,4 @@
-package net.corda.plugins
+package net.corda.plugins.quasar
 
 import groovy.transform.PackageScope
 import org.gradle.api.model.ObjectFactory
