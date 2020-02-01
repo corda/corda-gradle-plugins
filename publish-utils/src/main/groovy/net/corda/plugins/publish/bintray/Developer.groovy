@@ -1,4 +1,4 @@
-package net.corda.plugins.bintray
+package net.corda.plugins.publish.bintray
 
 class Developer {
     /**

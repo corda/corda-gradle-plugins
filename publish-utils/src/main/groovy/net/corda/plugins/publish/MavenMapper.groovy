@@ -1,4 +1,4 @@
-package net.corda.plugins
+package net.corda.plugins.publish
 
 import groovy.transform.CompileStatic
 import org.gradle.api.artifacts.Configuration
