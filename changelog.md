@@ -5,6 +5,7 @@
 ### Version 5.0.7
 
 * `publish-utils`: Fix NPE for dependencies without group, name or version when generating POMs from custom Gradle configurations.
+* `cordformation`, `quasar-utils`: Remove the runtime dependency on the `cordapp` plugin.
 
 ### Version 5.0.6
 

@@ -29,5 +29,5 @@ The version number of the "bleeding edge" in `master` is always a `-SNAPSHOT` ve
 
 ## Using the plugins.
 
-These plugins are published to R3's [Artifactory](https://software.r3.com/artifactory/corda). More recently, they are also published to Gradle's own plguins
+These plugins are published to R3's [Artifactory](https://software.r3.com/artifactory/corda). More recently, they are also published to Gradle's own plugins
 repository and can be imported into your projects using Gradle's `plugins` DSL.
