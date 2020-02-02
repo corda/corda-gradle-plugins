@@ -1,5 +1,6 @@
 package net.corda.plugins
 
+import net.corda.plugins.cordformation.signing.SigningOptions
 import org.gradle.api.tasks.Input
 
 /** Options for ANT tasks "genkey" and "signjar". */

@@ -1,8 +1,13 @@
-package net.corda.plugins
+package @root_package@.signing
 
 import org.gradle.api.tasks.Console
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
+
+/**
+ * !!! GENERATED FILE - DO NOT EDIT !!!
+ * See cordapp/src/main/template/SigningOptions.kt instead.
+ */
 
 /** Options for ANT task "signjar". */
 open class SigningOptions {

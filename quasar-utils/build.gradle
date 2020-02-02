@@ -13,7 +13,7 @@ gradlePlugin {
     plugins {
         quasarPlugin {
             id = 'net.corda.plugins.quasar-utils'
-            implementationClass = 'net.corda.plugins.QuasarPlugin'
+            implementationClass = 'net.corda.plugins.quasar.QuasarPlugin'
         }
     }
     automatedPublishing = false
@@ -33,7 +33,6 @@ pluginBundle {
 }
 
 dependencies {
-    implementation project(':cordapp')
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junit_jupiter_version")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junit_jupiter_version")
     testImplementation "org.assertj:assertj-core:$assertj_version"

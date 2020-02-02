@@ -1,7 +1,7 @@
 package net.corda.plugins
 
+import net.corda.plugins.CordappUtils.Companion.compareVersions
 import net.corda.plugins.SignJar.Companion.sign
-import net.corda.plugins.Utils.Companion.compareVersions
 import org.gradle.api.*
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
@@ -40,9 +40,9 @@ class CordappPlugin @Inject constructor(private val objects: ObjectFactory): Plu
         // Apply the Java plugin on the assumption that we're building a JAR.
         // This will also create the "compile", "compileOnly" and "runtime" configurations.
         project.pluginManager.apply(JavaPlugin::class.java)
-        Utils.createCompileConfiguration("cordapp", project.configurations)
-        Utils.createCompileConfiguration("cordaCompile", project.configurations)
-        Utils.createRuntimeConfiguration("cordaRuntime", project.configurations)
+        CordappUtils.createCompileConfiguration("cordapp", project.configurations)
+        CordappUtils.createCompileConfiguration("cordaCompile", project.configurations)
+        CordappUtils.createRuntimeConfiguration("cordaRuntime", project.configurations)
 
         cordapp = project.extensions.create("cordapp", CordappExtension::class.java, objects)
         configurePomCreation(project)
