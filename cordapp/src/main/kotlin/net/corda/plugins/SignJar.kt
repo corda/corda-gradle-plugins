@@ -1,5 +1,6 @@
 package net.corda.plugins
 
+import net.corda.plugins.cordapp.signing.SigningOptions
 import org.gradle.api.DefaultTask
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
@@ -21,7 +22,7 @@ open class SignJar : DefaultTask() {
             val options = signing.options.toSignJarOptionsMap()
             if (signing.options.hasDefaultOptions()) {
                 project.logger.info("CorDapp JAR signing with the default Corda development key, suitable for Corda running in development mode only.")
-                val keyStorePath = Utils.createTempFileFromResource(SigningOptions.DEFAULT_KEYSTORE, SigningOptions.DEFAULT_KEYSTORE_FILE, SigningOptions.DEFAULT_KEYSTORE_EXTENSION)
+                val keyStorePath = CordappUtils.createTempFileFromResource(SigningOptions.DEFAULT_KEYSTORE, SigningOptions.DEFAULT_KEYSTORE_FILE, SigningOptions.DEFAULT_KEYSTORE_EXTENSION)
                 options[SigningOptions.Key.KEYSTORE] = keyStorePath.toString()
             }
 

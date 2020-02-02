@@ -1,4 +1,4 @@
-package net.corda.plugins
+package net.corda.plugins.publish
 
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer

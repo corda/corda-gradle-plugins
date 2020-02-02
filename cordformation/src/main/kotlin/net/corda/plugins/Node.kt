@@ -2,8 +2,6 @@ package net.corda.plugins
 
 import com.typesafe.config.*
 import groovy.lang.Closure
-import net.corda.plugins.utils.copyKeysTo
-import net.corda.plugins.utils.copyTo
 import org.apache.commons.io.FilenameUtils.removeExtension
 import org.gradle.api.GradleException
 import org.gradle.api.Project
@@ -470,7 +468,7 @@ open class Node @Inject constructor(private val project: Project) {
     private fun installAgentJar() {
         // TODO: improve how we re-use existing declared external variables from root gradle.build
         val jolokiaVersion = try {
-            project.rootProject.ext<String>("jolokia_version")
+            project.findRootProperty<String>("jolokia_version")
         } catch (e: Exception) {
             "1.6.0"
         }

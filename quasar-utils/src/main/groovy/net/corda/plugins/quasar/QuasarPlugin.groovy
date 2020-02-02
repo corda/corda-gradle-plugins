@@ -1,9 +1,11 @@
-package net.corda.plugins
+package net.corda.plugins.quasar
 
 import groovy.transform.PackageScope
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.JavaExec
@@ -20,6 +22,7 @@ class QuasarPlugin implements Plugin<Project> {
     @PackageScope static final String defaultGroup = "co.paralleluniverse"
     @PackageScope static final String defaultVersion = "0.7.10"
     @PackageScope static final String defaultClassifier = "jdk8"
+    private static final String RUNTIME_CLASSPATH = "runtime"
 
     private final ObjectFactory objects
 
@@ -60,7 +63,8 @@ class QuasarPlugin implements Plugin<Project> {
         // This adds Quasar to the compile classpath WITHOUT any of its transitive dependencies.
         project.dependencies.add("compileOnly", quasar)
 
-        def cordaRuntime = Utils.createRuntimeConfiguration("cordaRuntime", project.configurations)
+        // Instrumented code needs both the Quasar agent and its transitive dependencies at runtime.
+        def cordaRuntime = createRuntimeConfiguration("cordaRuntime", project.configurations)
         cordaRuntime.withDependencies { dependencies ->
             def transitiveDependency = project.dependencies.create(extension.dependency.get()) {
                 it.transitive = true
@@ -83,5 +87,16 @@ class QuasarPlugin implements Plugin<Project> {
                         "-Dco.paralleluniverse.fibers.verifyInstrumentation"
             }
         }
+    }
+
+    private static Configuration createRuntimeConfiguration(String name, ConfigurationContainer configurations) {
+        Configuration configuration = configurations.findByName(name)
+        if (configuration == null) {
+            Configuration parent = configurations.getByName(RUNTIME_CLASSPATH)
+            configuration = configurations.create(name)
+            configuration.transitive = false
+            parent.extendsFrom(configuration)
+        }
+        return configuration
     }
 }

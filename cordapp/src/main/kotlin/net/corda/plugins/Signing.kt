@@ -1,6 +1,7 @@
 package net.corda.plugins
 
-import net.corda.plugins.SigningOptions.Companion.SYSTEM_PROPERTY_PREFIX
+import net.corda.plugins.cordapp.signing.SigningOptions
+import net.corda.plugins.cordapp.signing.SigningOptions.Companion.SYSTEM_PROPERTY_PREFIX
 import org.gradle.api.Action
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.Input
