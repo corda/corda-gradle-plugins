@@ -2,6 +2,8 @@
 
 ## Version 5
 
+### Version 5.0.8
+
 ### Version 5.0.7
 
 * `publish-utils`: Fix NPE for dependencies without group, name or version when generating POMs from custom Gradle configurations.
