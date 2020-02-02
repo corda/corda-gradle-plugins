@@ -2,6 +2,8 @@
 
 ## Version 4
 
+### Version 4.0.49
+
 ### Version 4.0.48
 
 * `cordformation`, `quasar-utils`: Remove the runtime dependency on the `cordapp` plugin.
