@@ -2,9 +2,9 @@ package net.corda.plugins
 
 import com.typesafe.config.ConfigRenderOptions
 import groovy.lang.Closure
-import net.corda.plugins.SigningOptions.Companion.DEFAULT_KEYSTORE_EXTENSION
-import net.corda.plugins.SigningOptions.Companion.DEFAULT_KEYSTORE_FILE
-import net.corda.plugins.Utils.Companion.createTempFileFromResource
+import net.corda.plugins.cordformation.signing.SigningOptions
+import net.corda.plugins.cordformation.signing.SigningOptions.Companion.DEFAULT_KEYSTORE_EXTENSION
+import net.corda.plugins.cordformation.signing.SigningOptions.Companion.DEFAULT_KEYSTORE_FILE
 import org.gradle.api.Action
 import org.gradle.api.DefaultTask
 import org.gradle.api.InvalidUserCodeException
