@@ -1,3 +1,5 @@
+import org.apache.tools.ant.filters.ReplaceTokens
+
 apply plugin: 'kotlin'
 apply plugin: 'java-gradle-plugin'
 
@@ -30,6 +32,14 @@ pluginBundle {
     }
 }
 
+sourceSets {
+    main {
+        kotlin {
+            srcDirs files('src/main/kotlin', "$buildDir/generated-source")
+        }
+    }
+}
+
 dependencies {
     // Gradle plugins written in Kotlin will always use Gradle's
     // own provided Kotlin libraries at runtime. So ensure that
@@ -40,4 +50,20 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junit_jupiter_version")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junit_jupiter_version")
     testImplementation "org.assertj:assertj-core:$assertj_version"
+}
+
+/**
+ * The cordformation plugin needs to share the SigningOption
+ * class with the cordapp plugin, but we don't want the plugin
+ * jars to depend upon each other. And so we share source code
+ * rather than resort to shading!
+ */
+def generateSource = tasks.register('generateSource', Copy) {
+    from 'src/main/template'
+    filter(ReplaceTokens, tokens: [root_package: 'net.corda.plugins.cordapp'])
+    into file("$buildDir/generated-source")
+}
+
+tasks.named('compileKotlin') { Task task ->
+    task.dependsOn generateSource
 }

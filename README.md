@@ -26,3 +26,8 @@ To install locally for testing a new build against Corda you can run the followi
 ## Release process
 
 The version number of the "bleeding edge" in `master` is always a `-SNAPSHOT` version. To create a new release, a _maintainer_ must create a new branch off the latest commit in this release, remove the `-SNAPSHOT` from the version number, create a tag and then run the publish to artifactory task for the created tag in TeamCity. The version number in `master` is then advanced to the next `-SNAPSHOT` number.
+
+## Using the plugins.
+
+These plugins are published to R3's [Artifactory](https://software.r3.com/artifactory/corda). More recently, they are also published to Gradle's own plguins
+repository and can be imported into your projects using Gradle's `plugins` DSL.

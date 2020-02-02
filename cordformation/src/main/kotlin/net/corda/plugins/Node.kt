@@ -2,8 +2,6 @@ package net.corda.plugins
 
 import com.typesafe.config.*
 import groovy.lang.Closure
-import net.corda.plugins.utils.copyKeysTo
-import net.corda.plugins.utils.copyTo
 import org.apache.commons.io.FilenameUtils.removeExtension
 import org.gradle.api.GradleException
 import org.gradle.api.Project
