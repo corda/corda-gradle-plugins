@@ -4,6 +4,8 @@
 
 ### Version 4.0.48
 
+* `cordformation`, `quasar-utils`: Remove the runtime dependency on the `cordapp` plugin.
+
 ### Version 4.0.47
 
 * `cordformation`: Add `--base-debug-port=` and `--base-monitoring-port=` options to the `runnodes` script to change the port numbers that the script will begin incrementing from.
