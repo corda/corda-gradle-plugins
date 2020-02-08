@@ -19,14 +19,14 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.3'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
 }
 
 plugins {
     id 'com.gradle.plugin-publish' version '0.10.1' apply false
-    id 'com.jfrog.artifactory' version '4.9.6'
+    id 'com.jfrog.bintray' version '1.8.4' apply false
+    id 'com.jfrog.artifactory' version '4.13.0'
 }
 
 ext {
