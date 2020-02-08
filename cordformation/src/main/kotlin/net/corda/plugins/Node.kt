@@ -47,7 +47,7 @@ open class Node @Inject constructor(private val project: Project) {
     private val internalCordapps = mutableListOf<Cordapp>()
     @get:Optional
     @get:Nested
-    val projectCordapp = project.objects.newInstance(Cordapp::class.java, "", project)
+    val projectCordapp: Cordapp = project.objects.newInstance(Cordapp::class.java, "", project)
     internal lateinit var nodeDir: File
         @Internal get
         private set
@@ -663,5 +663,6 @@ open class Node @Inject constructor(private val project: Project) {
         flowOverrides.add(initiator to responder)
     }
 
+    @get:Input
     val flowOverrides: MutableList<Pair<String, String>> = mutableListOf()
 }
