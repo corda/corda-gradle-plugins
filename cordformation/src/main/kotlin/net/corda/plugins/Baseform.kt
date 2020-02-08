@@ -80,9 +80,9 @@ open class Baseform(objects: ObjectFactory) : DefaultTask() {
      * support this for a [Closure]. However, these defaults are
      * applied to every node anyway so [Internal] should be fine.
      */
-    @get:Optional
     @get:Internal
     var nodeDefaults: Closure<in Node>? = null
+        protected set
 
     /**
      * Configuration for keystore generation and JAR signing.
