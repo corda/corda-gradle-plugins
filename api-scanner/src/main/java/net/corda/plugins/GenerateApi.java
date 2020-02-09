@@ -12,6 +12,7 @@ import java.nio.file.Files;
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toList;
 import static net.corda.plugins.ApiScanner.GROUP_NAME;
+import static org.gradle.api.tasks.PathSensitivity.RELATIVE;
 
 @SuppressWarnings("unused")
 public class GenerateApi extends DefaultTask {
@@ -46,6 +47,7 @@ public class GenerateApi extends DefaultTask {
         return version;
     }
 
+    @PathSensitive(RELATIVE)
     @InputFiles
     public FileCollection getSources() {
         // This will trigger configuration of every ScanApi task in the project.

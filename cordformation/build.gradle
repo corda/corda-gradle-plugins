@@ -90,6 +90,15 @@ def generateSource = tasks.register('generateSource', Copy) {
 
 compileKotlin.dependsOn generateSource
 
+tasks.withType(ValidateTaskProperties) {
+    // The official advice is to annotate Path inputs
+    // as @Input instead of @InputDirectory if we don't
+    // care about the directory contents changing,
+    // Unfortunately, Gradle also generates a warning
+    // for this which we are forced to tolerate.
+    failOnWarning = false
+}
+
 task createNodeRunner(type: Jar) {
     manifest {
         attributes('Main-Class': 'net.corda.plugins.NodeRunnerKt')
