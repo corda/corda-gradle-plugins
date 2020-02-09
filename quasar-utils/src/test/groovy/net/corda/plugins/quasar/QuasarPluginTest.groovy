@@ -22,6 +22,7 @@ class QuasarPluginTest {
     void setup() {
         Utilities.installResource(testProjectDir, "settings.gradle")
         Utilities.installResource(testProjectDir, "repositories.gradle")
+        Utilities.installResource(testProjectDir, "gradle.properties")
         Utilities.installResource(testProjectDir, "src/test/java/BasicTest.java")
     }
 
