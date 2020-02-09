@@ -1,7 +1,9 @@
 import org.apache.tools.ant.filters.ReplaceTokens
 
-apply plugin: 'kotlin'
-apply plugin: 'java-gradle-plugin'
+plugins {
+    id 'org.jetbrains.kotlin.jvm'
+    id 'java-gradle-plugin'
+}
 
 description 'A small gradle plugin for adding some basic Quasar tasks and configurations to reduce build.gradle bloat.'
 
@@ -58,7 +60,7 @@ dependencies {
     // Gradle plugins written in Kotlin will always use Gradle's
     // own provided Kotlin libraries at runtime. So ensure that
     // we don't add Kotlin as a dependency in our published POM.
-    compileOnly "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+    compileOnly 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
     implementation "commons-io:commons-io:$commons_io_version"
     implementation "com.typesafe:config:$typesafe_config_version"
 
@@ -66,7 +68,7 @@ dependencies {
 
     testImplementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
     testImplementation 'org.jetbrains.kotlin:kotlin-reflect'
-    testImplementation "org.jetbrains.kotlin:kotlin-test"
+    testImplementation 'org.jetbrains.kotlin:kotlin-test'
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junit_jupiter_version")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junit_jupiter_version")
     testImplementation "org.assertj:assertj-core:$assertj_version"
@@ -90,6 +92,15 @@ def generateSource = tasks.register('generateSource', Copy) {
 
 tasks.named('compileKotlin') { Task task ->
     task.dependsOn generateSource
+}
+
+tasks.named('validateTaskProperties', ValidateTaskProperties) {
+    // The official advice is to annotate Path inputs
+    // as @Input instead of @InputDirectory if we don't
+    // care about the directory contents changing.
+    // Unfortunately, Gradle also generates a warning
+    // for this which we are forced to tolerate.
+    failOnWarning = false
 }
 
 task createNodeRunner(type: Jar) {
