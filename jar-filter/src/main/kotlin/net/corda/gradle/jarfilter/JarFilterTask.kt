@@ -9,15 +9,25 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
-import org.gradle.api.tasks.*
+import org.gradle.api.tasks.Console
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.Nested
+import org.gradle.api.tasks.OutputFiles
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity.RELATIVE
+import org.gradle.api.tasks.SkipWhenEmpty
+import org.gradle.api.tasks.TaskAction
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.ClassWriter.COMPUTE_MAXS
 import java.io.Closeable
 import java.io.File
 import java.io.IOException
-import java.nio.file.*
-import java.nio.file.StandardCopyOption.*
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.StandardCopyOption.REPLACE_EXISTING
 import java.util.zip.Deflater.BEST_COMPRESSION
 import java.util.zip.ZipFile
 import java.util.zip.ZipOutputStream
@@ -36,6 +46,7 @@ open class JarFilterTask @Inject constructor(objects: ObjectFactory, layouts: Pr
     }
 
     private val _jars: ConfigurableFileCollection = project.files()
+    @get:PathSensitive(RELATIVE)
     @get:SkipWhenEmpty
     @get:InputFiles
     val jars: FileCollection get() = _jars

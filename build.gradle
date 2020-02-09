@@ -67,6 +67,11 @@ allprojects {
         // Gradle Test-Kit from downloading its own copy of Kotlin etc.
         systemProperty 'test.gradle.user.home', project.gradle.gradleUserHomeDir
     }
+
+    tasks.withType(ValidateTaskProperties) {
+        // Ask Gradle to tell us how to annotate tasks correctly.
+        enableStricterValidation = true
+    }
 }
 
 // Only the top-level projects are plugins, so only publish these ones.

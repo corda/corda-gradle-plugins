@@ -26,6 +26,7 @@ import java.util.stream.StreamSupport;
 import static java.util.Collections.*;
 import static java.util.stream.Collectors.*;
 import static net.corda.plugins.ApiScanner.GROUP_NAME;
+import static org.gradle.api.tasks.PathSensitivity.RELATIVE;
 
 @SuppressWarnings({"unused", "WeakerAccess"})
 public class ScanApi extends DefaultTask {
@@ -93,6 +94,7 @@ public class ScanApi extends DefaultTask {
         setGroup(GROUP_NAME);
     }
 
+    @PathSensitive(RELATIVE)
     @SkipWhenEmpty
     @InputFiles
     public FileCollection getSources() {

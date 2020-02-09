@@ -8,11 +8,19 @@ import org.gradle.api.file.ProjectLayout
 import org.gradle.api.logging.Logger
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
-import org.gradle.api.tasks.*
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.OutputFiles
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity.RELATIVE
+import org.gradle.api.tasks.SkipWhenEmpty
+import org.gradle.api.tasks.TaskAction
 import java.io.Closeable
 import java.io.File
 import java.io.IOException
-import java.nio.file.*
+import java.nio.file.Files
+import java.nio.file.Path
 import java.util.zip.Deflater.BEST_COMPRESSION
 import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
@@ -27,6 +35,7 @@ open class MetaFixerTask @Inject constructor(objects: ObjectFactory, layouts: Pr
     }
 
     private val _jars: ConfigurableFileCollection = project.files()
+    @get:PathSensitive(RELATIVE)
     @get:SkipWhenEmpty
     @get:InputFiles
     val jars: FileCollection
