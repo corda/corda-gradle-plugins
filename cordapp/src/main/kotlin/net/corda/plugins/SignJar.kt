@@ -6,7 +6,13 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.FileCollection
-import org.gradle.api.tasks.*
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.OutputFiles
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity.RELATIVE
+import org.gradle.api.tasks.SkipWhenEmpty
+import org.gradle.api.tasks.TaskAction
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -54,6 +60,7 @@ open class SignJar : DefaultTask() {
 
     private val _inputJars: ConfigurableFileCollection = project.files()
 
+    @get:PathSensitive(RELATIVE)
     @get:InputFiles
     @get:SkipWhenEmpty
     val inputJars: FileCollection

@@ -2,6 +2,8 @@ package net.corda.plugins
 
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity.RELATIVE
 import org.gradle.api.tasks.TaskAction
 import org.yaml.snakeyaml.DumperOptions
 import org.yaml.snakeyaml.Yaml
@@ -37,6 +39,7 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
 
     private val directoryPath: Path = project.projectDir.toPath().resolve(directory)
 
+    @get:PathSensitive(RELATIVE)
     @get:InputFile
     val dockerComposePath: Path = directoryPath.resolve("docker-compose.yml")
 

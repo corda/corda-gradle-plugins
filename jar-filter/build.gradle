@@ -1,8 +1,8 @@
 plugins {
+    id 'org.jetbrains.kotlin.jvm'
     id 'java-gradle-plugin'
     id 'jacoco'
 }
-apply plugin: 'kotlin'
 
 description 'Deletes or stubs out unwanted elements from Java/Kotlin byte-code.'
 
@@ -46,14 +46,14 @@ dependencies {
     // Gradle plugins written in Kotlin will always use Gradle's
     // own provided Kotlin libraries at runtime. So ensure that
     // we don't add Kotlin as a dependency in our published POM.
-    compileOnly "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+    compileOnly 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
     implementation("org.jetbrains.kotlinx:kotlinx-metadata-jvm:$kotlin_metadata_version") {
         exclude group: 'org.jetbrains.kotlin'
     }
     implementation "org.ow2.asm:asm:$asm_version"
 
-    testImplementation "org.jetbrains.kotlin:kotlin-test"
-    testImplementation "org.jetbrains.kotlin:kotlin-reflect"
+    testImplementation 'org.jetbrains.kotlin:kotlin-test'
+    testImplementation 'org.jetbrains.kotlin:kotlin-reflect'
     testImplementation "org.hamcrest:hamcrest:$hamcrest_version"
     testImplementation "org.assertj:assertj-core:$assertj_version"
     testImplementation "org.junit.jupiter:junit-jupiter-api:$junit_jupiter_version"
