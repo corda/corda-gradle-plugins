@@ -1,6 +1,8 @@
-apply plugin: 'java'
-apply plugin: 'jacoco'
-apply plugin: 'java-gradle-plugin'
+plugins {
+    id 'java'
+    id 'jacoco'
+    id 'java-gradle-plugin'
+}
 
 description "Generates a summary of the artifact's public API"
 
