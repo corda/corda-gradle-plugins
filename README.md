@@ -52,7 +52,7 @@ the Network Bootstapper over the deployment for you, and provides you with a
 This plugin configures a Gradle module to use Quasar. Specifically:
     - It allows you to specify the Maven group, version and classifier of
 the `quasar-core` artifact to use.
-    - Adds the `quasar-core` artifact, along with all of its trensitive
+    - Adds the `quasar-core` artifact, along with all of its transitive
 dependencies, to Gradle's `cordaRuntime` configuration.
     - Adds the `quasar-core` artifact to Gradle's `compileOnly`
 configuration without any of its transitive dependencies.
@@ -87,4 +87,5 @@ be Dragons!_** This plugin helps configure Gradle's `maven-publish` plugin
 to publish Corda modules to R3's Artifactory. However, its workings probably
 shouldn't be allowed and they should _most definitely_ **never** be copied.
 Unfortunately, my prior attempts at rewriting it also broke its interaction
-with JFrog's Artifactory plugin :-(.
+with JFrog's Artifactory plugin and so we're currently stuck with it "as is".
+It _is_ useful though - just shut your eyes and hold your nose.
