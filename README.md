@@ -38,14 +38,16 @@ The plugins themselves fall into two categories: those intended for developing C
 
 - [`net.corda.plugins.cordapp`](cordapp/README.md):
 This plugin packages your CorDapp classes into a single jar file, along with
-the contants of all of the jar's dependent jars. Dependencies which are added
+the contents of all of the jar's dependent jars. Dependencies which are added
 to Gradle's `cordaCompile`, `cordaRuntime` and `cordapp` configurations are
-excluded from this packaging. The final jar is then signed.
+excluded from this packaging. The final jar is then signed. It also provides
+a `cordapp` Gradle extension so that you can configure your CorDapp's metadata.
+This metadata is currently optional, but you are _strongly_ advised to provide it.
 
 - [`net.corda.plugins.cordformation`](cordformation/README.rst):
 This plugin provides `Cordform` and `Dockerform` Gradle tasks for creating
 test deployments of multiple Corda nodes and their CorDapps. It also invokes
-the Network Bootstapper over the deployment for you, and provides you with a
+the Network Bootstrapper over the deployment for you, and provides you with a
 `runnodes` script to boot it all up afterwards.
 
 - [`net.corda.plugins.quasar-utils`](quasar-utils/README.rst):
@@ -73,14 +75,15 @@ and `protected` methods and fields into an output file. The "primary"
 jar is assumed by default to be the one without an `archiveClassifier`,
 although this is configurable. Its goal is to alert Corda developers to
 accidental breaks in our public ABI for those Corda modules we have
-declared to be "stable".
+declared to be "stable", and is used by the Continuous Integration builds.
 
 - [`net.corda.plugins.jar-filter`](jar-filter/README.md):
 This plugin allows us to delete certain annotated classes, methods and
 fields from the compiled byte-code inside a jar file. It can also rewrite
 Kotlin classes' `@kotlin.Metadata` annotations to make them consistent 
-again with their edited byte-code. It has been successfully tested with
-Kotlin 1.2.x - 1.3.61.
+again with their revised byte-code. It is currently used in Corda's
+`core-deterministic` and `serialization-deterministic` modules, and has
+been successfully tested with Kotlin 1.2.x - 1.3.61.
 
 - [`net.corda.plugins.publish-utils`](publish-utils/README.rst): **_Here
 be Dragons!_** This plugin helps configure Gradle's `maven-publish` plugin
