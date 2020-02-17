@@ -562,12 +562,14 @@ open class Node @Inject constructor(private val project: Project) {
         if (!config.hasPath("sshd.port")) {
             sshdPort(defaultSsh)
         }
+        val configDefaults = ConfigFactory.empty()
+              .withValue("dataSourceProperties.dataSource.url", ConfigValueFactory.fromAnyRef("jdbc:h2:file:./persistence/persistence;DB_CLOSE_ON_EXIT=FALSE;WRITE_DELAY=0;LOCK_TIMEOUT=10000"))
         val dockerConf = config
                 .withValue("p2pAddress", ConfigValueFactory.fromAnyRef("$containerName:$p2pPort"))
                 .withValue("rpcSettings.address", ConfigValueFactory.fromAnyRef("$containerName:${rpcSettings.port}"))
                 .withValue("rpcSettings.adminAddress", ConfigValueFactory.fromAnyRef("$containerName:${rpcSettings.adminPort}"))
                 .withValue("detectPublicIp", ConfigValueFactory.fromAnyRef(false))
-                .withValue("dataSourceProperties.dataSource.url", ConfigValueFactory.fromAnyRef("jdbc:h2:file:./persistence/persistence;DB_CLOSE_ON_EXIT=FALSE;WRITE_DELAY=0;LOCK_TIMEOUT=10000"))
+                .withFallback(configDefaults)
 
         config = dockerConf
         createNodeAndWebServerConfigFiles(config)

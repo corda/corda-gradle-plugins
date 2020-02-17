@@ -45,6 +45,7 @@ changes to this list.
 * Daniel Roig (SEB)
 * Dave Hudson (R3)
 * David Lee (BCS)
+* Eduard Klementev (Firmshift)
 * Farzad Pezeshkpour (RBS)
 * Frederic Dalibard (Natixis)
 * Garrett Macey (Wells Fargo)
