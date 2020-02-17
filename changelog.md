@@ -4,6 +4,8 @@
 
 ### Version 5.0.8
 
+* `cordformation`: Allow `dataSource.url` to be overridden in `Dockerform` task.
+
 ### Version 5.0.7
 
 * `publish-utils`: Fix NPE for dependencies without group, name or version when generating POMs from custom Gradle configurations.
