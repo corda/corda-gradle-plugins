@@ -88,17 +88,21 @@ configure(publishProjects) { Project subproject ->
 
     evaluationDependsOn(subproject.path)
 
-    task sourceJar(type: Jar, dependsOn: subproject.classes) {
+    tasks.register('sourceJar', Jar) {
+        dependsOn subproject.classes
         archiveClassifier = 'sources'
         from sourceSets.main.allSource
     }
 
-    task javadocJar(type: Jar, dependsOn: subproject.javadoc) {
+    tasks.register('javadocJar', Jar) {
+        dependsOn subproject.javadoc
         archiveClassifier = 'javadoc'
         from javadoc.destinationDir
     }
 
-    task install(dependsOn: 'publishToMavenLocal')
+    tasks.register('install') {
+        dependsOn 'publishToMavenLocal'
+    }
 
     publishing {
         publications {
