@@ -1,6 +1,7 @@
 @file:JvmName("AsmTools")
 package net.corda.gradle.jarfilter.asm
 
+import net.corda.gradle.jarfilter.FILTER_FLAGS
 import net.corda.gradle.jarfilter.descriptor
 import net.corda.gradle.jarfilter.toPathFormat
 import org.objectweb.asm.ClassReader
@@ -13,7 +14,7 @@ import java.io.InputStream
 
 fun ByteArray.accept(visitor: (ClassVisitor) -> ClassVisitor): ByteArray {
     return ClassWriter(COMPUTE_MAXS).let { writer ->
-        ClassReader(this).accept(visitor(writer), 0)
+        ClassReader(this).accept(visitor(writer), FILTER_FLAGS)
         writer.toByteArray()
     }
 }

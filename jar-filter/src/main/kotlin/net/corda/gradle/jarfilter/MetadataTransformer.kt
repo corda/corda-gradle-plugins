@@ -12,7 +12,7 @@ import org.gradle.api.logging.Logger
  * This is used by [FilterTransformer] for [JarFilterTask].
  */
 abstract class MetadataTransformer<out T : KmDeclarationContainer>(
-    protected val logger: Logger,
+    @JvmField protected val logger: Logger,
     private val deletedFields: Collection<FieldElement>,
     private val deletedFunctions: Collection<MethodElement>,
     protected val handleExtraMethod: (MethodElement) -> Unit,

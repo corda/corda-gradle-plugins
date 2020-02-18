@@ -12,10 +12,10 @@ import org.gradle.api.logging.Logger
  * This is used by [MetaFixerVisitor] for [MetaFixerTask].
  */
 abstract class MetaFixerTransformer<out T : KmDeclarationContainer>(
-    protected val logger: Logger,
+    @JvmField protected val logger: Logger,
     private val actualFields: Collection<FieldElement>,
-    protected val actualMethods: Collection<String>,
-    protected val metadata: T
+    @JvmField protected val actualMethods: Collection<String>,
+    @JvmField protected val metadata: T
 ) {
     private val properties: MutableList<KmProperty> = metadata.properties
     private val functions: MutableList<KmFunction> = metadata.functions

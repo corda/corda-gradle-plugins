@@ -34,7 +34,7 @@ fun getBasicArgsForTasks(vararg taskNames: String): MutableList<String> = mutabl
 
 @Throws(IOException::class)
 fun copyResourceTo(resourceName: String, target: Path) {
-    classLoader.getResourceAsStream(resourceName).use { source ->
+    classLoader.getResourceAsStream(resourceName)?.use { source ->
         Files.copy(source, target, REPLACE_EXISTING)
     }
 }
@@ -53,7 +53,7 @@ fun Path.installResource(resourceName: String): Path = resolve(resourceName.file
 private val String.fileName: String get() = substring(1 + lastIndexOf('/'))
 
 val String.toPackageFormat: String get() = replace('/', '.')
-fun pathsOf(vararg types: KClass<*>): Set<String> = types.map { it.java.name.toPathFormat }.toSet()
+fun pathsOf(vararg types: KClass<*>): Set<String> = types.mapTo(LinkedHashSet()) { it.java.name.toPathFormat }
 
 fun Path.pathOf(vararg elements: String): Path = Paths.get(toAbsolutePath().toString(), *elements)
 

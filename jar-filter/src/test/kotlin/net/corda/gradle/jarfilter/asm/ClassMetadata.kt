@@ -8,10 +8,12 @@ import net.corda.gradle.jarfilter.toPackageFormat
 class ClassMetadata(metadata: KmClass) {
     private val className: ClassName = metadata.name.toPackageFormat
 
+    @JvmField
     val sealedSubclasses: List<ClassName> = metadata.sealedSubclasses.map {
         it.toInternalName().toPackageFormat
     }
 
+    @JvmField
     val nestedClasses: List<ClassName> = metadata.nestedClasses.map { name ->
         "$className\$$name"
     }

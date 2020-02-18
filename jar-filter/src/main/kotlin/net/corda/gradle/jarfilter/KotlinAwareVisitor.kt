@@ -26,8 +26,8 @@ const val KOTLIN_METADATA_PACKAGE_NAME= "pn"
 abstract class KotlinAwareVisitor(
     api: Int,
     visitor: ClassVisitor,
-    protected val logger: Logger,
-    protected val kotlinMetadata: MutableMap<String, Array<String>>
+    @JvmField protected val logger: Logger,
+    @JvmField protected val kotlinMetadata: MutableMap<String, Array<String>>
 ) : ClassVisitor(api, visitor) {
 
     private var classKind: Int = 0

@@ -3,6 +3,8 @@ package net.corda.gradle.jarfilter
 
 import org.gradle.api.InvalidUserCodeException
 import org.objectweb.asm.ClassReader
+import org.objectweb.asm.ClassReader.SKIP_DEBUG
+import org.objectweb.asm.ClassReader.SKIP_FRAMES
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.ClassWriter
 import java.nio.file.attribute.FileTime
@@ -15,7 +17,9 @@ import kotlin.math.max
 import kotlin.text.RegexOption.*
 
 const val GROUP_NAME = "JarFilter"
+const val FILTER_FLAGS = SKIP_DEBUG and SKIP_FRAMES
 
+@JvmField
 val JAR_PATTERN = "(\\.jar)\$".toRegex(IGNORE_CASE)
 
 // Use the same constant file timestamp as Gradle.
@@ -61,7 +65,7 @@ fun ZipEntry.withFileTimestamps(preserveTimestamps: Boolean): ZipEntry {
  * Converts Java class names to Java descriptors.
  */
 fun toDescriptors(classNames: Iterable<String>): Set<String> {
-    return classNames.map(String::descriptor).toSet()
+    return classNames.mapTo(LinkedHashSet(), String::descriptor)
 }
 
 val String.toPathFormat: String get() = replace('.', '/')
@@ -81,7 +85,7 @@ fun <T> ByteArray.execute(visitor: (ClassVisitor) -> T, flags: Int = 0, passes: 
     var count = max(passes, 1)
 
     while (--count >= 0) {
-        ClassReader(bytecode).accept(transformer, 0)
+        ClassReader(bytecode).accept(transformer, FILTER_FLAGS)
         bytecode = writer.toByteArray()
 
         if (!transformer.hasUnwantedElements) break

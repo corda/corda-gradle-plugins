@@ -130,7 +130,7 @@ open class MetaFixerTask @Inject constructor(objects: ObjectFactory, layouts: Pr
     }
 
     private fun Sequence<ZipEntry>.namesEndingWith(suffix: String): Set<String> {
-        return filter { it.name.endsWith(suffix) }.map { it.name.dropLast(suffix.length) }.toSet()
+        return filter { it.name.endsWith(suffix) }.mapTo(LinkedHashSet()) { it.name.dropLast(suffix.length) }
     }
 }
 

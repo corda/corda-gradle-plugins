@@ -249,7 +249,7 @@ open class JarFilterTask @Inject constructor(objects: ObjectFactory, layouts: Pr
             override fun transform(inBytes: ByteArray): ByteArray {
                 return ClassWriter(0).let { writer ->
                     val transformer = SanitisingTransformer(writer, logger, descriptorsForSanitising, initialUnwanted)
-                    ClassReader(inBytes).accept(transformer, 0)
+                    ClassReader(inBytes).accept(transformer, FILTER_FLAGS)
                     isModified = isModified or transformer.isModified
                     writer.toByteArray()
                 }
@@ -273,7 +273,7 @@ open class JarFilterTask @Inject constructor(objects: ObjectFactory, layouts: Pr
                 /*
                  * First pass: This might not find anything to remove!
                  */
-                reader.accept(transformer, 0)
+                reader.accept(transformer, FILTER_FLAGS)
 
                 if (transformer.isUnwantedClass || transformer.hasUnwantedElements) {
                     isModified = true
@@ -287,7 +287,7 @@ open class JarFilterTask @Inject constructor(objects: ObjectFactory, layouts: Pr
                         reader = ClassReader(writer.toByteArray())
                         writer = ClassWriter(COMPUTE_MAXS)
                         transformer = transformer.recreate(writer)
-                        reader.accept(transformer, 0)
+                        reader.accept(transformer, FILTER_FLAGS)
                     } while (!transformer.isUnwantedClass && transformer.hasUnwantedElements)
                 }
 
