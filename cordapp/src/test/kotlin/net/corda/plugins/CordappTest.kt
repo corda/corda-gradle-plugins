@@ -1,12 +1,12 @@
 package net.corda.plugins
 
-import org.apache.commons.io.IOUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
+import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.jar.JarInputStream
@@ -261,6 +261,6 @@ class CordappTest {
                 .withPluginClasspath()
     }
 
-    private fun createBuildFile(buildFileResourceName: String) = IOUtils.copy(javaClass.getResourceAsStream(buildFileResourceName), buildFile.toFile().outputStream())
+    private fun createBuildFile(buildFileResourceName: String) = Files.copy(javaClass.getResourceAsStream(buildFileResourceName), buildFile)
     private fun getCordappJar(cordappJarName: String): Path = Paths.get(testProjectDir.toFile().absolutePath, "build", "libs", "$cordappJarName.jar")
 }

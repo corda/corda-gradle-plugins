@@ -2,7 +2,6 @@ package net.corda.plugins
 
 import com.typesafe.config.*
 import groovy.lang.Closure
-import org.apache.commons.io.FilenameUtils.removeExtension
 import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ProjectDependency
@@ -541,7 +540,13 @@ open class Node @Inject constructor(private val project: Project) {
         Files.createDirectories(configDir)
         for ((jarFile, config) in cordapps) {
             if (config == null) continue
-            val configFile = configDir.resolve("${removeExtension(jarFile.fileName.toString())}.conf")
+            val fileNameWithoutExtension = jarFile.fileName.toString().let {
+                when(val dotIndex = it.lastIndexOf('.')) {
+                    -1 -> it
+                    else -> it.substring(0, dotIndex)
+                }
+            }
+            val configFile = configDir.resolve("${fileNameWithoutExtension}.conf")
             Files.write(configFile, config.toByteArray())
         }
     }
