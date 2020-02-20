@@ -199,7 +199,7 @@ class FilterTransformer private constructor (
      */
     override fun processClassMetadata(kmClass: KmClass): KmClass? {
         val partitioned = deletedMethods.groupBy(MethodElement::isConstructor)
-        val prefix = "$className$"
+        val prefix = "$className\$"
         return ClassMetadataTransformer(
                 logger = logger,
                 deletedFields = unwantedFields,
