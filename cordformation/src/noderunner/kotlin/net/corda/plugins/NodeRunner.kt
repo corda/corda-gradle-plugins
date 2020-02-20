@@ -92,7 +92,7 @@ private class NodeRunner(baseDebugPort: Int, baseMonitoringPort: Int) {
         val nodeName = workingDir.name
         val command = getBaseCommand(jvmArgs, nodeName) + listOf("-jar", jar.absolutePath) + javaArgs
         val process = if (headless) startHeadless(command, workingDir, nodeName, headlessArgs) else startWindowed(command, workingDir, nodeName)
-        if (os == OS.MACOS) Thread.sleep(1000)
+        if (os == OS.MACOS && !isScreen()) Thread.sleep(1000)
         return process
     }
 
@@ -104,13 +104,17 @@ private class NodeRunner(baseDebugPort: Int, baseMonitoringPort: Int) {
     private fun startWindowed(command: List<String>, workingDir: File, nodeName: String): Process {
         val params = when (os) {
             OS.MACOS -> {
-                listOf("osascript", "-e", """tell app "Terminal"
+                if (isScreen()) {
+                    listOf("screen", "-X", "screen", "-t", nodeName, "sh", "-c", listOf("cd", workingDir.absolutePath, "&&").plus(command).joinToString(" "))
+                } else {
+                    listOf("osascript", "-e", """tell app "Terminal"
     activate
     delay 0.5
     tell app "System Events" to tell process "Terminal" to keystroke "t" using command down
     delay 0.5
     do script "bash -c 'cd \"$workingDir\" ; \"${command.joinToString("""\" \"""")}\" && exit'" in selected tab of the front window
 end tell""")
+                }
             }
             OS.WINDOWS -> {
                 listOf("cmd", "/C", "start ${command.joinToString(" ") { windowsSpaceEscape(it) }}")
@@ -166,6 +170,7 @@ private fun parseArg(args: Array<String>, flagPrefix: String, defaultValue: Int)
 
 private fun quotedFormOf(text: String) = "'${text.replace("'", "'\\''")}'" // Suitable for UNIX shells.
 private fun isTmux() = System.getenv("TMUX")?.isNotEmpty() ?: false
+private fun isScreen() = System.getenv("TERM") == "screen"
 // Replace below is to fix an issue with spaces in paths on Windows.
 // Quoting the entire path does not work, only the space or directory within the path.
 private fun windowsSpaceEscape(s:String) = s.replace(" ", "\" \"")
