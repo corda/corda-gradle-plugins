@@ -1,16 +1,19 @@
 package net.corda.gradle.jarfilter
 
+import net.corda.gradle.jarfilter.matcher.isConstructor
 import net.corda.gradle.unwanted.HasAll
 import net.corda.gradle.unwanted.HasInt
 import net.corda.gradle.unwanted.HasLong
 import net.corda.gradle.unwanted.HasString
-import org.assertj.core.api.Assertions.*
+import org.assertj.core.api.Assertions.assertThat
+import org.hamcrest.MatcherAssert.assertThat
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import java.lang.reflect.InvocationTargetException
 import java.nio.file.Path
+import kotlin.reflect.full.primaryConstructor
 import kotlin.test.assertFailsWith
 
 class StubConstructorTest {
@@ -19,6 +22,9 @@ class StubConstructorTest {
         private const val LONG_PRIMARY_CONSTRUCTOR_CLASS = "net.corda.gradle.PrimaryLongConstructorToStub"
         private const val INT_PRIMARY_CONSTRUCTOR_CLASS = "net.corda.gradle.PrimaryIntConstructorToStub"
         private const val SECONDARY_CONSTRUCTOR_CLASS = "net.corda.gradle.HasConstructorToStub"
+        private const val DEFAULT_VALUE_PRIMARY_CLASS = "net.corda.gradle.PrimaryConstructorWithDefaultToStub"
+        private const val DEFAULT_VALUE_SECONDARY_CLASS = "net.corda.gradle.SecondaryConstructorWithDefaultToStub"
+
         private lateinit var testProject: JarFilterProject
 
         @BeforeAll
@@ -151,6 +157,81 @@ class StubConstructorTest {
                         .isInstanceOf(UnsupportedOperationException::class.java)
                         .hasMessage("Method has been deleted")
                 }
+            }
+        }
+    }
+
+    @Test
+    fun stubPrimaryConstructorWithDefaultParameter() {
+        val defaultValueConstructor = isConstructor(DEFAULT_VALUE_PRIMARY_CLASS, String::class)
+
+        classLoaderFor(testProject.sourceJar).use { cl ->
+            with(cl.load<HasString>(DEFAULT_VALUE_PRIMARY_CLASS)) {
+                val primaryConstructor = kotlin.primaryConstructor ?: fail("Must have a primary constructor")
+                assertThat("Incorrect primary constructor", primaryConstructor, defaultValueConstructor)
+
+                with(primaryConstructor.callBy(emptyMap())) {
+                    assertEquals(DEFAULT_MESSAGE, stringData())
+                }
+            }
+        }
+
+        classLoaderFor(testProject.filteredJar).use { cl ->
+            with(cl.load<HasString>(DEFAULT_VALUE_PRIMARY_CLASS)) {
+                val primaryConstructor = kotlin.primaryConstructor ?: fail("Must have a primary constructor")
+                assertThat("Incorrect primary constructor", primaryConstructor, defaultValueConstructor)
+
+                val error = assertFailsWith<InvocationTargetException> {
+                    primaryConstructor.callBy(emptyMap())
+                }
+                assertThat(error.targetException)
+                    .isInstanceOf(UnsupportedOperationException::class.java)
+                    .hasMessage("Method has been deleted")
+            }
+        }
+    }
+
+    @Test
+    fun stubSecondaryConstructorWithDefaultParameter() {
+        classLoaderFor(testProject.sourceJar).use { cl ->
+            with(cl.load<HasAll>(DEFAULT_VALUE_SECONDARY_CLASS)) {
+                val primaryConstructor = kotlin.primaryConstructor ?: fail("Must have a primary constructor")
+                with(primaryConstructor.call(MESSAGE, BIG_NUMBER)) {
+                    assertEquals(MESSAGE, stringData())
+                    assertEquals(BIG_NUMBER, longData())
+                }
+
+                val secondaryConstructor = (kotlin.constructors - primaryConstructor).single()
+                with(secondaryConstructor.callBy(emptyMap())) {
+                    assertEquals(DEFAULT_MESSAGE, stringData())
+                    assertEquals(0L, longData())
+                }
+            }
+        }
+
+        classLoaderFor(testProject.filteredJar).use { cl ->
+            with(cl.load<HasAll>(DEFAULT_VALUE_SECONDARY_CLASS)) {
+                val primaryConstructor = kotlin.primaryConstructor ?: fail("Must have a primary constructor")
+                with(primaryConstructor.call(MESSAGE, BIG_NUMBER)) {
+                    assertEquals(MESSAGE, stringData())
+                    assertEquals(BIG_NUMBER, longData())
+                }
+
+                val secondaryConstructor = (kotlin.constructors - primaryConstructor).single()
+                val kotlinError = assertFailsWith<InvocationTargetException> {
+                    secondaryConstructor.callBy(emptyMap())
+                }
+                assertThat(kotlinError.targetException)
+                    .isInstanceOf(UnsupportedOperationException::class.java)
+                    .hasMessage("Method has been deleted")
+
+                val javaSecondaryConstructor = getDeclaredConstructor(String::class.java)
+                val javaError = assertFailsWith<InvocationTargetException> {
+                    javaSecondaryConstructor.newInstance(MESSAGE)
+                }
+                assertThat(javaError.targetException)
+                    .isInstanceOf(UnsupportedOperationException::class.java)
+                    .hasMessage("Method has been deleted")
             }
         }
     }

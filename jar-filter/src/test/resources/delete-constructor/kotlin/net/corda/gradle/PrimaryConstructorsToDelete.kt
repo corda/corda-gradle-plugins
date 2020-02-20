@@ -19,6 +19,6 @@ class PrimaryStringConstructorToDelete @DeleteMe constructor(private val value: 
     override fun stringData() = value
 }
 
-class PrimaryConstructorWithDefault @DeleteMe constructor(private val value: String = "<default-value>") : HasString {
+class PrimaryConstructorWithDefaultToDelete @DeleteMe constructor(private val value: String = "<default-value>") : HasString {
     override fun stringData() = value
 }

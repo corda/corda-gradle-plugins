@@ -19,3 +19,6 @@ class PrimaryStringConstructorToStub @StubMeOut constructor(private val value: S
     override fun stringData() = value
 }
 
+class PrimaryConstructorWithDefaultToStub @StubMeOut constructor(private val value: String = "<default-value>") : HasString {
+    override fun stringData() = value
+}
