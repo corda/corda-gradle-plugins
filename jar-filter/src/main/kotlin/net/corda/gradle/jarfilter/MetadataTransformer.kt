@@ -15,9 +15,9 @@ abstract class MetadataTransformer<out T : KmDeclarationContainer>(
     @JvmField protected val logger: Logger,
     private val deletedFields: Collection<FieldElement>,
     private val deletedFunctions: Collection<MethodElement>,
-    protected val handleExtraMethod: (MethodElement) -> Unit,
-    protected val handleSyntheticMethod: (MethodElement, MethodElement) -> Unit,
-    protected val metadata: T
+    @JvmField protected val handleExtraMethod: (MethodElement) -> Unit,
+    @JvmField protected val handleSyntheticMethod: (MethodElement, MethodElement) -> Unit,
+    @JvmField protected val metadata: T
 ) {
     private val functions: MutableList<KmFunction> = metadata.functions
     private val properties: MutableList<KmProperty> = metadata.properties

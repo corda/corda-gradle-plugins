@@ -206,9 +206,9 @@ open class JarFilterTask @Inject constructor(objects: ObjectFactory, layouts: Pr
              * Use [ZipFile] instead of [java.util.jar.JarInputStream] because
              * JarInputStream consumes MANIFEST.MF when it's the first or second entry.
              */
-            protected val inJar = ZipFile(input.toFile())
-            protected val outJar = ZipOutputStream(Files.newOutputStream(target))
-            protected var isModified = false
+            @JvmField protected val inJar = ZipFile(input.toFile())
+            @JvmField protected val outJar = ZipOutputStream(Files.newOutputStream(target))
+            @JvmField protected var isModified = false
 
             @Throws(IOException::class)
             override fun close() {
