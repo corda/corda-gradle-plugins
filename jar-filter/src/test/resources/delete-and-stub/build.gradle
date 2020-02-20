@@ -1,3 +1,5 @@
+import net.corda.gradle.jarfilter.JarFilterTask
+
 plugins {
     id 'org.jetbrains.kotlin.jvm' version '$kotlin_version'
     id 'net.corda.plugins.jar-filter' apply false
@@ -25,7 +27,6 @@ jar {
     archiveBaseName = 'delete-and-stub'
 }
 
-import net.corda.gradle.jarfilter.JarFilterTask
 task jarFilter(type: JarFilterTask) {
     jars jar
     annotations {
