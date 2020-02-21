@@ -16,7 +16,7 @@ abstract class MetadataTransformer<out T : KmDeclarationContainer>(
     private val deletedFields: Collection<FieldElement>,
     private val deletedFunctions: Collection<MethodElement>,
     @JvmField protected val handleExtraMethod: (MethodElement) -> Unit,
-    @JvmField protected val handleSyntheticMethod: (MethodElement, MethodElement) -> Unit,
+    @JvmField protected val handleSameAs: MethodElement.(MethodElement) -> Unit,
     @JvmField protected val metadata: T
 ) {
     private val functions: MutableList<KmFunction> = metadata.functions
@@ -44,7 +44,7 @@ abstract class MetadataTransformer<out T : KmDeclarationContainer>(
 
                 // The synthetic "$default" method may not have been annotated,
                 // so ensure we handle it in the same way as its "host" method.
-                handleSyntheticMethod(synthetic, method)
+                synthetic.handleSameAs(method)
             }
         }
     }
@@ -132,14 +132,14 @@ class ClassMetadataTransformer(
     private val deletedNestedClasses: Collection<String>,
     private val deletedClasses: Collection<String>,
     handleExtraMethod: (MethodElement) -> Unit,
-    handleSyntheticMethod: (MethodElement, MethodElement) -> Unit,
+    handleSameAs: MethodElement.(MethodElement) -> Unit,
     kmClass: KmClass
 ) : MetadataTransformer<KmClass>(
     logger,
     deletedFields,
     deletedFunctions,
     handleExtraMethod,
-    handleSyntheticMethod,
+    handleSameAs,
     metadata = kmClass
 ) {
     private val className = kmClass.name
@@ -158,7 +158,7 @@ class ClassMetadataTransformer(
 
                 // The synthetic "default values" constructor may not have been annotated,
                 // so ensure we handle it in the same way as its "host" method.
-                handleSyntheticMethod(synthetic, method)
+                synthetic.handleSameAs(method)
             }
         }
     }
@@ -251,14 +251,14 @@ class PackageMetadataTransformer(
     deletedFields: Collection<FieldElement>,
     deletedFunctions: Collection<MethodElement>,
     handleExtraMethod: (MethodElement) -> Unit,
-    handleSyntheticMethod: (MethodElement, MethodElement) -> Unit,
+    handleSameAs: MethodElement.(MethodElement) -> Unit,
     kmPackage: KmPackage
 ) : MetadataTransformer<KmPackage>(
     logger,
     deletedFields,
     deletedFunctions,
     handleExtraMethod,
-    handleSyntheticMethod,
+    handleSameAs,
     metadata = kmPackage
 ) {
     override fun filter(): Int = (

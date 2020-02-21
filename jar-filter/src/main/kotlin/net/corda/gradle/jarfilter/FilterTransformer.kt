@@ -176,7 +176,7 @@ class FilterTransformer private constructor (
          * anything from the Kotlin metadata so that the
          * metadata update doesn't miss anything.
          */
-        importExtra(className)?.forEach { (descriptor, method) -> filterExtra(descriptor, method) }
+        importExtra(className)?.forEach { (annotation, method) -> filterExtra(annotation, method) }
 
         /*
          * Process Kotlin metadata in the parent method.
@@ -208,7 +208,7 @@ class FilterTransformer private constructor (
                 deletedNestedClasses = unwantedElements.classes.filter { it.startsWith(prefix) }.map { it.drop(prefix.length) },
                 deletedClasses = unwantedElements.classes,
                 handleExtraMethod = ::delete,
-                handleSyntheticMethod = ::filterExtra,
+                handleSameAs = ::filterExtra,
                 kmClass = kmClass)
             .transform()
     }
@@ -222,7 +222,7 @@ class FilterTransformer private constructor (
                 deletedFields = unwantedFields,
                 deletedFunctions = deletedMethods,
                 handleExtraMethod = ::delete,
-                handleSyntheticMethod = ::filterExtra,
+                handleSameAs = ::filterExtra,
                 kmPackage = kmPackage)
             .transform()
     }
@@ -231,43 +231,43 @@ class FilterTransformer private constructor (
      * Callback function to mark extra methods for deletion.
      * This will override a request for stubbing.
      */
-    private fun delete(method: MethodElement) {
-        if (deletedMethods.add(method) && stubbedMethods.remove(method)) {
+    private fun delete(target: MethodElement) {
+        if (deletedMethods.add(target) && stubbedMethods.remove(target)) {
             logger.warn("-- method {}{} will be deleted instead of stubbed out",
-                         method.name, method.descriptor)
+                         target.name, target.descriptor)
         }
     }
 
     /**
-     * Add [method] to the correct list of pending filter operations,
+     * Add [target] to the correct list of pending filter operations,
      * based on the given [annotation] descriptor.
      */
-    private fun filterExtra(annotation: String, method: MethodElement) {
+    private fun filterExtra(annotation: String, target: MethodElement) {
         when (annotation) {
-            in deleteAnnotations -> deleteExtra(method)
-            in stubAnnotations -> stubExtra(method)
+            in deleteAnnotations -> deleteExtra(target)
+            in stubAnnotations -> stubExtra(target)
         }
     }
 
     /**
-     * Callback function to handle [extra] method in the same manner as [template].
+     * Callback function to handle [target] method in the same manner as [template].
      */
-    private fun filterExtra(extra: MethodElement, template: MethodElement) {
+    private fun filterExtra(target: MethodElement, template: MethodElement) {
         when (template) {
-            in deletedMethods -> deleteExtra(extra)
-            in stubbedMethods -> stubExtra(extra)
+            in deletedMethods -> deleteExtra(target)
+            in stubbedMethods -> stubExtra(target)
         }
     }
 
-    private fun deleteExtra(method: MethodElement) {
-        if (deletedMethods.add(method)) {
-            logger.info("-- also identified method {}{} for deletion", method.name, method.descriptor)
+    private fun deleteExtra(target: MethodElement) {
+        if (deletedMethods.add(target)) {
+            logger.info("-- also identified method {}{} for deletion", target.name, target.descriptor)
         }
     }
 
-    private fun stubExtra(method: MethodElement) {
-        if (stubbedMethods.add(method)) {
-            logger.info("-- also identified method {}{} for stubbing out", method.name, method.descriptor)
+    private fun stubExtra(target: MethodElement) {
+        if (stubbedMethods.add(target)) {
+            logger.info("-- also identified method {}{} for stubbing out", target.name, target.descriptor)
         }
     }
 
