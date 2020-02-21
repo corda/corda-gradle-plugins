@@ -4,11 +4,11 @@ import net.corda.core.serialization.SerializationContext
 import net.corda.serialization.internal.CordaSerializationMagic
 import net.corda.serialization.internal.amqp.AbstractAMQPSerializationScheme
 import net.corda.serialization.internal.amqp.amqpMagic
-import org.apache.commons.io.IOUtils
 import org.gradle.testkit.runner.GradleRunner
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.io.TempDir
 import java.io.FileNotFoundException
+import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 
@@ -44,11 +44,11 @@ open class BaseformTest {
                 .withPluginClasspath()
     }
 
-    fun createBuildFile(buildFileResourceName: String) = IOUtils.copy(javaClass.getResourceAsStream(buildFileResourceName), buildFile.toFile().outputStream())
+    fun createBuildFile(buildFileResourceName: String) = Files.copy(javaClass.getResourceAsStream(buildFileResourceName), buildFile)
     fun installResource(resourceName: String) {
         val buildFile = testProjectDir.resolve(resourceName.substring(1 + resourceName.lastIndexOf('/')))
         javaClass.classLoader.getResourceAsStream(resourceName)?.use { input ->
-            IOUtils.copy(input, buildFile.toFile().outputStream())
+            Files.copy(input, buildFile)
         } ?: throw FileNotFoundException(resourceName)
     }
 

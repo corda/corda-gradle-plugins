@@ -137,6 +137,7 @@ changes to this list.
 * Timothy Smith (Credit Suisse)
 * Tommy Lillehagen (R3)
 * Viktor Kolomeyko (R3)
+* Walter Oggioni (R3)
 * Wawrzek Niewodniczanski (R3)
 * Wei Wu Zhang (Commonwealth Bank of Australia)
 * William Yang
