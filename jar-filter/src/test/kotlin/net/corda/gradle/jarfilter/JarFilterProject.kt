@@ -22,7 +22,8 @@ class JarFilterProject(private val projectDir: Path, private val name: String) {
             "$name/build.gradle",
             "repositories.gradle",
             "gradle.properties",
-            "settings.gradle"
+            "settings.gradle",
+            "kotlin.gradle"
         )
 
         val result = GradleRunner.create()
