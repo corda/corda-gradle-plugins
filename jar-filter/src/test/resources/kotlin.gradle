@@ -1,4 +1,4 @@
-import static org.gradle.api.JavaVersion.VERSION_1_8
+import static org.gradle.api.JavaVersion.*
 
 tasks.named('compileKotlin', AbstractCompile) {
     kotlinOptions {
@@ -8,3 +8,4 @@ tasks.named('compileKotlin', AbstractCompile) {
         freeCompilerArgs = ['-Xjvm-default=enable']
     }
 }
+
