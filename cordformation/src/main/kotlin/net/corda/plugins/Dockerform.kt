@@ -7,6 +7,7 @@ import org.gradle.api.tasks.PathSensitivity.RELATIVE
 import org.gradle.api.tasks.TaskAction
 import org.yaml.snakeyaml.DumperOptions
 import org.yaml.snakeyaml.Yaml
+import java.io.File
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
@@ -22,6 +23,7 @@ import javax.inject.Inject
 open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(objects) {
 
     private companion object {
+        private const val DEFAULT_DB_PORT = 5432
         private const val DEFAULT_SSH_PORT = 22022
         private val DEFAULT_DIRECTORY: Path = Paths.get("build", "docker")
 
@@ -40,7 +42,6 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
     }
 
     private val directoryPath: Path = project.projectDir.toPath().resolve(directory)
-
 
     val dockerComposePath: Path
         @PathSensitive(RELATIVE)
@@ -61,14 +62,14 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
     fun build() {
         project.logger.lifecycle("Running DockerForm task")
         initializeConfiguration()
-        nodes.forEach { it -> it.installDockerConfig(DEFAULT_SSH_PORT) }
+        nodes.forEach {it -> it.installDockerConfig(DEFAULT_SSH_PORT) }
         installCordaJar()
         nodes.forEach(Node::installDrivers)
         generateKeystoreAndSignCordappJar()
         generateExcludedWhitelist()
         bootstrapNetwork()
+        nodes.forEachIndexed { index, it -> it.installDatabaseConfig(DEFAULT_DB_PORT + index, "${it.containerName}-db") }
         nodes.forEach(Node::buildDocker)
-
 
         // Transform nodes path the absolute ones
         val services = nodes.map {
@@ -84,13 +85,42 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
                             "$nodeBuildDir/network-parameters:/opt/corda/network-parameters",
                             "$nodeBuildDir/additional-node-infos:/opt/corda/additional-node-infos",
                             "$nodeBuildDir/drivers:/opt/corda/drivers"
-
                     ),
                     "ports" to listOf(it.rpcPort, it.config.getInt("sshd.port")),
-                    "image" to "corda/corda-zulu-${it.runtimeVersion().toLowerCase()}"
-            )
-        }.toMap()
+                    "image" to "corda/corda-zulu-java1.8-${it.runtimeVersion().toLowerCase()}",
+                    "depends_on" to listOf("${it.dbAddress}")
+            );
+        }.toMap().toMutableMap()
 
+        var databases = mutableListOf<String>()
+
+        nodes.forEach {
+            val nodeBuildDir = directoryPath.resolve(it.nodeDir.name).toAbsolutePath().toString()
+
+            val body = mapOf(
+                    "image" to "postgres",
+                    "restart" to "unless-stopped",
+                    "ports" to listOf("${it.dbPort}:${it.dbPort}"),
+                    "environment" to mapOf(
+                            "POSTGRES_USER" to "myuser",
+                            "POSTGRES_PASSWORD" to "mypassword",
+                            "POSTGRES_DB" to "mydb",
+                            "PGPORT" to it.dbPort
+                    ),
+                    "volumes" to listOf(
+                            "$nodeBuildDir/drivers/init.sql:/docker-entrypoint-initdb.d/init.sql"
+                    )
+            );
+            services[it.dbAddress] = body;
+            databases.add(it.dbAddress);
+        }
+
+        services["adminer"] = mapOf(
+                "image" to "adminer",
+                "restart" to "unless-stopped",
+                "depends_on" to databases,
+                "ports" to listOf("8080:8080")
+        );
 
         val dockerComposeObject = mapOf(
                 "version" to COMPOSE_SPEC_VERSION,

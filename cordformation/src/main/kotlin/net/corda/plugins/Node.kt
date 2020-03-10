@@ -65,6 +65,26 @@ open class Node @Inject constructor(private val project: Project) {
         private set
 
     /**
+     * Port number for node's database
+     */
+    internal var dbPort = 5432
+        @Internal get
+
+    /**
+     * Address number for node's database
+     */
+    internal var dbAddress = DEFAULT_HOST
+        @Internal get
+
+    /**
+     * Sets the database configuration
+     */
+    private fun setDBConfig(port: Int, address: String) {
+        this.dbPort = port
+        this.dbAddress = address
+    }
+
+    /**
      * Name of the node. Node will be placed in directory based on this name - all lowercase with whitespaces removed.
      * Actual node name inside node.conf will be as set here.
      */
@@ -567,17 +587,58 @@ open class Node @Inject constructor(private val project: Project) {
         if (!config.hasPath("sshd.port")) {
             sshdPort(defaultSsh)
         }
+
+        val p2pHost = config.getString("p2pAddress")
+        val p2pPort = p2pHost.substring(p2pHost.indexOf(":") + 1)
+        val rpcAddressConfig = config.getString("rpcSettings.address")
+        val rpcAddressPort = rpcAddressConfig.substring(rpcAddressConfig.indexOf(":") + 1)
+        val rpcAdminAddressConfig = config.getString("rpcSettings.adminAddress")
+        val rpcAdminAddressPort = rpcAdminAddressConfig.substring(rpcAddressConfig.indexOf(":") + 1)
+
+        // TODO Copy the settings over to avoid h2Settings
         val configDefaults = ConfigFactory.empty()
-            .withValue("dataSourceProperties.dataSource.url", ConfigValueFactory.fromAnyRef("jdbc:h2:file:./persistence/persistence;DB_CLOSE_ON_EXIT=FALSE;WRITE_DELAY=0;LOCK_TIMEOUT=10000"))
+
         val dockerConf = config
-            .withValue("p2pAddress", ConfigValueFactory.fromAnyRef("$containerName:$p2pPort"))
-            .withValue("rpcSettings.address", ConfigValueFactory.fromAnyRef("$containerName:${rpcSettings.port}"))
-            .withValue("rpcSettings.adminAddress", ConfigValueFactory.fromAnyRef("$containerName:${rpcSettings.adminPort}"))
-            .withValue("detectPublicIp", ConfigValueFactory.fromAnyRef(false))
-            .withFallback(configDefaults)
+                .withValue("dataSourceProperties.dataSource.url", ConfigValueFactory.fromAnyRef("jdbc:h2:file:./persistence/persistence;DB_CLOSE_ON_EXIT=FALSE;WRITE_DELAY=0;LOCK_TIMEOUT=10000"))
+                .withValue("p2pAddress", ConfigValueFactory.fromAnyRef("$containerName:$p2pPort"))
+                .withValue("rpcSettings.address", ConfigValueFactory.fromAnyRef("$containerName:$rpcAddressPort"))
+                .withValue("rpcSettings.adminAddress", ConfigValueFactory.fromAnyRef("$containerName:$rpcAdminAddressPort"))
+                .withValue("detectPublicIp", ConfigValueFactory.fromAnyRef(false))
 
         config = dockerConf
         createNodeAndWebServerConfigFiles(config)
+    }
+
+     /**
+     * Installs the Dockerized configuration file to the root directory and detokenises it.
+     *
+     * Defaults to Postgres (part of EG-496 Epic)
+     */
+    internal fun installDatabaseConfig(dbPort: Int, dbAddress: String) {
+
+        setDBConfig(dbPort, dbAddress)
+
+        val dockerConf = config
+                .withValue("dataSourceProperties.dataSourceClassName", ConfigValueFactory.fromAnyRef("org.postgresql.ds.PGSimpleDataSource"))
+                .withValue("dataSourceProperties.dataSource.url", ConfigValueFactory.fromAnyRef("jdbc:postgresql://$dbAddress:$dbPort/mydb?currentSchema=myschema"))
+                .withValue("dataSourceProperties.dataSource.user", ConfigValueFactory.fromAnyRef("myuser"))
+                .withValue("dataSourceProperties.dataSource.password", ConfigValueFactory.fromAnyRef("mypassword"))
+
+        config = dockerConf
+        updateNodeConfigFile(config)
+    }
+
+    private fun updateNodeConfigFile(config: Config) {
+
+        val options = ConfigRenderOptions
+                .defaults()
+                .setOriginComments(false)
+                .setComments(false)
+                .setFormatted(true)
+                .setJson(false)
+        val configFileText = createNodeConfig(config).root().render(options).split("\n").toList()
+        val nodeConfFile = File(nodeDir, "node.conf")
+        Files.write(nodeConfFile.toPath(), configFileText, StandardCharsets.UTF_8)
     }
 
     private fun createNodeAndWebServerConfigFiles(config: Config) {
