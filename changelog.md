@@ -4,6 +4,8 @@
 
 ### Version 5.0.9
 
+* `cordformation`: Use GNU Screen in `runnodes` on macOS to start nodes in different Screen windows. Activated when the user is already running `screen`.
+
 ### Version 5.0.8
 
 * `cordformation`: Allow `dataSource.url` to be overridden in `Dockerform` task.

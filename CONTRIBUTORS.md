@@ -69,6 +69,7 @@ changes to this list.
 * Jonathan Sartin (R3)
 * Jose Coll (R3)
 * Jose Luu (Natixis)
+* Joseph Zuniga-Daly (R3)
 * Josh Lindl (BCS)
 * Justin Chapman (Northern Trust)
 * Kai-Michael Schramm (Credit Suisse)
