@@ -56,7 +56,8 @@ open class Node @Inject constructor(private val project: Project) {
         private set
     private var rpcSettings: RpcSettings = RpcSettings()
     private var webserverJar: String? = null
-    private var p2pPort = 10002
+    internal var p2pPort = 10002
+        @Input get
     internal var rpcPort = 10003
         @Input get
         private set
@@ -588,21 +589,19 @@ open class Node @Inject constructor(private val project: Project) {
             sshdPort(defaultSsh)
         }
 
+        // TODO Refactor this code to extract the information from the config file
         val p2pHost = config.getString("p2pAddress")
-        val p2pPort = p2pHost.substring(p2pHost.indexOf(":") + 1)
-        val rpcAddressConfig = config.getString("rpcSettings.address")
-        val rpcAddressPort = rpcAddressConfig.substring(rpcAddressConfig.indexOf(":") + 1)
-        val rpcAdminAddressConfig = config.getString("rpcSettings.adminAddress")
-        val rpcAdminAddressPort = rpcAdminAddressConfig.substring(rpcAddressConfig.indexOf(":") + 1)
-
-        // TODO Copy the settings over to avoid h2Settings
-        val configDefaults = ConfigFactory.empty()
+        this.p2pPort = p2pHost.substring(p2pHost.indexOf(":") + 1).toInt()
+        val rpcConfig = config.getString("rpcSettings.address")
+        this.rpcPort = rpcConfig.substring(rpcConfig.indexOf(":") + 1).toInt()
+        val rpcAdminConfig = config.getString("rpcSettings.adminAddress")
+        val rpcAdminPort = rpcAdminConfig.substring(rpcConfig.indexOf(":") + 1)
 
         val dockerConf = config
                 .withValue("dataSourceProperties.dataSource.url", ConfigValueFactory.fromAnyRef("jdbc:h2:file:./persistence/persistence;DB_CLOSE_ON_EXIT=FALSE;WRITE_DELAY=0;LOCK_TIMEOUT=10000"))
                 .withValue("p2pAddress", ConfigValueFactory.fromAnyRef("$containerName:$p2pPort"))
-                .withValue("rpcSettings.address", ConfigValueFactory.fromAnyRef("$containerName:$rpcAddressPort"))
-                .withValue("rpcSettings.adminAddress", ConfigValueFactory.fromAnyRef("$containerName:$rpcAdminAddressPort"))
+                .withValue("rpcSettings.address", ConfigValueFactory.fromAnyRef("$containerName:$rpcPort"))
+                .withValue("rpcSettings.adminAddress", ConfigValueFactory.fromAnyRef("$containerName:$rpcAdminPort"))
                 .withValue("detectPublicIp", ConfigValueFactory.fromAnyRef(false))
 
         config = dockerConf
@@ -623,6 +622,9 @@ open class Node @Inject constructor(private val project: Project) {
                 .withValue("dataSourceProperties.dataSource.url", ConfigValueFactory.fromAnyRef("jdbc:postgresql://$dbAddress:$dbPort/mydb?currentSchema=myschema"))
                 .withValue("dataSourceProperties.dataSource.user", ConfigValueFactory.fromAnyRef("myuser"))
                 .withValue("dataSourceProperties.dataSource.password", ConfigValueFactory.fromAnyRef("mypassword"))
+                .withValue("database.transactionIsolationLevel", ConfigValueFactory.fromAnyRef("READ_COMMITTED"))
+                .withValue("database.runMigration", ConfigValueFactory.fromAnyRef(true))
+                //.withValue("database.schema", ConfigValueFactory.fromAnyRef("myschema"))
 
         config = dockerConf
         updateNodeConfigFile(config)

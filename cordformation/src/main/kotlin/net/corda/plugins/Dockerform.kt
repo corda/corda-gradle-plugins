@@ -68,6 +68,8 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
         generateKeystoreAndSignCordappJar()
         generateExcludedWhitelist()
         bootstrapNetwork()
+
+        // TODO Use the port allocator instead of increasing the index port number manually
         nodes.forEachIndexed { index, it -> it.installDatabaseConfig(DEFAULT_DB_PORT + index, "${it.containerName}-db") }
         nodes.forEach(Node::buildDocker)
 
@@ -86,8 +88,8 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
                             "$nodeBuildDir/additional-node-infos:/opt/corda/additional-node-infos",
                             "$nodeBuildDir/drivers:/opt/corda/drivers"
                     ),
-                    "ports" to listOf(it.rpcPort, it.config.getInt("sshd.port")),
-                    "image" to "corda/corda-zulu-java1.8-${it.runtimeVersion().toLowerCase()}",
+                    "ports" to listOf(it.rpcPort, it.config.getInt("sshd.port"), it.p2pPort),
+                    "image" to "entdocker.software.r3.com/corda-enterprise-java1.8-${it.runtimeVersion().toLowerCase()}",
                     "depends_on" to listOf("${it.dbAddress}")
             );
         }.toMap().toMutableMap()
