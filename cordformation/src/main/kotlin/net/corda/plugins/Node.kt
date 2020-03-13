@@ -10,6 +10,7 @@ import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.Optional
 import java.io.File
+import java.io.FileNotFoundException
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
@@ -65,24 +66,13 @@ open class Node @Inject constructor(private val project: Project) {
         @Internal get
         private set
 
-    /**
-     * Port number for node's database
-     */
-    internal var dbPort = 5432
-        @Internal get
-
-    /**
-     * Address number for node's database
-     */
-    internal var dbAddress = DEFAULT_HOST
-        @Internal get
+    lateinit var dbSettings: DbSettings
 
     /**
      * Sets the database configuration
      */
-    private fun setDBConfig(port: Int, address: String) {
-        this.dbPort = port
-        this.dbAddress = address
+    private fun setDBSettings(port: Int, address: String) {
+        dbSettings = DbSettings(port, address)
     }
 
     /**
@@ -580,6 +570,12 @@ open class Node @Inject constructor(private val project: Project) {
         createNodeAndWebServerConfigFiles(config)
     }
 
+    private fun installResource(resourceName: String) {
+        javaClass.getResourceAsStream(resourceName)?.use { input ->
+            Files.copy(input, File("$nodeDir/$resourceName").toPath())
+        } ?: throw FileNotFoundException(resourceName)
+    }
+
     /**
      * Installs the Dockerized configuration file to the root directory and detokenises it.
      */
@@ -613,18 +609,18 @@ open class Node @Inject constructor(private val project: Project) {
      *
      * Defaults to Postgres (part of EG-496 Epic)
      */
-    internal fun installDatabaseConfig(dbPort: Int, dbAddress: String) {
-
-        setDBConfig(dbPort, dbAddress)
+    internal fun installDatabaseConfig(port: Int, address: String, initConfig: String) {
+        installResource(initConfig)
+        setDBSettings(port, address)
 
         val dockerConf = config
                 .withValue("dataSourceProperties.dataSourceClassName", ConfigValueFactory.fromAnyRef("org.postgresql.ds.PGSimpleDataSource"))
-                .withValue("dataSourceProperties.dataSource.url", ConfigValueFactory.fromAnyRef("jdbc:postgresql://$dbAddress:$dbPort/mydb?currentSchema=myschema"))
+                .withValue("dataSourceProperties.dataSource.url", ConfigValueFactory.fromAnyRef("jdbc:postgresql://$address:$port/mydb?currentSchema=myschema"))
                 .withValue("dataSourceProperties.dataSource.user", ConfigValueFactory.fromAnyRef("myuser"))
                 .withValue("dataSourceProperties.dataSource.password", ConfigValueFactory.fromAnyRef("mypassword"))
                 .withValue("database.transactionIsolationLevel", ConfigValueFactory.fromAnyRef("READ_COMMITTED"))
                 .withValue("database.runMigration", ConfigValueFactory.fromAnyRef(true))
-                //.withValue("database.schema", ConfigValueFactory.fromAnyRef("myschema"))
+                .withValue("database.schema", ConfigValueFactory.fromAnyRef("myschema"))
 
         config = dockerConf
         updateNodeConfigFile(config)

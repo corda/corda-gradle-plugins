@@ -23,8 +23,12 @@ import javax.inject.Inject
 open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(objects) {
 
     private companion object {
-        private const val DEFAULT_DB_PORT = 5432
-        private const val DEFAULT_SSH_PORT = 22022
+
+        private const val POSTGRES_INIT_FILE = "init.sql";
+
+        private const val STARTING_DB_PORT = 5432
+        private const val STARTING_SSH_PORT = 22022
+
         private val DEFAULT_DIRECTORY: Path = Paths.get("build", "docker")
 
         private const val COMPOSE_SPEC_VERSION = "3"
@@ -62,15 +66,13 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
     fun build() {
         project.logger.lifecycle("Running DockerForm task")
         initializeConfiguration()
-        nodes.forEach {it -> it.installDockerConfig(DEFAULT_SSH_PORT) }
+        nodes.forEachIndexed {index, it -> it.installDockerConfig(STARTING_SSH_PORT + index) }
         installCordaJar()
         nodes.forEach(Node::installDrivers)
         generateKeystoreAndSignCordappJar()
         generateExcludedWhitelist()
         bootstrapNetwork()
-
-        // TODO Use the port allocator instead of increasing the index port number manually
-        nodes.forEachIndexed { index, it -> it.installDatabaseConfig(DEFAULT_DB_PORT + index, "${it.containerName}-db") }
+        nodes.forEachIndexed { index, it -> it.installDatabaseConfig(STARTING_DB_PORT + index, "${it.containerName}-db", POSTGRES_INIT_FILE) }
         nodes.forEach(Node::buildDocker)
 
         // Transform nodes path the absolute ones
@@ -90,7 +92,7 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
                     ),
                     "ports" to listOf(it.rpcPort, it.config.getInt("sshd.port"), it.p2pPort),
                     "image" to "entdocker.software.r3.com/corda-enterprise-java1.8-${it.runtimeVersion().toLowerCase()}",
-                    "depends_on" to listOf("${it.dbAddress}")
+                    "depends_on" to listOf("${it.dbSettings.host}")
             );
         }.toMap().toMutableMap()
 
@@ -102,19 +104,19 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
             val body = mapOf(
                     "image" to "postgres",
                     "restart" to "unless-stopped",
-                    "ports" to listOf("${it.dbPort}:${it.dbPort}"),
+                    "ports" to listOf("${it.dbSettings.port}:${it.dbSettings.port}"),
                     "environment" to mapOf(
                             "POSTGRES_USER" to "myuser",
                             "POSTGRES_PASSWORD" to "mypassword",
                             "POSTGRES_DB" to "mydb",
-                            "PGPORT" to it.dbPort
+                            "PGPORT" to it.dbSettings.port
                     ),
                     "volumes" to listOf(
-                            "$nodeBuildDir/drivers/init.sql:/docker-entrypoint-initdb.d/init.sql"
+                            "$nodeBuildDir/$POSTGRES_INIT_FILE:/docker-entrypoint-initdb.d/$POSTGRES_INIT_FILE"
                     )
             );
-            services[it.dbAddress] = body;
-            databases.add(it.dbAddress);
+            services[it.dbSettings.host] = body
+            databases.add(it.dbSettings.host)
         }
 
         services["adminer"] = mapOf(
@@ -122,7 +124,7 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
                 "restart" to "unless-stopped",
                 "depends_on" to databases,
                 "ports" to listOf("8080:8080")
-        );
+        )
 
         val dockerComposeObject = mapOf(
                 "version" to COMPOSE_SPEC_VERSION,
