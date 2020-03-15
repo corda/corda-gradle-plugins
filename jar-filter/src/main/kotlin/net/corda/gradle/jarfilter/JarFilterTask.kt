@@ -263,7 +263,7 @@ open class JarFilterTask @Inject constructor(objects: ObjectFactory, layouts: Pr
                 var transformer = FilterTransformer(
                     visitor = writer,
                     logger = logger,
-                    importExtra = { className: String -> initialUnwanted.remove(className) },
+                    importExtra = { className -> initialUnwanted.remove(className) },
                     removeAnnotations = descriptorsForRemove,
                     deleteAnnotations = descriptorsForDelete,
                     stubAnnotations = descriptorsForStub,

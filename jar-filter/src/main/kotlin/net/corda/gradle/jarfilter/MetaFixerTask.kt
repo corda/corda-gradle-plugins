@@ -5,7 +5,6 @@ import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.ProjectLayout
-import org.gradle.api.logging.Logger
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
@@ -133,6 +132,3 @@ open class MetaFixerTask @Inject constructor(objects: ObjectFactory, layouts: Pr
         return filter { it.name.endsWith(suffix) }.mapTo(LinkedHashSet()) { it.name.dropLast(suffix.length) }
     }
 }
-
-fun ByteArray.fixMetadata(logger: Logger, classNames: Set<String>): ByteArray
-                  = execute({ writer -> MetaFixerVisitor(writer, logger, classNames) })

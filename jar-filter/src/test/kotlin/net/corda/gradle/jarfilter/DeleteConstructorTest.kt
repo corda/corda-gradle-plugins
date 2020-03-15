@@ -6,7 +6,7 @@ import net.corda.gradle.unwanted.HasInt
 import net.corda.gradle.unwanted.HasLong
 import net.corda.gradle.unwanted.HasString
 import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.core.IsEqual.*
+import org.hamcrest.core.IsEqual.equalTo
 import org.hamcrest.core.IsIterableContaining.hasItem
 import org.hamcrest.core.IsNot.not
 import org.junit.jupiter.api.Assertions.*
@@ -24,8 +24,8 @@ class DeleteConstructorTest {
         private const val LONG_PRIMARY_CONSTRUCTOR_CLASS = "net.corda.gradle.PrimaryLongConstructorToDelete"
         private const val INT_PRIMARY_CONSTRUCTOR_CLASS = "net.corda.gradle.PrimaryIntConstructorToDelete"
         private const val SECONDARY_CONSTRUCTOR_CLASS = "net.corda.gradle.HasConstructorToDelete"
-        private const val DEFAULT_VALUE_PRIMARY_CLASS = "net.corda.gradle.PrimaryConstructorWithDefault"
-        private const val DEFAULT_VALUE_SECONDARY_CLASS = "net.corda.gradle.SecondaryConstructorWithDefault"
+        private const val DEFAULT_VALUE_PRIMARY_CLASS = "net.corda.gradle.PrimaryConstructorWithDefaultToDelete"
+        private const val DEFAULT_VALUE_SECONDARY_CLASS = "net.corda.gradle.SecondaryConstructorWithDefaultToDelete"
 
         private lateinit var testProject: JarFilterProject
 
