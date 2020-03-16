@@ -508,6 +508,20 @@ open class Node @Inject constructor(private val project: Project) {
         }
     }
 
+    internal fun installPostgresDriver() {
+
+        val driverJar = project.configuration("cordapp").files {
+            (it.group == "org.postgresql") &&
+                    (it.name == "postgresql") &&
+                    (it.version == "42.2.10")
+        }.firstOrNull()
+
+        driverJar?.let {
+            project.logger.info("Postgres driver jar: $it")
+            copyToDriversDir(it)
+        }
+    }
+
     internal fun installDrivers() {
         drivers?.let {
             project.logger.lifecycle("Copy $it to './drivers' directory")

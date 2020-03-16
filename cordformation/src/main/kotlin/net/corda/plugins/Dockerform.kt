@@ -66,6 +66,7 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
     fun build() {
         project.logger.lifecycle("Running DockerForm task")
         initializeConfiguration()
+        nodes.forEach(Node::installPostgresDriver)
         nodes.forEachIndexed {index, it -> it.installDockerConfig(STARTING_SSH_PORT + index) }
         installCordaJar()
         nodes.forEach(Node::installDrivers)

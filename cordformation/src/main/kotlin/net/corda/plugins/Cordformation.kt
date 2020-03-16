@@ -72,6 +72,9 @@ class Cordformation : Plugin<Project> {
         val jolokia = project.dependencies.add(CORDFORMATION_TYPE, "org.jolokia:jolokia-jvm:$jolokiaVersion:agent")
         // The Jolokia agent is a fat jar really, so we don't want its transitive dependencies.
         (jolokia as ModuleDependency).isTransitive = false
+
+        val postgresDriver = project.dependencies.add("cordapp","org.postgresql:postgresql:42.2.10")
+        (postgresDriver as ModuleDependency).isTransitive = false
     }
 }
 
