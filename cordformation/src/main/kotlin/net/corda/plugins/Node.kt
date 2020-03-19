@@ -510,10 +510,12 @@ open class Node @Inject constructor(private val project: Project) {
 
     internal fun installPostgresDriver() {
 
+        val postgresDriverVersion = project.findRootProperty("postgres_driver_version") ?: "42.2.10"
+
         val driverJar = project.configuration("cordapp").files {
             (it.group == "org.postgresql") &&
                     (it.name == "postgresql") &&
-                    (it.version == "42.2.10")
+                    (it.version == postgresDriverVersion)
         }.firstOrNull()
 
         driverJar?.let {
@@ -590,6 +592,8 @@ open class Node @Inject constructor(private val project: Project) {
         } ?: throw FileNotFoundException(resourceName)
     }
 
+    private fun parsePort(address: String): Int = address.substring(address.indexOf(":") + 1).toInt()
+
     /**
      * Installs the Dockerized configuration file to the root directory and detokenises it.
      */
@@ -599,13 +603,9 @@ open class Node @Inject constructor(private val project: Project) {
             sshdPort(defaultSsh)
         }
 
-        // TODO Refactor this code to extract the information from the config file
-        val p2pHost = config.getString("p2pAddress")
-        this.p2pPort = p2pHost.substring(p2pHost.indexOf(":") + 1).toInt()
-        val rpcConfig = config.getString("rpcSettings.address")
-        this.rpcPort = rpcConfig.substring(rpcConfig.indexOf(":") + 1).toInt()
-        val rpcAdminConfig = config.getString("rpcSettings.adminAddress")
-        val rpcAdminPort = rpcAdminConfig.substring(rpcConfig.indexOf(":") + 1)
+        this.p2pPort = parsePort(config.getString("p2pAddress"))
+        this.rpcPort = parsePort(config.getString("rpcSettings.address"))
+        val rpcAdminPort = parsePort(config.getString("rpcSettings.adminAddress"))
 
         val dockerConf = config
                 .withValue("dataSourceProperties.dataSource.url", ConfigValueFactory.fromAnyRef("jdbc:h2:file:./persistence/persistence;DB_CLOSE_ON_EXIT=FALSE;WRITE_DELAY=0;LOCK_TIMEOUT=10000"))

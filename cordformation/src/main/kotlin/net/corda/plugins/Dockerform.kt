@@ -76,11 +76,12 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
         nodes.forEachIndexed { index, it -> it.installDatabaseConfig(STARTING_DB_PORT + index, "${it.containerName}-db", POSTGRES_INIT_FILE) }
         nodes.forEach(Node::buildDocker)
 
-        // Transform nodes path the absolute ones
-        val services = nodes.map {
+        var services = mutableMapOf<String, Map<String, Any>>()
+
+        nodes.forEach {
             val nodeBuildDir = directoryPath.resolve(it.nodeDir.name).toAbsolutePath().toString()
 
-            it.containerName to mapOf(
+            services[it.containerName] = mapOf(
                     "volumes" to listOf(
                             "$nodeBuildDir/node.conf:/etc/corda/node.conf",
                             "$nodeBuildDir/certificates:/opt/corda/certificates",
@@ -91,18 +92,12 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
                             "$nodeBuildDir/additional-node-infos:/opt/corda/additional-node-infos",
                             "$nodeBuildDir/drivers:/opt/corda/drivers"
                     ),
-                    "ports" to listOf(it.rpcPort, it.config.getInt("sshd.port"), it.p2pPort),
+                    "ports" to listOf(it.rpcPort, it.config.getInt("sshd.port")),
                     "image" to "entdocker.software.r3.com/corda-enterprise-java1.8-${it.runtimeVersion().toLowerCase()}",
                     "depends_on" to listOf("${it.dbSettings.host}")
-            );
-        }.toMap().toMutableMap()
+            )
 
-        var databases = mutableListOf<String>()
-
-        nodes.forEach {
-            val nodeBuildDir = directoryPath.resolve(it.nodeDir.name).toAbsolutePath().toString()
-
-            val body = mapOf(
+            services[it.dbSettings.host] = mapOf(
                     "image" to "postgres",
                     "restart" to "unless-stopped",
                     "ports" to listOf("${it.dbSettings.port}:${it.dbSettings.port}"),
@@ -115,17 +110,8 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
                     "volumes" to listOf(
                             "$nodeBuildDir/$POSTGRES_INIT_FILE:/docker-entrypoint-initdb.d/$POSTGRES_INIT_FILE"
                     )
-            );
-            services[it.dbSettings.host] = body
-            databases.add(it.dbSettings.host)
+            )
         }
-
-        services["adminer"] = mapOf(
-                "image" to "adminer",
-                "restart" to "unless-stopped",
-                "depends_on" to databases,
-                "ports" to listOf("8080:8080")
-        )
 
         val dockerComposeObject = mapOf(
                 "version" to COMPOSE_SPEC_VERSION,
@@ -136,4 +122,3 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
         Files.write(dockerComposePath, dockerComposeContent.toByteArray(StandardCharsets.UTF_8))
     }
 }
-
