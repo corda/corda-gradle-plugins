@@ -12,7 +12,8 @@ import java.util.*
 
 private const val DEFAULT_CONSTRUCTOR_MARKER = "ILkotlin/jvm/internal/DefaultConstructorMarker;"
 private const val DEFAULT_FUNCTION_MARKER = "ILjava/lang/Object;"
-private const val DUMMY_METHOD: Int = ACC_PUBLIC or ACC_PROTECTED or ACC_PRIVATE
+private const val DUMMY_ELEMENT: Int = ACC_PUBLIC or ACC_PROTECTED or ACC_PRIVATE or ACC_SYNTHETIC
+private const val NO_EXTENSION = ""
 private const val DUMMY_PASSES = 1
 
 private val DECLARES_DEFAULT_VALUE_MASK: Int = flagsOf(DECLARES_DEFAULT_VALUE).inv()
@@ -20,14 +21,24 @@ private val DECLARES_DEFAULT_VALUE_MASK: Int = flagsOf(DECLARES_DEFAULT_VALUE).i
 typealias AnnotatedMethod = Pair<String, MethodElement>
 typealias UnwantedMap = MutableMap<ClassName, MutableList<AnnotatedMethod>>
 
-abstract class Element(val name: String, val descriptor: String) {
+abstract class Element(val name: String, val descriptor: String, access: Int) {
     private var lifetime: Int = DUMMY_PASSES
+    private var _access: Int = access
 
-    open val isExpired: Boolean get() = --lifetime < 0
+    val access: Int get() = _access
+    val isExpired: Boolean get() = isDummy && --lifetime < 0
+    val isDummy: Boolean get() = _access == DUMMY_ELEMENT
+
+    fun kill() {
+        _access = DUMMY_ELEMENT
+        lifetime = 0
+    }
 }
 
 
-class MethodElement(name: String, descriptor: String, val access: Int = DUMMY_METHOD) : Element(name, descriptor) {
+class MethodElement(name: String, descriptor: String, access: Int = DUMMY_ELEMENT)
+    : Element(name, descriptor, access) {
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other?.javaClass != javaClass) return false
@@ -36,12 +47,11 @@ class MethodElement(name: String, descriptor: String, val access: Int = DUMMY_ME
     }
     override fun hashCode(): Int = Objects.hash(name, descriptor)
     override fun toString(): String = "MethodElement[name=$name, descriptor=$descriptor, access=$access]"
-    override val isExpired: Boolean get() = isDummy && super.isExpired
+
     val isConstructor: Boolean get() = isObjectConstructor || isClassConstructor
     val isClassConstructor: Boolean get() = name == "<clinit>"
     val isObjectConstructor: Boolean get() = name == "<init>"
     val isVoidFunction: Boolean get() = !isConstructor && descriptor.endsWith(")V")
-    val isDummy: Boolean get() = access == DUMMY_METHOD
 
     private val suffix: String
     val visibleName: String
@@ -93,7 +103,12 @@ class MethodElement(name: String, descriptor: String, val access: Int = DUMMY_ME
  * A class cannot have two fields with the same name but different types. However,
  * it can define extension functions and properties.
  */
-class FieldElement(name: String, descriptor: String = "?", val extension: String = "()") : Element(name, descriptor) {
+class FieldElement(name: String, descriptor: String, access: Int, val extension: String)
+    : Element(name, descriptor, access) {
+    constructor(name: String, descriptor: String, access: Int) : this(name, descriptor, access, NO_EXTENSION)
+    constructor(name: String, descriptor: String, extension: String) : this(name, descriptor, DUMMY_ELEMENT, extension)
+    constructor(name: String, descriptor: String) : this(name, descriptor, DUMMY_ELEMENT, NO_EXTENSION)
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other?.javaClass != javaClass) return false
@@ -102,7 +117,15 @@ class FieldElement(name: String, descriptor: String = "?", val extension: String
     }
     override fun hashCode(): Int = Objects.hash(name, extension)
     override fun toString(): String = "FieldElement[name=$name, descriptor=$descriptor, extension=$extension]"
-    override val isExpired: Boolean get() = descriptor == "?" && super.isExpired
+
+    fun asKotlinAnnotationsMethod(newName: String) = MethodElement("$newName\$annotations", descriptor)
+    fun asKotlinAnnotationsMethod(): MethodElement? {
+        return if (descriptor.startsWith('(')) {
+            asKotlinAnnotationsMethod(name)
+        } else {
+            null
+        }
+    }
 }
 
 val String.extensionType: String get() = substring(0, 1 + indexOf(')'))

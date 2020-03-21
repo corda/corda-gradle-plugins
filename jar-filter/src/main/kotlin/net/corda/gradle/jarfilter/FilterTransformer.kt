@@ -101,11 +101,11 @@ class FilterTransformer private constructor (
     }
 
     override fun visitField(access: Int, fieldName: String, descriptor: String, signature: String?, value: Any?): FieldVisitor? {
-        val field = FieldElement(fieldName, descriptor)
+        val field = FieldElement(fieldName, descriptor, access)
         logger.debug("--- field ---> {}", field)
         if (unwantedFields.contains(field)) {
             logger.info("- Deleted field {},{}", field.name, field.descriptor)
-            unwantedFields.remove(field)
+            unwantedFields.expire(field)
             return null
         }
         val fv = super.visitField(access, fieldName, descriptor, signature, value) ?: return null
@@ -118,7 +118,7 @@ class FilterTransformer private constructor (
         if (deletedMethods.contains(method)) {
             logger.info("- Deleted method {}{}", method.name, method.descriptor)
             unwantedElements.addMethod(className, method)
-            deletedMethods.remove(method)
+            deletedMethods.expire(method)
             return null
         }
 
@@ -129,7 +129,7 @@ class FilterTransformer private constructor (
         val mv = super.visitMethod(access, methodName, descriptor, signature, exceptions) ?: return null
         if (stubbedMethods.contains(method)) {
             logger.info("- Stubbed out method {}{}", method.name, method.descriptor)
-            stubbedMethods.remove(method)
+            stubbedMethods.expire(method)
             return if (method.isVoidFunction) VoidStubMethodAdapter(mv) else ThrowingStubMethodAdapter(mv)
         }
 
@@ -208,6 +208,7 @@ class FilterTransformer private constructor (
                 deletedNestedClasses = unwantedElements.classes.filter { it.startsWith(prefix) }.map { it.drop(prefix.length) },
                 deletedClasses = unwantedElements.classes,
                 handleExtraMethod = ::delete,
+                handleExtraField = ::delete,
                 handleSameAs = ::filterExtra,
                 kmClass = kmClass)
             .transform()
@@ -222,6 +223,7 @@ class FilterTransformer private constructor (
                 deletedFields = unwantedFields,
                 deletedFunctions = deletedMethods,
                 handleExtraMethod = ::delete,
+                handleExtraField = ::delete,
                 handleSameAs = ::filterExtra,
                 kmPackage = kmPackage)
             .transform()
@@ -235,6 +237,15 @@ class FilterTransformer private constructor (
         if (deletedMethods.add(target) && stubbedMethods.remove(target)) {
             logger.warn("-- method {}{} will be deleted instead of stubbed out",
                          target.name, target.descriptor)
+        }
+    }
+
+    /**
+     * Callback function to mark extra fields for deletion.
+     */
+    private fun delete(target: FieldElement) {
+        if (unwantedFields.add(target)) {
+            logger.debug("--- field {},{} will be deleted", target.name, target.descriptor)
         }
     }
 
@@ -302,7 +313,7 @@ class FilterTransformer private constructor (
                 }
                 if (method.isKotlinSynthetic("annotations")) {
                     val extensionType = method.descriptor.extensionType
-                    if (unwantedFields.add(FieldElement(name = method.visibleName, extension = extensionType))) {
+                    if (unwantedFields.add(FieldElement(method.visibleName, method.descriptor, extensionType))) {
                         logger.info("-- also identified property or typealias {},{} for deletion", method.visibleName, extensionType)
                     }
                 }

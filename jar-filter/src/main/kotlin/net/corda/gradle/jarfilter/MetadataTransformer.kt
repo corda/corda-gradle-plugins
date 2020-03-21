@@ -2,9 +2,11 @@ package net.corda.gradle.jarfilter
 
 import kotlinx.metadata.*
 import kotlinx.metadata.Flag.Constructor.IS_PRIMARY
+import kotlinx.metadata.jvm.fieldSignature
 import kotlinx.metadata.jvm.getterSignature
 import kotlinx.metadata.jvm.setterSignature
 import kotlinx.metadata.jvm.signature
+import kotlinx.metadata.jvm.syntheticMethodForAnnotations
 import org.gradle.api.logging.Logger
 
 /**
@@ -16,6 +18,7 @@ abstract class MetadataTransformer<out T : KmDeclarationContainer>(
     private val deletedFields: Collection<FieldElement>,
     private val deletedFunctions: Collection<MethodElement>,
     @JvmField protected val handleExtraMethod: (MethodElement) -> Unit,
+    @JvmField protected val handleExtraField: (FieldElement) -> Unit,
     @JvmField protected val handleSameAs: MethodElement.(MethodElement) -> Unit,
     @JvmField protected val metadata: T
 ) {
@@ -66,26 +69,43 @@ abstract class MetadataTransformer<out T : KmDeclarationContainer>(
         return false
     }
 
-    protected fun filterProperties(): Int = deletedFields.count(::filterProperty)
+    protected fun filterProperties(): Int = ArrayList(deletedFields).count(::filterProperty)
 
     private fun filterProperty(deleted: FieldElement): Boolean {
         for (idx in 0 until properties.size) {
             val property = properties[idx]
-            if (property.name == deleted.name) {
-                // Check that this property's getter has the correct descriptor.
-                // If it doesn't then we have the wrong property here.
-                val getter = property.getterSignature
-                if (getter != null) {
-                    if (!getter.desc.startsWith(deleted.extension)) {
-                        continue
+            val annotatedMethod = deleted.asKotlinAnnotationsMethod()
+            if (annotatedMethod != null) {
+                val syntheticMethod = property.syntheticMethodForAnnotations ?: continue
+                if (annotatedMethod.name == syntheticMethod.name && annotatedMethod.descriptor == syntheticMethod.desc) {
+                    /*
+                     * The "delete" annotation has been applied to this
+                     * property's synthetic "annotation holder" method.
+                     */
+                    property.fieldSignature?.apply {
+                        deleteExtra(toFieldElement())
                     }
-                    deleteExtra(getter.toMethodElement())
-                }
-                property.setterSignature?.run {
-                    deleteExtra(toMethodElement())
-                }
+                    deleteAccessorsFor(property)
 
-                logger.info("-- removing property: {},{}", deleted.name, deleted.descriptor)
+                    if (deleted.extension == "()") {
+                        // Kotlin 1.4 has renamed the synthetic annotation-holder
+                        // method to use the name of property's getter rather than
+                        // the property itself. We flag the old method name for
+                        // deletion too so that the logic for detecting unwanted
+                        // inner classes still works.
+                        handleExtraMethod(deleted.asKotlinAnnotationsMethod(property.name))
+                    }
+
+                    logger.info("-- removing property: {},{}", property.name, deleted.descriptor)
+                    properties.removeAt(idx)
+                    return true
+                }
+            } else if (property.name == deleted.name) {
+                /*
+                 * The underlying field itself was annotated for deletion.
+                 */
+                deleteAccessorsFor(property)
+                logger.info("-- removing property: {},{}", property.name, deleted.descriptor)
                 properties.removeAt(idx)
                 return true
             }
@@ -93,11 +113,27 @@ abstract class MetadataTransformer<out T : KmDeclarationContainer>(
         return false
     }
 
+    private fun deleteAccessorsFor(property: KmProperty) {
+        property.getterSignature?.apply {
+            deleteExtra(toMethodElement())
+        }
+        property.setterSignature?.apply {
+            deleteExtra(toMethodElement())
+        }
+    }
+
     private fun deleteExtra(func: MethodElement) {
         if (!deletedFunctions.contains(func)) {
             logger.info("-- identified extra method {} for deletion", func.signature)
             handleExtraMethod(func)
             filterFunction(func)
+        }
+    }
+
+    private fun deleteExtra(field: FieldElement) {
+        if (!deletedFields.contains(field)) {
+            logger.info("-- identified extra field {},{} for deletion", field.name, field.descriptor)
+            handleExtraField(field)
         }
     }
 
@@ -132,6 +168,7 @@ class ClassMetadataTransformer(
     private val deletedNestedClasses: Collection<String>,
     private val deletedClasses: Collection<String>,
     handleExtraMethod: (MethodElement) -> Unit,
+    handleExtraField: (FieldElement) -> Unit,
     handleSameAs: MethodElement.(MethodElement) -> Unit,
     kmClass: KmClass
 ) : MetadataTransformer<KmClass>(
@@ -139,6 +176,7 @@ class ClassMetadataTransformer(
     deletedFields,
     deletedFunctions,
     handleExtraMethod,
+    handleExtraField,
     handleSameAs,
     metadata = kmClass
 ) {
@@ -251,6 +289,7 @@ class PackageMetadataTransformer(
     deletedFields: Collection<FieldElement>,
     deletedFunctions: Collection<MethodElement>,
     handleExtraMethod: (MethodElement) -> Unit,
+    handleExtraField: (FieldElement) -> Unit,
     handleSameAs: MethodElement.(MethodElement) -> Unit,
     kmPackage: KmPackage
 ) : MetadataTransformer<KmPackage>(
@@ -258,6 +297,7 @@ class PackageMetadataTransformer(
     deletedFields,
     deletedFunctions,
     handleExtraMethod,
+    handleExtraField,
     handleSameAs,
     metadata = kmPackage
 ) {
