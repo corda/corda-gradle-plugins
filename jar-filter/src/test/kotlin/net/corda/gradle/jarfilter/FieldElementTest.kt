@@ -2,6 +2,7 @@ package net.corda.gradle.jarfilter
 
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
+import org.objectweb.asm.Opcodes.ACC_PUBLIC
 
 
 class FieldElementTest {
@@ -12,20 +13,20 @@ class FieldElementTest {
     @Test
     fun testFieldsMatchByNameOnly() {
         val elt = FieldElement(name = "fieldName", descriptor = DESCRIPTOR)
-        assertEquals(FieldElement(name = "fieldName"), elt)
+        assertEquals(FieldElement(name = "fieldName", descriptor = "?"), elt)
     }
 
     @Test
-    fun testFieldWithDescriptorDoesNotExpire() {
-        val elt = FieldElement(name = "fieldName", descriptor = DESCRIPTOR)
+    fun testFieldWithAccessFlagsDoesNotExpire() {
+        val elt = FieldElement(name = "fieldName", descriptor = DESCRIPTOR, access = ACC_PUBLIC)
         assertFalse(elt.isExpired)
         assertFalse(elt.isExpired)
         assertFalse(elt.isExpired)
     }
 
     @Test
-    fun testFieldWithoutDescriptorDoesExpire() {
-        val elt = FieldElement(name = "fieldName")
+    fun testDummyFieldDoesExpire() {
+        val elt = FieldElement(name = "fieldName", descriptor = "?")
         assertFalse(elt.isExpired)
         assertTrue(elt.isExpired)
         assertTrue(elt.isExpired)

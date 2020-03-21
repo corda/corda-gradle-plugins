@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
+import org.objectweb.asm.Opcodes.ACC_PRIVATE
 import java.nio.file.Path
 import kotlin.reflect.full.declaredMemberProperties
 import kotlin.test.assertFailsWith
@@ -41,7 +42,7 @@ class DeleteVarPropertyTest {
                     obj.unwantedVar = MESSAGE
                     assertEquals(MESSAGE, obj.unwantedVar)
                 }
-                assertFalse(getDeclaredField("unwantedVar").isAccessible)
+                assertTrue(getDeclaredField("unwantedVar").hasModifiers(ACC_PRIVATE))
                 assertThat("unwantedVar not found", kotlin.declaredMemberProperties, hasItem(unwantedVar))
                 assertThat("getUnwantedVar not found", kotlin.javaDeclaredMethods, hasItem(getUnwantedVar))
                 assertThat("setUnwantedVar not found", kotlin.javaDeclaredMethods, hasItem(setUnwantedVar))
@@ -69,7 +70,7 @@ class DeleteVarPropertyTest {
                 getDeclaredConstructor(String::class.java).newInstance(MESSAGE).also { obj ->
                     assertEquals(MESSAGE, obj.unwantedVar)
                 }
-                assertFalse(getDeclaredField("unwantedVar").isAccessible)
+                assertTrue(getDeclaredField("unwantedVar").hasModifiers(ACC_PRIVATE))
                 assertThat("getUnwantedVar not found", kotlin.javaDeclaredMethods, hasItem(getUnwantedVar))
             }
         }
@@ -79,7 +80,7 @@ class DeleteVarPropertyTest {
                 getDeclaredConstructor(String::class.java).newInstance(MESSAGE).also { obj ->
                     assertFailsWith<AbstractMethodError> { obj.unwantedVar }
                 }
-                assertFalse(getDeclaredField("unwantedVar").isAccessible)
+                assertTrue(getDeclaredField("unwantedVar").hasModifiers(ACC_PRIVATE))
                 assertThat("getUnwantedVar still exists", kotlin.javaDeclaredMethods, not(hasItem(getUnwantedVar)))
             }
         }
@@ -95,7 +96,7 @@ class DeleteVarPropertyTest {
                     assertEquals(MESSAGE, obj.unwantedVar)
                 }
                 getDeclaredField("unwantedVar").also { field ->
-                    assertFalse(field.isAccessible)
+                    assertTrue(field.hasModifiers(ACC_PRIVATE))
                 }
                 assertThat("setUnwantedVar not found", kotlin.javaDeclaredMethods, hasItem(setUnwantedVar))
             }
@@ -108,7 +109,7 @@ class DeleteVarPropertyTest {
                     assertFailsWith<AbstractMethodError> { obj.unwantedVar = MESSAGE }
                 }
                 getDeclaredField("unwantedVar").also { field ->
-                    assertFalse(field.isAccessible)
+                    assertTrue(field.hasModifiers(ACC_PRIVATE))
                 }
                 assertThat("setUnwantedVar still exists", kotlin.javaDeclaredMethods, not(hasItem(setUnwantedVar)))
             }

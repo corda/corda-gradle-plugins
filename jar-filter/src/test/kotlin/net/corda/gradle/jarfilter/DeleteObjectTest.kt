@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
+import org.objectweb.asm.Opcodes.ACC_PRIVATE
 import java.nio.file.Path
 import kotlin.test.assertFailsWith
 
@@ -47,7 +48,7 @@ class DeleteObjectTest {
                     }
                 }
                 getDeclaredField(UNWANTED_OBJ_FIELD).also { field ->
-                    assertFalse(field.isAccessible)
+                    assertTrue(field.hasModifiers(ACC_PRIVATE))
                 }
             }
         }
