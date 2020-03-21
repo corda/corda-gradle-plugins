@@ -9,6 +9,11 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
 import kotlin.reflect.KProperty
+import kotlin.reflect.KProperty1
+import kotlin.reflect.KProperty2
+import kotlin.reflect.KType
+import kotlin.reflect.KTypeProjection.Companion.invariant
+import kotlin.reflect.full.createType
 import kotlin.reflect.full.valueParameters
 import kotlin.reflect.jvm.jvmName
 
@@ -40,9 +45,29 @@ fun isProperty(name: String, type: KClass<*>): Matcher<in KProperty<*>> = isProp
 
 fun isProperty(name: Matcher<in String>, type: Matcher<in String>): Matcher<in KProperty<*>> = KPropertyMatcher(name, type)
 
+fun isExtensionProperty(name: String, type: KClass<*>, extensionType: KType): Matcher<in KProperty<*>>
+    = isExtensionProperty(equalTo(name), matches(type), matches(extensionType))
+
+fun isExtensionProperty(name: Matcher<in String>, type: Matcher<in String>, extensionType: Matcher<in String>): Matcher<in KProperty<*>>
+    = KExtensionPropertyMatcher(name, type, extensionType)
+
 fun isKClass(name: String): Matcher<in KClass<*>> = KClassMatcher(equalTo(name))
 
 fun matches(type: KClass<*>): Matcher<in String> = equalTo(type.qualifiedName)
+
+fun matches(type: KType): Matcher<in String> = equalTo(type.toString())
+
+fun typeOfMap(keyType: KClass<*>, valueType: KClass<*>) = Map::class.createType(listOf(
+    invariant(keyType.createType()), invariant(valueType.createType())
+))
+
+fun typeOfCollection(elementType: KClass<*>) = Collection::class.createType(
+    listOf(invariant(elementType.createType()))
+)
+
+fun typeOfList(elementType: KClass<*>) = List::class.createType(
+    listOf(invariant(elementType.createType()))
+)
 
 private fun Array<out KClass<*>>.toMatchers() = map(::hasParam).toTypedArray()
 
@@ -76,7 +101,7 @@ private class KFunctionMatcher(
             return false
         }
 
-        val function: KFunction<*> = obj as? KFunction<*> ?: return false
+        val function = obj as? KFunction<*> ?: return false
         mismatch.appendText("name is ").appendValue(function.name)
         if (!name.matches(function.name)) {
             return false
@@ -123,7 +148,7 @@ private class KParameterMatcher(
             return false
         }
 
-        val parameter: KParameter = obj as? KParameter ?: return false
+        val parameter = obj as? KParameter ?: return false
         parameter.type.toString().apply {
             if (!type.matches(this)) {
                 mismatch.appendText("type is ").appendValue(this)
@@ -153,7 +178,7 @@ private class KPropertyMatcher(
             return false
         }
 
-        val property: KProperty<*> = obj as? KProperty<*> ?: return false
+        val property = obj as? KProperty1<*,*> ?: return false
         mismatch.appendText("name is ").appendValue(property.name)
         if (!name.matches(property.name)) {
             return false
@@ -161,6 +186,48 @@ private class KPropertyMatcher(
         property.returnType.toString().apply {
             if (!type.matches(this)) {
                 mismatch.appendText(" and type is ").appendValue(this)
+                return false
+            }
+        }
+        return true
+    }
+}
+
+/**
+ * Matcher logic for a Kotlin extension property.
+ */
+private class KExtensionPropertyMatcher(
+    private val name: Matcher<in String>,
+    private val type: Matcher<in String>,
+    private val extensionType: Matcher<in String>
+) : DiagnosingMatcher<KProperty<*>>() {
+    override fun describeTo(description: Description) {
+        description.appendText("KProperty[name as ").appendDescriptionOf(name)
+            .appendText(", type as ").appendDescriptionOf(type)
+            .appendText(", extensionType as ").appendDescriptionOf(extensionType)
+            .appendText("]")
+    }
+
+    override fun matches(obj: Any?, mismatch: Description): Boolean {
+        if (obj == null) {
+            mismatch.appendText("is null")
+            return false
+        }
+
+        val property = obj as? KProperty2<*,*,*> ?: return false
+        mismatch.appendText("name is ").appendValue(property.name)
+        if (!name.matches(property.name)) {
+            return false
+        }
+        property.returnType.toString().apply {
+            if (!type.matches(this)) {
+                mismatch.appendText(" and type is ").appendValue(this)
+                return false
+            }
+        }
+        property.parameters[1].type.toString().apply {
+            if (!extensionType.matches(this)) {
+                mismatch.appendText(" and extensionType is ").appendValue(this)
                 return false
             }
         }
@@ -183,7 +250,7 @@ private class KClassMatcher(private val className: Matcher<in String>) : Diagnos
             return false
         }
 
-        val type: KClass<*> = obj as? KClass<*> ?: return false
+        val type = obj as? KClass<*> ?: return false
         type.jvmName.apply {
             if (!className.matches(this)) {
                 mismatch.appendText("name is ").appendValue(this)

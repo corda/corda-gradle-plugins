@@ -1,9 +1,8 @@
+@file:Suppress("PackageDirectoryMismatch")
 package net.corda.gradle.jarfilter
 
 import kotlin.annotation.AnnotationRetention.*
 import kotlin.annotation.AnnotationTarget.*
-import kotlin.annotation.Retention
-import kotlin.annotation.Target
 
 @Target(
     FILE,

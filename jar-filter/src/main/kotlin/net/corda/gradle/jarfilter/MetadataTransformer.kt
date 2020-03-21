@@ -105,6 +105,11 @@ abstract class MetadataTransformer<out T : KmDeclarationContainer>(
                  * The underlying field itself was annotated for deletion.
                  */
                 deleteAccessorsFor(property)
+
+                if (deleted.extension.isEmpty()) {
+                    handleExtraMethod(deleted.asKotlinAnnotationsMethod(property.name))
+                }
+
                 logger.info("-- removing property: {},{}", property.name, deleted.descriptor)
                 properties.removeAt(idx)
                 return true

@@ -1,5 +1,5 @@
+@file:Suppress("unused", "PackageDirectoryMismatch")
 @file:JvmName("HasOverloadedConstructorsToDelete")
-@file:Suppress("UNUSED")
 package net.corda.gradle
 
 import net.corda.gradle.jarfilter.DeleteMe
