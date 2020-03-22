@@ -72,43 +72,72 @@ abstract class MetadataTransformer<out T : KmDeclarationContainer>(
     protected fun filterProperties(): Int = ArrayList(deletedFields).count(::filterProperty)
 
     private fun filterProperty(deleted: FieldElement): Boolean {
+        val annotatedMethod = deleted.asKotlinAnnotationsMethod()
+        return if (annotatedMethod != null) {
+            /*
+             * The "delete" annotation has been applied to this
+             * property's synthetic "annotation holder" method.
+             */
+            filterPropertyByAnnotatedMethod(deleted, annotatedMethod)
+        } else {
+            /*
+             * The property's underlying field was annotated.
+             */
+            filterPropertyByField(deleted)
+        }
+    }
+
+    private fun filterPropertyByAnnotatedMethod(deleted: FieldElement, annotatedMethod: MethodElement): Boolean {
         for (idx in 0 until properties.size) {
             val property = properties[idx]
-            val annotatedMethod = deleted.asKotlinAnnotationsMethod()
-            if (annotatedMethod != null) {
-                val syntheticMethod = property.syntheticMethodForAnnotations ?: continue
-                if (annotatedMethod.name == syntheticMethod.name && annotatedMethod.descriptor == syntheticMethod.desc) {
-                    /*
-                     * The "delete" annotation has been applied to this
-                     * property's synthetic "annotation holder" method.
-                     */
-                    property.fieldSignature?.apply {
-                        deleteExtra(toFieldElement())
-                    }
-                    deleteAccessorsFor(property)
-
-                    if (deleted.extension == "()") {
-                        // Kotlin 1.4 has renamed the synthetic annotation-holder
-                        // method to use the name of property's getter rather than
-                        // the property itself. We flag the old method name for
-                        // deletion too so that the logic for detecting unwanted
-                        // inner classes still works.
-                        handleExtraMethod(deleted.asKotlinAnnotationsMethod(property.name))
-                    }
-
-                    logger.info("-- removing property: {},{}", property.name, deleted.descriptor)
-                    properties.removeAt(idx)
-                    return true
-                }
-            } else if (property.name == deleted.name) {
+            val syntheticMethod = property.syntheticMethodForAnnotations ?: continue
+            if (annotatedMethod.name == syntheticMethod.name && annotatedMethod.descriptor == syntheticMethod.desc) {
                 /*
-                 * The underlying field itself was annotated for deletion.
+                 * Ensure that the accessor functions and the underlying field
+                 * are deleted along with the synthetic annotation-holder.
+                 */
+                property.fieldSignature?.apply {
+                    deleteExtra(toFieldElement())
+                }
+                deleteAccessorsFor(property)
+
+                if (deleted.extension == "()") {
+                    /*
+                     * Kotlin 1.4 has renamed the synthetic annotation-holder
+                     * method to use the name of the property's getter rather
+                     * than the property itself. However, the logic for also
+                     * deleting any synthetic inner classes it may have depends
+                     * on knowing the name of the deleted property. So inject
+                     * a "fake" deleted reference to the pre-Kotlin 1.4
+                     * annotation-holder method into the working data.
+                     */
+                    handleExtraMethod(deleted.asKotlinAnnotationsMethod(property.name))
+                }
+
+                logger.info("-- removing property: {},{}", property.name, deleted.descriptor)
+                properties.removeAt(idx)
+                return true
+            }
+        }
+        return false
+    }
+
+    private fun filterPropertyByField(deleted: FieldElement): Boolean {
+        for (idx in 0 until properties.size) {
+            val property = properties[idx]
+            if (property.name == deleted.name) {
+                /*
+                 * We already know about the underlying field,
+                 * so we just need to delete the accessors here.
                  */
                 deleteAccessorsFor(property)
 
-                if (deleted.extension.isEmpty()) {
-                    handleExtraMethod(deleted.asKotlinAnnotationsMethod(property.name))
-                }
+                /*
+                 * Inject a "fake" deleted method reference to the pre-Kotlin 1.4
+                 * annotation-holder into the working data, for the sake of the
+                 * inner class logic (see comment above).
+                 */
+                handleExtraMethod(deleted.asKotlinAnnotationsMethod(property.name))
 
                 logger.info("-- removing property: {},{}", property.name, deleted.descriptor)
                 properties.removeAt(idx)
