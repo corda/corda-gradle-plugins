@@ -34,6 +34,8 @@ ext {
 }
 
 allprojects {
+    apply plugin: 'idea'
+
     version gradle_plugins_version
     group 'net.corda.plugins'
 
@@ -71,6 +73,13 @@ allprojects {
     tasks.withType(ValidateTaskProperties) {
         // Ask Gradle to tell us how to annotate tasks correctly.
         enableStricterValidation = true
+    }
+
+    idea {
+        module {
+            downloadJavadoc = true
+            downloadSources = true
+        }
     }
 }
 
