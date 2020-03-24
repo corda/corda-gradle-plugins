@@ -34,7 +34,7 @@ import java.util.zip.ZipOutputStream
 import javax.inject.Inject
 import kotlin.math.max
 
-@Suppress("Unused")
+@Suppress("Unused", "UnstableApiUsage")
 open class JarFilterTask @Inject constructor(objects: ObjectFactory, layouts: ProjectLayout) : DefaultTask() {
     private companion object {
         private const val DEFAULT_MAX_PASSES = 5

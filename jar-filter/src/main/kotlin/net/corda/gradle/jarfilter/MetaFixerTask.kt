@@ -26,7 +26,7 @@ import java.util.zip.ZipFile
 import java.util.zip.ZipOutputStream
 import javax.inject.Inject
 
-@Suppress("Unused")
+@Suppress("Unused", "UnstableApiUsage")
 open class MetaFixerTask @Inject constructor(objects: ObjectFactory, layouts: ProjectLayout) : DefaultTask() {
     init {
         description = "Rewrites kotlin.Metadata annotations to match their classes' methods and fields."
