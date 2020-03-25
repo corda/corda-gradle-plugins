@@ -19,6 +19,7 @@ abstract class MetaFixerTransformer<out T : KmDeclarationContainer>(
 ) {
     private val properties: MutableList<KmProperty> = metadata.properties
     private val functions: MutableList<KmFunction> = metadata.functions
+    private val isCompanion: Boolean = metadata is KmClass && Flag.Class.IS_COMPANION_OBJECT(metadata.flags)
 
     protected open val classDescriptor: ClassName = ""
 
@@ -66,7 +67,7 @@ abstract class MetaFixerTransformer<out T : KmDeclarationContainer>(
              * because these properties are implemented as static fields on the companion's host class.
              */
             val isValidProperty = if (getterMethod == null) {
-                (field == null) || actualFields.contains(field.toFieldElement()) || (metadata is KmClass && Flag.Class.IS_COMPANION_OBJECT(metadata.flags))
+                (field == null) || actualFields.contains(field.toFieldElement()) || isCompanion
             } else {
                 actualMethods.contains(getterMethod.asString())
             }
