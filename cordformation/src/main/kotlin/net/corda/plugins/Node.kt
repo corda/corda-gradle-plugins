@@ -4,6 +4,7 @@ import com.typesafe.config.*
 import groovy.lang.Closure
 import org.gradle.api.GradleException
 import org.gradle.api.Project
+import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
@@ -57,8 +58,8 @@ open class Node @Inject constructor(private val project: Project) {
         private set
     private var rpcSettings: RpcSettings = RpcSettings()
     private var webserverJar: String? = null
-    internal var p2pPort = 10002
-        @Input get
+    private var p2pPort = 10002
+        @Internal get
     internal var rpcPort = 10003
         @Input get
         private set
@@ -66,12 +67,12 @@ open class Node @Inject constructor(private val project: Project) {
         @Internal get
         private set
 
-    lateinit var dbSettings: DbSettings
+    var dbSettings: DbSettings = DbSettings(5432, DEFAULT_HOST)
 
     /**
      * Sets the database configuration
      */
-    private fun setDBSettings(port: Int, address: String) {
+    fun dbSettings(port: Int, address: String) {
         dbSettings = DbSettings(port, address)
     }
 
@@ -138,6 +139,24 @@ open class Node @Inject constructor(private val project: Project) {
                 getOptionalString("rpcAddress")
             }
         }
+
+    /**
+     * Returns the Docker image for this node, or null if one hasn't been specified.
+     */
+    var dockerImage: String? = null
+        @Optional
+        @Input
+        get() {
+            return if (config.hasPath("dockerImage")) {
+                config.getString("dockerImage")
+            } else {
+                field
+            }
+        }
+
+    fun dockerImage(image: String) {
+        this.dockerImage = image
+    }
 
     /**
      * Returns the address of the web server that will connect to the node, or null if one hasn't been specified.
@@ -508,18 +527,13 @@ open class Node @Inject constructor(private val project: Project) {
         }
     }
 
-    internal fun installPostgresDriver() {
-
-        val postgresDriverVersion = project.findRootProperty("postgres_driver_version") ?: "42.2.10"
-
-        val driverJar = project.configuration("cordapp").files {
-            (it.group == "org.postgresql") &&
-                    (it.name == "postgresql") &&
-                    (it.version == postgresDriverVersion)
+    internal fun installDriver(driverGroup: String, driverName: String, driverVersion: Any?) {
+        val driverJar = project.configuration("default").files {
+            (it.group == driverGroup) && (it.name == driverName) && (it.version == driverVersion)
         }.firstOrNull()
 
         driverJar?.let {
-            project.logger.info("Postgres driver jar: $it")
+            project.logger.info("Copy driver $it to './drivers' directory")
             copyToDriversDir(it)
         }
     }
@@ -592,49 +606,45 @@ open class Node @Inject constructor(private val project: Project) {
         } ?: throw FileNotFoundException(resourceName)
     }
 
-    private fun parsePort(address: String): Int = address.substring(address.indexOf(":") + 1).toInt()
-
     /**
      * Installs the Dockerized configuration file to the root directory and detokenises it.
      */
-    internal fun installDockerConfig(defaultSsh: Int) {
+    internal fun installDockerConfig(defaultSSHPort: Int) {
         configureProperties()
+
         if (!config.hasPath("sshd.port")) {
-            sshdPort(defaultSsh)
+            sshdPort(defaultSSHPort)
         }
 
-        this.p2pPort = parsePort(config.getString("p2pAddress"))
-        this.rpcPort = parsePort(config.getString("rpcSettings.address"))
-        val rpcAdminPort = parsePort(config.getString("rpcSettings.adminAddress"))
-
-        val dockerConf = config
+        val configDefaults = ConfigFactory.empty()
                 .withValue("dataSourceProperties.dataSource.url", ConfigValueFactory.fromAnyRef("jdbc:h2:file:./persistence/persistence;DB_CLOSE_ON_EXIT=FALSE;WRITE_DELAY=0;LOCK_TIMEOUT=10000"))
+        val dockerConf = config
                 .withValue("p2pAddress", ConfigValueFactory.fromAnyRef("$containerName:$p2pPort"))
-                .withValue("rpcSettings.address", ConfigValueFactory.fromAnyRef("$containerName:$rpcPort"))
-                .withValue("rpcSettings.adminAddress", ConfigValueFactory.fromAnyRef("$containerName:$rpcAdminPort"))
+                .withValue("rpcSettings.address", ConfigValueFactory.fromAnyRef("$containerName:${rpcSettings.port}"))
+                .withValue("rpcSettings.adminAddress", ConfigValueFactory.fromAnyRef("$containerName:${rpcSettings.adminPort}"))
                 .withValue("detectPublicIp", ConfigValueFactory.fromAnyRef(false))
+                .withFallback(configDefaults)
 
         config = dockerConf
         createNodeAndWebServerConfigFiles(config)
     }
 
      /**
-     * Installs the Dockerized configuration file to the root directory and detokenises it.
+     * Installs the default database
      *
-     * Defaults to Postgres (part of EG-496 Epic)
+     * Default to Postgres (part of EG-117 Epic)
      */
-    internal fun installDatabaseConfig(port: Int, address: String, initConfig: String) {
+    internal fun installDefaultDatabaseConfig(dbConfig: Config, initConfig: String) {
         installResource(initConfig)
-        setDBSettings(port, address)
 
         val dockerConf = config
-                .withValue("dataSourceProperties.dataSourceClassName", ConfigValueFactory.fromAnyRef("org.postgresql.ds.PGSimpleDataSource"))
-                .withValue("dataSourceProperties.dataSource.url", ConfigValueFactory.fromAnyRef("jdbc:postgresql://$address:$port/mydb?currentSchema=myschema"))
-                .withValue("dataSourceProperties.dataSource.user", ConfigValueFactory.fromAnyRef("myuser"))
-                .withValue("dataSourceProperties.dataSource.password", ConfigValueFactory.fromAnyRef("mypassword"))
-                .withValue("database.transactionIsolationLevel", ConfigValueFactory.fromAnyRef("READ_COMMITTED"))
-                .withValue("database.runMigration", ConfigValueFactory.fromAnyRef(true))
-                .withValue("database.schema", ConfigValueFactory.fromAnyRef("myschema"))
+                .withValue("dataSourceProperties.dataSourceClassName", dbConfig.getValue( "dataSourceProperties.dataSourceClassName"))
+                .withValue("dataSourceProperties.dataSource.url", dbConfig.getValue("dataSourceProperties.dataSource.url"))
+                .withValue("dataSourceProperties.dataSource.user", dbConfig.getValue("dataSourceProperties.dataSource.user"))
+                .withValue("dataSourceProperties.dataSource.password", dbConfig.getValue("dataSourceProperties.dataSource.password"))
+                .withValue("database.transactionIsolationLevel", dbConfig.getValue("database.transactionIsolationLevel"))
+                .withValue("database.runMigration", dbConfig.getValue("database.runMigration"))
+                .withValue("database.schema", dbConfig.getValue("database.schema"))
 
         config = dockerConf
         updateNodeConfigFile(config)

@@ -3,6 +3,7 @@ buildscript {
         corda_group = 'net.corda'
         corda_release_version = '4.0'
         jolokia_version = '1.6.0'
+        postgres_driver_version = '42.2.10'
     }
 }
 
@@ -34,6 +35,18 @@ task deployNodes(type: net.corda.plugins.Cordform) {
         rpcSettings {
             adminAddress "localhost:10004"
         }
+        cordapps = ["$corda_group:corda-finance-contracts:$corda_release_version",
+                    "$corda_group:corda-finance-workflows:$corda_release_version"]
+    }
+}
+
+
+task prepareDockerNodes(type: net.corda.plugins.Dockerform) {
+    node {
+        projectCordapp {
+            deploy false
+        }
+        name 'O=Notary Service,L=Zurich,C=CH'
         cordapps = ["$corda_group:corda-finance-contracts:$corda_release_version",
                     "$corda_group:corda-finance-workflows:$corda_release_version"]
     }
