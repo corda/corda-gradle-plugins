@@ -11,6 +11,7 @@ import org.gradle.api.tasks.PathSensitivity.RELATIVE
 import org.gradle.api.tasks.TaskAction
 import org.yaml.snakeyaml.DumperOptions
 import org.yaml.snakeyaml.Yaml
+import java.io.File
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
@@ -61,10 +62,13 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
             return wantedPath
         }
 
-    private fun appendDefaultDbDriverDependency(driverDependency: String) {
+    private fun retrieveDefaultDbDriverDependency(driverGroup: String, driverName: String, driverVersion: Any?): File? {
         project.configuration("default").incoming.beforeResolve {
-            project.dependencies.add("default", driverDependency)
+            project.dependencies.add("default", "org.postgresql:postgresql:$driverVersion")
         }
+        return project.configuration("default").files {
+            (it.group == driverGroup) && (it.name == driverName) && (it.version == driverVersion)
+        }.firstOrNull()
     }
 
     private fun createDefaultDBConfig(port: Int, address: String): Config {
@@ -84,10 +88,6 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
     @TaskAction
     fun build() {
         project.logger.lifecycle("Running DockerForm task")
-        if (project.hasProperty(DEFAULT_DB_GRADLE_PROPERTY)) {
-            val driverVersion = project.property(DEFAULT_DB_GRADLE_PROPERTY)
-            appendDefaultDbDriverDependency("org.postgresql:postgresql:$driverVersion")
-        }
         initializeConfiguration()
         nodes.forEach { it -> it.installDockerConfig(DEFAULT_SSH_PORT) }
         installCordaJar()
@@ -102,17 +102,34 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
         nodes.forEachIndexed {index, it ->
 
             val nodeBuildDir = directoryPath.resolve(it.nodeDir.name).toAbsolutePath().toString()
-            var dependsOnList = mutableListOf<String>()
+
+            var service = mutableMapOf(
+                    "volumes" to listOf(
+                            "$nodeBuildDir/node.conf:/etc/corda/node.conf",
+                            "$nodeBuildDir/certificates:/opt/corda/certificates",
+                            "$nodeBuildDir/logs:/opt/corda/logs",
+                            "$nodeBuildDir/persistence:/opt/corda/persistence",
+                            "$nodeBuildDir/cordapps:/opt/corda/cordapps",
+                            "$nodeBuildDir/network-parameters:/opt/corda/network-parameters",
+                            "$nodeBuildDir/additional-node-infos:/opt/corda/additional-node-infos",
+                            "$nodeBuildDir/drivers:/opt/corda/drivers"
+                    ),
+                    "ports" to listOf(it.rpcPort, it.config.getInt("sshd.port")),
+                    "image" to (it.dockerImage ?: "corda/corda-zulu-${it.runtimeVersion().toLowerCase()}")
+            )
 
             if (it.drivers.isNullOrEmpty() && project.hasProperty(DEFAULT_DB_GRADLE_PROPERTY)) {
 
-                it.dockerImage("entdocker.software.r3.com/corda-enterprise-java1.8-${it.runtimeVersion().toLowerCase()}")
-                it.dbSettings(DEFAULT_DB_STARTING_PORT + index, "${it.containerName}-db")
-                it.installDefaultDatabaseConfig(
-                        createDefaultDBConfig(it.dbSettings.port, it.dbSettings.host), DEFAULT_DB_INIT_FILE
-                )
                 val driverVersion = project.property(DEFAULT_DB_GRADLE_PROPERTY)
-                it.installDriver("org.postgresql", "postgresql", driverVersion)
+                val driverJar = retrieveDefaultDbDriverDependency(
+                        "org.postgresql", "postgresql", driverVersion)
+                if (driverJar != null) {
+                    it.drivers = listOf(driverJar.path)
+                    it.installDrivers()
+                }
+
+                it.dbSettings(DEFAULT_DB_STARTING_PORT + index, "${it.containerName}-db")
+                it.installDefaultDatabaseConfig(createDefaultDBConfig(it.dbSettings.port, it.dbSettings.host), DEFAULT_DB_INIT_FILE)
 
                 services[it.dbSettings.host] = mapOf(
                         "image" to "postgres",
@@ -129,28 +146,8 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
                         )
                 )
 
-                dependsOnList.add(it.dbSettings.host)
-            }
-
-            var image = it.dockerImage ?: "corda/corda-zulu-${it.runtimeVersion().toLowerCase()}"
-
-            var service = mutableMapOf(
-                    "volumes" to listOf(
-                            "$nodeBuildDir/node.conf:/etc/corda/node.conf",
-                            "$nodeBuildDir/certificates:/opt/corda/certificates",
-                            "$nodeBuildDir/logs:/opt/corda/logs",
-                            "$nodeBuildDir/persistence:/opt/corda/persistence",
-                            "$nodeBuildDir/cordapps:/opt/corda/cordapps",
-                            "$nodeBuildDir/network-parameters:/opt/corda/network-parameters",
-                            "$nodeBuildDir/additional-node-infos:/opt/corda/additional-node-infos",
-                            "$nodeBuildDir/drivers:/opt/corda/drivers"
-                    ),
-                    "ports" to listOf(it.rpcPort, it.config.getInt("sshd.port")),
-                    "image" to image
-            )
-
-            if (dependsOnList.isNotEmpty()) {
-                service["depends_on"] = dependsOnList
+                service["image"] = it.dockerImage ?: "entdocker.software.r3.com/corda-enterprise-java1.8-${it.runtimeVersion().toLowerCase()}"
+                service["depends_on"] = listOf(it.dbSettings.host)
             }
 
             services[it.containerName] = service

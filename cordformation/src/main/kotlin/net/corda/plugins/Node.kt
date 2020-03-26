@@ -527,17 +527,6 @@ open class Node @Inject constructor(private val project: Project) {
         }
     }
 
-    internal fun installDriver(driverGroup: String, driverName: String, driverVersion: Any?) {
-        val driverJar = project.configuration("default").files {
-            (it.group == driverGroup) && (it.name == driverName) && (it.version == driverVersion)
-        }.firstOrNull()
-
-        driverJar?.let {
-            project.logger.info("Copy driver $it to './drivers' directory")
-            copyToDriversDir(it)
-        }
-    }
-
     internal fun installDrivers() {
         drivers?.let {
             project.logger.lifecycle("Copy $it to './drivers' directory")
