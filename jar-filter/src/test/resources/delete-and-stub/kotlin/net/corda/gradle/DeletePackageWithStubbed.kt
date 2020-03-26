@@ -1,5 +1,5 @@
+@file:Suppress("unused", "PackageDirectoryMismatch")
 @file:JvmName("DeletePackageWithStubbed")
-@file:Suppress("UNUSED")
 @file:DeleteMe
 package net.corda.gradle
 

@@ -12,6 +12,7 @@ repositories {
 
 ext {
     kotlin_metadata_version = '0.1.0'
+    test_kotlin_api_version = '1.2'
 }
 
 gradlePlugin {
@@ -68,8 +69,13 @@ processTestResources {
     }
     filesMatching('gradle.properties') {
         expand(['jacocoAgent': configurations.jacocoRuntime.asPath.replace('\\', '/'),
+                'kotlin_api_version': test_kotlin_api_version,
                 'buildDir': buildDir])
     }
+}
+
+tasks.withType(Test) {
+    systemProperty 'test.kotlin.api', test_kotlin_api_version
 }
 
 // We need to modify how the publish task works.

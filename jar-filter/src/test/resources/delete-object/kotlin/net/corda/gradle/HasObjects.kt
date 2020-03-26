@@ -1,5 +1,5 @@
+@file:Suppress("unused", "PackageDirectoryMismatch")
 @file:JvmName("HasObjects")
-@file:Suppress("UNUSED")
 package net.corda.gradle
 
 import net.corda.gradle.jarfilter.DeleteMe
@@ -8,6 +8,17 @@ import net.corda.gradle.unwanted.HasUnwantedVal
 
 @DeleteMe
 val unwantedObj = object : HasUnwantedFun {
+    override fun unwantedFun(str: String): String = str
+}
+
+@DeleteMe
+val unwantedGetObj get() = object : HasUnwantedFun {
+    override fun unwantedFun(str: String): String = str
+}
+
+@field:DeleteMe
+@JvmField
+val unwantedFieldObj = object : HasUnwantedFun {
     override fun unwantedFun(str: String): String = str
 }
 

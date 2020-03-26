@@ -65,7 +65,7 @@ private class MethodMatcher(
             return false
         }
 
-        val method: Method = obj as? Method ?: return false
+        val method = obj as? Method ?: return false
         mismatch.appendText("name is ").appendValue(method.name)
         if (!name.matches(method.name)) {
             return false
@@ -80,8 +80,8 @@ private class MethodMatcher(
         val parameterCount = method.parameterTypes.size
         if (parameterCount != parameters.size) {
             mismatch.appendText(" with ")
-                    .appendValue(parameterCount).appendText(" parameter").appendText(if (parameterCount == 1) " " else "s ")
-                    .appendValueList("(", ",", ")", method.parameterTypes.map(Class<*>::getName))
+                .appendValue(parameterCount).appendText(" parameter").appendText(if (parameterCount == 1) " " else "s ")
+                .appendValueList("(", ",", ")", method.parameterTypes.map(Class<*>::getName))
             return false
         }
 
@@ -123,7 +123,7 @@ private class ConstructorMatcher(
             return false
         }
 
-        val constructor: Constructor<*> = obj as? Constructor<*> ?: return false
+        val constructor = obj as? Constructor<*> ?: return false
         mismatch.appendText("class ").appendValue(constructor.name)
         if (!classType.matches(constructor.name)) {
             return false

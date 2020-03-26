@@ -34,7 +34,7 @@ class MetaFixerVisitor private constructor(
     }
 
     override fun visitField(access: Int, fieldName: String, descriptor: String, signature: String?, value: Any?): FieldVisitor? {
-        if (fields.add(FieldElement(fieldName, descriptor))) {
+        if (fields.add(FieldElement(fieldName, descriptor, access))) {
             logger.info("- field {},{}", fieldName, descriptor)
         }
         return super.visitField(access, fieldName, descriptor, signature, value)

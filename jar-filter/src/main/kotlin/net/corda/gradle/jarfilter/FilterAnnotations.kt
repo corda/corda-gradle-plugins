@@ -6,6 +6,7 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 import javax.inject.Inject
 
+@Suppress("UnstableApiUsage")
 open class FilterAnnotations @Inject constructor(objects: ObjectFactory) {
     @get:Input
     val forDelete: SetProperty<String> = objects.setProperty(String::class.java)

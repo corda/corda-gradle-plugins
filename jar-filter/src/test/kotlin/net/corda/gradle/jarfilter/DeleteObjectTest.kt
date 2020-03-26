@@ -6,12 +6,16 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
+import org.objectweb.asm.Opcodes.ACC_PRIVATE
+import org.objectweb.asm.Opcodes.ACC_PUBLIC
 import java.nio.file.Path
 import kotlin.test.assertFailsWith
 
 class DeleteObjectTest {
     companion object {
         private const val OBJECT_CLASS = "net.corda.gradle.HasObjects"
+        private const val UNWANTED_FIELD_OBJ_FIELD = "unwantedFieldObj"
+        private const val UNWANTED_GET_OBJ_METHOD = "getUnwantedGetObj"
         private const val UNWANTED_OBJ_METHOD = "getUnwantedObj"
         private const val UNWANTED_OBJ_FIELD = "unwantedObj"
         private const val UNWANTED_FUN_METHOD = "unwantedFun"
@@ -47,7 +51,7 @@ class DeleteObjectTest {
                     }
                 }
                 getDeclaredField(UNWANTED_OBJ_FIELD).also { field ->
-                    assertFalse(field.isAccessible)
+                    assertTrue(field.hasModifiers(ACC_PRIVATE))
                 }
             }
         }
@@ -56,6 +60,49 @@ class DeleteObjectTest {
             cl.load<Any>(OBJECT_CLASS).apply {
                 assertFailsWith<NoSuchMethodException> { getDeclaredMethod(UNWANTED_OBJ_METHOD) }
                 assertFailsWith<NoSuchFieldException> { getDeclaredField(UNWANTED_OBJ_FIELD) }
+            }
+        }
+    }
+
+    @Test
+    fun deleteObjectThatHasGetterOnly() {
+        assertThat(sourceClasses).anyMatch { it.contains("\$unwantedGetObj\$") }
+
+        classLoaderFor(testProject.sourceJar).use { cl ->
+            cl.load<Any>(OBJECT_CLASS).apply {
+                getDeclaredMethod(UNWANTED_GET_OBJ_METHOD).also { method ->
+                    (method.invoke(null) as HasUnwantedFun).also { obj ->
+                        assertEquals(MESSAGE, obj.unwantedFun(MESSAGE))
+                    }
+                }
+            }
+        }
+
+        classLoaderFor(testProject.filteredJar).use { cl ->
+            cl.load<Any>(OBJECT_CLASS).apply {
+                assertFailsWith<NoSuchMethodException> { getDeclaredMethod(UNWANTED_GET_OBJ_METHOD) }
+            }
+        }
+    }
+
+    @Test
+    fun deleteFieldObject() {
+        assertThat(sourceClasses).anyMatch { it.contains("\$unwantedFieldObj\$") }
+
+        classLoaderFor(testProject.sourceJar).use { cl ->
+            cl.load<Any>(OBJECT_CLASS).apply {
+                getDeclaredField(UNWANTED_FIELD_OBJ_FIELD).also { field ->
+                    assertTrue(field.hasModifiers(ACC_PUBLIC))
+                    (field.get(null) as HasUnwantedFun).also { obj ->
+                        assertEquals(MESSAGE, obj.unwantedFun(MESSAGE))
+                    }
+                }
+            }
+        }
+
+        classLoaderFor(testProject.filteredJar).use { cl ->
+            cl.load<Any>(OBJECT_CLASS).apply {
+                assertFailsWith<NoSuchFieldException> { getDeclaredField(UNWANTED_FIELD_OBJ_FIELD) }
             }
         }
     }
