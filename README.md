@@ -83,7 +83,7 @@ fields from the compiled byte-code inside a jar file. It can also rewrite
 Kotlin classes' `@kotlin.Metadata` annotations to make them consistent 
 again with their revised byte-code. It is currently used in Corda's
 `core-deterministic` and `serialization-deterministic` modules, and has
-been successfully tested with Kotlin 1.2.x - 1.3.61.
+been successfully tested with Kotlin 1.2.x - 1.3.71.
 
 - [`net.corda.plugins.publish-utils`](publish-utils/README.rst): **_Here
 be Dragons!_** This plugin helps configure Gradle's `maven-publish` plugin
