@@ -1,9 +1,7 @@
 package net.corda.plugins
 
-import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
 import com.typesafe.config.ConfigValueFactory
-import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.PathSensitive
@@ -39,9 +37,21 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
 
         private val YAML_MAPPER = Yaml(YAML_FORMAT_OPTIONS)
 
-        private const val DEFAULT_DB_INIT_FILE = "init.sql";
-        private const val DEFAULT_DB_STARTING_PORT = 5432
         private const val DEFAULT_DB_GRADLE_PROPERTY = "postgres_driver_version"
+
+        private const val DEFAULT_DB = "postgres"
+
+        private const val DEFAULT_DB_INIT_FILE = "Postgres_init.sh"
+        private const val DEFAULT_DB_DOCKERFILE = "Postgres_Dockerfile"
+        private const val DEFAULT_DB_STARTING_PORT = 5432
+
+        private const val DEFAULT_DB_USER = "myuser"
+        private const val DEFAULT_DB_PASSWORD = "mypassword"
+        private const val DEFAULT_DB_SCHEMA = "myschema"
+        private const val DEFAULT_DB_NAME = "mydb"
+        private const val DEFAULT_DB_TRANSACTION_ISOLATION_LEVEL = "READ_COMMITTED"
+        private const val DEFAULT_DB_DATA_SOURCE_CLASS_NAME = "org.postgresql.ds.PGSimpleDataSource"
+        private const val DEFAULT_DB_DRIVER_PATH = "jdbc:postgresql://"
     }
 
     init {
@@ -62,24 +72,17 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
             return wantedPath
         }
 
-    private fun retrieveDefaultDbDriverDependency(driverGroup: String, driverName: String, driverVersion: Any?): File? {
-        project.configuration("default").incoming.beforeResolve {
-            project.dependencies.add("default", "org.postgresql:postgresql:$driverVersion")
+    private fun createDefaultDbURL(dbType: String, dbDriverPath: String, dbHost: String, dbPort: Int, dbName: String, dbSchema: String): String {
+        return when (dbType) {
+            "postgres" -> "$dbDriverPath$dbHost:$dbPort/$dbName?currentSchema=$dbSchema"
+            else -> "$dbType not currently supported"
         }
-        return project.configuration("default").files {
-            (it.group == driverGroup) && (it.name == driverName) && (it.version == driverVersion)
-        }.firstOrNull()
     }
 
-    private fun createDefaultDBConfig(port: Int, address: String): Config {
-        return ConfigFactory.empty()
-                .withValue("dataSourceProperties.dataSourceClassName", ConfigValueFactory.fromAnyRef("org.postgresql.ds.PGSimpleDataSource"))
-                .withValue("dataSourceProperties.dataSource.url", ConfigValueFactory.fromAnyRef("jdbc:postgresql://$address:$port/mydb?currentSchema=myschema"))
-                .withValue("dataSourceProperties.dataSource.user", ConfigValueFactory.fromAnyRef("myuser"))
-                .withValue("dataSourceProperties.dataSource.password", ConfigValueFactory.fromAnyRef("mypassword"))
-                .withValue("database.transactionIsolationLevel", ConfigValueFactory.fromAnyRef("READ_COMMITTED"))
-                .withValue("database.runMigration", ConfigValueFactory.fromAnyRef(true))
-                .withValue("database.schema", ConfigValueFactory.fromAnyRef("myschema"))
+    private fun retrieveDefaultDbDriverDependency(driverGroup: String, driverName: String, driverVersion: Any?): File? {
+        return project.configuration("cordaDriver").files {
+            (it.group == driverGroup) && (it.name == driverName) && (it.version == driverVersion)
+        }.firstOrNull()
     }
 
     /**
@@ -97,13 +100,13 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
         bootstrapNetwork()
         nodes.forEach(Node::buildDocker)
 
-        var services = mutableMapOf<String, Map<String, Any>>()
+        val services = mutableMapOf<String, Map<String, Any>>()
 
         nodes.forEachIndexed {index, it ->
 
             val nodeBuildDir = directoryPath.resolve(it.nodeDir.name).toAbsolutePath().toString()
 
-            var service = mutableMapOf(
+            val service = mutableMapOf(
                     "volumes" to listOf(
                             "$nodeBuildDir/node.conf:/etc/corda/node.conf",
                             "$nodeBuildDir/certificates:/opt/corda/certificates",
@@ -128,26 +131,42 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
                     it.installDrivers()
                 }
 
-                it.dbSettings(DEFAULT_DB_STARTING_PORT + index, "${it.containerName}-db")
-                it.installDefaultDatabaseConfig(createDefaultDBConfig(it.dbSettings.port, it.dbSettings.host), DEFAULT_DB_INIT_FILE)
+                it.installResource(DEFAULT_DB_INIT_FILE)
+                it.installResource(DEFAULT_DB_DOCKERFILE)
 
-                services[it.dbSettings.host] = mapOf(
-                        "image" to "postgres",
-                        "restart" to "unless-stopped",
-                        "ports" to listOf(it.dbSettings.port),
-                        "environment" to mapOf(
-                                "POSTGRES_USER" to "myuser",
-                                "POSTGRES_PASSWORD" to "mypassword",
-                                "POSTGRES_DB" to "mydb",
-                                "PGPORT" to it.dbSettings.port
+                val dbPort = DEFAULT_DB_STARTING_PORT + index
+                val dbHost = "${it.containerName}-db"
+                val dbUrl = createDefaultDbURL(DEFAULT_DB, DEFAULT_DB_DRIVER_PATH, dbHost, dbPort, DEFAULT_DB_NAME, DEFAULT_DB_SCHEMA)
+
+                val config = ConfigFactory.empty()
+                        .withValue("dataSourceProperties.dataSourceClassName", ConfigValueFactory.fromAnyRef(DEFAULT_DB_DATA_SOURCE_CLASS_NAME))
+                        .withValue("dataSourceProperties.dataSource.url", ConfigValueFactory.fromAnyRef(dbUrl))
+                        .withValue("dataSourceProperties.dataSource.user", ConfigValueFactory.fromAnyRef(DEFAULT_DB_USER))
+                        .withValue("dataSourceProperties.dataSource.password", ConfigValueFactory.fromAnyRef(DEFAULT_DB_PASSWORD))
+                        .withValue("database.transactionIsolationLevel", ConfigValueFactory.fromAnyRef(DEFAULT_DB_TRANSACTION_ISOLATION_LEVEL))
+                        .withValue("database.runMigration", ConfigValueFactory.fromAnyRef(true))
+                        .withValue("database.schema", ConfigValueFactory.fromAnyRef(DEFAULT_DB_SCHEMA))
+
+                it.installDefaultDatabaseConfig(config)
+
+                services[dbHost] = mapOf(
+                        "build" to mapOf(
+                             "context" to "$nodeBuildDir/",
+                             "dockerfile" to DEFAULT_DB_DOCKERFILE,
+                             "args" to mapOf(
+                                "DB_NAME" to DEFAULT_DB_NAME,
+                                "DB_SCHEMA" to DEFAULT_DB_SCHEMA,
+                                "DB_USER" to DEFAULT_DB_USER,
+                                "DB_PASSWORD" to DEFAULT_DB_PASSWORD,
+                                "DB_PORT" to dbPort
+                             )
                         ),
-                        "volumes" to listOf(
-                                "$nodeBuildDir/$DEFAULT_DB_INIT_FILE:/docker-entrypoint-initdb.d/$DEFAULT_DB_INIT_FILE"
-                        )
+                        "restart" to "unless-stopped",
+                        "ports" to listOf(dbPort)
                 )
 
                 service["image"] = it.dockerImage ?: "entdocker.software.r3.com/corda-enterprise-java1.8-${it.runtimeVersion().toLowerCase()}"
-                service["depends_on"] = listOf(it.dbSettings.host)
+                service["depends_on"] = listOf(dbHost)
             }
 
             services[it.containerName] = service

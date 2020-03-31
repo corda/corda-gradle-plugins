@@ -36,6 +36,7 @@ open class BaseformTest {
     fun getStandardGradleRunnerFor(buildFileResourceName: String, taskName: String = "deployNodes"): GradleRunner {
         createBuildFile(buildFileResourceName)
         installResource("settings.gradle")
+        installResource("repositories.gradle")
         installResource("gradle.properties")
         return GradleRunner.create()
                 .withDebug(true)

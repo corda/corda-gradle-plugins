@@ -12,6 +12,8 @@ class DockerformTest : BaseformTest() {
                 "DeploySingleNodeWithCordappWithDocker.gradle",
                 "prepareDockerNodes")
 
+
+
         val result = runner.build()
 
         assertThat(result.task(":prepareDockerNodes")!!.outcome).isEqualTo(TaskOutcome.SUCCESS)

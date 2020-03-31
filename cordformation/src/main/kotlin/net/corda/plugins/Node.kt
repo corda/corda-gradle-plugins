@@ -4,7 +4,6 @@ import com.typesafe.config.*
 import groovy.lang.Closure
 import org.gradle.api.GradleException
 import org.gradle.api.Project
-import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
@@ -59,22 +58,12 @@ open class Node @Inject constructor(private val project: Project) {
     private var rpcSettings: RpcSettings = RpcSettings()
     private var webserverJar: String? = null
     private var p2pPort = 10002
-        @Internal get
     internal var rpcPort = 10003
         @Input get
         private set
     internal var config = ConfigFactory.empty()
         @Internal get
         private set
-
-    var dbSettings: DbSettings = DbSettings(5432, DEFAULT_HOST)
-
-    /**
-     * Sets the database configuration
-     */
-    fun dbSettings(port: Int, address: String) {
-        dbSettings = DbSettings(port, address)
-    }
 
     /**
      * Name of the node. Node will be placed in directory based on this name - all lowercase with whitespaces removed.
@@ -589,7 +578,7 @@ open class Node @Inject constructor(private val project: Project) {
         createNodeAndWebServerConfigFiles(config)
     }
 
-    private fun installResource(resourceName: String) {
+    fun installResource(resourceName: String) {
         javaClass.getResourceAsStream(resourceName)?.use { input ->
             Files.copy(input, File("$nodeDir/$resourceName").toPath())
         } ?: throw FileNotFoundException(resourceName)
@@ -619,22 +608,11 @@ open class Node @Inject constructor(private val project: Project) {
     }
 
      /**
-     * Installs the default database
-     *
-     * Default to Postgres (part of EG-117 Epic)
+     * Installs the default database (part of EG-117 Epic)
      */
-    internal fun installDefaultDatabaseConfig(dbConfig: Config, initConfig: String) {
-        installResource(initConfig)
+    internal fun installDefaultDatabaseConfig(dbConfig: Config) {
 
-        val dockerConf = config
-                .withValue("dataSourceProperties.dataSourceClassName", dbConfig.getValue( "dataSourceProperties.dataSourceClassName"))
-                .withValue("dataSourceProperties.dataSource.url", dbConfig.getValue("dataSourceProperties.dataSource.url"))
-                .withValue("dataSourceProperties.dataSource.user", dbConfig.getValue("dataSourceProperties.dataSource.user"))
-                .withValue("dataSourceProperties.dataSource.password", dbConfig.getValue("dataSourceProperties.dataSource.password"))
-                .withValue("database.transactionIsolationLevel", dbConfig.getValue("database.transactionIsolationLevel"))
-                .withValue("database.runMigration", dbConfig.getValue("database.runMigration"))
-                .withValue("database.schema", dbConfig.getValue("database.schema"))
-
+        val dockerConf = dbConfig.withFallback(config).resolve()
         config = dockerConf
         updateNodeConfigFile(config)
     }

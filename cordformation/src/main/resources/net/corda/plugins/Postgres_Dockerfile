@@ -1,0 +1,20 @@
+# Derive from postgres image
+FROM postgres:latest
+
+ARG DB_NAME=mydb
+ARG DB_SCHEMA=myschema
+ARG DB_USER=myuser
+ARG DB_PASSWORD=mypassword
+ARG DB_PORT=5432
+
+ENV POSTGRES_DB=$DB_NAME
+ENV POSTGRES_DB_SCHEMA=$DB_SCHEMA
+ENV POSTGRES_USER=$DB_USER
+ENV POSTGRES_PASSWORD=$DB_PASSWORD
+ENV PGPORT=$DB_PORT
+
+# Copy all postgres init file to the docker entrypoint
+COPY ./Postgres_init.sh /docker-entrypoint-initdb.d/Postgres_init.sh
+
+# Allow postgres user to run init script
+RUN chmod 0755 /docker-entrypoint-initdb.d/Postgres_init.sh

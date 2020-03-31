@@ -10,11 +10,6 @@ plugins {
     id 'net.corda.plugins.cordformation'
 }
 
-repositories {
-    mavenCentral()
-    maven { url 'https://software.r3.com/artifactory/corda-releases' }
-}
-
 dependencies {
     runtime "$corda_group:corda:$corda_release_version"
     runtime "$corda_group:corda-node-api:$corda_release_version"
