@@ -2,6 +2,7 @@ package net.corda.plugins
 
 import com.typesafe.config.*
 import groovy.lang.Closure
+import org.gradle.api.Action
 import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ProjectDependency
@@ -14,6 +15,7 @@ import java.io.FileNotFoundException
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.StandardCopyOption
 import javax.inject.Inject
 
 /**
@@ -96,6 +98,45 @@ open class Node @Inject constructor(private val project: Project) {
     @get:Optional
     @get:Input
     var extraConfig: Map<String, Any> = emptyMap()
+
+    @get:Optional
+    @get:Nested
+    val dbSettings: DbSettings = project.objects.newInstance(DbSettings::class.java)
+
+    /**
+     * Sets the database configuration
+     */
+    fun dbSettings(action: Action<in DbSettings>) {
+        action.execute(dbSettings)
+    }
+
+    fun dbHost(value: String) {
+        dbSettings.dbHost = value
+    }
+
+    fun dbPort(value: Int) {
+        dbSettings.dbPort = value
+    }
+
+    fun dbDockerfile(value: String) {
+        dbSettings.dbDockerfile = value
+    }
+
+    fun dbInit(value: String) {
+        dbSettings.dbInit = value
+    }
+
+    fun dbUrl(value: String) {
+        dbSettings.dbUrl = value
+    }
+
+    fun dbName(value: String) {
+        dbSettings.dbName = value
+    }
+
+    fun dbSchema(value: String) {
+        dbSettings.dbSchema = value
+    }
 
     /**
      * Copy files into the node relative directory './drivers'.
@@ -517,6 +558,11 @@ open class Node @Inject constructor(private val project: Project) {
     }
 
     internal fun installDrivers() {
+        project.configuration("cordaDriver").files.forEach {
+            project.logger.lifecycle("Copy ${it.name} to './drivers' directory")
+            copyToDriversDir(it)
+        }
+
         drivers?.let {
             project.logger.lifecycle("Copy $it to './drivers' directory")
             it.forEach { path -> copyToDriversDir(File(path)) }
@@ -579,8 +625,8 @@ open class Node @Inject constructor(private val project: Project) {
     }
 
     fun installResource(resourceName: String) {
-        javaClass.getResourceAsStream(resourceName)?.use { input ->
-            Files.copy(input, File("$nodeDir/$resourceName").toPath())
+        javaClass.getResourceAsStream(resourceName)?.use {
+            input -> Files.copy(input, File("$nodeDir/$resourceName").toPath(), StandardCopyOption.REPLACE_EXISTING)
         } ?: throw FileNotFoundException(resourceName)
     }
 
@@ -611,14 +657,12 @@ open class Node @Inject constructor(private val project: Project) {
      * Installs the default database (part of EG-117 Epic)
      */
     internal fun installDefaultDatabaseConfig(dbConfig: Config) {
-
         val dockerConf = dbConfig.withFallback(config).resolve()
         config = dockerConf
         updateNodeConfigFile(config)
     }
 
     private fun updateNodeConfigFile(config: Config) {
-
         val options = ConfigRenderOptions
                 .defaults()
                 .setOriginComments(false)
@@ -627,7 +671,7 @@ open class Node @Inject constructor(private val project: Project) {
                 .setJson(false)
         val configFileText = createNodeConfig(config).root().render(options).split("\n").toList()
         val nodeConfFile = File(nodeDir, "node.conf")
-        Files.write(nodeConfFile.toPath(), configFileText, StandardCharsets.UTF_8)
+        Files.write(nodeConfFile.toPath(), configFileText)
     }
 
     private fun createNodeAndWebServerConfigFiles(config: Config) {

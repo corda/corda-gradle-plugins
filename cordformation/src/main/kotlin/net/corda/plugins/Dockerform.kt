@@ -9,7 +9,6 @@ import org.gradle.api.tasks.PathSensitivity.RELATIVE
 import org.gradle.api.tasks.TaskAction
 import org.yaml.snakeyaml.DumperOptions
 import org.yaml.snakeyaml.Yaml
-import java.io.File
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
@@ -37,21 +36,16 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
 
         private val YAML_MAPPER = Yaml(YAML_FORMAT_OPTIONS)
 
-        private const val DEFAULT_DB_GRADLE_PROPERTY = "postgres_driver_version"
-
-        private const val DEFAULT_DB = "postgres"
-
         private const val DEFAULT_DB_INIT_FILE = "Postgres_init.sh"
         private const val DEFAULT_DB_DOCKERFILE = "Postgres_Dockerfile"
         private const val DEFAULT_DB_STARTING_PORT = 5432
-
         private const val DEFAULT_DB_USER = "myuser"
         private const val DEFAULT_DB_PASSWORD = "mypassword"
         private const val DEFAULT_DB_SCHEMA = "myschema"
         private const val DEFAULT_DB_NAME = "mydb"
         private const val DEFAULT_DB_TRANSACTION_ISOLATION_LEVEL = "READ_COMMITTED"
         private const val DEFAULT_DB_DATA_SOURCE_CLASS_NAME = "org.postgresql.ds.PGSimpleDataSource"
-        private const val DEFAULT_DB_DRIVER_PATH = "jdbc:postgresql://"
+        private const val DEFAULT_DB_RUN_MIGRATION = true
     }
 
     init {
@@ -71,19 +65,6 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
             }
             return wantedPath
         }
-
-    private fun createDefaultDbURL(dbType: String, dbDriverPath: String, dbHost: String, dbPort: Int, dbName: String, dbSchema: String): String {
-        return when (dbType) {
-            "postgres" -> "$dbDriverPath$dbHost:$dbPort/$dbName?currentSchema=$dbSchema"
-            else -> "$dbType not currently supported"
-        }
-    }
-
-    private fun retrieveDefaultDbDriverDependency(driverGroup: String, driverName: String, driverVersion: Any?): File? {
-        return project.configuration("cordaDriver").files {
-            (it.group == driverGroup) && (it.name == driverName) && (it.version == driverVersion)
-        }.firstOrNull()
-    }
 
     /**
      * This task action will create and install the nodes based on the node configurations added.
@@ -121,43 +102,64 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
                     "image" to (it.dockerImage ?: "corda/corda-zulu-${it.runtimeVersion().toLowerCase()}")
             )
 
-            if (it.drivers.isNullOrEmpty() && project.hasProperty(DEFAULT_DB_GRADLE_PROPERTY)) {
+            if (!project.configuration("cordaDriver").isEmpty) {
 
-                val driverVersion = project.property(DEFAULT_DB_GRADLE_PROPERTY)
-                val driverJar = retrieveDefaultDbDriverDependency(
-                        "org.postgresql", "postgresql", driverVersion)
-                if (driverJar != null) {
-                    it.drivers = listOf(driverJar.path)
-                    it.installDrivers()
+                val dockerfile = it.dbSettings.dbDockerfile ?: DEFAULT_DB_DOCKERFILE
+                val dbInit = it.dbSettings.dbInit ?: DEFAULT_DB_INIT_FILE
+                val dbPort = it.dbSettings.dbPort ?: DEFAULT_DB_STARTING_PORT + index
+                val dbHost = it.dbSettings.dbHost ?: "${it.containerName}-db"
+                val dbName = it.dbSettings.dbName ?: DEFAULT_DB_NAME
+                val dbSchema = when {
+                    it.config.hasPath("dataSourceProperties.dataSource.url") -> it.config.getString("dataSourceProperties.dataSource.url")
+                    else -> DEFAULT_DB_SCHEMA
                 }
-
-                it.installResource(DEFAULT_DB_INIT_FILE)
-                it.installResource(DEFAULT_DB_DOCKERFILE)
-
-                val dbPort = DEFAULT_DB_STARTING_PORT + index
-                val dbHost = "${it.containerName}-db"
-                val dbUrl = createDefaultDbURL(DEFAULT_DB, DEFAULT_DB_DRIVER_PATH, dbHost, dbPort, DEFAULT_DB_NAME, DEFAULT_DB_SCHEMA)
-
-                val config = ConfigFactory.empty()
-                        .withValue("dataSourceProperties.dataSourceClassName", ConfigValueFactory.fromAnyRef(DEFAULT_DB_DATA_SOURCE_CLASS_NAME))
+                val dbUser = when {
+                    it.config.hasPath("dataSourceProperties.dataSource.user") -> it.config.getString("dataSourceProperties.dataSource.user")
+                    else -> DEFAULT_DB_USER
+                }
+                val dbPassword = when {
+                    it.config.hasPath("dataSourceProperties.dataSource.password") -> it.config.getString("dataSourceProperties.dataSource.password")
+                    else -> DEFAULT_DB_PASSWORD
+                }
+                val dbDataSourceClassName = when {
+                    it.config.hasPath("dataSourceProperties.dataSourceClassName") -> it.config.getString("dataSourceProperties.dataSourceClassName")
+                    else -> DEFAULT_DB_DATA_SOURCE_CLASS_NAME
+                }
+                val dbTransactionIsolationLevel = when {
+                    it.config.hasPath("database.transactionIsolationLevel") -> it.config.getString("database.transactionIsolationLevel")
+                    else -> DEFAULT_DB_TRANSACTION_ISOLATION_LEVEL
+                }
+                val dbRunMigration = when {
+                    it.config.hasPath("database.runMigration") -> it.config.getBoolean("database.runMigration")
+                    else -> DEFAULT_DB_RUN_MIGRATION
+                }
+                val dbUrl = when {
+                    it.config.hasPath("dataSourceProperties.dataSource.url") -> it.config.getString("dataSourceProperties.dataSource.url")
+                    !it.dbSettings.dbUrl.isNullOrEmpty() -> it.dbSettings.dbUrl
+                    else -> "jdbc:postgresql://${dbHost}:${dbPort}/${dbName}?currentSchema=${dbSchema}"
+                }
+                val dbConfig = ConfigFactory.empty()
+                        .withValue("dataSourceProperties.dataSourceClassName", ConfigValueFactory.fromAnyRef(dbDataSourceClassName))
                         .withValue("dataSourceProperties.dataSource.url", ConfigValueFactory.fromAnyRef(dbUrl))
-                        .withValue("dataSourceProperties.dataSource.user", ConfigValueFactory.fromAnyRef(DEFAULT_DB_USER))
-                        .withValue("dataSourceProperties.dataSource.password", ConfigValueFactory.fromAnyRef(DEFAULT_DB_PASSWORD))
-                        .withValue("database.transactionIsolationLevel", ConfigValueFactory.fromAnyRef(DEFAULT_DB_TRANSACTION_ISOLATION_LEVEL))
-                        .withValue("database.runMigration", ConfigValueFactory.fromAnyRef(true))
-                        .withValue("database.schema", ConfigValueFactory.fromAnyRef(DEFAULT_DB_SCHEMA))
+                        .withValue("dataSourceProperties.dataSource.user", ConfigValueFactory.fromAnyRef(dbUser))
+                        .withValue("dataSourceProperties.dataSource.password", ConfigValueFactory.fromAnyRef(dbPassword))
+                        .withValue("database.transactionIsolationLevel", ConfigValueFactory.fromAnyRef(dbTransactionIsolationLevel))
+                        .withValue("database.runMigration", ConfigValueFactory.fromAnyRef(dbRunMigration))
+                        .withValue("database.schema", ConfigValueFactory.fromAnyRef(dbSchema))
 
-                it.installDefaultDatabaseConfig(config)
+                it.installDefaultDatabaseConfig(dbConfig)
+                it.installResource(dockerfile)
+                it.installResource(dbInit)
 
                 services[dbHost] = mapOf(
                         "build" to mapOf(
                              "context" to "$nodeBuildDir/",
-                             "dockerfile" to DEFAULT_DB_DOCKERFILE,
+                             "dockerfile" to dockerfile,
                              "args" to mapOf(
-                                "DB_NAME" to DEFAULT_DB_NAME,
-                                "DB_SCHEMA" to DEFAULT_DB_SCHEMA,
-                                "DB_USER" to DEFAULT_DB_USER,
-                                "DB_PASSWORD" to DEFAULT_DB_PASSWORD,
+                                "DB_NAME" to dbName,
+                                "DB_SCHEMA" to dbSchema,
+                                "DB_USER" to dbUser,
+                                "DB_PASSWORD" to dbPassword,
                                 "DB_PORT" to dbPort
                              )
                         ),

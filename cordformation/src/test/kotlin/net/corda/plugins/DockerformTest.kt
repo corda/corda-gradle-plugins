@@ -12,8 +12,6 @@ class DockerformTest : BaseformTest() {
                 "DeploySingleNodeWithCordappWithDocker.gradle",
                 "prepareDockerNodes")
 
-
-
         val result = runner.build()
 
         assertThat(result.task(":prepareDockerNodes")!!.outcome).isEqualTo(TaskOutcome.SUCCESS)
@@ -80,5 +78,19 @@ class DockerformTest : BaseformTest() {
         assertThat(getNodeCordappJar(bigCorporationNodeName, cordaFinanceWorkflowsJarName)).isRegularFile()
         assertThat(getNodeCordappJar(bigCorporationNodeName, cordaFinanceContractsJarName)).isRegularFile()
         assertThat(getNetworkParameterOverrides(bigCorporationNodeName)).isRegularFile()
+    }
+
+    @Test
+    fun `deploy a node with cordapp dependency with db settings`() {
+        val runner = getStandardGradleRunnerFor(
+                "DeploySingleNodeWithDBSettingsWithDocker.gradle",
+                "prepareDockerNodes")
+
+        val result = runner.build()
+
+        assertThat(result.task(":prepareDockerNodes")!!.outcome).isEqualTo(TaskOutcome.SUCCESS)
+        assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceWorkflowsJarName)).isRegularFile()
+        assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceContractsJarName)).isRegularFile()
+        assertThat(getNetworkParameterOverrides(notaryNodeName)).isRegularFile()
     }
 }
