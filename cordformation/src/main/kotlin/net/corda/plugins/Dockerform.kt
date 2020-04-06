@@ -110,7 +110,7 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
                 val dbHost = it.dbSettings.dbHost ?: "${it.containerName}-db"
                 val dbName = it.dbSettings.dbName ?: DEFAULT_DB_NAME
                 val dbSchema = when {
-                    it.config.hasPath("dataSourceProperties.dataSource.url") -> it.config.getString("dataSourceProperties.dataSource.url")
+                    it.config.hasPath("database.schema") -> it.config.getString("database.schema")
                     else -> DEFAULT_DB_SCHEMA
                 }
                 val dbUser = when {
@@ -134,7 +134,6 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
                     else -> DEFAULT_DB_RUN_MIGRATION
                 }
                 val dbUrl = when {
-                    it.config.hasPath("dataSourceProperties.dataSource.url") -> it.config.getString("dataSourceProperties.dataSource.url")
                     !it.dbSettings.dbUrl.isNullOrEmpty() -> it.dbSettings.dbUrl
                     else -> "jdbc:postgresql://${dbHost}:${dbPort}/${dbName}?currentSchema=${dbSchema}"
                 }
