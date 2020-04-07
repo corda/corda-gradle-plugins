@@ -6,6 +6,7 @@ import java.util.*
 
 private const val HEADLESS_FLAG = "--headless"
 private const val CAPSULE_DEBUG_FLAG = "--capsule-debug"
+private const val MANAGE_SCHEMA = "--manageSchema"
 private const val BASE_DEBUG_PORT_FLAG = "--base-debug-port="
 private const val BASE_MONITORING_PORT_FLAG = "--base-monitoring-port="
 private const val CORDA_JAR_NAME = "corda.jar"
@@ -34,13 +35,14 @@ private class PortAlloc(private var basePort: Int) {
 fun main(args: Array<String>) {
     val isHeadless = ((!isTmux() && GraphicsEnvironment.isHeadless()) || args.contains(HEADLESS_FLAG))
     val capsuleDebugMode = args.contains(CAPSULE_DEBUG_FLAG)
+    val manageSchema = args.contains(MANAGE_SCHEMA)
     val baseDebugPort = parseArg(args, BASE_DEBUG_PORT_FLAG, DEFAULT_BASE_DEBUG_PORT)
     println("base debug port set to： $baseDebugPort")
     val baseMonitoringPort = parseArg(args, BASE_MONITORING_PORT_FLAG, DEFAULT_BASE_MONITORING_PORT)
     println("base monitoring port set to: $baseMonitoringPort")
-    val javaArgs = args.filter { it != HEADLESS_FLAG && it != CAPSULE_DEBUG_FLAG && !it.startsWith(BASE_DEBUG_PORT_FLAG) && !it.startsWith(BASE_MONITORING_PORT_FLAG) }
+    val javaArgs = args.filter { it != HEADLESS_FLAG && it != CAPSULE_DEBUG_FLAG && it != MANAGE_SCHEMA && !it.startsWith(BASE_DEBUG_PORT_FLAG) && !it.startsWith(BASE_MONITORING_PORT_FLAG) }
     val jvmArgs = if (capsuleDebugMode) listOf("-Dcapsule.log=verbose") else emptyList()
-    NodeRunner(baseDebugPort, baseMonitoringPort).run(isHeadless, javaArgs, jvmArgs)
+    NodeRunner(baseDebugPort, baseMonitoringPort).run(isHeadless, javaArgs, jvmArgs, manageSchema)
     println("Finished starting nodes")
 }
 
@@ -48,18 +50,18 @@ private class NodeRunner(baseDebugPort: Int, baseMonitoringPort: Int) {
     private val debugPortAlloc = PortAlloc(baseDebugPort)
     private val monitoringPortAlloc = PortAlloc(baseMonitoringPort)
 
-    fun run(isHeadless: Boolean, javaArgs: List<String>, jvmArgs: List<String>) {
+    fun run(isHeadless: Boolean, javaArgs: List<String>, jvmArgs: List<String>, manageSchema: Boolean) {
         val startedProcesses = mutableListOf<Process>()
         val workingDir = File(System.getProperty("user.dir"))
         println("Starting nodes in $workingDir")
         workingDir.listFiles { file -> file.isDirectory }.forEach { dir ->
-            startNode(dir, isHeadless, jvmArgs, javaArgs)?.let { startedProcesses += it }
+            startNode(dir, isHeadless, jvmArgs, javaArgs, manageSchema)?.let { startedProcesses += it }
             startWebserver(dir, isHeadless, jvmArgs, javaArgs)?.let { startedProcesses += it }
         }
         println("Started ${startedProcesses.size} processes")
     }
 
-    private fun startNode(nodeDir: File, headless: Boolean, jvmArgs: List<String>, javaArgs: List<String>): Process? {
+    private fun startNode(nodeDir: File, headless: Boolean, jvmArgs: List<String>, javaArgs: List<String>, manageSchema: Boolean): Process? {
         val jarFile = nodeDir.resolve(CORDA_JAR_NAME)
         return if (!jarFile.isFile) {
             println("No file $CORDA_JAR_NAME found in $nodeDir")
@@ -70,7 +72,8 @@ private class NodeRunner(baseDebugPort: Int, baseMonitoringPort: Int) {
         } else {
             val debugPort = debugPortAlloc.next()
             println("Starting $CORDA_JAR_NAME in $nodeDir on debug port $debugPort")
-            startJar(jarFile, headless, jvmArgs + getDebugArgs(debugPort) + getJolokiaArgs(nodeDir), javaArgs, CORDA_HEADLESS_ARGS)
+            val fullJavaArgs = if (manageSchema) javaArgs + listOf("--initialiseSchema", "--allowHibernateToManageAppSchema") else javaArgs
+            startJar(jarFile, headless, jvmArgs + getDebugArgs(debugPort) + getJolokiaArgs(nodeDir), fullJavaArgs, CORDA_HEADLESS_ARGS)
         }
     }
 

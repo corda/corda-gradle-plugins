@@ -2,6 +2,7 @@ package net.corda.plugins
 
 import org.apache.tools.ant.filters.FixCrLfFilter
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.TaskAction
 import javax.inject.Inject
 
@@ -15,6 +16,9 @@ open class Cordform @Inject constructor(objects: ObjectFactory) : Baseform(objec
     init {
         description = "Creates and configures a deployment of Corda Node directories."
     }
+
+    @get:Input
+    var manageSchema: Boolean = false
 
     /**
      * Returns a node by name.
@@ -41,6 +45,8 @@ open class Cordform @Inject constructor(objects: ObjectFactory) : Baseform(objec
                 from(Cordformation.getPluginFile(project, "runnodes"))
                 // Replaces end of line with lf to avoid issues with the bash interpreter and Windows style line endings.
                 filter(mapOf("eol" to FixCrLfFilter.CrLf.newInstance("lf")), FixCrLfFilter::class.java)
+                // add manageSchema flag if required
+                filter{ line: String -> line.replace("{manageSchemaFlag}", if(manageSchema) "--manageSchema" else "" )}
                 fileMode = Cordformation.executableFileMode
                 into("$directory/")
             }
@@ -49,6 +55,7 @@ open class Cordform @Inject constructor(objects: ObjectFactory) : Baseform(objec
         project.copy {
             it.apply {
                 from(Cordformation.getPluginFile(project, "runnodes.bat"))
+                filter{ line: String -> line.replace("{manageSchemaFlag}", if(manageSchema) "--manageSchema" else "" )}
                 into("$directory/")
             }
         }
