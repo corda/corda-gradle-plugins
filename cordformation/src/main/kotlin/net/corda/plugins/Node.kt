@@ -99,10 +99,6 @@ open class Node @Inject constructor(private val project: Project) {
     @get:Input
     var extraConfig: Map<String, Any> = emptyMap()
 
-    @get:Optional
-    @get:Input
-    var dockerConfig: Map<String, Any> = emptyMap()
-
     /**
      * Copy files into the node relative directory './drivers'.
      */
@@ -134,24 +130,6 @@ open class Node @Inject constructor(private val project: Project) {
                 getOptionalString("rpcAddress")
             }
         }
-
-    /**
-     * Returns the Docker image for this node, or null if one hasn't been specified.
-     */
-    var dockerImage: String? = null
-        @Optional
-        @Input
-        get() {
-            return if (config.hasPath("dockerImage")) {
-                config.getString("dockerImage")
-            } else {
-                field
-            }
-        }
-
-    fun dockerImage(image: String) {
-        this.dockerImage = image
-    }
 
     /**
      * Returns the address of the web server that will connect to the node, or null if one hasn't been specified.
@@ -587,12 +565,6 @@ open class Node @Inject constructor(private val project: Project) {
     internal fun installConfig() {
         configureProperties()
         createNodeAndWebServerConfigFiles(config)
-    }
-
-    fun installResource(resourceName: String) {
-        javaClass.getResourceAsStream(resourceName)?.use {
-            input -> Files.copy(input, File("$nodeDir/$resourceName").toPath(), StandardCopyOption.REPLACE_EXISTING)
-        } ?: throw FileNotFoundException(resourceName)
     }
 
     /**

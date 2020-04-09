@@ -3,17 +3,17 @@ package net.corda.plugins
 import com.typesafe.config.ConfigFactory
 import com.typesafe.config.ConfigValueFactory
 import org.gradle.api.model.ObjectFactory
-import org.gradle.api.tasks.InputFile
-import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.*
 import org.gradle.api.tasks.PathSensitivity.RELATIVE
-import org.gradle.api.tasks.TaskAction
 import org.yaml.snakeyaml.DumperOptions
 import org.yaml.snakeyaml.Yaml
-import java.lang.StringBuilder
+import java.io.File
+import java.io.FileNotFoundException
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.nio.file.StandardCopyOption
 import javax.inject.Inject
 
 
@@ -27,6 +27,7 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
 
     private companion object {
 
+        private const val DEFAULT_DB_STARTING_PORT = 5432
         private const val DEFAULT_SSH_PORT = 22022
         private val DEFAULT_DIRECTORY: Path = Paths.get("build", "docker")
         private const val COMPOSE_SPEC_VERSION = "3"
@@ -37,8 +38,6 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
         }
 
         private val YAML_MAPPER = Yaml(YAML_FORMAT_OPTIONS)
-
-        private const val DEFAULT_DB_STARTING_PORT = 5432
     }
 
     init {
@@ -58,6 +57,23 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
             }
             return wantedPath
         }
+
+    @get:Optional
+    @get:Input
+    var dockerConfig: Map<String, Any> = emptyMap()
+
+    private fun installResource(resourceName: String) {
+        javaClass.getResourceAsStream(resourceName)?.use {
+            input -> Files.copy(input, File(resourceName).toPath(), StandardCopyOption.REPLACE_EXISTING)
+        } ?: throw FileNotFoundException(resourceName)
+    }
+
+    /**
+     * Returns the Docker image for this node, or null if one hasn't been specified.
+     */
+    @get:Optional
+    @get:Input
+    val dockerImage: String? = null
 
     /**
      * This task action will create and install the nodes based on the node configurations added.
@@ -92,12 +108,12 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
                             "$nodeBuildDir/drivers:/opt/corda/drivers"
                     ),
                     "ports" to listOf(it.rpcPort, it.config.getInt("sshd.port")),
-                    "image" to (it.dockerImage ?: "corda/corda-zulu-${it.runtimeVersion().toLowerCase()}")
+                    "image" to (dockerImage ?: "corda/corda-zulu-${it.runtimeVersion().toLowerCase()}")
             )
 
-            if (it.dockerConfig.isNotEmpty()) {
+            if (dockerConfig.isNotEmpty()) {
 
-                var dockerConfig = ConfigFactory.parseMap(it.dockerConfig)
+                var dockerConfig = ConfigFactory.parseMap(dockerConfig)
 
                 val dockerfile = dockerConfig.getString("dbDockerConfig.dockerfile")
                 val dbInit = dockerConfig.getString("dbDockerConfig.dbInit")
@@ -112,16 +128,9 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
                 val dbPort = DEFAULT_DB_STARTING_PORT + index
                 val dbHost = "${it.containerName}-db"
 
-                val dbUrl = when {
-                    dockerConfig.hasPath("dataSourceProperties.dataSource.url") -> {
-                        var url = dockerConfig.getString("dataSourceProperties.dataSource.url")
-                        url.replace("\${DBHOSTNAME}", dbHost)
-                           .replace("\${DBPORT}", dbPort.toString())
-                           .replace("\${DBNAME}", dbName)
-                           .replace("\${DBSCHEMA}", dbSchema)
-                    }
-                    else -> "jdbc:postgresql://${dbHost}:${dbPort}/${dbName}?currentSchema=${dbSchema}"
-                }
+                val dbUrl = dockerConfig.getString("dataSourceProperties.dataSource.url")
+                        .replace("\${DBHOSTNAME}", dbHost)
+                        .replace("\${DBPORT}", dbPort.toString())
 
                 val dbConfig = ConfigFactory.empty()
                         .withValue("dataSourceProperties.dataSourceClassName", ConfigValueFactory.fromAnyRef(dbDataSourceClassName))
@@ -133,8 +142,8 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
                         .withValue("database.schema", ConfigValueFactory.fromAnyRef(dbSchema))
 
                 it.installDefaultDatabaseConfig(dbConfig)
-                it.installResource(dockerfile)
-                it.installResource(dbInit)
+                installResource("$nodeBuildDir/$dockerfile")
+                installResource("$nodeBuildDir/$dbInit")
 
                 services[dbHost] = mapOf(
                         "build" to mapOf(
@@ -152,7 +161,7 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
                         "ports" to listOf(dbPort)
                 )
 
-                service["image"] = it.dockerImage ?: "entdocker.software.r3.com/corda-enterprise-java1.8-${it.runtimeVersion().toLowerCase()}"
+                service["image"] = dockerImage ?: "entdocker.software.r3.com/corda-enterprise-java1.8-${it.runtimeVersion().toLowerCase()}"
                 service["depends_on"] = listOf(dbHost)
             }
 
