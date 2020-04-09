@@ -80,7 +80,7 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
         nodes.forEach(Node::installDrivers)
         generateKeystoreAndSignCordappJar()
         generateExcludedWhitelist()
-        //bootstrapNetwork()
+        bootstrapNetwork()
         nodes.forEach(Node::buildDocker)
 
         val services = mutableMapOf<String, Map<String, Any>>()
