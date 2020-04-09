@@ -38,16 +38,7 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
 
         private val YAML_MAPPER = Yaml(YAML_FORMAT_OPTIONS)
 
-        private const val DEFAULT_DB_INIT_FILE = "Postgres_init.sh"
-        private const val DEFAULT_DB_DOCKERFILE = "Postgres_Dockerfile"
         private const val DEFAULT_DB_STARTING_PORT = 5432
-        private const val DEFAULT_DB_USER = "myuser"
-        private const val DEFAULT_DB_PASSWORD = "mypassword"
-        private const val DEFAULT_DB_SCHEMA = "myschema"
-        private const val DEFAULT_DB_NAME = "mydb"
-        private const val DEFAULT_DB_TRANSACTION_ISOLATION_LEVEL = "READ_COMMITTED"
-        private const val DEFAULT_DB_DATA_SOURCE_CLASS_NAME = "org.postgresql.ds.PGSimpleDataSource"
-        private const val DEFAULT_DB_RUN_MIGRATION = true
     }
 
     init {
@@ -108,42 +99,15 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
 
                 var dockerConfig = ConfigFactory.parseMap(it.dockerConfig)
 
-                val dockerfile = when {
-                    dockerConfig.hasPath("dbDockerConfig.dockerfile") -> dockerConfig.getString("dbDockerConfig.dockerfile")
-                    else -> DEFAULT_DB_DOCKERFILE
-                }
-                val dbInit = when {
-                    dockerConfig.hasPath("dbDockerConfig.dbInit") -> dockerConfig.getString("dbDockerConfig.dbInit")
-                    else -> DEFAULT_DB_INIT_FILE
-                }
-                val dbName = when {
-                    dockerConfig.hasPath("dbDockerConfig.dbName") -> dockerConfig.getString("dbDockerConfig.dbName")
-                    else -> DEFAULT_DB_NAME
-                }
-                val dbSchema = when {
-                    dockerConfig.hasPath("dbDockerConfig.dbSchema") -> dockerConfig.getString("dbDockerConfig.dbSchema")
-                    else -> DEFAULT_DB_SCHEMA
-                }
-                val dbUser = when {
-                    dockerConfig.hasPath("dbDockerConfig.dbUser") -> dockerConfig.getString("dbDockerConfig.dbUser")
-                    else -> DEFAULT_DB_USER
-                }
-                val dbPassword = when {
-                    dockerConfig.hasPath("dbDockerConfig.dbPassword") -> dockerConfig.getString("dbDockerConfig.dbPassword")
-                    else -> DEFAULT_DB_PASSWORD
-                }
-                val dbDataSourceClassName = when {
-                    dockerConfig.hasPath("dataSourceProperties.dataSourceClassName") -> dockerConfig.getString("dataSourceProperties.dataSourceClassName")
-                    else -> DEFAULT_DB_DATA_SOURCE_CLASS_NAME
-                }
-                val dbTransactionIsolationLevel = when {
-                    dockerConfig.hasPath("database.transactionIsolationLevel") -> dockerConfig.getString("database.transactionIsolationLevel")
-                    else -> DEFAULT_DB_TRANSACTION_ISOLATION_LEVEL
-                }
-                val dbRunMigration = when {
-                    dockerConfig.hasPath("database.runMigration") -> dockerConfig.getBoolean("database.runMigration")
-                    else -> DEFAULT_DB_RUN_MIGRATION
-                }
+                val dockerfile = dockerConfig.getString("dbDockerConfig.dockerfile")
+                val dbInit = dockerConfig.getString("dbDockerConfig.dbInit")
+                val dbName = dockerConfig.getString("dbDockerConfig.dbName")
+                val dbUser = dockerConfig.getString("dbDockerConfig.dbUser")
+                val dbPassword = dockerConfig.getString("dbDockerConfig.dbPassword")
+                val dbDataSourceClassName = dockerConfig.getString("dataSourceProperties.dataSourceClassName")
+                val dbTransactionIsolationLevel = dockerConfig.getString("database.transactionIsolationLevel")
+                val dbRunMigration = dockerConfig.getBoolean("database.runMigration")
+                val dbSchema= dockerConfig.getString("dbDockerConfig.dbSchema")
 
                 val dbPort = DEFAULT_DB_STARTING_PORT + index
                 val dbHost = "${it.containerName}-db"
