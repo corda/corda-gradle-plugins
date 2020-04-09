@@ -83,7 +83,7 @@ class DockerformTest : BaseformTest() {
     @Test
     fun `deploy a node with cordapp dependency with db settings`() {
         val runner = getStandardGradleRunnerFor(
-                "DeploySingleNodeWithDBSettingsWithDocker.gradle",
+                "DeploySingleNodeWithExternalDBSettingsWithDocker.gradle",
                 "prepareDockerNodes")
 
         val result = runner.build()

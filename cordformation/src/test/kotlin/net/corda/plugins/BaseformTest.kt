@@ -38,6 +38,7 @@ open class BaseformTest {
         installResource("settings.gradle")
         installResource("repositories.gradle")
         installResource("gradle.properties")
+        installResource("postgres.gradle")
         return GradleRunner.create()
                 .withDebug(true)
                 .withProjectDir(testProjectDir.toFile())

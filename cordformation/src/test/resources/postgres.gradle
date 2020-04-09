@@ -1,0 +1,103 @@
+ext {
+    postgresql_version = '42.2.12'
+    dbUser = 'myuser'
+    dbPassword = 'mypassword'
+    dbSchema = 'myschema'
+    dbName = 'mydb'
+    postgresql = [
+            dataSourceProperties: [
+                    dataSourceClassName: 'org.postgresql.ds.PGSimpleDataSource',
+                    dataSource         : [
+                            user    : dbUser,
+                            password: dbPassword,
+                            url     : "jdbc:postgresql://\${DBHOSTNAME}:\${DBPORT}/\${DBNAME}?currentSchema=\${DBSCHEMA}"
+                    ],
+                    dbPort             : 5432,
+                    dbHostName         : 'localhost',
+                    dbDatabase         : dbName,
+            ],
+            database            : [
+                    transactionIsolationLevel: 'READ_COMMITTED',
+                    runMigration             : true,
+                    schema                   : dbSchema
+            ],
+            dbDockerConfig: [
+                    dockerfile : 'Postgres_Dockerfile',
+                    dbInit : 'Postgres_init.sh',
+                    dbUser : dbUser,
+                    dbPassword: dbPassword,
+                    dbSchema: dbSchema,
+                    dbName: dbName
+            ]
+    ]
+}
+
+apply plugin: 'net.corda.plugins.cordformation'
+
+dependencies {
+    cordaDriver "org.postgresql:postgresql:$postgresql_version"
+}
+
+def generateInitScripts = tasks.register('generateInitScripts') { Task task ->
+    def initialDockerfile = file("$buildDir/Postgres_Dockerfile")
+    def initialScript = file("$buildDir/Postgres_init.sh")
+    task.inputs.properties(project['postgresql'])
+    task.outputs.files(initialDockerfile, initialScript)
+    /*
+     * Dockerfile to initialise the PostgreSQL database.
+     */
+    task.doLast {
+        initialDockerfile.withPrintWriter('UTF-8') { writer ->
+            writer << """\
+# Derive from postgres image
+FROM postgres:latest
+​
+ARG DB_NAME=$dbName
+ARG DB_SCHEMA=$dbSchema
+ARG DB_USER=$dbUser
+ARG DB_PASSWORD=$dbPassword
+ARG DB_PORT=5432
+​
+ENV POSTGRES_DB=\$DB_NAME
+ENV POSTGRES_DB_SCHEMA=\$DB_SCHEMA
+ENV POSTGRES_USER=\$DB_USER
+ENV POSTGRES_PASSWORD=\$DB_PASSWORD
+ENV PGPORT=\$DB_PORT
+​
+# Copy all postgres init file to the docker entrypoint
+COPY ./Postgres_init.sh /docker-entrypoint-initdb.d/Postgres_init.sh
+​
+# Allow postgres user to run init script
+RUN chmod 0755 /docker-entrypoint-initdb.d/Postgres_init.sh
+"""
+        }
+
+        /*
+         * A UNIX script to generate the init.sql file that
+         * PostgreSQL needs. This must use UNIX line endings,
+         * even when generated on Windows.
+         */
+        initialScript.withPrintWriter('UTF-8') { writer ->
+            writer << """\
+#!/usr/bin/env bash
+# Postgres database initialisation script when using Docker images
+​
+dbUser=\${POSTGRES_USER:-"$dbUser"}
+dbPassword=\${POSTGRES_PASSWORD:-"$dbPassword"}
+dbSchema=\${POSTGRES_DB_SCHEMA:-"$dbSchema"}
+dbName=\${POSTGRES_DB:-"$dbName"}
+​
+psql -v ON_ERROR_STOP=1 --username "\$dbUser"  --dbname "\$dbName" <<-EOSQL
+        CREATE SCHEMA \$dbSchema;
+        GRANT USAGE, CREATE ON SCHEMA \$dbSchema TO \$dbUser;
+        GRANT SELECT, INSERT, UPDATE, DELETE, REFERENCES ON ALL tables IN SCHEMA \$dbSchema TO \$dbUser;
+        ALTER DEFAULT privileges IN SCHEMA \$dbSchema GRANT SELECT, INSERT, UPDATE, DELETE, REFERENCES ON tables TO \$dbUser;
+        GRANT USAGE, SELECT ON ALL sequences IN SCHEMA \$dbSchema TO \$dbUser;
+        ALTER DEFAULT privileges IN SCHEMA \$dbSchema GRANT USAGE, SELECT ON sequences TO \$dbUser;
+        ALTER ROLE \$dbUser SET search_path = \$dbSchema;
+EOSQL
+""".replaceAll("\r\n", "\n")
+        }
+        initialScript.executable = true
+    }
+}

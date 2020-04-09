@@ -9,11 +9,13 @@ import org.gradle.api.tasks.PathSensitivity.RELATIVE
 import org.gradle.api.tasks.TaskAction
 import org.yaml.snakeyaml.DumperOptions
 import org.yaml.snakeyaml.Yaml
+import java.lang.StringBuilder
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import javax.inject.Inject
+
 
 /**
  * Creates docker-compose file and image definitions based on the configuration of this task in the gradle configuration DSL.
@@ -78,7 +80,7 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
         nodes.forEach(Node::installDrivers)
         generateKeystoreAndSignCordappJar()
         generateExcludedWhitelist()
-        bootstrapNetwork()
+        //bootstrapNetwork()
         nodes.forEach(Node::buildDocker)
 
         val services = mutableMapOf<String, Map<String, Any>>()
@@ -102,41 +104,61 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
                     "image" to (it.dockerImage ?: "corda/corda-zulu-${it.runtimeVersion().toLowerCase()}")
             )
 
-            if (!project.configuration("cordaDriver").isEmpty) {
+            if (it.dockerConfig.isNotEmpty()) {
 
-                val dockerfile = it.dbSettings.dbDockerfile ?: DEFAULT_DB_DOCKERFILE
-                val dbInit = it.dbSettings.dbInit ?: DEFAULT_DB_INIT_FILE
-                val dbPort = it.dbSettings.dbPort ?: DEFAULT_DB_STARTING_PORT + index
-                val dbHost = it.dbSettings.dbHost ?: "${it.containerName}-db"
-                val dbName = it.dbSettings.dbName ?: DEFAULT_DB_NAME
+                var dockerConfig = ConfigFactory.parseMap(it.dockerConfig)
+
+                val dockerfile = when {
+                    dockerConfig.hasPath("dbDockerConfig.dockerfile") -> dockerConfig.getString("dbDockerConfig.dockerfile")
+                    else -> DEFAULT_DB_DOCKERFILE
+                }
+                val dbInit = when {
+                    dockerConfig.hasPath("dbDockerConfig.dbInit") -> dockerConfig.getString("dbDockerConfig.dbInit")
+                    else -> DEFAULT_DB_INIT_FILE
+                }
+                val dbName = when {
+                    dockerConfig.hasPath("dbDockerConfig.dbName") -> dockerConfig.getString("dbDockerConfig.dbName")
+                    else -> DEFAULT_DB_NAME
+                }
                 val dbSchema = when {
-                    it.config.hasPath("database.schema") -> it.config.getString("database.schema")
+                    dockerConfig.hasPath("dbDockerConfig.dbSchema") -> dockerConfig.getString("dbDockerConfig.dbSchema")
                     else -> DEFAULT_DB_SCHEMA
                 }
                 val dbUser = when {
-                    it.config.hasPath("dataSourceProperties.dataSource.user") -> it.config.getString("dataSourceProperties.dataSource.user")
+                    dockerConfig.hasPath("dbDockerConfig.dbUser") -> dockerConfig.getString("dbDockerConfig.dbUser")
                     else -> DEFAULT_DB_USER
                 }
                 val dbPassword = when {
-                    it.config.hasPath("dataSourceProperties.dataSource.password") -> it.config.getString("dataSourceProperties.dataSource.password")
+                    dockerConfig.hasPath("dbDockerConfig.dbPassword") -> dockerConfig.getString("dbDockerConfig.dbPassword")
                     else -> DEFAULT_DB_PASSWORD
                 }
                 val dbDataSourceClassName = when {
-                    it.config.hasPath("dataSourceProperties.dataSourceClassName") -> it.config.getString("dataSourceProperties.dataSourceClassName")
+                    dockerConfig.hasPath("dataSourceProperties.dataSourceClassName") -> dockerConfig.getString("dataSourceProperties.dataSourceClassName")
                     else -> DEFAULT_DB_DATA_SOURCE_CLASS_NAME
                 }
                 val dbTransactionIsolationLevel = when {
-                    it.config.hasPath("database.transactionIsolationLevel") -> it.config.getString("database.transactionIsolationLevel")
+                    dockerConfig.hasPath("database.transactionIsolationLevel") -> dockerConfig.getString("database.transactionIsolationLevel")
                     else -> DEFAULT_DB_TRANSACTION_ISOLATION_LEVEL
                 }
                 val dbRunMigration = when {
-                    it.config.hasPath("database.runMigration") -> it.config.getBoolean("database.runMigration")
+                    dockerConfig.hasPath("database.runMigration") -> dockerConfig.getBoolean("database.runMigration")
                     else -> DEFAULT_DB_RUN_MIGRATION
                 }
+
+                val dbPort = DEFAULT_DB_STARTING_PORT + index
+                val dbHost = "${it.containerName}-db"
+
                 val dbUrl = when {
-                    !it.dbSettings.dbUrl.isNullOrEmpty() -> it.dbSettings.dbUrl
+                    dockerConfig.hasPath("dataSourceProperties.dataSource.url") -> {
+                        var url = dockerConfig.getString("dataSourceProperties.dataSource.url")
+                        url.replace("\${DBHOSTNAME}", dbHost)
+                           .replace("\${DBPORT}", dbPort.toString())
+                           .replace("\${DBNAME}", dbName)
+                           .replace("\${DBSCHEMA}", dbSchema)
+                    }
                     else -> "jdbc:postgresql://${dbHost}:${dbPort}/${dbName}?currentSchema=${dbSchema}"
                 }
+
                 val dbConfig = ConfigFactory.empty()
                         .withValue("dataSourceProperties.dataSourceClassName", ConfigValueFactory.fromAnyRef(dbDataSourceClassName))
                         .withValue("dataSourceProperties.dataSource.url", ConfigValueFactory.fromAnyRef(dbUrl))

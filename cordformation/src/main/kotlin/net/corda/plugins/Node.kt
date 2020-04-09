@@ -100,43 +100,8 @@ open class Node @Inject constructor(private val project: Project) {
     var extraConfig: Map<String, Any> = emptyMap()
 
     @get:Optional
-    @get:Nested
-    val dbSettings: DbSettings = project.objects.newInstance(DbSettings::class.java)
-
-    /**
-     * Sets the database configuration
-     */
-    fun dbSettings(action: Action<in DbSettings>) {
-        action.execute(dbSettings)
-    }
-
-    fun dbHost(value: String) {
-        dbSettings.dbHost = value
-    }
-
-    fun dbPort(value: Int) {
-        dbSettings.dbPort = value
-    }
-
-    fun dbDockerfile(value: String) {
-        dbSettings.dbDockerfile = value
-    }
-
-    fun dbInit(value: String) {
-        dbSettings.dbInit = value
-    }
-
-    fun dbUrl(value: String) {
-        dbSettings.dbUrl = value
-    }
-
-    fun dbName(value: String) {
-        dbSettings.dbName = value
-    }
-
-    fun dbSchema(value: String) {
-        dbSettings.dbSchema = value
-    }
+    @get:Input
+    var dockerConfig: Map<String, Any> = emptyMap()
 
     /**
      * Copy files into the node relative directory './drivers'.

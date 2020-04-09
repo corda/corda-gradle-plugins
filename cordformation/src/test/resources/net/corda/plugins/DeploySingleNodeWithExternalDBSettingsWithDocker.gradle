@@ -3,16 +3,17 @@ plugins {
 }
 
 apply from: 'repositories.gradle'
+apply from: 'postgres.gradle'
 
 dependencies {
     cordaRuntime "$corda_group:corda:$corda_release_version"
     cordaRuntime "$corda_group:corda-node-api:$corda_release_version"
     cordapp "$corda_group:corda-finance-contracts:$corda_release_version"
     cordapp "$corda_group:corda-finance-workflows:$corda_release_version"
-    cordaDriver "org.postgresql:postgresql:$postgres_driver_version"
+    cordaDriver "org.postgresql:postgresql:$postgresql_version"
 }
 
-task prepareDockerNodes(type: net.corda.plugins.Dockerform) {
+task prepareDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: 'generateInitScripts') {
     node {
         projectCordapp {
             deploy false
@@ -21,8 +22,13 @@ task prepareDockerNodes(type: net.corda.plugins.Dockerform) {
         cordapps = ["$corda_group:corda-finance-contracts:$corda_release_version",
                     "$corda_group:corda-finance-workflows:$corda_release_version"]
 
-        dbSettings {
+        dockerConfig = postgresql
 
-        }
+//        extraConfig = [
+//                'dataSourceProperties.dataSourceClassName': 'org.postgresql.ds.PGSimpleDataSource',
+//                'dataSourceProperties.dataSource.url': 'jdbc:postgresql://localhost:5432/mydb?currentSchema=myschema',
+//                'dataSourceProperties.initializationFailFast': false,
+//
+//        ]
     }
 }
