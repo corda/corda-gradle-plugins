@@ -1,33 +1,51 @@
 ext {
-    postgresql_version = '42.2.12'
-    dbUser = 'myuser'
-    dbPassword = 'mypassword'
-    dbSchema = 'myschema'
-    dbName = 'mydb'
-    postgresql = [
+    postgresql_version     = '42.2.12'
+    postgres_image_version = 'latest'
+    dbUser                 = 'myuser'
+    dbPassword             = 'mypassword'
+    dbSchema               = 'myschema'
+    dbName                 = 'mydb'
+    dbPort                 = 5432
+    dbHostName             = 'localhost'
+    dbDockerfile           = 'Postgres_Dockerfile'
+    dbInit                 = 'Postgres_init.sql'
+    postgres = [
             dataSourceProperties: [
                     dataSourceClassName: 'org.postgresql.ds.PGSimpleDataSource',
-                    dataSource         : [
+                    dataSource: [
                             user    : dbUser,
                             password: dbPassword,
-                            url     : "jdbc\":\"postgresql\":\"\"//\"\${DBHOSTNAME}\":\"\${DBPORT}/\${DBNAME}\"?\"currentSchema\"=\"\${DBSCHEMA}"
-                    ],
-                    dbPort             : 5432,
-                    dbHostName         : 'localhost',
-                    dbDatabase         : dbName,
+                            url     : "jdbc\":\"postgresql\":\"\"//\"\${DBHOSTNAME}\":\"\${DBPORT}/\${DBNAME}\"?\"currentSchema\"=\"\${DBSCHEMA}",
+                            urlArgs : [
+                                    DBHOSTNAME  : dbHostName,
+                                    DBPORT      : dbPort,
+                                    DBNAME      : dbName,
+                                    DBSCHEMA    : dbSchema
+                            ]
+                    ]
             ],
-            database            : [
+            database: [
                     transactionIsolationLevel: 'READ_COMMITTED',
                     runMigration             : true,
                     schema                   : dbSchema
             ],
-            dbDockerConfig: [
-                    dockerfile : 'Postgres_Dockerfile',
-                    dbInit : 'Postgres_init.sh',
-                    dbUser : dbUser,
-                    dbPassword: dbPassword,
-                    dbSchema: dbSchema,
-                    dbName: dbName
+            dockerConfig: [
+                    dbDockerfile    : dbDockerfile,
+                    dbInit          : dbInit,
+                    dbDockerfileArgs: [
+                         DBNAME         : dbName,
+                         DBSCHEMA       : dbSchema,
+                         DBUSER         : dbUser,
+                         DBPASSWORD     : dbPassword,
+                         DBPORT         : dbPort
+                    ],
+                    dbUser          : dbUser,
+                    dbPassword      : dbPassword,
+                    dbSchema        : dbSchema,
+                    dbName          : dbName,
+                    dbPort          : dbPort,
+                    dbHostName      : dbHostName,
+                    dbDatabase      : dbName
             ]
     ]
 }
@@ -39,9 +57,9 @@ dependencies {
 }
 
 def generateInitScripts = tasks.register('generateInitScripts') { Task task ->
-    def initialDockerfile = file("$buildDir/Postgres_Dockerfile")
-    def initialScript = file("$buildDir/Postgres_init.sh")
-    task.inputs.properties(project['postgresql'])
+    def initialDockerfile = file("$buildDir/nodes/$dbDockerfile")
+    def initialScript = file("$buildDir/nodes/$dbInit")
+    task.inputs.properties(project['postgres'])
     task.outputs.files(initialDockerfile, initialScript)
     /*
      * Dockerfile to initialise the PostgreSQL database.
@@ -50,25 +68,25 @@ def generateInitScripts = tasks.register('generateInitScripts') { Task task ->
         initialDockerfile.withPrintWriter('UTF-8') { writer ->
             writer << """\
 # Derive from postgres image
-FROM postgres:latest
+FROM postgres:$postgres_image_version
 ​
-ARG DB_NAME=$dbName
-ARG DB_SCHEMA=$dbSchema
-ARG DB_USER=$dbUser
-ARG DB_PASSWORD=$dbPassword
-ARG DB_PORT=5432
+ARG DBNAME=$dbName
+ARG DBSCHEMA=$dbSchema
+ARG DBUSER=$dbUser
+ARG DBPASSWORD=$dbPassword
+ARG DBPORT=$dbPort
 ​
-ENV POSTGRES_DB=\$DB_NAME
-ENV POSTGRES_DB_SCHEMA=\$DB_SCHEMA
-ENV POSTGRES_USER=\$DB_USER
-ENV POSTGRES_PASSWORD=\$DB_PASSWORD
-ENV PGPORT=\$DB_PORT
+ENV POSTGRES_DB=\$DBNAME
+ENV POSTGRES_DB_SCHEMA=\$DBSCHEMA
+ENV POSTGRES_USER=\$DBUSER
+ENV POSTGRES_PASSWORD=\$DBPASSWORD
+ENV PGPORT=\$DBPORT
 ​
 # Copy all postgres init file to the docker entrypoint
-COPY ./Postgres_init.sh /docker-entrypoint-initdb.d/Postgres_init.sh
+COPY ./$dbInit /docker-entrypoint-initdb.d/$dbInit
 ​
 # Allow postgres user to run init script
-RUN chmod 0755 /docker-entrypoint-initdb.d/Postgres_init.sh
+RUN chmod 0755 /docker-entrypoint-initdb.d/$dbInit
 """
         }
 

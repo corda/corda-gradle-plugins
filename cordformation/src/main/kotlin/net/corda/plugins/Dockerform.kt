@@ -1,23 +1,16 @@
 package net.corda.plugins
 
 import com.typesafe.config.ConfigFactory
-import com.typesafe.config.ConfigParseOptions
-import com.typesafe.config.ConfigSyntax
 import com.typesafe.config.ConfigValueFactory
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.*
 import org.gradle.api.tasks.PathSensitivity.RELATIVE
-import org.gradle.internal.impldep.org.eclipse.jgit.util.QuotedString
 import org.yaml.snakeyaml.DumperOptions
 import org.yaml.snakeyaml.Yaml
-import java.io.File
-import java.io.FileNotFoundException
-import java.io.StringReader
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.nio.file.StandardCopyOption
 import javax.inject.Inject
 
 
@@ -66,12 +59,6 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
     @get:Input
     var dockerConfig: Map<String, Any> = emptyMap()
 
-    private fun installResource(resourceName: String) {
-        javaClass.getResourceAsStream(resourceName)?.use {
-            input -> Files.copy(input, File(resourceName).toPath(), StandardCopyOption.REPLACE_EXISTING)
-        } ?: throw FileNotFoundException(resourceName)
-    }
-
     /**
      * Returns the Docker image for this node, or null if one hasn't been specified.
      */
@@ -91,7 +78,7 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
         nodes.forEach(Node::installDrivers)
         generateKeystoreAndSignCordappJar()
         generateExcludedWhitelist()
-        //bootstrapNetwork()
+        bootstrapNetwork()
         nodes.forEach(Node::buildDocker)
 
         val services = mutableMapOf<String, Map<String, Any>>()
@@ -119,28 +106,42 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
 
                 var dockerConfig = ConfigFactory.parseMap(dockerConfig)
 
-                val dockerfile = dockerConfig.getString("dbDockerConfig.dockerfile")
-                val dbInit = dockerConfig.getString("dbDockerConfig.dbInit")
-                val dbName = dockerConfig.getString("dbDockerConfig.dbName")
-                val dbUser = dockerConfig.getString("dbDockerConfig.dbUser")
-                val dbPassword = dockerConfig.getString("dbDockerConfig.dbPassword")
+                val dbDockerfile = dockerConfig.getString("dockerConfig.dbDockerfile")
+                val dbDockerfileArgs = dockerConfig.getConfig("dockerConfig.dbDockerfileArgs")
+                val dbUser = dockerConfig.getString("dockerConfig.dbUser")
+                val dbPassword = dockerConfig.getString("dockerConfig.dbPassword")
                 val dbDataSourceClassName = dockerConfig.getString("dataSourceProperties.dataSourceClassName")
                 val dbTransactionIsolationLevel = dockerConfig.getString("database.transactionIsolationLevel")
                 val dbRunMigration = dockerConfig.getBoolean("database.runMigration")
-                val dbSchema= dockerConfig.getString("dbDockerConfig.dbSchema")
+                val dbSchema= dockerConfig.getString("dockerConfig.dbSchema")
 
                 val dbPort = DEFAULT_DB_STARTING_PORT + index
                 val dbHost = "${it.containerName}-db"
 
-                val dbUrlConfig = ConfigFactory
-                        .parseString("DBURL=${dockerConfig.getString("dataSourceProperties.dataSource.url")}")
-                        .resolveWith(ConfigFactory.empty()
-                                .withValue("DBHOSTNAME", ConfigValueFactory.fromAnyRef(dbHost))
-                                .withValue("DBPORT", ConfigValueFactory.fromAnyRef(dbPort))
-                                .withValue("DBNAME", ConfigValueFactory.fromAnyRef(dbName))
-                                .withValue("DBSCHEMA", ConfigValueFactory.fromAnyRef(dbSchema)))
+                // These are allocated by docker-compose
+                val defaultUrlArgs = ConfigFactory.empty()
+                        .withValue("DBHOSTNAME",ConfigValueFactory.fromAnyRef(dbHost))
+                        .withValue("DBPORT",ConfigValueFactory.fromAnyRef(dbPort))
 
-                val dbUrl = dbUrlConfig.getString("DBURL")
+                val dockerfileArgs = defaultUrlArgs.withFallback(dbDockerfileArgs).resolve()
+
+                val keys = mutableMapOf<String, Any>()
+
+                dockerfileArgs.entrySet().toList().map {
+                    keys[it.key] = it.value.unwrapped()
+                }
+
+                var dbUrl = dockerConfig.getString("dataSourceProperties.dataSource.url")
+
+                if (dockerConfig.hasPath("dataSourceProperties.dataSource.urlArgs")) {
+                    val urlArgs = defaultUrlArgs.withFallback(
+                            dockerConfig.getConfig("dataSourceProperties.dataSource.urlArgs")).resolve()
+
+                    val dbUrlConfig = ConfigFactory.parseString("DBURL=$dbUrl")
+                            .resolveWith(urlArgs)
+
+                    dbUrl = dbUrlConfig.getString("DBURL")
+                }
 
                 val dbConfig = ConfigFactory.empty()
                         .withValue("dataSourceProperties.dataSourceClassName", ConfigValueFactory.fromAnyRef(dbDataSourceClassName))
@@ -152,20 +153,12 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
                         .withValue("database.schema", ConfigValueFactory.fromAnyRef(dbSchema))
 
                 it.installDefaultDatabaseConfig(dbConfig)
-                installResource("$nodeBuildDir/$dockerfile")
-                installResource("$nodeBuildDir/$dbInit")
 
                 services[dbHost] = mapOf(
                         "build" to mapOf(
-                             "context" to "$nodeBuildDir/",
-                             "dockerfile" to dockerfile,
-                             "args" to mapOf(
-                                "DB_NAME" to dbName,
-                                "DB_SCHEMA" to dbSchema,
-                                "DB_USER" to dbUser,
-                                "DB_PASSWORD" to dbPassword,
-                                "DB_PORT" to dbPort
-                             )
+                             "context" to ".",
+                             "dockerfile" to dbDockerfile,
+                             "args" to keys
                         ),
                         "restart" to "unless-stopped",
                         "ports" to listOf(dbPort)
