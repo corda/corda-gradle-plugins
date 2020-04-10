@@ -1,10 +1,13 @@
 package net.corda.plugins
 
 import com.typesafe.config.ConfigFactory
+import com.typesafe.config.ConfigParseOptions
+import com.typesafe.config.ConfigSyntax
 import com.typesafe.config.ConfigValueFactory
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.*
 import org.gradle.api.tasks.PathSensitivity.RELATIVE
+import org.gradle.internal.impldep.org.eclipse.jgit.util.QuotedString
 import org.yaml.snakeyaml.DumperOptions
 import org.yaml.snakeyaml.Yaml
 import java.io.File
@@ -88,7 +91,7 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
         nodes.forEach(Node::installDrivers)
         generateKeystoreAndSignCordappJar()
         generateExcludedWhitelist()
-        bootstrapNetwork()
+        //bootstrapNetwork()
         nodes.forEach(Node::buildDocker)
 
         val services = mutableMapOf<String, Map<String, Any>>()
@@ -129,23 +132,15 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
                 val dbPort = DEFAULT_DB_STARTING_PORT + index
                 val dbHost = "${it.containerName}-db"
 
-//                val dbUrl = dockerConfig.getString("dataSourceProperties.dataSource.url")
-//                        .replace("\${DBHOSTNAME}", dbHost)
-//                        .replace("\${DBPORT}", dbPort.toString())
+                val dbUrlConfig = ConfigFactory
+                        .parseString("DBURL=${dockerConfig.getString("dataSourceProperties.dataSource.url")}")
+                        .resolveWith(ConfigFactory.empty()
+                                .withValue("DBHOSTNAME", ConfigValueFactory.fromAnyRef(dbHost))
+                                .withValue("DBPORT", ConfigValueFactory.fromAnyRef(dbPort))
+                                .withValue("DBNAME", ConfigValueFactory.fromAnyRef(dbName))
+                                .withValue("DBSCHEMA", ConfigValueFactory.fromAnyRef(dbSchema)))
 
-                val fallback = ConfigFactory.empty()
-                        .withValue("DBHOSTNAME", ConfigValueFactory.fromAnyRef(dbHost))
-                        .withValue("DBPORT", ConfigValueFactory.fromAnyRef(dbPort))
-                        .withValue("DBNAME", ConfigValueFactory.fromAnyRef(dbName))
-                        .withValue("DBSCHEMA", ConfigValueFactory.fromAnyRef(dbSchema))
-
-                val dbUrl = "jdbc:postgresql://\${DBHOSTNAME}:\${DBPORT}/\${DBNAME}?currentSchema=\${DBSCHEMA}"
-
-                val config = ConfigFactory.parseReader(StringReader("DBURL=$dbUrl"))
-                        .withFallback(fallback)
-                        .resolve()
-
-                val url = config.getString("DBURL")
+                val dbUrl = dbUrlConfig.getString("DBURL")
 
                 val dbConfig = ConfigFactory.empty()
                         .withValue("dataSourceProperties.dataSourceClassName", ConfigValueFactory.fromAnyRef(dbDataSourceClassName))
