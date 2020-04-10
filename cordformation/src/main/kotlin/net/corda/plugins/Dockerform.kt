@@ -9,6 +9,7 @@ import org.yaml.snakeyaml.DumperOptions
 import org.yaml.snakeyaml.Yaml
 import java.io.File
 import java.io.FileNotFoundException
+import java.io.StringReader
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
@@ -128,9 +129,23 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
                 val dbPort = DEFAULT_DB_STARTING_PORT + index
                 val dbHost = "${it.containerName}-db"
 
-                val dbUrl = dockerConfig.getString("dataSourceProperties.dataSource.url")
-                        .replace("\${DBHOSTNAME}", dbHost)
-                        .replace("\${DBPORT}", dbPort.toString())
+//                val dbUrl = dockerConfig.getString("dataSourceProperties.dataSource.url")
+//                        .replace("\${DBHOSTNAME}", dbHost)
+//                        .replace("\${DBPORT}", dbPort.toString())
+
+                val fallback = ConfigFactory.empty()
+                        .withValue("DBHOSTNAME", ConfigValueFactory.fromAnyRef(dbHost))
+                        .withValue("DBPORT", ConfigValueFactory.fromAnyRef(dbPort))
+                        .withValue("DBNAME", ConfigValueFactory.fromAnyRef(dbName))
+                        .withValue("DBSCHEMA", ConfigValueFactory.fromAnyRef(dbSchema))
+
+                val dbUrl = "jdbc:postgresql://\${DBHOSTNAME}:\${DBPORT}/\${DBNAME}?currentSchema=\${DBSCHEMA}"
+
+                val config = ConfigFactory.parseReader(StringReader("DBURL=$dbUrl"))
+                        .withFallback(fallback)
+                        .resolve()
+
+                val url = config.getString("DBURL")
 
                 val dbConfig = ConfigFactory.empty()
                         .withValue("dataSourceProperties.dataSourceClassName", ConfigValueFactory.fromAnyRef(dbDataSourceClassName))
