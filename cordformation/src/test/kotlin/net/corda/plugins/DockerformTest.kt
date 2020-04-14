@@ -37,7 +37,7 @@ class DockerformTest : BaseformTest() {
     @Test
     fun `deploy a three node cordapp` () {
         val runner = getStandardGradleRunnerFor(
-                "DeployThreeNodeCordappWithDocker.gradle",
+                "DeployThreeNodeCordappWithExternalDBSettingsWithDocker.gradle",
                 "prepareDockerNodes")
 
         val bankOfCordaNodeName = "BankOfCorda"
@@ -60,7 +60,7 @@ class DockerformTest : BaseformTest() {
     @Test
     fun `deploy a three node cordapp with network configuration` () {
         val runner = getStandardGradleRunnerFor(
-                "DeployThreeNodeCordappWithNetworkConfigWithDocker.gradle",
+                "DeployThreeNodeCordappWithExternalDBSettingsWithNetworkConfigWithDocker.gradle",
                 "prepareDockerNodes")
 
         val bankOfCordaNodeName = "BankOfCorda"

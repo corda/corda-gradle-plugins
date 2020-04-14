@@ -7,7 +7,6 @@ import org.gradle.api.tasks.*
 import org.gradle.api.tasks.PathSensitivity.RELATIVE
 import org.yaml.snakeyaml.DumperOptions
 import org.yaml.snakeyaml.Yaml
-import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -73,7 +72,7 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
     fun build() {
         project.logger.lifecycle("Running DockerForm task")
         initializeConfiguration()
-        nodes.forEach { it -> it.installDockerConfig(DEFAULT_SSH_PORT) }
+        nodes.forEach { it.installDockerConfig(DEFAULT_SSH_PORT) }
         installCordaJar()
         generateKeystoreAndSignCordappJar()
         generateExcludedWhitelist()
@@ -103,7 +102,7 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
 
             if (dockerConfig.isNotEmpty()) {
 
-                var dockerConfig = ConfigFactory.parseMap(dockerConfig)
+                val dockerConfig = ConfigFactory.parseMap(dockerConfig)
 
                 val dbDockerfile = dockerConfig.getString("dockerConfig.dbDockerfile")
                 val dbDockerfileArgs = dockerConfig.getConfig("dockerConfig.dbDockerfileArgs")
@@ -176,6 +175,6 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
 
         val dockerComposeContent = YAML_MAPPER.dump(dockerComposeObject)
 
-        Files.write(dockerComposePath, dockerComposeContent.toByteArray(StandardCharsets.UTF_8))
+        Files.write(dockerComposePath, dockerComposeContent.toByteArray())
     }
 }

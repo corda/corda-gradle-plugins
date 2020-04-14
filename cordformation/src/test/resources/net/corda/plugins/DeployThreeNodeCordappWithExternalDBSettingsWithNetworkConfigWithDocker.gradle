@@ -12,7 +12,7 @@ dependencies {
     cordapp "$corda_group:corda-finance-workflows:$corda_release_version"
 }
 
-task prepareDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: ['jar']) {
+task prepareDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: ['generateInitScripts', 'jar']) {
     nodeDefaults {
 
         cordapps = ["$corda_group:corda-finance-contracts:$corda_release_version",
@@ -25,17 +25,32 @@ task prepareDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: ['jar']) 
     node {
         name "O=Notary Service,L=Zurich,C=CH"
         notary = [validating: true]
-
+        p2pPort 10002
+        rpcSettings {
+            address "localhost:10003"
+            adminAddress "localhost:10004"
+        }
     }
     node {
         name "O=BankOfCorda,L=London,C=GB"
+        p2pPort 10005
+        rpcSettings {
+            address "localhost:10006"
+            adminAddress "localhost:10015"
+        }
+
         rpcUsers = [[user: "bankUser", password: "test", permissions: ["ALL"]]]
     }
     node {
         name "O=BigCorporation,L=New York,C=US"
+        p2pPort 10008
+        rpcSettings {
+            address "localhost:10009"
+            adminAddress "localhost:10011"
+        }
+
         rpcUsers = [[user: "bigCorpUser", password: "test", permissions: ["ALL"]]]
     }
 
     dockerConfig = postgres
-    dockerImage = "test"
 }

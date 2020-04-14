@@ -15,7 +15,7 @@ ext {
                     dataSource: [
                             user    : dbUser,
                             password: dbPassword,
-                            url     : "jdbc\":\"postgresql\":\"\"//\"\${DBHOSTNAME}\":\"\${DBPORT}/\${DBNAME}\"?\"currentSchema\"=\"\${DBSCHEMA}",
+                            url     : "\"jdbc:postgresql://\"\${DBHOSTNAME}\":\"\${DBPORT}\"/\"\${DBNAME}\"?currentSchema=\"\${DBSCHEMA}",
                             urlArgs : [
                                     DBHOSTNAME  : dbHostName,
                                     DBPORT      : dbPort,
@@ -45,7 +45,7 @@ ext {
                     dbPort          : dbPort,
                     dbHostName      : dbHostName,
                     dbDatabase      : dbName
-					]
+			]
     ]
 }
 
