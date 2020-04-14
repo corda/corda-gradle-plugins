@@ -7,8 +7,8 @@ ext {
     dbName                 = 'mydb'
     dbPort                 = 5432
     dbHostName             = 'localhost'
+    dbInit                 = 'Postgres_init.sh'
     dbDockerfile           = 'Postgres_Dockerfile'
-    dbInit                 = 'Postgres_init.sql'
     postgres = [
             dataSourceProperties: [
                     dataSourceClassName: 'org.postgresql.ds.PGSimpleDataSource',
@@ -31,7 +31,6 @@ ext {
             ],
             dockerConfig: [
                     dbDockerfile    : dbDockerfile,
-                    dbInit          : dbInit,
                     dbDockerfileArgs: [
                          DBNAME         : dbName,
                          DBSCHEMA       : dbSchema,
@@ -46,7 +45,7 @@ ext {
                     dbPort          : dbPort,
                     dbHostName      : dbHostName,
                     dbDatabase      : dbName
-            ]
+					]
     ]
 }
 
@@ -57,8 +56,8 @@ dependencies {
 }
 
 def generateInitScripts = tasks.register('generateInitScripts') { Task task ->
-    def initialDockerfile = file("$buildDir/nodes/$dbDockerfile")
-    def initialScript = file("$buildDir/nodes/$dbInit")
+    def initialDockerfile = file("$buildDir/$dbDockerfile")
+    def initialScript = file( "$buildDir/$dbInit")
     task.inputs.properties(project['postgres'])
     task.outputs.files(initialDockerfile, initialScript)
     /*
@@ -69,22 +68,22 @@ def generateInitScripts = tasks.register('generateInitScripts') { Task task ->
             writer << """\
 # Derive from postgres image
 FROM postgres:$postgres_image_version
-​
+
 ARG DBNAME=$dbName
 ARG DBSCHEMA=$dbSchema
 ARG DBUSER=$dbUser
 ARG DBPASSWORD=$dbPassword
 ARG DBPORT=$dbPort
-​
+
 ENV POSTGRES_DB=\$DBNAME
 ENV POSTGRES_DB_SCHEMA=\$DBSCHEMA
 ENV POSTGRES_USER=\$DBUSER
 ENV POSTGRES_PASSWORD=\$DBPASSWORD
 ENV PGPORT=\$DBPORT
-​
+
 # Copy all postgres init file to the docker entrypoint
 COPY ./$dbInit /docker-entrypoint-initdb.d/$dbInit
-​
+
 # Allow postgres user to run init script
 RUN chmod 0755 /docker-entrypoint-initdb.d/$dbInit
 """
@@ -99,12 +98,12 @@ RUN chmod 0755 /docker-entrypoint-initdb.d/$dbInit
             writer << """\
 #!/usr/bin/env bash
 # Postgres database initialisation script when using Docker images
-​
+
 dbUser=\${POSTGRES_USER:-"$dbUser"}
 dbPassword=\${POSTGRES_PASSWORD:-"$dbPassword"}
 dbSchema=\${POSTGRES_DB_SCHEMA:-"$dbSchema"}
 dbName=\${POSTGRES_DB:-"$dbName"}
-​
+
 psql -v ON_ERROR_STOP=1 --username "\$dbUser"  --dbname "\$dbName" <<-EOSQL
         CREATE SCHEMA \$dbSchema;
         GRANT USAGE, CREATE ON SCHEMA \$dbSchema TO \$dbUser;

@@ -3,7 +3,6 @@ plugins {
 }
 
 apply from: 'repositories.gradle'
-
 apply from: 'postgres.gradle'
 
 dependencies {

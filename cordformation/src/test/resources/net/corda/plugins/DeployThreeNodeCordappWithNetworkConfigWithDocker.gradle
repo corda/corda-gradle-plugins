@@ -3,13 +3,13 @@ plugins {
 }
 
 apply from: 'repositories.gradle'
+apply from: 'postgres.gradle'
 
 dependencies {
     cordaRuntime "$corda_group:corda:$corda_release_version"
     cordaRuntime "$corda_group:corda-node-api:$corda_release_version"
     cordapp "$corda_group:corda-finance-contracts:$corda_release_version"
     cordapp "$corda_group:corda-finance-workflows:$corda_release_version"
-    cordaDriver "org.postgresql:postgresql:$postgres_driver_version"
 }
 
 task prepareDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: ['jar']) {
@@ -30,8 +30,6 @@ task prepareDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: ['jar']) 
             address "localhost:10003"
             adminAddress "localhost:10004"
         }
-
-        dockerImage =""
     }
     node {
         name "O=BankOfCorda,L=London,C=GB"
@@ -53,4 +51,6 @@ task prepareDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: ['jar']) 
 
         rpcUsers = [[user: "bigCorpUser", password: "test", permissions: ["ALL"]]]
     }
+
+    dockerConfig = postgres
 }

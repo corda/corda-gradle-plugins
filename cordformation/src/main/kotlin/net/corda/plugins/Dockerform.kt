@@ -60,11 +60,11 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
     var dockerConfig: Map<String, Any> = emptyMap()
 
     /**
-     * Returns the Docker image for this node, or null if one hasn't been specified.
+     * Docker image for this node, or null if one hasn't been specified.
      */
     @get:Optional
     @get:Input
-    val dockerImage: String? = null
+    var dockerImage: String? = null
 
     /**
      * This task action will create and install the nodes based on the node configurations added.
@@ -75,7 +75,6 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
         initializeConfiguration()
         nodes.forEach { it -> it.installDockerConfig(DEFAULT_SSH_PORT) }
         installCordaJar()
-        nodes.forEach(Node::installDrivers)
         generateKeystoreAndSignCordappJar()
         generateExcludedWhitelist()
         bootstrapNetwork()
@@ -115,21 +114,15 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
                 val dbRunMigration = dockerConfig.getBoolean("database.runMigration")
                 val dbSchema= dockerConfig.getString("dockerConfig.dbSchema")
 
+                // These are allocated by docker-compose
                 val dbPort = DEFAULT_DB_STARTING_PORT + index
                 val dbHost = "${it.containerName}-db"
-
-                // These are allocated by docker-compose
                 val defaultUrlArgs = ConfigFactory.empty()
                         .withValue("DBHOSTNAME",ConfigValueFactory.fromAnyRef(dbHost))
                         .withValue("DBPORT",ConfigValueFactory.fromAnyRef(dbPort))
 
+                // Override the port and hostname
                 val dockerfileArgs = defaultUrlArgs.withFallback(dbDockerfileArgs).resolve()
-
-                val keys = mutableMapOf<String, Any>()
-
-                dockerfileArgs.entrySet().toList().map {
-                    keys[it.key] = it.value.unwrapped()
-                }
 
                 var dbUrl = dockerConfig.getString("dataSourceProperties.dataSource.url")
 
@@ -154,11 +147,17 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
 
                 it.installDefaultDatabaseConfig(dbConfig)
 
+                val args = mutableMapOf<String, Any>()
+
+                dockerfileArgs.entrySet().toList().map {
+                    args[it.key] = it.value.unwrapped()
+                }
+
                 services[dbHost] = mapOf(
                         "build" to mapOf(
-                             "context" to ".",
-                             "dockerfile" to dbDockerfile,
-                             "args" to keys
+                             "context" to project.buildDir.absolutePath,
+                             "dockerfile" to project.buildDir.resolve(dbDockerfile).toString(),
+                             "args" to args
                         ),
                         "restart" to "unless-stopped",
                         "ports" to listOf(dbPort)
