@@ -1,6 +1,6 @@
 ext {
     postgresql_version     = '42.2.12'
-    postgres_image_version = 'latest'
+    postgres_image_version = '12'
     dbUser                 = 'myuser'
     dbPassword             = 'mypassword'
     dbSchema               = 'myschema'
