@@ -30,9 +30,7 @@ class TypesafeUtils {
             if (endOfPrevToken < input.length) {
                 builder.append('\"').append(input.substring(endOfPrevToken)).append('\"')
             }
-            else {
-                builder.append(input.substring(endOfPrevToken))
-            }
+
             return builder.toString()
         }
     }
