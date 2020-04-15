@@ -22,9 +22,8 @@ class TypesafeUtils {
                 if (startOfCurToken != 0) {
                     builder.append('\"').append(input.substring(endOfPrevToken, startOfCurToken)).append('\"')
                 }
-                val encodedToken = "\${$token}"
-                builder.append(encodedToken)
-                endOfPrevToken = startOfCurToken + encodedToken.length
+                builder.append("\${").append(token).append("}")
+                endOfPrevToken = startOfCurToken + token.length + "\${}".length
             }
 
             if (endOfPrevToken < input.length) {
