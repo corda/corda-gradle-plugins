@@ -22,7 +22,7 @@ class TypesafeUtils {
                 if (startOfCurToken != 0) {
                     builder.append('\"').append(input.substring(endOfPrevToken, startOfCurToken)).append('\"')
                 }
-                builder.append("\${").append(token).append("}")
+                builder.append("\${").append(token).append('}')
                 endOfPrevToken = startOfCurToken + token.length + "\${}".length
             }
 
