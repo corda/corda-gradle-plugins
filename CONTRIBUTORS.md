@@ -9,6 +9,7 @@ changes to this list.
 
 * Alberto Arri (R3)
 * Andras Slemmer (R3)
+* Andrei Palade (R3)
 * Andrius Dagys (R3)
 * Andrzej Cichocki (R3)
 * Andrzej Grzesik (R3)

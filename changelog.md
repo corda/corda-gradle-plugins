@@ -4,6 +4,8 @@
 
 ### Version 5.0.9
 
+* `Dockerform`: Added option to deploy external databases using docker compose task    
+
 ### Version 5.0.8
 
 * `cordformation`: Allow `dataSource.url` to be overridden in `Dockerform` task.
