@@ -49,7 +49,7 @@ class TypesafeUtilsTest {
 
         assertFailsWith<ConfigException.UnresolvedSubstitution> {
             ConfigFactory.parseString("DBURL=${TypesafeUtils.encodeString(url)}")
-                         .resolveWith(urlArgs)
+                    .resolveWith(urlArgs)
         }
     }
 
@@ -73,7 +73,17 @@ class TypesafeUtilsTest {
 
         assertFailsWith<ConfigException.Parse> {
             ConfigFactory.parseString("DBURL=${TypesafeUtils.encodeString(url)}")
-                         .resolveWith(urlArgs)
+                    .resolveWith(urlArgs)
         }
+    }
+
+    @Test
+    fun `check text after last substitution is preserved`() {
+        val url = "jdbc:postgresql://\${DBHOSTNAME}:\${DBPORT}?parameter=true"
+
+        val config = ConfigFactory.parseString("DBURL=${TypesafeUtils.encodeString(url)}")
+                .resolveWith(urlArgs)
+        assertThat(config.hasPath("DBURL")).isTrue()
+        assertThat(config.getString("DBURL")).isEqualTo("jdbc:postgresql://localhost:5432?parameter=true")
     }
 }

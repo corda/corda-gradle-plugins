@@ -6,7 +6,7 @@ class TypesafeUtils {
 
     companion object {
 
-        private val urlTokenPattern: Pattern = Pattern.compile("\\$\\{([^}]+)\\}")
+        private val urlTokenPattern: Pattern = Pattern.compile("\\$\\{([^}]+)}")
 
         /**
          * Encodes a string that contains ${} placeholders so that can be parsed by Typesafe
@@ -20,16 +20,17 @@ class TypesafeUtils {
                 val startOfCurToken = matcher.start()
                 val token = matcher.group(1)
                 if (startOfCurToken != 0) {
-                    builder.append("\"${input.substring(endOfPrevToken, startOfCurToken)}\"")
+                    builder.append('\"').append(input.substring(endOfPrevToken, startOfCurToken)).append('\"')
                 }
                 val encodedToken = "\${$token}"
                 builder.append(encodedToken)
                 endOfPrevToken = startOfCurToken + encodedToken.length
             }
 
-            if (endOfPrevToken == 0) {
-                builder.append("\"${input.substring(endOfPrevToken)}\"")
-            } else {
+            if (endOfPrevToken < input.length) {
+                builder.append('\"').append(input.substring(endOfPrevToken)).append('\"')
+            }
+            else {
                 builder.append(input.substring(endOfPrevToken))
             }
             return builder.toString()
