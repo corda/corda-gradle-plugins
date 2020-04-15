@@ -2,6 +2,7 @@
 package net.corda.gradle.jarfilter
 
 import org.gradle.api.InvalidUserCodeException
+import org.gradle.api.logging.Logger
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassReader.SKIP_DEBUG
 import org.objectweb.asm.ClassReader.SKIP_FRAMES
@@ -88,7 +89,9 @@ fun <T> ByteArray.execute(visitor: (ClassVisitor) -> T, flags: Int = 0, passes: 
         ClassReader(bytecode).accept(transformer, FILTER_FLAGS)
         bytecode = writer.toByteArray()
 
-        if (!transformer.hasUnwantedElements) break
+        if (!transformer.hasUnwantedElements) {
+            break
+        }
 
         writer = ClassWriter(flags)
         transformer = transformer.recreate(writer)
@@ -96,3 +99,6 @@ fun <T> ByteArray.execute(visitor: (ClassVisitor) -> T, flags: Int = 0, passes: 
 
     return bytecode
 }
+
+fun ByteArray.fixMetadata(logger: Logger, classNames: Set<String>): ByteArray
+        = execute({ writer -> MetaFixerVisitor(writer, logger, classNames) })
