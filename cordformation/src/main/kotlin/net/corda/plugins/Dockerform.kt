@@ -1,20 +1,15 @@
 package net.corda.plugins
 
 import com.typesafe.config.ConfigFactory
-import com.typesafe.config.ConfigParseOptions
-import com.typesafe.config.ConfigSyntax
 import com.typesafe.config.ConfigValueFactory
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.*
-import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.PathSensitivity.RELATIVE
 import org.yaml.snakeyaml.DumperOptions
 import org.yaml.snakeyaml.Yaml
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.util.*
-import java.util.regex.Pattern
 import javax.inject.Inject
 
 
@@ -134,7 +129,7 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
                     val urlArgs = defaultUrlArgs.withFallback(
                             dockerConfig.getConfig("dataSourceProperties.dataSource.urlArgs")).resolve()
 
-                    val dbUrlConfig = ConfigFactory.parseString("DBURL=${encodeTypesafeURL(dbUrl)}")
+                    val dbUrlConfig = ConfigFactory.parseString("DBURL=${TypesafeUtils.encodeString(dbUrl)}")
                             .resolveWith(urlArgs)
 
                     dbUrl = dbUrlConfig.getString("DBURL")
@@ -181,25 +176,5 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
         val dockerComposeContent = YAML_MAPPER.dump(dockerComposeObject)
 
         Files.write(dockerComposePath, dockerComposeContent.toByteArray())
-    }
-
-    private fun encodeTypesafeURL(url: String): String {
-        val matcher = Pattern.compile("\\$\\{([^}]+)\\}").matcher(url);
-
-        val builder = StringBuilder()
-        var endOfPrevTokenIndex = 0
-
-        while(matcher.find()) {
-            val startIndex = matcher.start()
-            val token = matcher.group(1)
-            if (startIndex != 0) {
-                builder.append("\"${url.substring(endOfPrevTokenIndex, startIndex)}\"")
-            }
-            val encodedToken = "\${$token}"
-            builder.append(encodedToken)
-            endOfPrevTokenIndex = startIndex + encodedToken.length
-        }
-        builder.append(url.substring(endOfPrevTokenIndex))
-        return builder.toString()
     }
 }
