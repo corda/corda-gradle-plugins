@@ -9,6 +9,7 @@ ext {
     dbHostName             = 'localhost'
     dbInit                 = 'Postgres_init.sh'
     dbDockerfile           = 'Postgres_Dockerfile'
+    persistent             = true
     postgres = [
             dataSourceProperties: [
                     dataSourceClassName: 'org.postgresql.ds.PGSimpleDataSource',
@@ -44,7 +45,8 @@ ext {
                     dbName          : dbName,
                     dbPort          : dbPort,
                     dbHostName      : dbHostName,
-                    dbDatabase      : dbName
+                    dbDatabase      : dbName,
+                    persistent      : persistent
 			]
     ]
 }

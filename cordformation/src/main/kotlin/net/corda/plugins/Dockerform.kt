@@ -7,6 +7,7 @@ import org.gradle.api.tasks.*
 import org.gradle.api.tasks.PathSensitivity.RELATIVE
 import org.yaml.snakeyaml.DumperOptions
 import org.yaml.snakeyaml.Yaml
+import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -79,7 +80,8 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
         bootstrapNetwork()
         nodes.forEach(Node::buildDocker)
 
-        val services = mutableMapOf<String, Map<String, Any>>()
+        val services = mutableMapOf<String, MutableMap<String, Any>>()
+        val volumes = mutableMapOf<String, Map<String, Any>>()
 
         nodes.forEachIndexed {index, it ->
 
@@ -112,6 +114,7 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
                 val dbTransactionIsolationLevel = dockerConfig.getString("database.transactionIsolationLevel")
                 val dbRunMigration = dockerConfig.getBoolean("database.runMigration")
                 val dbSchema= dockerConfig.getString("dockerConfig.dbSchema")
+                val persistent = dockerConfig.getBoolean("dockerConfig.persistent")
 
                 // These are allocated by docker-compose
                 val dbPort = DEFAULT_DB_STARTING_PORT + index
@@ -152,7 +155,7 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
                     args[it.key] = it.value.unwrapped()
                 }
 
-                services[dbHost] = mapOf(
+                val database = mutableMapOf(
                         "build" to mapOf(
                              "context" to project.buildDir.absolutePath,
                              "dockerfile" to project.buildDir.resolve(dbDockerfile).toString(),
@@ -162,16 +165,39 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
                         "ports" to listOf(dbPort)
                 )
 
+                // connect database to the node service
                 service["image"] = dockerImage ?: "entdocker.software.r3.com/corda-enterprise-java1.8-${it.runtimeVersion().toLowerCase()}"
                 service["depends_on"] = listOf(dbHost)
+
+                // check if persistence is required and append volume if it is
+                if (persistent) {
+                    val volume = "$dbHost-volume"
+                    val volumeDir ="$nodeBuildDir/data"
+                    File(volumeDir).mkdirs()
+                    volumes[volume] = mapOf(
+                            "driver" to "local",
+                            "driver_opts" to mapOf(
+                                    "type" to "none",
+                                    "device" to "$volumeDir",
+                                    "o" to "bind"
+                            )
+                    )
+                    database["volumes"] = listOf("$volume:/var/lib/postgresql/data/pgdata")
+                }
+                services[dbHost] = database
             }
 
             services[it.containerName] = service
         }
 
-        val dockerComposeObject = mapOf(
+        val dockerComposeObject = mutableMapOf(
                 "version" to COMPOSE_SPEC_VERSION,
-                "services" to services)
+                "services" to services
+        )
+
+        if (volumes.isNotEmpty()) {
+            dockerComposeObject["volumes"] = volumes
+        }
 
         val dockerComposeContent = YAML_MAPPER.dump(dockerComposeObject)
 
