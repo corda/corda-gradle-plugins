@@ -14,10 +14,7 @@ plugins {
     id 'net.corda.plugins.cordformation'
 }
 
-repositories {
-    mavenCentral()
-    maven { url 'https://software.r3.com/artifactory/corda-releases' }
-}
+apply from: 'repositories.gradle'
 
 dependencies {
     runtime "$corda_group:corda:$corda_release_version"

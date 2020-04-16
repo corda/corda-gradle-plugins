@@ -66,6 +66,7 @@ class Cordformation : Plugin<Project> {
             createCompileConfiguration("cordapp", this)
             val cordaRuntime = createRuntimeConfiguration("cordaRuntime", this)
             createChildConfiguration(CORDFORMATION_TYPE, cordaRuntime, this)
+            create("cordaDriver")
         }
         // TODO: improve how we re-use existing declared external variables from root gradle.build
         val jolokiaVersion = project.findRootProperty("jolokia_version") ?: "1.6.0"

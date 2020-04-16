@@ -4,6 +4,7 @@
 
 ### Version 5.0.9
 
+* `Dockerform`: Added option to deploy external databases using docker compose task    
 * `cordformation`: Use GNU Screen in `runnodes` on macOS to start nodes in different Screen windows. Activated when the user is already running `screen`.
 
 ### Version 5.0.8
