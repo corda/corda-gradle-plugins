@@ -169,7 +169,7 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
                 service["image"] = dockerImage ?: "entdocker.software.r3.com/corda-enterprise-java1.8-${it.runtimeVersion().toLowerCase()}"
                 service["depends_on"] = listOf(dbHost)
 
-                // check if persistence is required and append volume if it is
+                // append persistence volume if it is required
                 if (persistent) {
                     val volume = "$dbHost-volume"
                     val volumeDir ="$nodeBuildDir/data"
@@ -182,7 +182,7 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
                                     "o" to "bind"
                             )
                     )
-                    database["volumes"] = listOf("$volume:/var/lib/postgresql/data/pgdata")
+                    database["volumes"] = listOf("$volume:/var/lib/postgresql/data:z")
                 }
                 services[dbHost] = database
             }

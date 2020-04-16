@@ -1,6 +1,6 @@
 ext {
     postgresql_version     = '42.2.12'
-    postgres_image_version = '12'
+    postgres_image_version = '11'
     dbUser                 = 'myuser'
     dbPassword             = 'mypassword'
     dbSchema               = 'myschema'
@@ -76,6 +76,7 @@ ARG DBSCHEMA=$dbSchema
 ARG DBUSER=$dbUser
 ARG DBPASSWORD=$dbPassword
 ARG DBPORT=$dbPort
+ARG PERSISTENT=$persistent
 
 ENV POSTGRES_DB=\$DBNAME
 ENV POSTGRES_DB_SCHEMA=\$DBSCHEMA
@@ -91,6 +92,22 @@ RUN chmod 0755 /docker-entrypoint-initdb.d/$dbInit
 """
         }
 
+        /**
+         * Append the persistence configuration if persistence is required (i.e., persistence=true)
+         */
+        if (persistent) {
+
+            initialDockerfile.withWriterAppend('UTF-8') { writer ->
+                writer << """\
+
+# Associate the volume with the host user
+USER 1000:1000
+
+# Associate the 
+ENV PGDATA=/var/lib/postgresql/data/pgdata
+"""
+            }
+        }
         /*
          * A UNIX script to generate the init.sql file that
          * PostgreSQL needs. This must use UNIX line endings,
