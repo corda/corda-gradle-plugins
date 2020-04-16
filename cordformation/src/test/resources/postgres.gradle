@@ -50,7 +50,7 @@ ext {
                     dbDatabase      : dbName,
                     persistent      : persistent,
                     dbDataVolume    : dbDataVolume
-			      ]
+            ]
     ]
 }
 
@@ -105,7 +105,7 @@ RUN chmod 0755 /docker-entrypoint-initdb.d/$dbInit
 # Associate the volume with the host user
 USER 1000:1000
 
-# Associate the 
+# Initialise environment variable with database directory
 ENV PGDATA=/var/lib/postgresql/data/pgdata
 """
             }
