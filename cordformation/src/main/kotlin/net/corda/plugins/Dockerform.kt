@@ -165,21 +165,21 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
                         "ports" to listOf(dbPort)
                 )
 
-                // connect database to the node service
+                // attach database dependency to the node service
                 service["image"] = dockerImage ?: "entdocker.software.r3.com/corda-enterprise-java1.8-${it.runtimeVersion().toLowerCase()}"
                 service["depends_on"] = listOf(dbHost)
 
                 // append persistence volume if it is required
                 if (persistent) {
                     val volume = "$dbHost-volume"
-                    val volumeDir ="$nodeBuildDir/data"
+                    val volumeDir = "$nodeBuildDir/data"
                     File(volumeDir).mkdirs()
                     volumes[volume] = mapOf(
                             "driver" to "local",
                             "driver_opts" to mapOf(
-                                    "type" to "none",
-                                    "device" to "$volumeDir",
-                                    "o" to "bind"
+                                 "type" to "none",
+                                 "device" to "$volumeDir",
+                                 "o" to "bind"
                             )
                     )
                     database["volumes"] = listOf("$volume:/var/lib/postgresql/data:z")
@@ -192,8 +192,7 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
 
         val dockerComposeObject = mutableMapOf(
                 "version" to COMPOSE_SPEC_VERSION,
-                "services" to services
-        )
+                "services" to services)
 
         if (volumes.isNotEmpty()) {
             dockerComposeObject["volumes"] = volumes
