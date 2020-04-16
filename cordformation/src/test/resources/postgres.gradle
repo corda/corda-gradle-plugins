@@ -10,6 +10,7 @@ ext {
     dbInit                 = 'Postgres_init.sh'
     dbDockerfile           = 'Postgres_Dockerfile'
     persistent             = true
+    dbDataVolume           = '/var/lib/postgresql/data:z'
     postgres = [
             dataSourceProperties: [
                     dataSourceClassName: 'org.postgresql.ds.PGSimpleDataSource',
@@ -47,7 +48,8 @@ ext {
                     dbHostName      : dbHostName,
 
                     dbDatabase      : dbName,
-                    persistent      : persistent
+                    persistent      : persistent,
+                    dbDataVolume    : dbDataVolume
 			      ]
     ]
 }

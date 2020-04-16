@@ -171,6 +171,7 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
 
                 // append persistence volume if it is required
                 if (persistent) {
+                    val dbDataVolume = dockerConfig.getString("dockerConfig.dbDataVolume")
                     val volume = "$dbHost-volume"
                     val volumeDir = "$nodeBuildDir/data"
                     File(volumeDir).mkdirs()
@@ -182,7 +183,7 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
                                  "o" to "bind"
                             )
                     )
-                    database["volumes"] = listOf("$volume:/var/lib/postgresql/data:z")
+                    database["volumes"] = listOf("$volume:$dbDataVolume")
                 }
                 services[dbHost] = database
             }
