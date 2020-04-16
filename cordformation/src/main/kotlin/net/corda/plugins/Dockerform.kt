@@ -154,7 +154,7 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
                 dockerfileArgs.entrySet().toList().map {
                     args[it.key] = it.value.unwrapped()
                 }
-
+                
                 val database = mutableMapOf(
                         "build" to mapOf(
                              "context" to project.buildDir.absolutePath,

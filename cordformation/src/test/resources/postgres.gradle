@@ -45,9 +45,10 @@ ext {
                     dbName          : dbName,
                     dbPort          : dbPort,
                     dbHostName      : dbHostName,
+
                     dbDatabase      : dbName,
                     persistent      : persistent
-			]
+			      ]
     ]
 }
 
@@ -107,6 +108,7 @@ ENV PGDATA=/var/lib/postgresql/data/pgdata
 """
             }
         }
+
         /*
          * A UNIX script to generate the init.sql file that
          * PostgreSQL needs. This must use UNIX line endings,
