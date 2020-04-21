@@ -4,32 +4,28 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.TaskAction
-import java.io.File
+import com.spotify.docker.client.DefaultDockerClient
+import org.apache.commons.lang.StringUtils
+import java.nio.file.Path
+import java.nio.file.Paths
+
 
 open class DockerImage : DefaultTask() {
 
     private companion object{
+        //Currently a bug in gradle's projectFile that writes the file with a lower case 'd'
+        //using this name ensures that the docker plugin can find the file as expected.
         private const val DOCKER_FILE_NAME = "dockerfile"
-        private const val CORDA_VERSION_PROP = "corda_release_version"
-    }
-
-    private enum class Images(val label: String) {
-        ZULU("corda/corda-zulu-java1.8"),
-        CORRETTO("corda/corda-corretto-java1.8"),
-        ENTERPRISE("corda/corda-enterprise-node-alpine-zulu-java1.8");
-
-        fun getAddress(cordaVersion:String): String{
-            return "${label}-${cordaVersion.toLowerCase()}:latest"
-        }
     }
 
     init {
         description = "Creates a docker file and immediately builds that image to the local repository."
+        group = "CordaDockerDeployment"
     }
 
     @get:Optional
     @get:Input
-    internal var baseImage: String = Images.ZULU.name
+    internal var baseImage: String? = null
 
     fun baseImage(baseImage: String) {
         this.baseImage = baseImage
@@ -47,7 +43,7 @@ open class DockerImage : DefaultTask() {
     @TaskAction
     fun build() {
 
-        project.logger.lifecycle("Running DockerImage task")
+        logger.lifecycle("Running DockerImage task")
         project.copy {
             it.apply {
                 from("${project.buildDir}/libs", "*.jar")
@@ -55,17 +51,39 @@ open class DockerImage : DefaultTask() {
             }
         }
 
-        val imageAddress = getImageTag()
-        project.logger.lifecycle("Using Image: ${imageAddress}")
-        val dockerFileContents = StringBuilder()
+        logger.lifecycle("Using Image: ${baseImage}")
+        val copyTrustRootStore:String = getAdditionalTrustRootCommandIfNeeded()
 
-        dockerFileContents
-            .appendln(" FROM $imageAddress")
-            .appendln("COPY build/docker/*.jar /opt/corda/cordapps/")
+        val dockerFileContents= """
+            FROM $baseImage
+            COPY *.jar /opt/corda/cordapps/
+            $copyTrustRootStore""".trimIndent()
 
-        if(trustRootStoreName != null){
-            project.logger.lifecycle("Copying Trust Store: ${trustRootStoreName}")
-            project.logger.lifecycle("Copying From: ${project.projectDir}")
+        val dockerFilePath = "${project.buildDir}/docker/$DOCKER_FILE_NAME"
+
+        logger.lifecycle("Writing Dockerfile to $dockerFilePath")
+        project.file(dockerFilePath).writeText(dockerFileContents)
+        val docker = DefaultDockerClient.fromEnv().build()
+
+        val builtImageId = buildDockerFile(docker)
+
+        val tag = "${project.name}:${project.version}"
+
+        logger.lifecycle("Tagging $builtImageId as: $tag")
+        docker.tag(builtImageId, tag)
+
+    }
+
+    private fun buildDockerFile(docker:DefaultDockerClient):  String{
+        val path: Path = Paths.get(project.buildDir.absolutePath, "docker")
+
+        return docker.build(path, DOCKER_FILE_NAME)
+    }
+
+    private fun getAdditionalTrustRootCommandIfNeeded(): String {
+        if (trustRootStoreName != null) {
+            logger.lifecycle("Copying Trust Store: ${trustRootStoreName}")
+            logger.lifecycle("Copying From: ${project.projectDir}")
 
             project.copy {
                 it.apply {
@@ -73,28 +91,10 @@ open class DockerImage : DefaultTask() {
                     into("${project.buildDir}/docker/")
                 }
             }
-            dockerFileContents.appendln("COPY build/docker/${trustRootStoreName} /opt/corda/certificates/")
+            return "COPY ${trustRootStoreName} /opt/corda/certificates/"
         }
-
-        File("${project.buildDir}/docker/$DOCKER_FILE_NAME").writeText(dockerFileContents.toString())
-        project.exec{
-            it.commandLine("docker", "build", ".", "-t", "${project.name}:${project.version}","-f", "${project.buildDir}/docker/$DOCKER_FILE_NAME" )
-        }
+        return StringUtils.EMPTY
     }
 
-    private fun getImageTag(): String{
-        val cordaVersion = project.properties[CORDA_VERSION_PROP] as String
-        if(baseImage == Images.CORRETTO.name) {
-            return Images.CORRETTO.getAddress(cordaVersion)
-        }else if(baseImage == Images.ZULU.name){
-            return Images.ZULU.getAddress(cordaVersion)
-        }else if(baseImage == Images.ENTERPRISE.name){
-            return Images.ENTERPRISE.getAddress(cordaVersion)
-        }else if (baseImage.isNotEmpty()){
-            project.logger.lifecycle("Using custom image $baseImage")
-            return baseImage
-        }
-        return Images.ZULU.getAddress(cordaVersion)
-    }
 
 }
