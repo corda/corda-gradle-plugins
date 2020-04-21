@@ -11,9 +11,9 @@ ext {
     dbInit                 = 'Postgres_init.sh'
     dbDataVolume           =  [
             hostPath      : 'data',
-            containerPath : '/var/lib/postgresql/data:\${PERMISSIONS}',
+            containerPath : '/var/lib/postgresql/data:\${SUFFIX}',
             containerPathArgs   : [
-                    PERMISSIONS : "z"
+                    SUFFIX : "rw"
             ]
     ]
     postgres = [

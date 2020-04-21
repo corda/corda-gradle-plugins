@@ -8,7 +8,6 @@ import org.gradle.api.tasks.*
 import org.gradle.api.tasks.PathSensitivity.RELATIVE
 import org.yaml.snakeyaml.DumperOptions
 import org.yaml.snakeyaml.Yaml
-import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -174,11 +173,11 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
                     }
 
                     val hostPath = Paths.get(hostPathStr)
-                    var absoluteHostPath = when {
+                    val absoluteHostPath = when {
                         hostPath.isAbsolute -> hostPath
                         else -> nodeBuildPath.resolve(hostPath).toAbsolutePath()
                     }
-                    val hostDir = File(absoluteHostPath.toUri())
+                    val hostDir = absoluteHostPath.toFile()
                     if (hostDir.mkdirs() || hostDir.isDirectory) {
                         volumes["$dbHost-volume"] = mapOf(
                                 "driver" to "local",
