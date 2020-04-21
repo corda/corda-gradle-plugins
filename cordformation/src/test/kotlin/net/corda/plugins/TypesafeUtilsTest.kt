@@ -86,4 +86,14 @@ class TypesafeUtilsTest {
         assertThat(config.hasPath("DBURL")).isTrue()
         assertThat(config.getString("DBURL")).isEqualTo("jdbc:postgresql://localhost:5432?parameter=true")
     }
+
+    @Test
+    fun `check correct encoding and typesafe substitution using resolveString in URL template with valid expected value`() {
+
+        val url = "jdbc:postgresql://\${DBHOSTNAME}:\${DBPORT}/\${DBNAME}?currentSchema=\${DBSCHEMA}"
+
+        val result = TypesafeUtils.resolveString(url, urlArgs)
+
+        assertThat(result).isEqualTo("jdbc:postgresql://localhost:5432/mydb?currentSchema=myschema")
+    }
 }

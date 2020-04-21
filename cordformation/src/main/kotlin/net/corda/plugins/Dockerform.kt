@@ -86,7 +86,8 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
 
         nodes.forEachIndexed {index, it ->
 
-            val nodeBuildDir = directoryPath.resolve(it.nodeDir.name).toAbsolutePath().toString()
+            val nodeBuildPath = directoryPath.resolve(it.nodeDir.name).toAbsolutePath()
+            val nodeBuildDir = nodeBuildPath.toString()
 
             val service = mutableMapOf(
                     "volumes" to listOf(
@@ -120,9 +121,7 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
                     val urlArgs = defaultUrlArgs.withFallback(
                             dockerConfig.getConfig("dataSourceProperties.dataSource.urlArgs")).resolve()
 
-                    dbUrl = ConfigFactory.parseString("DBURL=${TypesafeUtils.encodeString(dbUrl)}")
-                            .resolveWith(urlArgs)
-                            .getString("DBURL")
+                    dbUrl = TypesafeUtils.resolveString(dbUrl, urlArgs)
                 }
 
                 // Install the database configuration
@@ -152,39 +151,44 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
                         "build" to mapOf(
                              "context" to project.buildDir.absolutePath,
                              "dockerfile" to project.buildDir.resolve(dbDockerfile).toString(),
-                             "args" to dbDockerfileArgs.entrySet().map { it.key to it.value.unwrapped() }.toMap()
+                             "args" to dbDockerfileArgs.entrySet().associate { it.key to it.value.unwrapped() }
                         ),
                         "restart" to "unless-stopped"
                 )
 
                 // append persistence volume if it is required
                 if (dockerConfig.hasPath("dockerConfig.dbDataVolume")) {
-                    var hostPath = dockerConfig.getString("dockerConfig.dbDataVolume.hostPath")
-                    var containerPath = dockerConfig.getString("dockerConfig.dbDataVolume.containerPath")
 
-                    if (dockerConfig.hasPath("dockerConfig.dbDataVolume.pathArgs")) {
-                        val pathArgs = dockerConfig.getConfig("dockerConfig.dbDataVolume.pathArgs")
+                    var hostPathStr = dockerConfig.getString("dockerConfig.dbDataVolume.hostPath")
 
-                        hostPath = ConfigFactory.parseString("HOSTPATH=${TypesafeUtils.encodeString(hostPath)}")
-                                .resolveWith(ConfigFactory.empty().withValue("NODENAME", ConfigValueFactory.fromAnyRef(it.nodeDir.name)))
-                                .getString("HOSTPATH")
-                        containerPath = ConfigFactory.parseString("CONTAINERPATH=${TypesafeUtils.encodeString(containerPath)}")
-                                .resolveWith(pathArgs)
-                                .getString("CONTAINERPATH")
+                    if (dockerConfig.hasPath("dockerConfig.dbDataVolume.hostPathArgs")) {
+                        val hostPathArgs = dockerConfig.getConfig("dockerConfig.dbDataVolume.hostPathArgs")
+                        hostPathStr = TypesafeUtils.resolveString(hostPathStr, hostPathArgs)
                     }
 
-                    var absoluteHostPath = directoryPath.resolve(hostPath)
+                    var containerPathStr = dockerConfig.getString("dockerConfig.dbDataVolume.containerPath")
+
+                    if (dockerConfig.hasPath("dockerConfig.dbDataVolume.containerPathArgs")) {
+                        val containerPathArgs = dockerConfig.getConfig("dockerConfig.dbDataVolume.containerPathArgs")
+                        containerPathStr = TypesafeUtils.resolveString(containerPathStr, containerPathArgs)
+                    }
+
+                    val hostPath = Paths.get(hostPathStr)
+                    var absoluteHostPath = when {
+                        hostPath.isAbsolute -> hostPath
+                        else -> nodeBuildPath.resolve(hostPath).toAbsolutePath()
+                    }
                     val hostDir = File(absoluteHostPath.toUri())
                     if (hostDir.mkdirs() || hostDir.isDirectory) {
                         volumes["$dbHost-volume"] = mapOf(
                                 "driver" to "local",
                                 "driver_opts" to mapOf(
                                         "type" to "none",
-                                        "device" to "$absoluteHostPath",
+                                        "device" to absoluteHostPath.toString(),
                                         "o" to "bind"
                                 )
                         )
-                        database["volumes"] = listOf("$dbHost-volume:$containerPath")
+                        database["volumes"] = listOf("$dbHost-volume:$containerPathStr")
                     } else {
                         throw InvalidUserDataException("The external path provided could not be created")
                     }

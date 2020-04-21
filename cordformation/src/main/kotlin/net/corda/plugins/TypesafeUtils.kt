@@ -1,5 +1,7 @@
 package net.corda.plugins
 
+import com.typesafe.config.Config
+import com.typesafe.config.ConfigFactory
 import java.util.regex.Pattern
 
 class TypesafeUtils {
@@ -31,6 +33,15 @@ class TypesafeUtils {
             }
 
             return builder.toString()
+        }
+
+        /**
+         * Resolves the placeholders parameters in an input string
+         */
+        fun resolveString(input: String, args: Config): String {
+            return ConfigFactory.parseString("INPUT=${encodeString(input)}")
+                    .resolveWith(args)
+                    .getString("INPUT")
         }
     }
 }

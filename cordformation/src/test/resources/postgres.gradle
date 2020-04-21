@@ -10,10 +10,9 @@ ext {
     dbDockerfile           = 'Postgres_Dockerfile'
     dbInit                 = 'Postgres_init.sh'
     dbDataVolume           =  [
-            hostPath      : '\${NODENAME}/data',
+            hostPath      : 'data',
             containerPath : '/var/lib/postgresql/data:\${PERMISSIONS}',
-            pathArgs      : [
-                    NODENAME    : "defaultName",
+            containerPathArgs   : [
                     PERMISSIONS : "z"
             ]
     ]
