@@ -2,6 +2,7 @@ package net.corda.plugins
 
 import com.typesafe.config.ConfigFactory
 import com.typesafe.config.ConfigValueFactory
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.*
 import org.gradle.api.tasks.PathSensitivity.RELATIVE
@@ -79,11 +80,13 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
         bootstrapNetwork()
         nodes.forEach(Node::buildDocker)
 
-        val services = mutableMapOf<String, Map<String, Any>>()
+        val services = mutableMapOf<String, MutableMap<String, Any>>()
+        val volumes = mutableMapOf<String, Map<String, Any>>()
 
         nodes.forEachIndexed {index, it ->
 
-            val nodeBuildDir = directoryPath.resolve(it.nodeDir.name).toAbsolutePath().toString()
+            val nodeBuildPath = directoryPath.resolve(it.nodeDir.name).toAbsolutePath()
+            val nodeBuildDir = nodeBuildPath.toString()
 
             val service = mutableMapOf(
                     "volumes" to listOf(
@@ -104,24 +107,12 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
 
                 val dockerConfig = ConfigFactory.parseMap(dockerConfig)
 
-                val dbDockerfile = dockerConfig.getString("dockerConfig.dbDockerfile")
-                val dbDockerfileArgs = dockerConfig.getConfig("dockerConfig.dbDockerfileArgs")
-                val dbUser = dockerConfig.getString("dockerConfig.dbUser")
-                val dbPassword = dockerConfig.getString("dockerConfig.dbPassword")
-                val dbDataSourceClassName = dockerConfig.getString("dataSourceProperties.dataSourceClassName")
-                val dbTransactionIsolationLevel = dockerConfig.getString("database.transactionIsolationLevel")
-                val dbRunMigration = dockerConfig.getBoolean("database.runMigration")
-                val dbSchema= dockerConfig.getString("dockerConfig.dbSchema")
-
-                // These are allocated by docker-compose
+                // Generate port and hostname parameters to be used by docker-compose
                 val dbPort = DEFAULT_DB_STARTING_PORT + index
                 val dbHost = "${it.containerName}-db"
                 val defaultUrlArgs = ConfigFactory.empty()
                         .withValue("DBHOSTNAME",ConfigValueFactory.fromAnyRef(dbHost))
                         .withValue("DBPORT",ConfigValueFactory.fromAnyRef(dbPort))
-
-                // Override the port and hostname
-                val dockerfileArgs = defaultUrlArgs.withFallback(dbDockerfileArgs).resolve()
 
                 var dbUrl = dockerConfig.getString("dataSourceProperties.dataSource.url")
 
@@ -129,11 +120,16 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
                     val urlArgs = defaultUrlArgs.withFallback(
                             dockerConfig.getConfig("dataSourceProperties.dataSource.urlArgs")).resolve()
 
-                    val dbUrlConfig = ConfigFactory.parseString("DBURL=${TypesafeUtils.encodeString(dbUrl)}")
-                            .resolveWith(urlArgs)
-
-                    dbUrl = dbUrlConfig.getString("DBURL")
+                    dbUrl = TypesafeUtils.resolveString(dbUrl, urlArgs)
                 }
+
+                // Install the database configuration
+                val dbUser = dockerConfig.getString("dockerConfig.dbUser")
+                val dbPassword = dockerConfig.getString("dockerConfig.dbPassword")
+                val dbDataSourceClassName = dockerConfig.getString("dataSourceProperties.dataSourceClassName")
+                val dbTransactionIsolationLevel = dockerConfig.getString("database.transactionIsolationLevel")
+                val dbRunMigration = dockerConfig.getBoolean("database.runMigration")
+                val dbSchema= dockerConfig.getString("dockerConfig.dbSchema")
 
                 val dbConfig = ConfigFactory.empty()
                         .withValue("dataSourceProperties.dataSourceClassName", ConfigValueFactory.fromAnyRef(dbDataSourceClassName))
@@ -146,22 +142,60 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
 
                 it.installDefaultDatabaseConfig(dbConfig)
 
-                val args = mutableMapOf<String, Any>()
-
-                dockerfileArgs.entrySet().toList().map {
-                    args[it.key] = it.value.unwrapped()
-                }
-
-                services[dbHost] = mapOf(
+                val dbDockerfile = dockerConfig.getString("dockerConfig.dbDockerfile")
+                // Override the port and hostname parameters in dockerfile
+                val dbDockerfileArgs = defaultUrlArgs.withFallback(
+                        dockerConfig.getConfig("dockerConfig.dbDockerfileArgs")).resolve()
+                val database = mutableMapOf(
                         "build" to mapOf(
                              "context" to project.buildDir.absolutePath,
                              "dockerfile" to project.buildDir.resolve(dbDockerfile).toString(),
-                             "args" to args
+                             "args" to dbDockerfileArgs.entrySet().associate { it.key to it.value.unwrapped() }
                         ),
-                        "restart" to "unless-stopped",
-                        "ports" to listOf(dbPort)
+                        "restart" to "unless-stopped"
                 )
 
+                // append persistence volume if it is required
+                if (dockerConfig.hasPath("dockerConfig.dbDataVolume")) {
+
+                    var hostPathStr = dockerConfig.getString("dockerConfig.dbDataVolume.hostPath")
+
+                    if (dockerConfig.hasPath("dockerConfig.dbDataVolume.hostPathArgs")) {
+                        val hostPathArgs = dockerConfig.getConfig("dockerConfig.dbDataVolume.hostPathArgs")
+                        hostPathStr = TypesafeUtils.resolveString(hostPathStr, hostPathArgs)
+                    }
+
+                    var containerPathStr = dockerConfig.getString("dockerConfig.dbDataVolume.containerPath")
+
+                    if (dockerConfig.hasPath("dockerConfig.dbDataVolume.containerPathArgs")) {
+                        val containerPathArgs = dockerConfig.getConfig("dockerConfig.dbDataVolume.containerPathArgs")
+                        containerPathStr = TypesafeUtils.resolveString(containerPathStr, containerPathArgs)
+                    }
+
+                    val hostPath = Paths.get(hostPathStr)
+                    val absoluteHostPath = when {
+                        hostPath.isAbsolute -> hostPath
+                        else -> nodeBuildPath.resolve(hostPath).toAbsolutePath()
+                    }
+                    val hostDir = absoluteHostPath.toFile()
+                    if (hostDir.mkdirs() || hostDir.isDirectory) {
+                        volumes["$dbHost-volume"] = mapOf(
+                                "driver" to "local",
+                                "driver_opts" to mapOf(
+                                        "type" to "none",
+                                        "device" to absoluteHostPath.toString(),
+                                        "o" to "bind"
+                                )
+                        )
+                        database["volumes"] = listOf("$dbHost-volume:$containerPathStr")
+                    } else {
+                        throw InvalidUserDataException("The external path provided could not be created")
+                    }
+                }
+                // add database service
+                services[dbHost] = database
+
+                // attach database dependency to the node service
                 service["image"] = dockerImage ?: "entdocker.software.r3.com/corda-enterprise-java1.8-${it.runtimeVersion().toLowerCase()}"
                 service["depends_on"] = listOf(dbHost)
             }
@@ -169,9 +203,13 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
             services[it.containerName] = service
         }
 
-        val dockerComposeObject = mapOf(
+        val dockerComposeObject = mutableMapOf(
                 "version" to COMPOSE_SPEC_VERSION,
                 "services" to services)
+
+        if (volumes.isNotEmpty()) {
+            dockerComposeObject["volumes"] = volumes
+        }
 
         val dockerComposeContent = YAML_MAPPER.dump(dockerComposeObject)
 

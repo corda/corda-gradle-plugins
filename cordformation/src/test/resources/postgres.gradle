@@ -7,8 +7,15 @@ ext {
     dbName                 = 'mydb'
     dbPort                 = 5432
     dbHostName             = 'localhost'
-    dbInit                 = 'Postgres_init.sh'
     dbDockerfile           = 'Postgres_Dockerfile'
+    dbInit                 = 'Postgres_init.sh'
+    dbDataVolume           =  [
+            hostPath      : 'data',
+            containerPath : '/var/lib/postgresql/data:\${SUFFIX}',
+            containerPathArgs   : [
+                    SUFFIX : "rw"
+            ]
+    ]
     postgres = [
             dataSourceProperties: [
                     dataSourceClassName: 'org.postgresql.ds.PGSimpleDataSource',
@@ -44,8 +51,9 @@ ext {
                     dbName          : dbName,
                     dbPort          : dbPort,
                     dbHostName      : dbHostName,
-                    dbDatabase      : dbName
-			]
+                    dbDatabase      : dbName,
+                    dbDataVolume    : dbDataVolume
+            ]
     ]
 }
 
@@ -87,6 +95,23 @@ COPY ./$dbInit /docker-entrypoint-initdb.d/$dbInit
 # Allow postgres user to run init script
 RUN chmod 0755 /docker-entrypoint-initdb.d/$dbInit
 """
+        }
+
+        /**
+         * Append the persistence configuration if persistence is required (i.e., persistence=true)
+         */
+        if (project.hasProperty("dbDataVolume")) {
+
+            initialDockerfile.withWriterAppend('UTF-8') { writer ->
+                writer << """\
+
+# Associate the volume with the host user
+USER 1000:1000
+
+# Initialise environment variable with database directory
+ENV PGDATA=/var/lib/postgresql/data/pgdata
+"""
+            }
         }
 
         /*
