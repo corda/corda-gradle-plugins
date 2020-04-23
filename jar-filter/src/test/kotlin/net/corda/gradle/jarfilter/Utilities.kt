@@ -3,6 +3,7 @@ package net.corda.gradle.jarfilter
 
 import org.opentest4j.TestAbortedException
 import java.io.IOException
+import java.lang.reflect.Member
 import java.net.MalformedURLException
 import java.net.URLClassLoader
 import java.nio.file.StandardCopyOption.*
@@ -61,6 +62,10 @@ fun arrayOfJunk(size: Int) = ByteArray(size).apply {
     for (i in 0 until size) {
         this[i] = (i and 0xFF).toByte()
     }
+}
+
+fun Member.hasModifiers(flags: Int): Boolean {
+    return (modifiers and flags) == flags
 }
 
 val KFunction<*>.hasAnyOptionalParameters: Boolean

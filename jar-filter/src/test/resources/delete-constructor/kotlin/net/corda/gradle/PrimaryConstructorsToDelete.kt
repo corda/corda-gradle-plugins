@@ -1,5 +1,4 @@
-@file:JvmName("PrimaryConstructorsToDelete")
-@file:Suppress("UNUSED")
+@file:Suppress("unused", "PackageDirectoryMismatch")
 package net.corda.gradle
 
 import net.corda.gradle.jarfilter.DeleteMe

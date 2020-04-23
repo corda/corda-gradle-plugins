@@ -7,6 +7,8 @@
 * `Dockerform`: Added option to deploy external databases using docker compose task    
 * `cordformation`: Use GNU Screen in `runnodes` on macOS to start nodes in different Screen windows. Activated when the user is already running `screen`.
 
+* `jar-filter`: Initial support for byte-code compiled by Kotlin >= 1.4.0 (See [KT-31352](https://youtrack.jetbrains.com/issue/KT-31352)).
+
 ### Version 5.0.8
 
 * `cordformation`: Allow `dataSource.url` to be overridden in `Dockerform` task.

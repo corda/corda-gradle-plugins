@@ -5,10 +5,15 @@ import kotlin.annotation.AnnotationRetention.*
 import kotlin.annotation.AnnotationTarget.*
 
 @Target(
+    FILE,
+    CLASS,
     CONSTRUCTOR,
     FUNCTION,
+    PROPERTY,
     PROPERTY_GETTER,
-    PROPERTY_SETTER
+    PROPERTY_SETTER,
+    FIELD,
+    TYPEALIAS
 )
-@Retention(RUNTIME)
-annotation class StubMeOut
+@Retention(BINARY)
+annotation class DecorateMe

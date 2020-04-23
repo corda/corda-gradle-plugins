@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
+import org.objectweb.asm.Opcodes.ACC_PRIVATE
 import java.nio.file.Path
 import kotlin.reflect.full.declaredMemberProperties
 import kotlin.test.assertFailsWith
@@ -37,7 +38,7 @@ class DeleteValPropertyTest {
                 getDeclaredConstructor(String::class.java).newInstance(MESSAGE).also { obj ->
                     assertEquals(MESSAGE, obj.unwantedVal)
                 }
-                assertFalse(getDeclaredField("unwantedVal").isAccessible)
+                assertTrue(getDeclaredField("unwantedVal").hasModifiers(ACC_PRIVATE))
                 assertThat("unwantedVal not found", kotlin.declaredMemberProperties, hasItem(unwantedVal))
                 assertThat("getUnwantedVal not found", kotlin.javaDeclaredMethods, hasItem(getUnwantedVal))
             }
@@ -62,7 +63,7 @@ class DeleteValPropertyTest {
                 getDeclaredConstructor(String::class.java).newInstance(MESSAGE).also { obj ->
                     assertEquals(MESSAGE, obj.unwantedVal)
                 }
-                assertFalse(getDeclaredField("unwantedVal").isAccessible)
+                assertTrue(getDeclaredField("unwantedVal").hasModifiers(ACC_PRIVATE))
                 assertThat("getUnwantedVal not found", kotlin.javaDeclaredMethods, hasItem(getUnwantedVal))
             }
         }
@@ -72,7 +73,7 @@ class DeleteValPropertyTest {
                 getDeclaredConstructor(String::class.java).newInstance(MESSAGE).also { obj ->
                     assertFailsWith<AbstractMethodError> { obj.unwantedVal }
                 }
-                assertFalse(getDeclaredField("unwantedVal").isAccessible)
+                assertTrue(getDeclaredField("unwantedVal").hasModifiers(ACC_PRIVATE))
                 assertThat("getUnwantedVal still exists", kotlin.javaDeclaredMethods, not(hasItem(getUnwantedVal)))
             }
         }

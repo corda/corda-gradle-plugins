@@ -33,6 +33,13 @@ private val CONSTANT_TIME: FileTime = FileTime.fromMillis(
 inline fun Exception.asUncheckedException(): RuntimeException
     = (this as? RuntimeException) ?: InvalidUserCodeException(message ?: "", this)
 
+fun <T : Element> MutableCollection<T>.expire(element: T) {
+    if (remove(element)) {
+        element.kill()
+        add(element)
+    }
+}
+
 /**
  * Recreates a [ZipEntry] object. The entry's byte contents
  * will be compressed automatically, and its CRC, size and
