@@ -68,9 +68,6 @@ open class DockerImage  @Inject constructor(objects: ObjectFactory, layouts: Pro
     }
     fun cordaJars(inputs: Any?) = setCordaJars(inputs)
 
-
-    private fun transferToDockerDir(source: File) = outputDir.file(source.name)
-
     @get:Internal
     val outputDir: DirectoryProperty = objects.directoryProperty().convention(layouts.buildDirectory.dir("docker"))
 
@@ -112,7 +109,6 @@ open class DockerImage  @Inject constructor(objects: ObjectFactory, layouts: Pro
         }
     }
 
-
     private fun buildDockerFile(docker:DefaultDockerClient):  String{
         val path: Path = Paths.get(outputDir.get().toString())
         return docker.build(path,null, DOCKER_FILE_NAME, LoggingBuildHandler())
@@ -133,6 +129,4 @@ open class DockerImage  @Inject constructor(objects: ObjectFactory, layouts: Pro
         }
         return ""
     }
-
-
 }
