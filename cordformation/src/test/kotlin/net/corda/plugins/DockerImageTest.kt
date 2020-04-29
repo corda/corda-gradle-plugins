@@ -16,7 +16,7 @@ class DockerImageTest :BaseformTest() {
 
         val dockerfile = Paths.get(testProjectDir.toAbsolutePath().toString(), "build", "docker", "dockerfile").toFile()
         val text = dockerfile.readText()
-        Assertions.assertThat(text.contains("From corda/entImage")).isEqualTo(true)
+        Assertions.assertThat(text.contains("FROM corda/entImage")).isEqualTo(true)
         Assertions.assertThat(text.contains("COPY *.jar /opt/corda/cordapps/")).isEqualTo(true)
     }
 
