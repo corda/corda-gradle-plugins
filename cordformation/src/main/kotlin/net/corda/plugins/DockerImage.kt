@@ -33,10 +33,10 @@ open class DockerImage  @Inject constructor(objects: ObjectFactory, layouts: Pro
 
     @get:Optional
     @get:InputFile
-    internal var trustRootStoreName: File? = null
+    internal var trustRootStoreFile: File? = null
 
-    fun trustRootStoreName(trustRoot: File) {
-        this.trustRootStoreName = trustRoot
+    fun trustRootStoreFile(trustRootStoreFile: File) {
+        this.trustRootStoreFile = trustRootStoreFile
     }
 
     @get:Optional
@@ -94,10 +94,8 @@ open class DockerImage  @Inject constructor(objects: ObjectFactory, layouts: Pro
             |COPY *.jar /opt/corda/cordapps/
             |$copyTrustRootStore""".trimMargin()
 
-        val dockerFilePath = "${project.buildDir}/docker/$DOCKER_FILE_NAME"
-
-        logger.lifecycle("Writing Dockerfile to $dockerFilePath")
-        project.file(dockerFilePath).writeText(dockerFileContents)
+        logger.lifecycle("Writing Dockerfile to ${outputDir.get()}")
+        project.file(outputDir.file(DOCKER_FILE_NAME)).writeText(dockerFileContents)
 
         if(buildImage){
             val docker = DefaultDockerClient.fromEnv().build()
@@ -116,17 +114,17 @@ open class DockerImage  @Inject constructor(objects: ObjectFactory, layouts: Pro
     }
 
     private fun getAdditionalTrustRootCommandIfNeeded(): String {
-        if (trustRootStoreName != null) {
-            logger.lifecycle("Copying Trust Store: ${trustRootStoreName}")
+        if (trustRootStoreFile != null) {
+            logger.lifecycle("Copying Trust Store: ${trustRootStoreFile}")
             logger.lifecycle("Copying From: ${project.projectDir}")
 
             project.copy {
                 it.apply {
-                    from(trustRootStoreName)
+                    from(trustRootStoreFile)
                     into(outputDir)
                 }
             }
-            return "COPY ${trustRootStoreName!!.name} /opt/corda/tmp-certificates/"
+            return "COPY ${trustRootStoreFile!!.name} /opt/corda/tmp-certificates/"
         }
         return ""
     }
