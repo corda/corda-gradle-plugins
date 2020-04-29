@@ -2,6 +2,7 @@ package net.corda.plugins
 
 import org.gradle.api.DefaultTask
 import com.spotify.docker.client.DefaultDockerClient
+import com.spotify.docker.client.LoggingBuildHandler
 import org.gradle.api.file.*
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.*
@@ -14,9 +15,7 @@ import javax.inject.Inject
 open class DockerImage  @Inject constructor(objects: ObjectFactory, layouts: ProjectLayout) : DefaultTask() {
 
     private companion object{
-        //Currently a bug in gradle's projectFile that writes the file with a lower case 'd'
-        //using this name ensures that the docker plugin can find the file as expected.
-        private const val DOCKER_FILE_NAME = "dockerfile"
+        private const val DOCKER_FILE_NAME = "Dockerfile"
     }
 
     init {
@@ -55,21 +54,20 @@ open class DockerImage  @Inject constructor(objects: ObjectFactory, layouts: Pro
         dockerImageTag = tag
     }
 
-    private val _jars: ConfigurableFileCollection = project.files()
+    private val _jars: ConfigurableFileCollection = project.files(project.configuration("cordapp"))
 
     @get:InputFiles
     @get:SkipWhenEmpty
+    @get:PathSensitive(PathSensitivity.RELATIVE)
     val cordaJars: FileCollection get() = _jars
 
     @Suppress("MemberVisibilityCanBePrivate")
     fun setCordaJars(inputs: Any?) {
         val files = inputs ?: return
-        _jars.setFrom(files)
+        _jars.from(files)
     }
     fun cordaJars(inputs: Any?) = setCordaJars(inputs)
 
-    @get:OutputFiles
-    val dockerJars: FileCollection get() = project.files(cordaJars.map(::transferToDockerDir))
 
     private fun transferToDockerDir(source: File) = outputDir.file(source.name)
 
@@ -79,23 +77,8 @@ open class DockerImage  @Inject constructor(objects: ObjectFactory, layouts: Pro
     @TaskAction
     fun build() {
 
-        project.copy{
-            it.apply {
-                from(project.configuration("cordapp"))
-                into(outputDir)
-            }
-        }
-
-        logger.lifecycle("Using Image: ${baseImage}")
-        val copyTrustRootStore:String = getAdditionalTrustRootCommandIfNeeded()
-
-        val dockerFileContents= """\
-            |FROM $baseImage
-            |COPY *.jar /opt/corda/cordapps/
-            |$copyTrustRootStore""".trimMargin()
-
-        logger.lifecycle("Writing Dockerfile to ${outputDir.get()}")
-        project.file(outputDir.file(DOCKER_FILE_NAME)).writeText(dockerFileContents)
+        copyJarsToBuildDir()
+        writeDockerFile()
 
         if(buildImage){
             val docker = DefaultDockerClient.fromEnv().build()
@@ -105,12 +88,34 @@ open class DockerImage  @Inject constructor(objects: ObjectFactory, layouts: Pro
             logger.lifecycle("Tagging $builtImageId as: $tag")
             docker.tag(builtImageId, tag)
         }
-
     }
+
+    private fun writeDockerFile() {
+        logger.lifecycle("Using Image: ${baseImage}")
+        val copyTrustRootStore: String = getAdditionalTrustRootCommandIfNeeded()
+
+        val dockerFileContents = """\
+            |FROM $baseImage
+            |COPY *.jar /opt/corda/cordapps/
+            |$copyTrustRootStore""".trimMargin()
+
+        logger.lifecycle("Writing $DOCKER_FILE_NAME to ${outputDir.get()}")
+        project.file(outputDir.file(DOCKER_FILE_NAME)).writeText(dockerFileContents)
+    }
+
+    private fun copyJarsToBuildDir() {
+        project.copy {
+            it.apply {
+                from(cordaJars)
+                into(outputDir)
+            }
+        }
+    }
+
 
     private fun buildDockerFile(docker:DefaultDockerClient):  String{
         val path: Path = Paths.get(outputDir.get().toString())
-        return docker.build(path, DOCKER_FILE_NAME)
+        return docker.build(path,null, DOCKER_FILE_NAME, LoggingBuildHandler())
     }
 
     private fun getAdditionalTrustRootCommandIfNeeded(): String {

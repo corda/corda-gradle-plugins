@@ -26,6 +26,6 @@ dependencies {
 
 def dockerImage = tasks.register('dockerImage', net.corda.plugins.DockerImage) {
     baseImage "corda/entImage"
-    cordaJars project.files(project.file("./dummyJar.jar"))
+    cordaJars files('dummyJar.jar')
     buildImage false
 }
