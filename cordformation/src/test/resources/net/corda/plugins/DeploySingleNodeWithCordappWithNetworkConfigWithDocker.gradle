@@ -1,11 +1,3 @@
-buildscript {
-    ext {
-        corda_group = 'net.corda'
-        corda_release_version = '4.0'
-        jolokia_version = '1.6.0'
-    }
-}
-
 plugins {
     id 'net.corda.plugins.cordformation'
 }
@@ -13,23 +5,23 @@ plugins {
 apply from: 'repositories.gradle'
 
 dependencies {
-    runtime "$corda_group:corda:$corda_release_version"
-    runtime "$corda_group:corda-node-api:$corda_release_version"
+    cordaRuntime "$corda_group:corda:$corda_release_version"
+    cordaRuntime "$corda_group:corda-node-api:$corda_release_version"
     cordapp "$corda_group:corda-finance-contracts:$corda_release_version"
     cordapp "$corda_group:corda-finance-workflows:$corda_release_version"
 }
 
-task deployNodes(type: net.corda.plugins.Cordform) {
+task prepareDockerNodes(type: net.corda.plugins.Dockerform) {
     node {
         projectCordapp {
             deploy false
         }
         name 'O=Notary Service,L=Zurich,C=CH'
-        notary = [validating : true]
-        p2pPort 10002
-        rpcPort 10003
+
+        p2pPort 10005
         rpcSettings {
-            adminAddress "localhost:10004"
+            address "localhost:10006"
+            adminAddress "localhost:10015"
         }
         cordapps = ["$corda_group:corda-finance-contracts:$corda_release_version",
                     "$corda_group:corda-finance-workflows:$corda_release_version"]

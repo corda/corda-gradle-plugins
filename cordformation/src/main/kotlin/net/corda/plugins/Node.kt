@@ -498,6 +498,11 @@ open class Node @Inject constructor(private val project: Project) {
     }
 
     internal fun installDrivers() {
+        project.configuration("cordaDriver").files.forEach {
+            project.logger.lifecycle("Copy ${it.name} to './drivers' directory")
+            copyToDriversDir(it)
+        }
+
         drivers?.let {
             project.logger.lifecycle("Copy $it to './drivers' directory")
             it.forEach { path -> copyToDriversDir(File(path)) }
@@ -562,22 +567,45 @@ open class Node @Inject constructor(private val project: Project) {
     /**
      * Installs the Dockerized configuration file to the root directory and detokenises it.
      */
-    internal fun installDockerConfig(defaultSsh: Int) {
+    internal fun installDockerConfig(defaultSSHPort: Int) {
         configureProperties()
+
         if (!config.hasPath("sshd.port")) {
-            sshdPort(defaultSsh)
+            sshdPort(defaultSSHPort)
         }
+
         val configDefaults = ConfigFactory.empty()
-            .withValue("dataSourceProperties.dataSource.url", ConfigValueFactory.fromAnyRef("jdbc:h2:file:./persistence/persistence;DB_CLOSE_ON_EXIT=FALSE;WRITE_DELAY=0;LOCK_TIMEOUT=10000"))
+                .withValue("dataSourceProperties.dataSource.url", ConfigValueFactory.fromAnyRef("jdbc:h2:file:./persistence/persistence;DB_CLOSE_ON_EXIT=FALSE;WRITE_DELAY=0;LOCK_TIMEOUT=10000"))
         val dockerConf = config
-            .withValue("p2pAddress", ConfigValueFactory.fromAnyRef("$containerName:$p2pPort"))
-            .withValue("rpcSettings.address", ConfigValueFactory.fromAnyRef("$containerName:${rpcSettings.port}"))
-            .withValue("rpcSettings.adminAddress", ConfigValueFactory.fromAnyRef("$containerName:${rpcSettings.adminPort}"))
-            .withValue("detectPublicIp", ConfigValueFactory.fromAnyRef(false))
-            .withFallback(configDefaults)
+                .withValue("p2pAddress", ConfigValueFactory.fromAnyRef("$containerName:$p2pPort"))
+                .withValue("rpcSettings.address", ConfigValueFactory.fromAnyRef("$containerName:${rpcSettings.port}"))
+                .withValue("rpcSettings.adminAddress", ConfigValueFactory.fromAnyRef("$containerName:${rpcSettings.adminPort}"))
+                .withValue("detectPublicIp", ConfigValueFactory.fromAnyRef(false))
+                .withFallback(configDefaults)
 
         config = dockerConf
         createNodeAndWebServerConfigFiles(config)
+    }
+
+     /**
+     * Installs the default database (part of EG-117 Epic)
+     */
+    internal fun installDefaultDatabaseConfig(dbConfig: Config) {
+        val dockerConf = dbConfig.withFallback(config).resolve()
+        config = dockerConf
+        updateNodeConfigFile(config)
+    }
+
+    private fun updateNodeConfigFile(config: Config) {
+        val options = ConfigRenderOptions
+                .defaults()
+                .setOriginComments(false)
+                .setComments(false)
+                .setFormatted(true)
+                .setJson(false)
+        val configFileText = createNodeConfig(config).root().render(options).split("\n").toList()
+        val nodeConfFile = File(nodeDir, "node.conf")
+        Files.write(nodeConfFile.toPath(), configFileText)
     }
 
     private fun createNodeAndWebServerConfigFiles(config: Config) {
