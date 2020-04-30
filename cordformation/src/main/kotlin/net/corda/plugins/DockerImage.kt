@@ -66,9 +66,10 @@ open class DockerImage  @Inject constructor(objects: ObjectFactory, layouts: Pro
         val files = inputs ?: return
         _jars.from(files)
     }
+
     fun cordaJars(inputs: Any?) = setCordaJars(inputs)
 
-    @get:Internal
+    @get:OutputDirectory
     val outputDir: DirectoryProperty = objects.directoryProperty().convention(layouts.buildDirectory.dir("docker"))
 
     @TaskAction

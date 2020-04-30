@@ -8,6 +8,8 @@
 
 * `jar-filter`: Initial support for byte-code compiled by Kotlin >= 1.4.0 (See [KT-31352](https://youtrack.jetbrains.com/issue/KT-31352)).
 
+* `cordformation` Dockerfile generation for Cordapp to create bundled cordapp/corda node image  
+
 ### Version 5.0.8
 
 * `cordformation`: Allow `dataSource.url` to be overridden in `Dockerform` task.
