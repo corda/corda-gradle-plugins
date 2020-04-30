@@ -12,6 +12,7 @@ buildscript {
         junit_jupiter_version = '5.6.0'
         hamcrest_version = '2.1'
         asm_version = '7.3.1'
+        docker_client_version = '8.15.1'
     }
 
     repositories {

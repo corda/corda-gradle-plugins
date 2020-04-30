@@ -63,6 +63,7 @@ changes to this list.
 * Ivan Schasny (R3)
 * James Brown (R3)
 * James Carlyle (R3)
+* James Mac Mahon (R3)
 * Jared Harwayne-Gidansky (BNY Mellon)
 * Joel Dudley (R3)
 * Johan Hörmark (SEB)
