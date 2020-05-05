@@ -190,6 +190,13 @@ open class Node @Inject constructor(private val project: Project) {
     }
 
     /**
+     * Retrieves the RPC port associated with this node
+     */
+    fun rpcPort(): Int {
+        return rpcSettings.port
+    }
+
+    /**
      * Set the Artemis RPC address for this node.
      *
      * @param rpcAddress The Artemis RPC queue host and port.
