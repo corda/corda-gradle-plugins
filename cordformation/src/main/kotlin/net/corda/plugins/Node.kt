@@ -58,7 +58,6 @@ open class Node @Inject constructor(private val project: Project) {
     private var webserverJar: String? = null
     private var p2pPort = 10002
     internal var rpcPort = 10003
-        @Input get
         private set
     internal var config = ConfigFactory.empty()
         @Internal get
@@ -187,6 +186,13 @@ open class Node @Inject constructor(private val project: Project) {
     fun rpcPort(rpcPort: Int) {
         rpcAddress(DEFAULT_HOST + ':'.toString() + rpcPort)
         this.rpcPort = rpcPort
+    }
+
+    /**
+     * Retrieves the RPC port associated with this node
+     */
+    fun rpcPort(): Int {
+        return rpcSettings.port
     }
 
     /**
