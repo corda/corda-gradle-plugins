@@ -5,6 +5,7 @@ import groovy.lang.Closure
 import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ProjectDependency
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
@@ -57,9 +58,11 @@ open class Node @Inject constructor(private val project: Project) {
     private var rpcSettings: RpcSettings = RpcSettings()
     private var webserverJar: String? = null
     private var p2pPort = 10002
-    internal var rpcPort = 10003
-        @Input get
-        private set
+    @get:Input
+    val rpcPort: Provider<Int> = project.objects.property(Int::class.javaObjectType).apply {
+        set(project.provider { rpcSettings.port })
+    }
+
     internal var config = ConfigFactory.empty()
         @Internal get
         private set
@@ -186,14 +189,6 @@ open class Node @Inject constructor(private val project: Project) {
     @Deprecated("Use {@link CordformNode#rpcSettings(RpcSettings)} instead. Will be removed by Corda V5.0.")
     fun rpcPort(rpcPort: Int) {
         rpcAddress(DEFAULT_HOST + ':'.toString() + rpcPort)
-        this.rpcPort = rpcPort
-    }
-
-    /**
-     * Retrieves the RPC port associated with this node
-     */
-    fun rpcPort(): Int {
-        return rpcSettings.port
     }
 
     /**

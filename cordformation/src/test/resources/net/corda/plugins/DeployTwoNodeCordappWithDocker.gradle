@@ -22,7 +22,7 @@ task prepareDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: ['jar']) 
         }
     }
     node {
-        name "O=Notary,L=London,C=GB"
+        name "O=Notary Service,L=London,C=GB"
         notary = [validating : false]
         p2pPort 10002
         rpcSettings {
@@ -31,7 +31,7 @@ task prepareDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: ['jar']) 
         }
     }
     node {
-        name "O=Users,L=London,C=GB"
+        name "O=BankOfCorda,L=London,C=GB"
         p2pPort 10005
         rpcSettings {
             address("localhost:10006")

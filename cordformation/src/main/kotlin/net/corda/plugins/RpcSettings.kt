@@ -3,6 +3,7 @@ package net.corda.plugins
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
 import com.typesafe.config.ConfigValueFactory
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.tasks.Input
 import java.net.URI
 import java.net.URISyntaxException
@@ -21,9 +22,8 @@ class RpcSettings {
      * RPC address for the node.
      */
     fun address(value: String) {
-        try {
-            port = URI(null, value, null, null, null).port
-        } catch (ex: URISyntaxException) { }
+        val portNumber = parsePort(value)
+        port = when (portNumber) { -1 -> port else -> portNumber }
         setValue("address", value)
     }
 
@@ -39,9 +39,8 @@ class RpcSettings {
      * RPC admin address for the node (necessary if [useSsl] is false or unset).
      */
     fun adminAddress(value: String) {
-        try {
-            adminPort = URI(null, value, null, null, null).port
-        } catch (ex: URISyntaxException) { }
+        val portNumber = parsePort(value)
+        adminPort = when (portNumber) { -1 -> adminPort else -> portNumber }
         setValue("adminAddress", value)
     }
 
@@ -79,5 +78,13 @@ class RpcSettings {
 
     private fun setValue(path: String, value: Any?) {
         config = config.withValue(path, ConfigValueFactory.fromAnyRef(value))
+    }
+
+    private fun parsePort(address: String): Int {
+        return try {
+            URI(null, address, null, null, null).port
+        } catch (ex: URISyntaxException) {
+            throw InvalidUserDataException("Invalid host and port syntax for RPC address, expected host:port. Using default value")
+        }
     }
 }
