@@ -3,16 +3,27 @@ package net.corda.plugins
 import org.gradle.api.DefaultTask
 import com.spotify.docker.client.DefaultDockerClient
 import com.spotify.docker.client.LoggingBuildHandler
-import org.gradle.api.file.*
+import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.FileCollection
+import org.gradle.api.file.ProjectLayout
 import org.gradle.api.model.ObjectFactory
-import org.gradle.api.tasks.*
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.Optional
+import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity.RELATIVE
+import org.gradle.api.tasks.SkipWhenEmpty
+import org.gradle.api.tasks.TaskAction
 import java.io.File
 import java.nio.file.Path
 import java.nio.file.Paths
 import javax.inject.Inject
 
-
-open class DockerImage  @Inject constructor(objects: ObjectFactory, layouts: ProjectLayout) : DefaultTask() {
+@Suppress("UnstableApiUsage", "unused")
+open class DockerImage @Inject constructor(objects: ObjectFactory, layouts: ProjectLayout) : DefaultTask() {
 
     private companion object{
         private const val DOCKER_FILE_NAME = "Dockerfile"
@@ -32,6 +43,7 @@ open class DockerImage  @Inject constructor(objects: ObjectFactory, layouts: Pro
 
     @get:Optional
     @get:InputFile
+    @get:PathSensitive(RELATIVE)
     internal var trustRootStoreFile: File? = null
 
     fun trustRootStoreFile(trustRootStoreFile: File) {
@@ -58,7 +70,7 @@ open class DockerImage  @Inject constructor(objects: ObjectFactory, layouts: Pro
 
     @get:InputFiles
     @get:SkipWhenEmpty
-    @get:PathSensitive(PathSensitivity.RELATIVE)
+    @get:PathSensitive(RELATIVE)
     val cordaJars: FileCollection get() = _jars
 
     @Suppress("MemberVisibilityCanBePrivate")
@@ -78,10 +90,10 @@ open class DockerImage  @Inject constructor(objects: ObjectFactory, layouts: Pro
         copyJarsToBuildDir()
         writeDockerFile()
 
-        if(buildImage){
+        if (buildImage) {
             val docker = DefaultDockerClient.fromEnv().build()
             val builtImageId = buildDockerFile(docker)
-            val tag = dockerImageTag?:"${project.name}:${project.version}"
+            val tag = dockerImageTag ?: "${project.name}:${project.version}"
 
             logger.lifecycle("Tagging $builtImageId as: $tag")
             docker.tag(builtImageId, tag)
@@ -89,7 +101,7 @@ open class DockerImage  @Inject constructor(objects: ObjectFactory, layouts: Pro
     }
 
     private fun writeDockerFile() {
-        logger.lifecycle("Using Image: ${baseImage}")
+        logger.lifecycle("Using Image: $baseImage")
         val copyTrustRootStore: String = getAdditionalTrustRootCommandIfNeeded()
 
         val dockerFileContents = """\
@@ -116,18 +128,17 @@ open class DockerImage  @Inject constructor(objects: ObjectFactory, layouts: Pro
     }
 
     private fun getAdditionalTrustRootCommandIfNeeded(): String {
-        if (trustRootStoreFile != null) {
-            logger.lifecycle("Copying Trust Store: ${trustRootStoreFile}")
-            logger.lifecycle("Copying From: ${project.projectDir}")
+        val trustRootStore = trustRootStoreFile ?: return ""
 
-            project.copy {
-                it.apply {
-                    from(trustRootStoreFile)
-                    into(outputDir)
-                }
+        logger.lifecycle("Copying Trust Store: $trustRootStore")
+        logger.lifecycle("Copying From: ${project.projectDir}")
+
+        project.copy {
+            it.apply {
+                from(trustRootStore)
+                into(outputDir)
             }
-            return "COPY ${trustRootStoreFile!!.name} /opt/corda/tmp-certificates/"
         }
-        return ""
+        return "COPY ${trustRootStore.name} /opt/corda/tmp-certificates/"
     }
 }
