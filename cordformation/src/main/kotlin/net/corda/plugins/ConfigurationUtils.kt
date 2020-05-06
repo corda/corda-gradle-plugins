@@ -12,7 +12,7 @@ class ConfigurationUtils {
             return try {
                 URI(null, address, null, null, null).port
             } catch (ex: URISyntaxException) {
-                throw InvalidUserDataException("Invalid host and port syntax for RPC address, expected host:port. Using default value")
+                throw InvalidUserDataException("Invalid host and port syntax for RPC address, expected host:port")
             }
         }
     }

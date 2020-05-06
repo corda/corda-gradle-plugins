@@ -8,16 +8,16 @@ class ConfigurationUtilsTest {
 
     @Test
     fun `check correct port value parsing`() {
-        assertEquals(ConfigurationUtils.parsePort("localhost:10000"), 10000)
+        assertEquals(10000, ConfigurationUtils.parsePort("localhost:10000"))
     }
 
     @Test
     fun `missing port value correctly identified in valid address`() {
-        assertEquals(ConfigurationUtils.parsePort("localhost"), -1)
+        assertEquals(-1, ConfigurationUtils.parsePort("localhost"))
     }
 
     @Test
     fun `missing port value correctly identified in invalid address`() {
-        assertEquals(ConfigurationUtils.parsePort("localhost!"), -1)
+        assertEquals(-1, ConfigurationUtils.parsePort("localhost!"))
     }
 }

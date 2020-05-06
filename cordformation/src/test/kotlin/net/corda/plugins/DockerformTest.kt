@@ -121,8 +121,8 @@ class DockerformTest : BaseformTest() {
         val notaryConfig = ConfigFactory.parseFile(notaryConfigPath.toFile())
         assertTrue(notaryConfig.hasPath("rpcSettings.address"))
         assertTrue(notaryConfig.hasPath("rpcSettings.adminAddress"))
-        assertEquals(ConfigurationUtils.parsePort(notaryConfig.getString("rpcSettings.address")), 10003)
-        assertEquals(ConfigurationUtils.parsePort(notaryConfig.getString("rpcSettings.adminAddress")), 10043)
+        assertEquals(10003, ConfigurationUtils.parsePort(notaryConfig.getString("rpcSettings.address")))
+        assertEquals(10043, ConfigurationUtils.parsePort(notaryConfig.getString("rpcSettings.adminAddress")))
 
         val bankOfCordaConfigPath = getNodeConfig(bankOfCordaNodeName)
         assertThat(bankOfCordaConfigPath).isRegularFile()
@@ -130,7 +130,7 @@ class DockerformTest : BaseformTest() {
         val bankOfCordaConfig = ConfigFactory.parseFile(bankOfCordaConfigPath.toFile())
         assertTrue(bankOfCordaConfig.hasPath("rpcSettings.address"))
         assertTrue(bankOfCordaConfig.hasPath("rpcSettings.adminAddress"))
-        assertEquals(ConfigurationUtils.parsePort(bankOfCordaConfig.getString("rpcSettings.address")), 10006)
-        assertEquals(ConfigurationUtils.parsePort(bankOfCordaConfig.getString("rpcSettings.adminAddress")), 10046)
+        assertEquals(10006, ConfigurationUtils.parsePort(bankOfCordaConfig.getString("rpcSettings.address")))
+        assertEquals(10046, ConfigurationUtils.parsePort(bankOfCordaConfig.getString("rpcSettings.adminAddress")))
     }
 }
