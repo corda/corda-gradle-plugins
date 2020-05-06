@@ -99,7 +99,7 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
                             "$nodeBuildDir/additional-node-infos:/opt/corda/additional-node-infos",
                             "$nodeBuildDir/drivers:/opt/corda/drivers"
                     ),
-                    "ports" to listOf(it.rpcPort, it.config.getInt("sshd.port")),
+                    "ports" to listOf(it.rpcPort.get(), it.config.getInt("sshd.port")),
                     "image" to (dockerImage ?: "corda/corda-zulu-${it.runtimeVersion().toLowerCase()}")
             )
 
