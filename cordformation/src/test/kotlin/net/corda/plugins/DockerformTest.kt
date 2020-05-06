@@ -1,8 +1,11 @@
 package net.corda.plugins
 
+import com.typesafe.config.ConfigFactory
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.testkit.runner.TaskOutcome
 import org.junit.jupiter.api.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class DockerformTest : BaseformTest() {
 
@@ -111,5 +114,23 @@ class DockerformTest : BaseformTest() {
         assertThat(getNodeCordappJar(bankOfCordaNodeName, cordaFinanceWorkflowsJarName)).isRegularFile()
         assertThat(getNodeCordappJar(bankOfCordaNodeName, cordaFinanceContractsJarName)).isRegularFile()
         assertThat(getNetworkParameterOverrides(bankOfCordaNodeName)).isRegularFile()
+
+        val notaryConfigPath = getNodeConfig(notaryNodeName)
+        assertThat(notaryConfigPath).isRegularFile()
+
+        val notaryConfig = ConfigFactory.parseFile(notaryConfigPath.toFile())
+        assertTrue(notaryConfig.hasPath("rpcSettings.address"))
+        assertTrue(notaryConfig.hasPath("rpcSettings.adminAddress"))
+        assertEquals(ConfigurationUtils.parsePort(notaryConfig.getString("rpcSettings.address")), 10003)
+        assertEquals(ConfigurationUtils.parsePort(notaryConfig.getString("rpcSettings.adminAddress")), 10043)
+
+        val bankOfCordaConfigPath = getNodeConfig(bankOfCordaNodeName)
+        assertThat(bankOfCordaConfigPath).isRegularFile()
+
+        val bankOfCordaConfig = ConfigFactory.parseFile(bankOfCordaConfigPath.toFile())
+        assertTrue(bankOfCordaConfig.hasPath("rpcSettings.address"))
+        assertTrue(bankOfCordaConfig.hasPath("rpcSettings.adminAddress"))
+        assertEquals(ConfigurationUtils.parsePort(bankOfCordaConfig.getString("rpcSettings.address")), 10006)
+        assertEquals(ConfigurationUtils.parsePort(bankOfCordaConfig.getString("rpcSettings.adminAddress")), 10046)
     }
 }

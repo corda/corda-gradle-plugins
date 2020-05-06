@@ -22,8 +22,11 @@ class RpcSettings {
      * RPC address for the node.
      */
     fun address(value: String) {
-        val portNumber = parsePort(value)
-        port = when (portNumber) { -1 -> port else -> portNumber }
+        val parsedValue = ConfigurationUtils.parsePort(value)
+        port = when (parsedValue) {
+            -1 -> port
+            else -> parsedValue
+        }
         setValue("address", value)
     }
 
@@ -39,8 +42,11 @@ class RpcSettings {
      * RPC admin address for the node (necessary if [useSsl] is false or unset).
      */
     fun adminAddress(value: String) {
-        val portNumber = parsePort(value)
-        adminPort = when (portNumber) { -1 -> adminPort else -> portNumber }
+        val parsedValue = ConfigurationUtils.parsePort(value)
+        adminPort = when (parsedValue) {
+            -1 -> adminPort
+            else -> parsedValue
+        }
         setValue("adminAddress", value)
     }
 
@@ -78,13 +84,5 @@ class RpcSettings {
 
     private fun setValue(path: String, value: Any?) {
         config = config.withValue(path, ConfigValueFactory.fromAnyRef(value))
-    }
-
-    private fun parsePort(address: String): Int {
-        return try {
-            URI(null, address, null, null, null).port
-        } catch (ex: URISyntaxException) {
-            throw InvalidUserDataException("Invalid host and port syntax for RPC address, expected host:port. Using default value")
-        }
     }
 }

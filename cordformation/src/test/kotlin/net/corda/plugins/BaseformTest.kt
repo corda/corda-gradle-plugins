@@ -57,6 +57,7 @@ open class BaseformTest {
     fun getNodeCordappJar(nodeName: String, cordappJarName: String) = Paths.get(testProjectDir.toAbsolutePath().toString(), "build", "nodes", nodeName, "cordapps", "$cordappJarName.jar")
     fun getNodeCordappConfig(nodeName: String, cordappJarName: String) = Paths.get(testProjectDir.toAbsolutePath().toString(), "build", "nodes", nodeName, "cordapps", "config", "$cordappJarName.conf")
     fun getNetworkParameterOverrides(nodeName: String) = Paths.get(testProjectDir.toAbsolutePath().toString(), "build", "nodes", nodeName, "network-parameters")
+    fun getNodeConfig(nodeName: String) = Paths.get(testProjectDir.toAbsolutePath().toString(), "build", "nodes", nodeName, "node.conf")
 
     class AMQPParametersSerializationScheme : AbstractAMQPSerializationScheme(emptyList()) {
         override fun rpcClientSerializerFactory(context: SerializationContext) = throw UnsupportedOperationException()
@@ -66,5 +67,4 @@ open class BaseformTest {
             return magic == amqpMagic && target == SerializationContext.UseCase.P2P
         }
     }
-
 }
