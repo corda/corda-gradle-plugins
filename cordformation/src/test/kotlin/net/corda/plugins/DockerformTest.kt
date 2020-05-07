@@ -1,10 +1,7 @@
 package net.corda.plugins
 
-import com.typesafe.config.ConfigException
 import com.typesafe.config.ConfigFactory
 import org.assertj.core.api.Assertions.assertThat
-import org.gradle.api.InvalidUserDataException
-import org.gradle.api.tasks.TaskValidationException
 import org.gradle.testkit.runner.TaskOutcome
 import org.gradle.testkit.runner.UnexpectedBuildFailure
 import org.junit.jupiter.api.Test
