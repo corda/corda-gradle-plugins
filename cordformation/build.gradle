@@ -5,7 +5,7 @@ plugins {
     id 'java-gradle-plugin'
 }
 
-description 'A small gradle plugin for adding some basic Quasar tasks and configurations to reduce build.gradle bloat.'
+description 'Cordformation allows you to build your own local Corda networks for development.'
 
 ext {
     corda_release_version = '4.0'
