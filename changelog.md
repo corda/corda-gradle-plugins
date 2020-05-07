@@ -2,6 +2,8 @@
 
 ## Version 5
 
+### Version 5.0.10
+
 ### Version 5.0.9
 
 * `cordformation`: Added option to deploy external databases using docker compose task    
