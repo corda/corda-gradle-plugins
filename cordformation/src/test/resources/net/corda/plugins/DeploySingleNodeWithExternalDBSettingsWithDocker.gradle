@@ -21,5 +21,8 @@ task prepareDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: 'generate
         cordapps = ["$corda_group:corda-finance-contracts:$corda_release_version",
                     "$corda_group:corda-finance-workflows:$corda_release_version"]
     }
+
     dockerConfig = postgres
+
+    dockerImage = "corda/corda-zulu-java1.8-4.3"
 }

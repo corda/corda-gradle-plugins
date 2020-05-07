@@ -37,5 +37,6 @@ task prepareDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: ['generat
     }
 
     dockerConfig = postgres
-    dockerImage = "test"
+
+    dockerImage = "corda/corda-zulu-java1.8-4.3"
 }

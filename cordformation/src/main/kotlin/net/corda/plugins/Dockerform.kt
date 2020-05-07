@@ -60,9 +60,8 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
     var dockerConfig: Map<String, Any> = emptyMap()
 
     /**
-     * Docker image for this node, or null if one hasn't been specified.
+     * Docker image for this node
      */
-    @get:Optional
     @get:Input
     var dockerImage: String? = null
 
@@ -80,7 +79,7 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
         bootstrapNetwork()
         nodes.forEach(Node::buildDocker)
 
-        val services = mutableMapOf<String, MutableMap<String, Any>>()
+        val services = mutableMapOf<String, MutableMap<String, Any?>>()
         val volumes = mutableMapOf<String, Map<String, Any>>()
 
         nodes.forEachIndexed {index, it ->
@@ -100,7 +99,7 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
                             "$nodeBuildDir/drivers:/opt/corda/drivers"
                     ),
                     "ports" to listOf(it.rpcPort.get(), it.config.getInt("sshd.port")),
-                    "image" to (dockerImage ?: "corda/corda-zulu-java1.8-${it.runtimeVersion().toLowerCase()}")
+                    "image" to dockerImage
             )
 
             if (dockerConfig.isNotEmpty()) {
@@ -146,7 +145,7 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
                 // Override the port and hostname parameters in dockerfile
                 val dbDockerfileArgs = defaultUrlArgs.withFallback(
                         dockerConfig.getConfig("dockerConfig.dbDockerfileArgs")).resolve()
-                val database = mutableMapOf(
+                val database = mutableMapOf<String, Any?>(
                         "build" to mapOf(
                              "context" to project.buildDir.absolutePath,
                              "dockerfile" to project.buildDir.resolve(dbDockerfile).toString(),
@@ -196,7 +195,6 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
                 services[dbHost] = database
 
                 // attach database dependency to the node service
-                service["image"] = dockerImage ?: "entdocker.software.r3.com/corda-enterprise-java1.8-${it.runtimeVersion().toLowerCase()}"
                 service["depends_on"] = listOf(dbHost)
             }
 
