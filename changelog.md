@@ -4,6 +4,8 @@
 
 ### Version 5.0.10
 
+* `cordformation`: Made Dockerform's dockerImage property mandatory to avoid using hardcoded default Docker images
+
 ### Version 5.0.9
 
 * `cordformation`: Added option to deploy external databases using docker compose task    

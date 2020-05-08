@@ -4,6 +4,7 @@ import com.typesafe.config.ConfigFactory
 import com.typesafe.config.ConfigValueFactory
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.Property
 import org.gradle.api.tasks.*
 import org.gradle.api.tasks.PathSensitivity.RELATIVE
 import org.yaml.snakeyaml.DumperOptions
@@ -60,10 +61,10 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
     var dockerConfig: Map<String, Any> = emptyMap()
 
     /**
-     * Docker image for this node
+     * Base Docker image for each node
      */
     @get:Input
-    var dockerImage: String? = null
+    val dockerImage: Property<String> = objects.property(String::class.java)
 
     /**
      * This task action will create and install the nodes based on the node configurations added.
@@ -79,7 +80,7 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
         bootstrapNetwork()
         nodes.forEach(Node::buildDocker)
 
-        val services = mutableMapOf<String, MutableMap<String, Any?>>()
+        val services = mutableMapOf<String, MutableMap<String, Any>>()
         val volumes = mutableMapOf<String, Map<String, Any>>()
 
         nodes.forEachIndexed {index, it ->
@@ -99,7 +100,7 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
                             "$nodeBuildDir/drivers:/opt/corda/drivers"
                     ),
                     "ports" to listOf(it.rpcPort.get(), it.config.getInt("sshd.port")),
-                    "image" to dockerImage
+                    "image" to dockerImage.get()
             )
 
             if (dockerConfig.isNotEmpty()) {
@@ -145,7 +146,7 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
                 // Override the port and hostname parameters in dockerfile
                 val dbDockerfileArgs = defaultUrlArgs.withFallback(
                         dockerConfig.getConfig("dockerConfig.dbDockerfileArgs")).resolve()
-                val database = mutableMapOf<String, Any?>(
+                val database = mutableMapOf(
                         "build" to mapOf(
                              "context" to project.buildDir.absolutePath,
                              "dockerfile" to project.buildDir.resolve(dbDockerfile).toString(),

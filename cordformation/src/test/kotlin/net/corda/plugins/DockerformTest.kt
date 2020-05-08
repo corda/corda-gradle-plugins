@@ -17,9 +17,10 @@ class DockerformTest : BaseformTest() {
                 "DeploySingleNodeWithCordappWithDocker.gradle",
                 "prepareDockerNodes")
 
-        assertFailsWith<UnexpectedBuildFailure> {
-            runner.build().task(":prepareDockerNodes")
-        }
+        val result = runner.buildAndFail()
+
+        assertThat(result.task(":prepareDockerNodes")!!.outcome).isEqualTo(TaskOutcome.FAILED)
+        assertThat(result.output).contains("Caused by: org.gradle.api.InvalidUserDataException: No value has been specified for property 'dockerImage'.")
     }
 
     @Test
