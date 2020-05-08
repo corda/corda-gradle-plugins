@@ -124,21 +124,12 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
                 }
 
                 // Install the database configuration
-                val dbUser = dockerConfig.getString("dockerConfig.dbUser")
-                val dbPassword = dockerConfig.getString("dockerConfig.dbPassword")
-                val dbDataSourceClassName = dockerConfig.getString("dataSourceProperties.dataSourceClassName")
-                val dbTransactionIsolationLevel = dockerConfig.getString("database.transactionIsolationLevel")
-                val dbRunMigration = dockerConfig.getBoolean("database.runMigration")
-                val dbSchema= dockerConfig.getString("dockerConfig.dbSchema")
-
                 val dbConfig = ConfigFactory.empty()
-                        .withValue("dataSourceProperties.dataSourceClassName", ConfigValueFactory.fromAnyRef(dbDataSourceClassName))
                         .withValue("dataSourceProperties.dataSource.url", ConfigValueFactory.fromAnyRef(dbUrl))
-                        .withValue("dataSourceProperties.dataSource.user", ConfigValueFactory.fromAnyRef(dbUser))
-                        .withValue("dataSourceProperties.dataSource.password", ConfigValueFactory.fromAnyRef(dbPassword))
-                        .withValue("database.transactionIsolationLevel", ConfigValueFactory.fromAnyRef(dbTransactionIsolationLevel))
-                        .withValue("database.runMigration", ConfigValueFactory.fromAnyRef(dbRunMigration))
-                        .withValue("database.schema", ConfigValueFactory.fromAnyRef(dbSchema))
+                        .withValue("dataSourceProperties.dataSourceClassName", dockerConfig.getValue("dataSourceProperties.dataSourceClassName"))
+                        .withValue("dataSourceProperties.dataSource.user", dockerConfig.getValue("dockerConfig.dbUser"))
+                        .withValue("dataSourceProperties.dataSource.password", dockerConfig.getValue("dockerConfig.dbPassword"))
+                        .withValue("database", ConfigValueFactory.fromMap(dockerConfig.getObject("database")))
 
                 it.installDefaultDatabaseConfig(dbConfig)
 
