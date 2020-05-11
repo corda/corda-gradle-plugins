@@ -4,6 +4,7 @@ import com.typesafe.config.ConfigFactory
 import com.typesafe.config.ConfigValueFactory
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.Property
 import org.gradle.api.tasks.*
 import org.gradle.api.tasks.PathSensitivity.RELATIVE
 import org.yaml.snakeyaml.DumperOptions
@@ -60,11 +61,10 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
     var dockerConfig: Map<String, Any> = emptyMap()
 
     /**
-     * Docker image for this node, or null if one hasn't been specified.
+     * Base Docker image for each node
      */
-    @get:Optional
     @get:Input
-    var dockerImage: String? = null
+    val dockerImage: Property<String> = objects.property(String::class.java)
 
     /**
      * This task action will create and install the nodes based on the node configurations added.
@@ -100,7 +100,7 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
                             "$nodeBuildDir/drivers:/opt/corda/drivers"
                     ),
                     "ports" to listOf(it.rpcPort.get(), it.config.getInt("sshd.port")),
-                    "image" to (dockerImage ?: "corda/corda-zulu-${it.runtimeVersion().toLowerCase()}")
+                    "image" to dockerImage.get()
             )
 
             if (dockerConfig.isNotEmpty()) {
@@ -124,21 +124,12 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
                 }
 
                 // Install the database configuration
-                val dbUser = dockerConfig.getString("dockerConfig.dbUser")
-                val dbPassword = dockerConfig.getString("dockerConfig.dbPassword")
-                val dbDataSourceClassName = dockerConfig.getString("dataSourceProperties.dataSourceClassName")
-                val dbTransactionIsolationLevel = dockerConfig.getString("database.transactionIsolationLevel")
-                val dbRunMigration = dockerConfig.getBoolean("database.runMigration")
-                val dbSchema= dockerConfig.getString("dockerConfig.dbSchema")
-
                 val dbConfig = ConfigFactory.empty()
-                        .withValue("dataSourceProperties.dataSourceClassName", ConfigValueFactory.fromAnyRef(dbDataSourceClassName))
                         .withValue("dataSourceProperties.dataSource.url", ConfigValueFactory.fromAnyRef(dbUrl))
-                        .withValue("dataSourceProperties.dataSource.user", ConfigValueFactory.fromAnyRef(dbUser))
-                        .withValue("dataSourceProperties.dataSource.password", ConfigValueFactory.fromAnyRef(dbPassword))
-                        .withValue("database.transactionIsolationLevel", ConfigValueFactory.fromAnyRef(dbTransactionIsolationLevel))
-                        .withValue("database.runMigration", ConfigValueFactory.fromAnyRef(dbRunMigration))
-                        .withValue("database.schema", ConfigValueFactory.fromAnyRef(dbSchema))
+                        .withValue("dataSourceProperties.dataSourceClassName", dockerConfig.getValue("dataSourceProperties.dataSourceClassName"))
+                        .withValue("dataSourceProperties.dataSource.user", dockerConfig.getValue("dockerConfig.dbUser"))
+                        .withValue("dataSourceProperties.dataSource.password", dockerConfig.getValue("dockerConfig.dbPassword"))
+                        .withValue("database", ConfigValueFactory.fromMap(dockerConfig.getObject("database")))
 
                 it.installDefaultDatabaseConfig(dbConfig)
 
@@ -196,7 +187,6 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
                 services[dbHost] = database
 
                 // attach database dependency to the node service
-                service["image"] = dockerImage ?: "entdocker.software.r3.com/corda-enterprise-java1.8-${it.runtimeVersion().toLowerCase()}"
                 service["depends_on"] = listOf(dbHost)
             }
 

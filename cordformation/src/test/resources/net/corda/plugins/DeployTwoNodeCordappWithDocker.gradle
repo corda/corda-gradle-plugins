@@ -39,4 +39,6 @@ task prepareDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: ['jar']) 
         }
         rpcUsers = [[ user: "user1", "password": "test", "permissions": ["ALL"]]]
     }
+
+    dockerImage = docker_image_name
 }

@@ -3,24 +3,24 @@ package net.corda.plugins
 import com.typesafe.config.ConfigFactory
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.testkit.runner.TaskOutcome
+import org.gradle.testkit.runner.UnexpectedBuildFailure
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
 class DockerformTest : BaseformTest() {
 
     @Test
-    fun `deploy a node with cordapp dependency`() {
+    fun `fail to deploy a node with cordapp dependency with missing dockerImage tag`() {
         val runner = getStandardGradleRunnerFor(
                 "DeploySingleNodeWithCordappWithDocker.gradle",
                 "prepareDockerNodes")
 
-        val result = runner.build()
+        val result = runner.buildAndFail()
 
-        assertThat(result.task(":prepareDockerNodes")!!.outcome).isEqualTo(TaskOutcome.SUCCESS)
-        assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceWorkflowsJarName)).isRegularFile()
-        assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceContractsJarName)).isRegularFile()
-        assertThat(getNetworkParameterOverrides(notaryNodeName)).isRegularFile()
+        assertThat(result.task(":prepareDockerNodes")!!.outcome).isEqualTo(TaskOutcome.FAILED)
+        assertThat(result.output).contains("Caused by: org.gradle.api.InvalidUserDataException: No value has been specified for property 'dockerImage'.")
     }
 
     @Test
