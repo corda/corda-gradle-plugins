@@ -14,6 +14,8 @@ import java.io.File
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.Paths
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 /**
@@ -142,6 +144,10 @@ open class Node @Inject constructor(private val project: Project) {
     var configFile: String? = null
         @Optional @Input get
         private set
+
+    @get:Optional
+    @get:Input
+    var runSchemaMigration: Boolean = false
 
     /**
      * Set the name of the node.
@@ -374,12 +380,14 @@ open class Node @Inject constructor(private val project: Project) {
         installCordapps()
         installCordappConfigs()
         installConfig()
+        runSchemaMigration()
     }
 
     internal fun buildDocker() {
         installDrivers()
         installCordapps()
         installCordappConfigs()
+        runSchemaMigration()
     }
 
     internal fun installCordapps() {
@@ -468,6 +476,51 @@ open class Node @Inject constructor(private val project: Project) {
                 rename(webJar.name, webJarName)
             }
         }
+    }
+
+
+    private val createSchemasCmd = listOf(
+            Paths.get(System.getProperty("java.home"), "bin", "java").toString(),
+            "-jar",
+            "corda.jar",
+            "run-migration-scripts",
+            "--allow-hibernate-to-manage-app-schema"
+    )
+
+    private fun runSchemaMigration(){
+        if (!runSchemaMigration) return
+        runNodeJob(createSchemasCmd, "node-schema-cordform.log")
+    }
+
+    val LOGS_DIR_NAME: String = "logs"
+
+    private fun runNodeJob(command: List<String>, logfileName: String) {
+        val logsDir = Files.createDirectories(nodeDir.toPath().resolve(LOGS_DIR_NAME))
+        val nodeRedirectFile = logsDir.resolve(logfileName).toFile()
+        val process = ProcessBuilder(command)
+                .directory(nodeDir)
+                .redirectErrorStream(true)
+                .redirectOutput(nodeRedirectFile)
+                .apply { environment()["CAPSULE_CACHE_DIR"] = "../.cache" }
+                .start()
+        try {
+            if (!process.waitFor(3, TimeUnit.MINUTES)) {
+                process.destroyForcibly()
+                printNodeOutputToConsoleAndThrow(nodeRedirectFile)
+            }
+            if (process.exitValue() != 0) printNodeOutputToConsoleAndThrow(nodeRedirectFile)
+        } catch (e: InterruptedException) {
+            // Don't leave this process dangling if the thread is interrupted.
+            process.destroyForcibly()
+            throw e
+        }
+    }
+
+    private fun printNodeOutputToConsoleAndThrow(stdoutFile: File) {
+        val nodeDir = stdoutFile.parent
+        System.err.println("#### Error while generating node info file $name ####")
+        stdoutFile.inputStream().copyTo(System.err)
+        throw IllegalStateException("Error while generating node info file. Please check the logs in $nodeDir.")
     }
 
     fun runtimeVersion(): String {
