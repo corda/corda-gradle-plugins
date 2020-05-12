@@ -145,9 +145,15 @@ open class Node @Inject constructor(private val project: Project) {
         @Optional @Input get
         private set
 
+    // Should the cordform set up run data base migration scripts after installation
     @get:Optional
     @get:Input
-    var runSchemaMigration: Boolean = false
+    var runSchemaMigration: Boolean = true
+
+    // If generating schemas, should app schema be generated using hibernate if missing migration scripts
+    @get:Optional
+    @get:Input
+    var allowHibernateToManageAppSchema: Boolean = false
 
     /**
      * Set the name of the node.
@@ -479,17 +485,17 @@ open class Node @Inject constructor(private val project: Project) {
     }
 
 
-    private val createSchemasCmd = listOf(
+    private fun createSchemasCmd() = listOfNotNull(
             Paths.get(System.getProperty("java.home"), "bin", "java").toString(),
             "-jar",
             "corda.jar",
             "run-migration-scripts",
-            "--allow-hibernate-to-manage-app-schema"
-    )
+            if (allowHibernateToManageAppSchema) "--allow-hibernate-to-manage-app-schema" else null)
 
     private fun runSchemaMigration(){
         if (!runSchemaMigration) return
-        runNodeJob(createSchemasCmd, "node-schema-cordform.log")
+        project.logger.lifecycle("Run database schema migration scripts${if(allowHibernateToManageAppSchema) " - managing CorDapp schemas with hibernate" else ""}")
+        runNodeJob(createSchemasCmd(), "node-schema-cordform.log")
     }
 
     val LOGS_DIR_NAME: String = "logs"
