@@ -5,6 +5,7 @@ import groovy.lang.Closure
 import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ProjectDependency
+import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
@@ -149,12 +150,17 @@ open class Node @Inject constructor(private val project: Project) {
     // with current and previous Corda versions
     @get:Optional
     @get:Input
-    var runSchemaMigration: Boolean = false
+    var runSchemaMigration: Property<Boolean> = project.objects.property(Boolean::class.javaObjectType).convention(false)
 
     // If generating schemas, should app schema be generated using hibernate if missing migration scripts
     @get:Optional
     @get:Input
-    var allowHibernateToManageAppSchema: Boolean = false
+    var allowHibernateToManageAppSchema: Property<Boolean> = project.objects.property(Boolean::class.javaObjectType).convention(false)
+
+    //Configure the timeout for schema generation runtime
+    @get:Optional
+    @get:Input
+    var nodeJobTimeOut: Property<Long> = project.objects.property(Long::class.javaObjectType).convention(3)
 
     /**
      * Set the name of the node.
@@ -491,11 +497,11 @@ open class Node @Inject constructor(private val project: Project) {
             "-jar",
             "corda.jar",
             "run-migration-scripts",
-            if (allowHibernateToManageAppSchema) "--allow-hibernate-to-manage-app-schema" else null)
+            if (allowHibernateToManageAppSchema.get()) "--allow-hibernate-to-manage-app-schema" else null)
 
     private fun runSchemaMigration(){
-        if (!runSchemaMigration) return
-        project.logger.lifecycle("Run database schema migration scripts${if(allowHibernateToManageAppSchema) " - managing CorDapp schemas with hibernate" else ""}")
+        if (!runSchemaMigration.get()) return
+        project.logger.lifecycle("Run database schema migration scripts${if(allowHibernateToManageAppSchema.get()) " - managing CorDapp schemas with hibernate" else ""}")
         runNodeJob(createSchemasCmd(), "node-schema-cordform.log")
     }
 
@@ -511,11 +517,11 @@ open class Node @Inject constructor(private val project: Project) {
                 .apply { environment()["CAPSULE_CACHE_DIR"] = "../.cache" }
                 .start()
         try {
-            if (!process.waitFor(3, TimeUnit.MINUTES)) {
+            if (!process.waitFor(nodeJobTimeOut.get(), TimeUnit.MINUTES)) {
                 process.destroyForcibly()
-                printNodeOutputToConsoleAndThrow(nodeRedirectFile)
+                printNodeOutputAndThrow(nodeRedirectFile)
             }
-            if (process.exitValue() != 0) printNodeOutputToConsoleAndThrow(nodeRedirectFile)
+            if (process.exitValue() != 0) printNodeOutputAndThrow(nodeRedirectFile)
         } catch (e: InterruptedException) {
             // Don't leave this process dangling if the thread is interrupted.
             process.destroyForcibly()
@@ -523,11 +529,10 @@ open class Node @Inject constructor(private val project: Project) {
         }
     }
 
-    private fun printNodeOutputToConsoleAndThrow(stdoutFile: File) {
-        val nodeDir = stdoutFile.parent
-        System.err.println("#### Error while generating node info file $name ####")
-        stdoutFile.inputStream().copyTo(System.err)
-        throw IllegalStateException("Error while generating node info file. Please check the logs in $nodeDir.")
+    private fun printNodeOutputAndThrow(stdoutFile: File) {
+        project.logger.error("#### Error while generating node info file $name ####")
+        project.logger.error(stdoutFile.readText())
+        throw IllegalStateException("Error while generating node info file. Please check the logs in ${stdoutFile.parent}.")
     }
 
     fun runtimeVersion(): String {
