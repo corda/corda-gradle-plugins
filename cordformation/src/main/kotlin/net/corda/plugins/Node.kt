@@ -150,17 +150,17 @@ open class Node @Inject constructor(private val project: Project) {
     // with current and previous Corda versions
     @get:Optional
     @get:Input
-    var runSchemaMigration: Property<Boolean> = project.objects.property(Boolean::class.javaObjectType).convention(false)
+    val runSchemaMigration: Property<Boolean> = project.objects.property(Boolean::class.javaObjectType).convention(false)
 
     // If generating schemas, should app schema be generated using hibernate if missing migration scripts
     @get:Optional
     @get:Input
-    var allowHibernateToManageAppSchema: Property<Boolean> = project.objects.property(Boolean::class.javaObjectType).convention(false)
+    val allowHibernateToManageAppSchema: Property<Boolean> = project.objects.property(Boolean::class.javaObjectType).convention(false)
 
     //Configure the timeout for schema generation runtime
     @get:Optional
-    @get:Input
-    var nodeJobTimeOut: Property<Long> = project.objects.property(Long::class.javaObjectType).convention(3)
+    @get:Internal
+    val nodeJobTimeOut: Property<Long> = project.objects.property(Long::class.javaObjectType).convention(3)
 
     /**
      * Set the name of the node.
@@ -529,7 +529,7 @@ open class Node @Inject constructor(private val project: Project) {
         }
     }
 
-    private fun printNodeOutputAndThrow(stdoutFile: File) {
+    private fun printNodeOutputAndThrow(stdoutFile: File): Nothing {
         project.logger.error("#### Error while generating node info file $name ####")
         project.logger.error(stdoutFile.readText())
         throw IllegalStateException("Error while generating node info file. Please check the logs in ${stdoutFile.parent}.")
