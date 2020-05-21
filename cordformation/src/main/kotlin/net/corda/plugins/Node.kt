@@ -150,17 +150,17 @@ open class Node @Inject constructor(private val project: Project) {
     // with current and previous Corda versions
     @get:Optional
     @get:Input
-    val runSchemaMigration: Property<Boolean> = project.objects.property(Boolean::class.javaObjectType).convention(false)
+    var runSchemaMigration: Boolean = false
 
     // If generating schemas, should app schema be generated using hibernate if missing migration scripts
     @get:Optional
     @get:Input
-    val allowHibernateToManageAppSchema: Property<Boolean> = project.objects.property(Boolean::class.javaObjectType).convention(false)
+    var allowHibernateToManageAppSchema: Boolean = false
 
     //Configure the timeout for schema generation runtime
     @get:Optional
     @get:Internal
-    val nodeJobTimeOut: Property<Long> = project.objects.property(Long::class.javaObjectType).convention(3)
+    var nodeJobTimeOutInMinutes: Long = 3
 
     /**
      * Set the name of the node.
@@ -497,11 +497,11 @@ open class Node @Inject constructor(private val project: Project) {
             "-jar",
             "corda.jar",
             "run-migration-scripts",
-            if (allowHibernateToManageAppSchema.get()) "--allow-hibernate-to-manage-app-schema" else null)
+            if (allowHibernateToManageAppSchema) "--allow-hibernate-to-manage-app-schema" else null)
 
     private fun runSchemaMigration(){
-        if (!runSchemaMigration.get()) return
-        project.logger.lifecycle("Run database schema migration scripts${if(allowHibernateToManageAppSchema.get()) " - managing CorDapp schemas with hibernate" else ""}")
+        if (!runSchemaMigration) return
+        project.logger.lifecycle("Run database schema migration scripts${if(allowHibernateToManageAppSchema) " - managing CorDapp schemas with hibernate" else ""}")
         runNodeJob(createSchemasCmd(), "node-schema-cordform.log")
     }
 
@@ -517,7 +517,7 @@ open class Node @Inject constructor(private val project: Project) {
                 .apply { environment()["CAPSULE_CACHE_DIR"] = "../.cache" }
                 .start()
         try {
-            if (!process.waitFor(nodeJobTimeOut.get(), TimeUnit.MINUTES)) {
+            if (!process.waitFor(nodeJobTimeOutInMinutes, TimeUnit.MINUTES)) {
                 process.destroyForcibly()
                 printNodeOutputAndThrow(nodeRedirectFile)
             }
