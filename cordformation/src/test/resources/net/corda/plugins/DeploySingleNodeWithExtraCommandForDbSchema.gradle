@@ -1,0 +1,41 @@
+buildscript {
+    ext {
+        corda_group = 'net.corda'
+        corda_release_version = '4.6-20200519_115923-a2be3e8'
+        jolokia_version = '1.6.0'
+    }
+}
+
+plugins {
+    id 'net.corda.plugins.cordformation'
+}
+
+repositories {
+    mavenCentral()
+    maven { url 'https://software.r3.com/artifactory/corda-dev' }
+    maven { url 'https://software.r3.com/artifactory/corda-dependencies' }
+}
+
+dependencies {
+    runtime "$corda_group:corda:$corda_release_version"
+    runtime "$corda_group:corda-node-api:$corda_release_version"
+    cordapp "$corda_group:corda-finance-contracts:$corda_release_version"
+    cordapp "$corda_group:corda-finance-workflows:$corda_release_version"
+}
+
+task deployNodes(type: net.corda.plugins.Cordform) {
+    node {
+        projectCordapp {
+            deploy false
+        }
+        name 'O=Notary Service,L=Zurich,C=CH'
+        notary = [validating : true]
+        p2pPort 10002
+        rpcPort 10003
+        rpcSettings {
+            adminAddress "localhost:10004"
+        }
+        runSchemaMigration = true
+        allowHibernateToManageAppSchema = true
+    }
+}

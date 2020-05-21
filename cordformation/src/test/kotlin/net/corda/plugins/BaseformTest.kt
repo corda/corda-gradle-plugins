@@ -54,6 +54,7 @@ open class BaseformTest {
         } ?: throw FileNotFoundException(resourceName)
     }
 
+    fun getNodeLogFile( nodeName: String, fileName: String ) = Paths.get(testProjectDir.toAbsolutePath().toString(), "build", "nodes", nodeName, "logs", "$fileName")
     fun getNodeCordappJar(nodeName: String, cordappJarName: String) = Paths.get(testProjectDir.toAbsolutePath().toString(), "build", "nodes", nodeName, "cordapps", "$cordappJarName.jar")
     fun getNodeCordappConfig(nodeName: String, cordappJarName: String) = Paths.get(testProjectDir.toAbsolutePath().toString(), "build", "nodes", nodeName, "cordapps", "config", "$cordappJarName.conf")
     fun getNetworkParameterOverrides(nodeName: String) = Paths.get(testProjectDir.toAbsolutePath().toString(), "build", "nodes", nodeName, "network-parameters")

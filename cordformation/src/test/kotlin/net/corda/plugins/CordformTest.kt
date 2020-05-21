@@ -51,6 +51,18 @@ class CordformTest : BaseformTest() {
     }
 
     @Test
+    fun `a node that requires an extra command to create schema`(){
+        val runner = getStandardGradleRunnerFor("DeploySingleNodeWithExtraCommandForDbSchema.gradle")
+
+        val result = runner.build()
+
+        assertThat(result.task(":deployNodes")!!.outcome).isEqualTo(TaskOutcome.SUCCESS)
+        assertThat(getNodeLogFile(notaryNodeName, "node-run-migration.log")).isRegularFile()
+        assertThat(getNodeLogFile(notaryNodeName, "node-schema-cordform.log")).isRegularFile()
+        assertThat(getNodeLogFile(notaryNodeName, "node-info-gen.log")).isRegularFile()
+    }
+
+    @Test
     fun `a node with cordapp dependency`() {
         val runner = getStandardGradleRunnerFor("DeploySingleNodeWithCordapp.gradle")
 
