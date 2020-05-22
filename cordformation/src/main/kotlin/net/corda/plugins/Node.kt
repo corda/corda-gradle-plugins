@@ -5,7 +5,6 @@ import groovy.lang.Closure
 import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ProjectDependency
-import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
@@ -505,7 +504,7 @@ open class Node @Inject constructor(private val project: Project) {
         runNodeJob(createSchemasCmd(), "node-schema-cordform.log")
     }
 
-    val LOGS_DIR_NAME: String = "logs"
+    private val LOGS_DIR_NAME: String = "logs"
 
     private fun runNodeJob(command: List<String>, logfileName: String) {
         val logsDir = Files.createDirectories(nodeDir.toPath().resolve(LOGS_DIR_NAME))
