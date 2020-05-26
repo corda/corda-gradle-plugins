@@ -14,6 +14,8 @@ import java.io.File
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.Paths
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 /**
@@ -142,6 +144,22 @@ open class Node @Inject constructor(private val project: Project) {
     var configFile: String? = null
         @Optional @Input get
         private set
+
+    // Should the cordform set up run data base migration scripts after installation - defaults to false for compatibility
+    // with current and previous Corda versions
+    @get:Optional
+    @get:Input
+    var runSchemaMigration: Boolean = false
+
+    // If generating schemas, should app schema be generated using hibernate if missing migration scripts
+    @get:Optional
+    @get:Input
+    var allowHibernateToManageAppSchema: Boolean = false
+
+    //Configure the timeout for schema generation runtime
+    @get:Optional
+    @get:Internal
+    var nodeJobTimeOutInMinutes: Long = 3
 
     /**
      * Set the name of the node.
@@ -374,12 +392,14 @@ open class Node @Inject constructor(private val project: Project) {
         installCordapps()
         installCordappConfigs()
         installConfig()
+        runSchemaMigration()
     }
 
     internal fun buildDocker() {
         installDrivers()
         installCordapps()
         installCordappConfigs()
+        runSchemaMigration()
     }
 
     internal fun installCordapps() {
@@ -468,6 +488,50 @@ open class Node @Inject constructor(private val project: Project) {
                 rename(webJar.name, webJarName)
             }
         }
+    }
+
+
+    private fun createSchemasCmd() = listOfNotNull(
+            Paths.get(System.getProperty("java.home"), "bin", "java").toString(),
+            "-jar",
+            "corda.jar",
+            "run-migration-scripts",
+            if (allowHibernateToManageAppSchema) "--allow-hibernate-to-manage-app-schema" else null)
+
+    private fun runSchemaMigration(){
+        if (!runSchemaMigration) return
+        project.logger.lifecycle("Run database schema migration scripts${if(allowHibernateToManageAppSchema) " - managing CorDapp schemas with hibernate" else ""}")
+        runNodeJob(createSchemasCmd(), "node-schema-cordform.log")
+    }
+
+    private val LOGS_DIR_NAME: String = "logs"
+
+    private fun runNodeJob(command: List<String>, logfileName: String) {
+        val logsDir = Files.createDirectories(nodeDir.toPath().resolve(LOGS_DIR_NAME))
+        val nodeRedirectFile = logsDir.resolve(logfileName).toFile()
+        val process = ProcessBuilder(command)
+                .directory(nodeDir)
+                .redirectErrorStream(true)
+                .redirectOutput(nodeRedirectFile)
+                .apply { environment()["CAPSULE_CACHE_DIR"] = "../.cache" }
+                .start()
+        try {
+            if (!process.waitFor(nodeJobTimeOutInMinutes, TimeUnit.MINUTES)) {
+                process.destroyForcibly()
+                printNodeOutputAndThrow(nodeRedirectFile)
+            }
+            if (process.exitValue() != 0) printNodeOutputAndThrow(nodeRedirectFile)
+        } catch (e: InterruptedException) {
+            // Don't leave this process dangling if the thread is interrupted.
+            process.destroyForcibly()
+            throw e
+        }
+    }
+
+    private fun printNodeOutputAndThrow(stdoutFile: File): Nothing {
+        project.logger.error("#### Error while generating node info file $name ####")
+        project.logger.error(stdoutFile.readText())
+        throw IllegalStateException("Error while generating node info file. Please check the logs in ${stdoutFile.parent}.")
     }
 
     fun runtimeVersion(): String {
