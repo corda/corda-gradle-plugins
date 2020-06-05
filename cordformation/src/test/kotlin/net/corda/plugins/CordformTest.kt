@@ -11,7 +11,9 @@ import net.corda.serialization.internal.AMQP_P2P_CONTEXT
 import net.corda.serialization.internal.SerializationFactoryImpl
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.testkit.runner.TaskOutcome
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import java.time.Duration
 
 class CordformTest : BaseformTest() {
     @Test
@@ -34,8 +36,13 @@ class CordformTest : BaseformTest() {
                 AMQP_P2P_CONTEXT)
         )
         val serializedBytes = SerializedBytes<SignedDataWithCert<NetworkParameters>>(getNetworkParameterOverrides(notaryNodeName).toFile().readBytes())
-        val deserialized = serializedBytes.deserialize(SerializationDefaults.SERIALIZATION_FACTORY).raw.deserialize().packageOwnership
-        assertThat(deserialized.containsKey("com.mypackagename")).isTrue()
+        val deserializedNetworkParameterOverrides = serializedBytes.deserialize(SerializationDefaults.SERIALIZATION_FACTORY).raw.deserialize()
+        val deserializedPackageOwnership = deserializedNetworkParameterOverrides.packageOwnership
+        assertThat(deserializedPackageOwnership.containsKey("com.mypackagename")).isTrue()
+        Assertions.assertEquals(Duration.ofDays(2), deserializedNetworkParameterOverrides.eventHorizon)
+        Assertions.assertEquals(123456, deserializedNetworkParameterOverrides.maxMessageSize)
+        Assertions.assertEquals(2468, deserializedNetworkParameterOverrides.maxTransactionSize)
+        Assertions.assertEquals(3, deserializedNetworkParameterOverrides.minimumPlatformVersion)
     }
 
     @Test

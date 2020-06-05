@@ -283,7 +283,7 @@ open class Baseform(objects: ObjectFactory) : DefaultTask() {
 
     private fun invokeBootstrap(networkBootstrapperClass: Class<*>, rootDir: Path, allCordapps: List<Path>) {
         try {
-            if (networkParameterOverrides.packageOwnership.isEmpty()) {
+            if (networkParameterOverrides.isEmpty()) {
                 val bootstrapMethod = networkBootstrapperClass.getMethod("bootstrapCordform", Path::class.java, List::class.java).apply { isAccessible = true }
                 bootstrapMethod.invoke(networkBootstrapperClass.newInstance(), rootDir, allCordapps)
             } else {
