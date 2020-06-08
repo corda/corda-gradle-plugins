@@ -496,6 +496,8 @@ open class Node @Inject constructor(private val project: Project) {
             "-jar",
             "corda.jar",
             "run-migration-scripts",
+            "--core-schemas",
+            "--app-schemas",
             if (allowHibernateToManageAppSchema) "--allow-hibernate-to-manage-app-schema" else null)
 
     private fun runSchemaMigration(){
