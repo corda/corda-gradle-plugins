@@ -1,6 +1,6 @@
 buildscript {
     ext {
-        corda_release_version = '4.6-20200519_115923-a2be3e8'
+        corda_release_version = '4.6-20200608_123659-1da174c'
     }
 }
 
