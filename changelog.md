@@ -8,6 +8,7 @@
 * `cordformation`: Add properties `runSchemaMigration` and `allowHibernateToManageAppSchema` in order to run schema 
 migration/set-up as part of a cordform deployment (only supported in Corda 4.6 and later)
 * `cordformation`: Made Dockerform's dockerImage property mandatory to avoid using hardcoded default Docker images
+* `cordformation`: Added `minimumPlatformVersion`, `maxMessageSize`, `maxTransactionSize` and `eventHorizon` to `NetworkParameterOverrides`
 
 ### Version 5.0.9
 
