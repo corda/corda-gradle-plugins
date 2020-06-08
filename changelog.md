@@ -2,6 +2,8 @@
 
 ## Version 5
 
+### Version 5.0.11
+
 ### Version 5.0.10
 
 * `cordformation`: Add option to accept license agreements for Corda enterprise Docker images 
