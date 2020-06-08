@@ -6,11 +6,13 @@ import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Project
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.Optional
 import java.time.Duration
 import javax.inject.Inject
 
+@Suppress("UnstableApiUsage")
 open class NetworkParameterOverrides @Inject constructor(project: Project) {
 
     @get:Optional
@@ -36,6 +38,7 @@ open class NetworkParameterOverrides @Inject constructor(project: Project) {
     @get:Input
     val eventHorizon: Property<Duration> = project.objects.property(Duration::class.java)
 
+    @Internal
     fun isEmpty() = !minimumPlatformVersion.isPresent &&
             !maxMessageSize.isPresent &&
             !maxTransactionSize.isPresent &&
