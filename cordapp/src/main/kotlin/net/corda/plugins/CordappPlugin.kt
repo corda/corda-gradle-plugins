@@ -4,6 +4,7 @@ import net.corda.plugins.SignJar.Companion.sign
 import org.gradle.api.*
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
+import org.gradle.api.file.ProjectLayout
 import org.gradle.api.java.archives.Attributes
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.JavaPlugin
@@ -11,6 +12,7 @@ import org.gradle.api.plugins.JavaPlugin.JAR_TASK_NAME
 import org.gradle.api.plugins.JavaPlugin.RUNTIME_CONFIGURATION_NAME
 import org.gradle.api.provider.Property
 import org.gradle.api.publish.maven.tasks.GenerateMavenPom
+import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.bundling.ZipEntryCompression.DEFLATED
 import org.gradle.jvm.tasks.Jar
 import org.gradle.util.GradleVersion
@@ -23,7 +25,7 @@ import javax.inject.Inject
  * and with the information needed to run on Corda.
  */
 @Suppress("UNUSED", "UnstableApiUsage", "Deprecation")
-class CordappPlugin @Inject constructor(private val objects: ObjectFactory): Plugin<Project> {
+class CordappPlugin @Inject constructor(private val objects: ObjectFactory, private val layouts: ProjectLayout): Plugin<Project> {
     private companion object {
         private const val UNKNOWN = "Unknown"
         private const val MIN_GRADLE_VERSION = "5.1"
@@ -114,6 +116,22 @@ class CordappPlugin @Inject constructor(private val objects: ObjectFactory): Plu
                     exclude("META-INF/INDEX.LIST")
                 }
             }
+        }
+
+        /*
+         * Generate an extra resource file containing all of this CorDapp's
+         * explicit CorDapp dependencies.
+         */
+        val dependencyDir = objects.directoryProperty().apply {
+            set(layouts.buildDirectory.dir("generated-dependencies"))
+        }
+        val dependencyTask = project.tasks.register("cordappDependencies", CordappDependencyTask::class.java) { task ->
+            val outputFile = dependencyDir.file("META-INF/Cordapp-Dependencies")
+            task.dependencyOutput.set(outputFile)
+        }
+        val sourceSets = project.extensions.getByName("sourceSets") as SourceSetContainer
+        sourceSets.getByName("main") { main ->
+            main.output.dir(mapOf("builtBy" to dependencyTask), dependencyDir)
         }
     }
 
