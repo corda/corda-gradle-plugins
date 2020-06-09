@@ -2,20 +2,13 @@ package net.corda.plugins
 
 import org.gradle.api.Action
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Nested
 import javax.inject.Inject
 
+@Suppress("UnstableApiUsage", "Unused", "Deprecation")
 open class CordappExtension @Inject constructor(objectFactory: ObjectFactory)  {
-
-    /**
-     * Top-level CorDapp attributes
-     */
-    @get:Input
-    var targetPlatformVersion: Int? = null
-
-    @get:Input
-    var minimumPlatformVersion: Int? = null
 
     /**
      * CorDapp distribution information (deprecated)
@@ -23,6 +16,15 @@ open class CordappExtension @Inject constructor(objectFactory: ObjectFactory)  {
     @Deprecated("Use top-level attributes and specific Contract and Workflow info objects")
     @get:Nested
     val info: Info = objectFactory.newInstance(Info::class.java)
+
+    /**
+     * Top-level CorDapp attributes
+     */
+    @get:Input
+    val targetPlatformVersion: Property<Int> = objectFactory.property(Int::class.java).convention(info.targetPlatformVersion)
+
+    @get:Input
+    val minimumPlatformVersion: Property<Int> = objectFactory.property(Int::class.java).convention(info.minimumPlatformVersion)
 
     /**
      * CorDapp Contract distribution information.
@@ -66,5 +68,13 @@ open class CordappExtension @Inject constructor(objectFactory: ObjectFactory)  {
 
     fun sealing(action: Action<in Sealing>) {
         action.execute(sealing)
+    }
+
+    fun targetPlatformVersion(value: Int?) {
+        targetPlatformVersion.set(value)
+    }
+
+    fun minimumPlatformVersion(value: Int?) {
+        minimumPlatformVersion.set(value)
     }
 }

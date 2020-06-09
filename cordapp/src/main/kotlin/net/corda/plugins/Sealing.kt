@@ -1,17 +1,22 @@
 package net.corda.plugins
 
+import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
+import javax.inject.Inject
 
-open class Sealing {
+@Suppress("UnstableApiUsage", "Unused")
+open class Sealing @Inject constructor(objects: ObjectFactory) {
 
     @get:Input
-    var enabled: Boolean = System.getProperty( "sealing.enabled", "true").toBoolean()
+    val enabled: Property<Boolean> = objects.property(Boolean::class.javaObjectType)
+            .convention(System.getProperty( "sealing.enabled", "true").toBoolean())
 
     fun enabled(value: Boolean) {
-        enabled = value
+        enabled.set(value)
     }
 
     fun enabled(value: String) {
-        enabled = value.toBoolean()
+        enabled.set(value.toBoolean())
     }
 }

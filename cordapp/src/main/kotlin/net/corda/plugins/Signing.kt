@@ -4,21 +4,24 @@ import net.corda.plugins.cordapp.signing.SigningOptions
 import net.corda.plugins.cordapp.signing.SigningOptions.Companion.SYSTEM_PROPERTY_PREFIX
 import org.gradle.api.Action
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Nested
 import javax.inject.Inject
 
+@Suppress("UnstableApiUsage", "Unused")
 open class Signing @Inject constructor(objectFactory: ObjectFactory) {
 
     @get:Input
-    var enabled: Boolean = System.getProperty(SYSTEM_PROPERTY_PREFIX + "enabled", "true").toBoolean()
+    val enabled: Property<Boolean> = objectFactory.property(Boolean::class.javaObjectType)
+            .convention(System.getProperty(SYSTEM_PROPERTY_PREFIX + "enabled", "true").toBoolean())
 
     fun enabled(value: Boolean) {
-        enabled = value
+        enabled.set(value)
     }
 
     fun enabled(value: String) {
-        enabled = value.toBoolean()
+        enabled.set(value.toBoolean())
     }
 
     @get:Nested
