@@ -26,6 +26,7 @@ class CordappTest {
     fun setup() {
         buildFile = testProjectDir.resolve("build.gradle")
         installResource(testProjectDir, "settings.gradle")
+        installResource(testProjectDir, "gradle.properties")
         installResource(testProjectDir, "repositories.gradle")
     }
 
@@ -47,6 +48,7 @@ class CordappTest {
         val jarTaskRunner = jarTaskRunner("CorDappWithInfo.gradle", extraArgs)
 
         val result = jarTaskRunner.build()
+        println(result.output)
 
         assertThat(result.task(":jar")!!.outcome).isEqualTo(TaskOutcome.SUCCESS)
 
@@ -83,6 +85,7 @@ class CordappTest {
         val jarTaskRunner = jarTaskRunner("CorDappWithContractInfo.gradle", extraArgs)
 
         val result = jarTaskRunner.build()
+        println(result.output)
 
         assertThat(result.task(":jar")!!.outcome).isEqualTo(TaskOutcome.SUCCESS)
 
@@ -119,6 +122,7 @@ class CordappTest {
         val jarTaskRunner = jarTaskRunner("CorDappWithWorkflowInfo.gradle", extraArgs)
 
         val result = jarTaskRunner.build()
+        println(result.output)
 
         assertThat(result.task(":jar")!!.outcome).isEqualTo(TaskOutcome.SUCCESS)
 
@@ -163,6 +167,7 @@ class CordappTest {
         val jarTaskRunner = jarTaskRunner("CorDappWithContractAndWorflowInfo.gradle", extraArgs)
 
         val result = jarTaskRunner.build()
+        println(result.output)
 
         assertThat(result.task(":jar")!!.outcome).isEqualTo(TaskOutcome.SUCCESS)
 
@@ -212,6 +217,7 @@ class CordappTest {
         val jarTaskRunner = jarTaskRunner("CorDappWithInfoAll.gradle", extraArgs)
 
         val result = jarTaskRunner.build()
+        println(result.output)
 
         assertThat(result.task(":jar")!!.outcome).isEqualTo(TaskOutcome.SUCCESS)
 
@@ -246,6 +252,7 @@ class CordappTest {
         val jarTaskRunner = jarTaskRunner("CorDappWithoutMetadata.gradle")
 
         val result = jarTaskRunner.build()
+        println(result.output)
 
         assertThat(result.task(":jar")!!.outcome).isEqualTo(TaskOutcome.SUCCESS)
 
