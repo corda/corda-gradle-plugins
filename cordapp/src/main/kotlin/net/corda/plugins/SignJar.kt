@@ -6,6 +6,7 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.FileCollection
+import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputFiles
@@ -18,9 +19,10 @@ import java.nio.file.Files
 import java.nio.file.Paths
 import java.nio.file.StandardCopyOption
 
+@Suppress("UnstableApiUsage")
 open class SignJar : DefaultTask() {
     companion object {
-        fun sign(project: Project, signing: Signing, file: File, enabled: Boolean = signing.enabled) {
+        fun sign(project: Project, signing: Signing, file: File, enabled: Boolean) {
             if (!enabled) {
                 project.logger.info("CorDapp JAR signing is disabled, the CorDapp's contracts will not use signature constraints.")
                 return
@@ -53,10 +55,15 @@ open class SignJar : DefaultTask() {
         }
     }
 
+    init {
+        description = "Signs the given jars using the configuration from cordapp.signing.options."
+        group = "Cordapp"
+    }
+
     private val signing: Signing = (project.extensions.findByName("cordapp") as CordappExtension).signing
 
     @get:Input
-    var postfix: String = "-signed"
+    val postfix: Property<String> = project.objects.property(String::class.java).convention("-signed")
 
     private val _inputJars: ConfigurableFileCollection = project.files()
 
