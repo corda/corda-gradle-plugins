@@ -86,7 +86,7 @@ open class SignJar : DefaultTask() {
     private fun toSigned(file: File): File {
         val path = file.absolutePath
         val lastDot = path.lastIndexOf('.')
-        return File(path.substring(0, lastDot) + postfix + path.substring(lastDot))
+        return File(path.substring(0, lastDot) + postfix.get() + path.substring(lastDot))
     }
 
     @TaskAction
