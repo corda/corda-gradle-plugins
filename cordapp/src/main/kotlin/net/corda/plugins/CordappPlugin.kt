@@ -10,9 +10,9 @@ import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.JavaPlugin.JAR_TASK_NAME
 import org.gradle.api.plugins.JavaPlugin.RUNTIME_CONFIGURATION_NAME
+import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.provider.Property
 import org.gradle.api.publish.maven.tasks.GenerateMavenPom
-import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.bundling.ZipEntryCompression.DEFLATED
 import org.gradle.jvm.tasks.Jar
 import org.gradle.util.GradleVersion
@@ -73,22 +73,23 @@ class CordappPlugin @Inject constructor(private val objects: ObjectFactory, priv
 
         val jarTask = project.tasks.named(JAR_TASK_NAME, Jar::class.java) { task ->
             task.dependsOn(cordappTask)
-            task.fileMode = Integer.parseInt("444", 8)
-            task.dirMode = Integer.parseInt("555", 8)
-            task.manifestContentCharset = "UTF-8"
-            task.isPreserveFileTimestamps = false
-            task.isReproducibleFileOrder = true
-            task.entryCompression = DEFLATED
-            task.includeEmptyDirs = false
-            task.isCaseSensitive = true
-            task.isZip64 = false
             task.doFirst {
-                val attributes = task.manifest.attributes
+                it as Jar
+                it.fileMode = Integer.parseInt("444", 8)
+                it.dirMode = Integer.parseInt("555", 8)
+                it.manifestContentCharset = "UTF-8"
+                it.isPreserveFileTimestamps = false
+                it.isReproducibleFileOrder = true
+                it.entryCompression = DEFLATED
+                it.includeEmptyDirs = false
+                it.isCaseSensitive = true
+                task.isZip64 = false
+                val attributes = it.manifest.attributes
                 // check whether metadata has been configured (not mandatory for non-flow, non-contract gradle build files)
                 if (cordapp.contract.isEmpty() && cordapp.workflow.isEmpty() && cordapp.info.isEmpty()) {
                     it.logger.warn("Cordapp metadata not defined for this gradle build file. See https://docs.corda.net/head/cordapp-build-systems.html#separation-of-cordapp-contracts-flows-and-services")
                 } else {
-                    configureCordappAttributes(project, task, attributes)
+                    configureCordappAttributes(project, it, attributes)
                 }
             }.doLast {
                 if (cordapp.signing.enabled.get()) {
@@ -126,10 +127,9 @@ class CordappPlugin @Inject constructor(private val objects: ObjectFactory, priv
             set(layouts.buildDirectory.dir("generated-dependencies"))
         }
         val dependencyTask = project.tasks.register("cordappDependencies", CordappDependencyTask::class.java) { task ->
-            val outputFile = dependencyDir.file("META-INF/Cordapp-Dependencies")
-            task.dependencyOutput.set(outputFile)
+            task.dependencyDir.set(dependencyDir)
         }
-        val sourceSets = project.extensions.getByName("sourceSets") as SourceSetContainer
+        val sourceSets = project.convention.getPlugin(JavaPluginConvention::class.java).sourceSets
         sourceSets.getByName("main") { main ->
             main.output.dir(mapOf("builtBy" to dependencyTask), dependencyDir)
         }
