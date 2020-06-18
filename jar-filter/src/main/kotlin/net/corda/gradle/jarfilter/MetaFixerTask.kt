@@ -115,19 +115,19 @@ open class MetaFixerTask @Inject constructor(objects: ObjectFactory, layouts: Pr
 
             val classNames = inJar.entries().asSequence().namesEndingWith(".class")
             for (entry in inJar.entries()) {
-                val entryData = inJar.getInputStream(entry)
-
-                if (entry.isDirectory || !entry.name.endsWith(".class")) {
-                    // This entry's byte contents have not changed,
-                    // but may still need to be recompressed.
-                    outJar.putNextEntry(entry.copy().withFileTimestamps(preserveTimestamps.get()))
-                    entryData.copyTo(outJar)
-                } else {
-                    // This entry's byte contents have almost certainly
-                    // changed, and will be stored compressed.
-                    val classData = entryData.readBytes().fixMetadata(logger, classNames)
-                    outJar.putNextEntry(entry.asCompressed().withFileTimestamps(preserveTimestamps.get()))
-                    outJar.write(classData)
+                inJar.getInputStream(entry).use { entryData ->
+                    if (entry.isDirectory || !entry.name.endsWith(".class")) {
+                        // This entry's byte contents have not changed,
+                        // but may still need to be recompressed.
+                        outJar.putNextEntry(entry.copy().withFileTimestamps(preserveTimestamps.get()))
+                        entryData.copyTo(outJar)
+                    } else {
+                        // This entry's byte contents have almost certainly
+                        // changed, and will be stored compressed.
+                        val classData = entryData.readBytes().fixMetadata(logger, classNames)
+                        outJar.putNextEntry(entry.asCompressed().withFileTimestamps(preserveTimestamps.get()))
+                        outJar.write(classData)
+                    }
                 }
             }
         }
