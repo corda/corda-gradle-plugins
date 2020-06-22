@@ -229,20 +229,21 @@ open class JarFilterTask @Inject constructor(objects: ObjectFactory, layouts: Pr
                 outJar.setComment(inJar.comment)
 
                 for (entry in inJar.entries()) {
-                    val entryData = inJar.getInputStream(entry)
-
-                    if (entry.isDirectory || !entry.name.endsWith(".class")) {
-                        // This entry's byte contents have not changed,
-                        // but may still need to be recompressed.
-                        outJar.putNextEntry(entry.copy().withFileTimestamps(preserveTimestamps.get()))
-                        entryData.copyTo(outJar)
-                    } else {
-                        val classData = transform(entryData.readBytes())
-                        if (classData.isNotEmpty()) {
-                            // This entry's byte contents have almost certainly
-                            // changed, and will be stored compressed.
-                            outJar.putNextEntry(entry.asCompressed().withFileTimestamps(preserveTimestamps.get()))
-                            outJar.write(classData)
+                    inJar.getInputStream(entry).use { entryData ->
+                        if (entry.isDirectory || !entry.name.endsWith(".class")) {
+                            // This entry's byte contents have not changed,
+                            // but may still need to be recompressed.
+                            outJar.putNextEntry(entry.copy().withFileTimestamps(preserveTimestamps.get()))
+                            entryData.copyTo(outJar)
+                        } else {
+                            val classData = transform(entryData.readBytes())
+                            if (classData.isNotEmpty()) {
+                                // This entry's byte contents have almost certainly
+                                // changed, and will be stored compressed.
+                                outJar.putNextEntry(entry.asCompressed().withFileTimestamps(preserveTimestamps.get()))
+                                outJar.write(classData)
+                            }
+                            Unit
                         }
                     }
                 }
