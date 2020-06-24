@@ -1,0 +1,17 @@
+plugins {
+    id 'java-library'
+}
+
+apply from: '../repositories.gradle'
+
+jar {
+    archiveBaseName = 'library'
+}
+
+dependencies {
+    // Corda depends on Guava via Quasar.
+    implementation "com.google.guava:guava:\$guava_version"
+
+    // Corda depends on a more recent version of SLF4J API.
+    implementation "org.slf4j:slf4j-api:1.7.21"
+}

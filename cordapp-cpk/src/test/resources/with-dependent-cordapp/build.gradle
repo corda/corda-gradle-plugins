@@ -1,0 +1,26 @@
+plugins {
+    id 'net.corda.plugins.cordapp-cpk'
+}
+
+apply from: 'repositories.gradle'
+
+cordapp {
+    targetPlatformVersion = platform_version.toInteger()
+    minimumPlatformVersion = platform_version.toInteger()
+
+    workflow {
+        name = 'With Dependent CorDapp'
+        versionId = cordapp_contract_version.toInteger()
+        licence = 'Test-Licence'
+        vendor = 'R3'
+    }
+}
+
+jar {
+    archiveBaseName = 'with-dependent-cordapp'
+}
+
+dependencies {
+    cordapp project(':cordapp')
+    cordaImplementation "net.corda:corda-core:\$corda_release_version"
+}
