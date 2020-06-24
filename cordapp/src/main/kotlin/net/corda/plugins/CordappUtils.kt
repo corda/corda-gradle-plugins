@@ -31,9 +31,9 @@ class CordappUtils {
         }
 
         fun compareVersions(v1: String, v2: String): Int {
-            fun parseVersionString(v: String) = v.split(".").flatMap { it.split("-") }.map {
+            fun parseVersionString(v: String) = v.split('.').flatMap { it.split('-') }.map {
                 try {
-                    Integer.valueOf(it)
+                    it.toInt()
                 } catch (e: NumberFormatException) {
                     -1
                 }
