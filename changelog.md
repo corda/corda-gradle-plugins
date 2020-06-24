@@ -4,6 +4,8 @@
 
 ### Version 5.0.11
 
+* `cordapp`: Raise minimum Gradle version to 5.1.
+
 ### Version 5.0.10
 
 * `cordformation`: Add option to accept license agreements for Corda enterprise Docker images 

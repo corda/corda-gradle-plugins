@@ -24,7 +24,7 @@ import javax.inject.Inject
 class CordappPlugin @Inject constructor(private val objects: ObjectFactory): Plugin<Project> {
     private companion object {
         private const val UNKNOWN = "Unknown"
-        private const val MIN_GRADLE_VERSION = "4.0"
+        private const val MIN_GRADLE_VERSION = "5.1"
 
         private val HARDCODED_EXCLUDES: Set<Pair<String, String>> = unmodifiableSet(setOf(
             "org.jetbrains.kotlin" to "kotlin-stdlib",
