@@ -1,0 +1,84 @@
+import org.apache.tools.ant.filters.ReplaceTokens
+
+plugins {
+    id 'org.jetbrains.kotlin.jvm'
+    id 'java-gradle-plugin'
+}
+
+description 'Configures this project to create a CPK CorDapp'
+
+ext {
+    test_quasar_utils_version = '5.0.10'
+}
+
+repositories {
+    mavenCentral()
+}
+
+gradlePlugin {
+    plugins {
+        cordappPlugin {
+            id = 'net.corda.plugins.cordapp-cpk'
+            implementationClass = 'net.corda.plugins.cpk.CordappPlugin'
+        }
+    }
+    automatedPublishing = false
+}
+
+pluginBundle {
+    website = project.vcsUrl
+    vcsUrl = project.vcsUrl
+    description = 'Corda Cordapp CPK Builder Plugin'
+    tags = ['corda']
+
+    plugins {
+        cordappPlugin {
+            displayName = 'Corda Cordapp CPK Plugin'
+        }
+    }
+}
+
+sourceSets {
+    main {
+        kotlin {
+            srcDirs files('src/main/kotlin', "$buildDir/generated-source")
+        }
+        resources {
+            srcDirs files('resources', "${project(':cordapp').projectDir}/src/main/resources")
+        }
+    }
+}
+
+dependencies {
+    // Gradle plugins written in Kotlin will always use Gradle's
+    // own provided Kotlin libraries at runtime. So ensure that
+    // we don't add Kotlin as a dependency in our published POM.
+    compileOnly 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
+    testImplementation 'org.jetbrains.kotlin:kotlin-test'
+    testImplementation("org.junit.jupiter:junit-jupiter-api:$junit_jupiter_version")
+    testImplementation("org.junit.jupiter:junit-jupiter-params:$junit_jupiter_version")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junit_jupiter_version")
+    testImplementation "org.assertj:assertj-core:$assertj_version"
+}
+
+/**
+ * The cordformation plugin needs to share the SigningOption
+ * class with the cordapp plugin, but we don't want the plugin
+ * jars to depend upon each other. And so we share source code
+ * rather than resort to shading!
+ */
+def generateSource = tasks.register('generateSource', Copy) {
+    from "${project(':cordapp').projectDir}/src/main/template"
+    filter(ReplaceTokens, tokens: [root_package: 'net.corda.plugins.cpk'])
+    into file("$buildDir/generated-source")
+}
+
+tasks.named('compileKotlin') { Task task ->
+    task.dependsOn generateSource
+}
+
+processTestResources {
+    filesMatching('**/build.gradle') {
+        expand(['quasar_utils_version': test_quasar_utils_version])
+    }
+}

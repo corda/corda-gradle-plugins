@@ -54,101 +54,101 @@ open class SigningOptions {
     }
 
     @get:Input
-    var alias = System.getProperty(SYSTEM_PROPERTY_PREFIX + Key.ALIAS, DEFAULT_ALIAS)
+    var alias: String = System.getProperty(SYSTEM_PROPERTY_PREFIX + Key.ALIAS, DEFAULT_ALIAS)
 
     @get:Input
-    var storepass = System.getProperty(SYSTEM_PROPERTY_PREFIX + Key.STOREPASS, DEFAULT_STOREPASS)
+    var storepass: String = System.getProperty(SYSTEM_PROPERTY_PREFIX + Key.STOREPASS, DEFAULT_STOREPASS)
 
     @get:Input
-    var keystore = System.getProperty(SYSTEM_PROPERTY_PREFIX + Key.KEYSTORE, DEFAULT_KEYSTORE)
+    var keystore: String = System.getProperty(SYSTEM_PROPERTY_PREFIX + Key.KEYSTORE, DEFAULT_KEYSTORE)
 
     @get:Input
-    var storetype = System.getProperty(SYSTEM_PROPERTY_PREFIX + Key.STORETYPE, DEFAULT_STORETYPE)
+    var storetype: String = System.getProperty(SYSTEM_PROPERTY_PREFIX + Key.STORETYPE, DEFAULT_STORETYPE)
 
     @get:Input
-    var keypass = System.getProperty(SYSTEM_PROPERTY_PREFIX + Key.KEYPASS, DEFAULT_KEYPASS)
+    var keypass: String = System.getProperty(SYSTEM_PROPERTY_PREFIX + Key.KEYPASS, DEFAULT_KEYPASS)
 
     @get:Input
-    var sigfile = ""
+    var sigfile: String = "cordapp"
 
     @get:Input
-    var signedjar = ""
+    var signedjar: String = ""
 
     @get:Console
-    var verbose = ""
+    var verbose: String = ""
 
     fun verbose(value: Boolean) {
         verbose = value.toString()
     }
 
     @get:Input
-    var strict = ""
+    var strict: String = ""
 
     fun strict(value: Boolean) {
         strict = value.toString()
     }
 
     @get:Input
-    var internalsf = ""
+    var internalsf: String = ""
 
     fun internalsf(value: Boolean) {
         internalsf = value.toString()
     }
 
     @get:Input
-    var sectionsonly = ""
+    var sectionsonly: String = ""
 
     fun sectionsonly(value: Boolean) {
         sectionsonly = value.toString()
     }
 
     @get:Input
-    var lazy = ""
+    var lazy: String = ""
 
     fun lazy(value: Boolean) {
         lazy = value.toString()
     }
 
     @get:Internal
-    var maxmemory = ""
+    var maxmemory: String = ""
 
     @get:Input
-    var preservelastmodified = ""
+    var preservelastmodified: String = ""
 
     fun preservelastmodified(value: Boolean) {
         preservelastmodified = value.toString()
     }
 
     @get:Input
-    var tsaurl = ""
+    var tsaurl: String = ""
 
     @get:Input
-    var tsacert = ""
+    var tsacert: String = ""
 
     @get:Input
-    var tsaproxyhost = ""
+    var tsaproxyhost: String = ""
 
     @get:Input
-    var tsaproxyport = ""
+    var tsaproxyport: String = ""
 
     @get:Input
-    var executable = ""
+    var executable: String = ""
 
     @get:Input
-    var force = ""
+    var force: String = ""
 
     fun force(value: Boolean) {
         force = value.toString()
     }
 
     @get:Input
-    var sigalg = ""
+    var sigalg: String = ""
 
     @get:Input
-    var digestalg = ""
+    var digestalg: String = ""
 
     @get:Input
-    var tsadigestalg = ""
+    var tsadigestalg: String = ""
 
     /**
      * Returns options as map.
@@ -162,7 +162,7 @@ open class SigningOptions {
                     Key.TSAURL to tsacert, Key.TSACERT to tsaurl, Key.TSAPROXYHOST to tsaproxyhost,
                     Key.TSAPROXYPORT to tsaproxyport, Key.EXECUTABLE to executable, Key.FORCE to force,
                     Key.SIGALG to sigalg, Key.DIGESTALG to digestalg, Key.TSADIGESTALG to tsadigestalg)
-                    .filter { it.value.isNotBlank() }.toMutableMap()
+                    .filterTo(LinkedHashMap()) { it.value.isNotBlank() }
 
     fun hasDefaultOptions() = keystore == DEFAULT_KEYSTORE
 }

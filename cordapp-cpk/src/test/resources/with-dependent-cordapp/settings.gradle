@@ -1,0 +1,3 @@
+rootProject.name = 'with-dependent-cordapp'
+include 'library'
+include 'cordapp'

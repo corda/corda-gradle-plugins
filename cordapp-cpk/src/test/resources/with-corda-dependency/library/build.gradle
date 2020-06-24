@@ -1,0 +1,13 @@
+plugins {
+    id 'java-library'
+}
+
+apply from: '../repositories.gradle'
+
+jar {
+    archiveBaseName = 'library'
+}
+
+dependencies {
+    implementation "net.corda:corda-core:\$corda_release_version"
+}
