@@ -68,7 +68,7 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
         installCordaJar()
         generateKeystoreAndSignCordappJar()
         generateExcludedWhitelist()
-    //    bootstrapNetwork()
+        bootstrapNetwork()
         nodes.forEach(Node::buildDocker)
 
         val services = mutableMapOf<String, MutableMap<String, Any>>()
