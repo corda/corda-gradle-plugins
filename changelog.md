@@ -4,6 +4,7 @@
 
 ### Version 5.0.11
 
+* `cordformation`: Map the host to the same ssh port as in the container
 * `cordapp`: Raise minimum Gradle version to 5.1.
 
 ### Version 5.0.10
