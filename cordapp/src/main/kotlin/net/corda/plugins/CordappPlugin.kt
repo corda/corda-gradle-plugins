@@ -85,7 +85,11 @@ class CordappPlugin @Inject constructor(private val objects: ObjectFactory): Plu
                 configureCordappAttributes(project, jarTask, attributes)
             }
         }.doLast {
-            sign(project, cordapp.signing, it.outputs.files.singleFile, cordapp.signing.enabled.get())
+            if (cordapp.signing.enabled.get()) {
+                sign(project, cordapp.signing, it.outputs.files.singleFile)
+            } else {
+                project.logger.info("CorDapp JAR signing is disabled, the CorDapp's contracts will not use signature constraints.")
+            }
         }
 
         val cordappTask = project.task("configureCordappFatJar")
