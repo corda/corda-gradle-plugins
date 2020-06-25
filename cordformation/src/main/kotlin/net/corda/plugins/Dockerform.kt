@@ -7,9 +7,6 @@ import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.*
 import org.gradle.api.tasks.PathSensitivity.RELATIVE
-import org.yaml.snakeyaml.DumperOptions
-import org.yaml.snakeyaml.Yaml
-import org.yaml.snakeyaml.nodes.Tag
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -30,15 +27,6 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
         private const val DEFAULT_SSH_PORT = 22022
         private val DEFAULT_DIRECTORY: Path = Paths.get("build", "docker")
         private const val COMPOSE_SPEC_VERSION = "3"
-
-        private val YAML_FORMAT_OPTIONS = DumperOptions().apply {
-            indent = 2
-            defaultFlowStyle = DumperOptions.FlowStyle.BLOCK
-        }
-
-        private val YAML_MAPPER = Yaml(YAML_FORMAT_OPTIONS).apply {
-            addImplicitResolver(Tag("ports"), "\\d+:\\d+".toPattern(), null)
-        }
     }
 
     init {
@@ -80,7 +68,7 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
         installCordaJar()
         generateKeystoreAndSignCordappJar()
         generateExcludedWhitelist()
-        bootstrapNetwork()
+    //    bootstrapNetwork()
         nodes.forEach(Node::buildDocker)
 
         val services = mutableMapOf<String, MutableMap<String, Any>>()
@@ -103,7 +91,7 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
                             "$nodeBuildDir/drivers:/opt/corda/drivers"
                     ),
                     "environment" to listOf("ACCEPT_LICENSE=\${ACCEPT_LICENSE}"),
-                    "ports" to listOf(it.rpcPort.get(), "${it.config.getInt("sshd.port")}:${it.config.getInt("sshd.port")}"),
+                    "ports" to listOf(it.rpcPort.get(), DockerformUtils.QuotedString("${it.config.getInt("sshd.port")}:${it.config.getInt("sshd.port")}")),
                     "image" to dockerImage.get()
             )
 
@@ -205,7 +193,7 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
             dockerComposeObject["volumes"] = volumes
         }
 
-        val dockerComposeContent = YAML_MAPPER.dump(dockerComposeObject)
+        val dockerComposeContent = DockerformUtils.dump(dockerComposeObject)
 
         Files.write(dockerComposePath, dockerComposeContent.toByteArray())
     }
