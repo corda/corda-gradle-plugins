@@ -9,6 +9,7 @@ import org.gradle.api.tasks.*
 import org.gradle.api.tasks.PathSensitivity.RELATIVE
 import org.yaml.snakeyaml.DumperOptions
 import org.yaml.snakeyaml.Yaml
+import org.yaml.snakeyaml.nodes.Tag
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -35,7 +36,9 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
             defaultFlowStyle = DumperOptions.FlowStyle.BLOCK
         }
 
-        private val YAML_MAPPER = Yaml(YAML_FORMAT_OPTIONS)
+        private val YAML_MAPPER = Yaml(YAML_FORMAT_OPTIONS).apply {
+            addImplicitResolver(Tag("ports"), "\\d+:\\d+".toPattern(), null)
+        }
     }
 
     init {
@@ -100,7 +103,7 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
                             "$nodeBuildDir/drivers:/opt/corda/drivers"
                     ),
                     "environment" to listOf("ACCEPT_LICENSE=\${ACCEPT_LICENSE}"),
-                    "ports" to listOf(it.rpcPort.get(), "\"${it.config.getInt("sshd.port")}:${it.config.getInt("sshd.port")}\""),
+                    "ports" to listOf(it.rpcPort.get(), "${it.config.getInt("sshd.port")}:${it.config.getInt("sshd.port")}"),
                     "image" to dockerImage.get()
             )
 
