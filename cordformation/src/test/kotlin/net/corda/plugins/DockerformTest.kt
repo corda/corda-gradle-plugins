@@ -3,10 +3,8 @@ package net.corda.plugins
 import com.typesafe.config.ConfigFactory
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.testkit.runner.TaskOutcome
-import org.gradle.testkit.runner.UnexpectedBuildFailure
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
 class DockerformTest : BaseformTest() {

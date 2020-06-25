@@ -29,6 +29,7 @@ task prepareDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: ['jar']) 
             address("localhost:10003")
             adminAddress("localhost:10043")
         }
+        sshdPort 22234
     }
     node {
         name "O=BankOfCorda,L=London,C=GB"
@@ -38,6 +39,7 @@ task prepareDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: ['jar']) 
             adminAddress("localhost:10046")
         }
         rpcUsers = [[ user: "user1", "password": "test", "permissions": ["ALL"]]]
+        sshdPort 22235
     }
 
     dockerImage = docker_image_name
