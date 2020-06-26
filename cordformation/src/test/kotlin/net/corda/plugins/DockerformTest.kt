@@ -137,21 +137,21 @@ class DockerformTest : BaseformTest() {
 
         val dockerComposePath = getDockerCompose()
 
-        val yaml = Yaml().load(dockerComposePath.toFile().bufferedReader()) as Map<Any, Any>
+        val yaml = Yaml().load(dockerComposePath.toFile().bufferedReader()) as Map<String, Any>
         assertThat(yaml.containsKey("services")).isTrue()
 
-        val services = yaml["services"] as Map<Any, Any>
-        assertThat(services.containsKey("notary-service")).isTrue()
-        assertThat(services.containsKey("bankofcorda")).isTrue()
+        val services = yaml["services"] as Map<String, Any>
+        assertThat(services).containsKey("notary-service")
+        assertThat(services).containsKey("bankofcorda")
 
-        val notaryService = services["notary-service"] as Map<Any, Any>
-        assertThat(notaryService.containsKey("ports")).isTrue()
+        val notaryService = services["notary-service"] as Map<String, Any>
+        assertThat(notaryService).containsKey("ports")
         val notaryServicePortsList = notaryService["ports"] as List<Any>
-        assertThat("22234:22234" in notaryServicePortsList).isTrue()
+        assertThat(notaryServicePortsList).contains("22234:22234")
 
-        val bankOfCorda = services["bankofcorda"] as Map<Any, Any>
-        assertThat(bankOfCorda.containsKey("ports")).isTrue()
+        val bankOfCorda = services["bankofcorda"] as Map<String, Any>
+        assertThat(bankOfCorda).containsKey("ports")
         val bankOfCordaPortsList = bankOfCorda["ports"] as List<Any>
-        assertThat("22235:22235" in bankOfCordaPortsList).isTrue()
+        assertThat(bankOfCordaPortsList).contains("22235:22235")
     }
 }
