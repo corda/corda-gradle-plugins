@@ -7,6 +7,11 @@ import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.*
 import org.gradle.api.tasks.PathSensitivity.RELATIVE
+import org.yaml.snakeyaml.DumperOptions
+import org.yaml.snakeyaml.Yaml
+import org.yaml.snakeyaml.nodes.Tag
+import org.yaml.snakeyaml.representer.Represent
+import org.yaml.snakeyaml.representer.Representer
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -27,6 +32,13 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
         private const val DEFAULT_SSH_PORT = 22022
         private val DEFAULT_DIRECTORY: Path = Paths.get("build", "docker")
         private const val COMPOSE_SPEC_VERSION = "3"
+
+        private val YAML_FORMAT_OPTIONS = DumperOptions().apply {
+            indent = 2
+            defaultFlowStyle = DumperOptions.FlowStyle.BLOCK
+        }
+
+        private val YAML_MAPPER = Yaml(DockerComposeRepresenter(), YAML_FORMAT_OPTIONS)
     }
 
     init {
@@ -91,7 +103,7 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
                             "$nodeBuildDir/drivers:/opt/corda/drivers"
                     ),
                     "environment" to listOf("ACCEPT_LICENSE=\${ACCEPT_LICENSE}"),
-                    "ports" to listOf(it.rpcPort.get(), DockerformUtils.QuotedString("${it.config.getInt("sshd.port")}:${it.config.getInt("sshd.port")}")),
+                    "ports" to listOf(it.rpcPort.get(), QuotedString("${it.config.getInt("sshd.port")}:${it.config.getInt("sshd.port")}")),
                     "image" to dockerImage.get()
             )
 
@@ -193,8 +205,24 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
             dockerComposeObject["volumes"] = volumes
         }
 
-        val dockerComposeContent = DockerformUtils.dump(dockerComposeObject)
+        val dockerComposeContent = YAML_MAPPER.dump(dockerComposeObject)
 
         Files.write(dockerComposePath, dockerComposeContent.toByteArray())
+    }
+
+    private class QuotedString(val value: String)
+
+    private class DockerComposeRepresenter : Representer() {
+
+        private inner class RepresentQuotedString : Represent {
+            override fun representData(data: Any): org.yaml.snakeyaml.nodes.Node? {
+                val str = data as QuotedString
+                return representScalar(Tag.STR, str.value, DumperOptions.ScalarStyle.DOUBLE_QUOTED.char)
+            }
+        }
+
+        init {
+            this.representers[QuotedString::class.java] = RepresentQuotedString()
+        }
     }
 }
