@@ -138,7 +138,7 @@ class DockerformTest : BaseformTest() {
         val dockerComposePath = getDockerCompose()
 
         val yaml = Yaml().load(dockerComposePath.toFile().bufferedReader()) as Map<String, Any>
-        assertThat(yaml.containsKey("services")).isTrue()
+        assertThat(yaml).containsKey("services")
 
         val services = yaml["services"] as Map<String, Any>
         assertThat(services).containsKey("notary-service")
