@@ -3,13 +3,15 @@ package net.corda.plugins
 import com.typesafe.config.ConfigFactory
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.testkit.runner.TaskOutcome
-import org.gradle.testkit.runner.UnexpectedBuildFailure
 import org.junit.jupiter.api.Test
+import org.yaml.snakeyaml.Yaml
+import java.nio.file.Path
 import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
 class DockerformTest : BaseformTest() {
+
+    private fun getDockerCompose(): Path = testProjectDir.resolve("build").resolve("nodes").resolve("docker-compose.yml")
 
     @Test
     fun `fail to deploy a node with cordapp dependency with missing dockerImage tag`() {
@@ -132,5 +134,24 @@ class DockerformTest : BaseformTest() {
         assertTrue(bankOfCordaConfig.hasPath("rpcSettings.adminAddress"))
         assertEquals(10006, ConfigurationUtils.parsePort(bankOfCordaConfig.getString("rpcSettings.address")))
         assertEquals(10046, ConfigurationUtils.parsePort(bankOfCordaConfig.getString("rpcSettings.adminAddress")))
+
+        val dockerComposePath = getDockerCompose()
+
+        val yaml = Yaml().load(dockerComposePath.toFile().bufferedReader()) as Map<String, Any>
+        assertThat(yaml).containsKey("services")
+
+        val services = yaml["services"] as Map<String, Any>
+        assertThat(services).containsKey("notary-service")
+        assertThat(services).containsKey("bankofcorda")
+
+        val notaryService = services["notary-service"] as Map<String, Any>
+        assertThat(notaryService).containsKey("ports")
+        val notaryServicePortsList = notaryService["ports"] as List<Any>
+        assertThat(notaryServicePortsList).contains("22234:22234")
+
+        val bankOfCorda = services["bankofcorda"] as Map<String, Any>
+        assertThat(bankOfCorda).containsKey("ports")
+        val bankOfCordaPortsList = bankOfCorda["ports"] as List<Any>
+        assertThat(bankOfCordaPortsList).contains("22235:22235")
     }
 }
