@@ -6,6 +6,7 @@
 
 * `cordformation`: Map the host to the same ssh port as in the container
 * `cordapp`: Raise minimum Gradle version to 5.1.
+* `cordapp`: Refresh the certificate for the development CorDapp signing key.
 
 ### Version 5.0.10
 
