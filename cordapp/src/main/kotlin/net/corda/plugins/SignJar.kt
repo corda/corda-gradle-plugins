@@ -22,11 +22,7 @@ import java.nio.file.StandardCopyOption
 @Suppress("UnstableApiUsage")
 open class SignJar : DefaultTask() {
     companion object {
-        fun sign(project: Project, signing: Signing, file: File, enabled: Boolean) {
-            if (!enabled) {
-                project.logger.info("CorDapp JAR signing is disabled, the CorDapp's contracts will not use signature constraints.")
-                return
-            }
+        fun sign(project: Project, signing: Signing, file: File) {
             val options = signing.options.toSignJarOptionsMap()
             if (signing.options.hasDefaultOptions()) {
                 project.logger.info("CorDapp JAR signing with the default Corda development key, suitable for Corda running in development mode only.")
@@ -94,7 +90,7 @@ open class SignJar : DefaultTask() {
         for (file: File in inputJars) {
             val signedFile = toSigned(file)
             Files.copy(file.toPath(), signedFile.toPath(), StandardCopyOption.REPLACE_EXISTING)
-            sign(project, signing, signedFile, true)
+            sign(project, signing, signedFile)
         }
     }
 }
