@@ -1,4 +1,4 @@
-import net.corda.plugins.GenerateApi
+import net.corda.plugins.apiscanner.GenerateApi
 
 plugins {
     id 'java'
@@ -8,7 +8,7 @@ apply from: 'repositories.gradle'
 
 description 'Test generating overall API file without any jars'
 
-jar {
+tasks.named('jar', Jar) {
     enabled = false
 }
 
@@ -16,7 +16,7 @@ scanApi {
     verbose = true
 }
 
-task generateApi(type: GenerateApi) {
+tasks.register('generateApi', GenerateApi) {
     baseName = 'generate-empty-api'
     version = ''
 }
