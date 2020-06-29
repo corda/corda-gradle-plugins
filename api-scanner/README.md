@@ -65,7 +65,7 @@ are collated into a single output file by the `GenerateApi` task. The `GenerateA
 in the root project's `build.gradle` file:
 
 ```gradle
-task generateApi(type: net.corda.plugins.GenerateApi){
+task generateApi(type: net.corda.plugins.apiscanner.GenerateApi){
     baseName = "api-corda"
 }
 ```

@@ -1,4 +1,4 @@
-import net.corda.plugins.GenerateApi
+import net.corda.plugins.apiscanner.GenerateApi
 
 plugins {
     id 'java'
@@ -23,7 +23,7 @@ sourceSets {
     }
 }
 
-jar {
+tasks.named('jar', Jar) {
     archiveBaseName = 'scanned'
     archiveClassifier = 'target'
 }
@@ -32,7 +32,7 @@ scanApi {
     verbose = true
 }
 
-task generateApi(type: GenerateApi) {
+tasks.register('generateApi', GenerateApi) {
     baseName = 'generate-scan-property-classifier'
     version = ''
 }
