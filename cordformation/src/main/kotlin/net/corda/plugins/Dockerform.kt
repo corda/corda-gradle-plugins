@@ -103,7 +103,11 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
                             "$nodeBuildDir/drivers:/opt/corda/drivers"
                     ),
                     "environment" to listOf("ACCEPT_LICENSE=\${ACCEPT_LICENSE}"),
-                    "ports" to listOf(it.rpcPort.get(), QuotedString("${it.config.getInt("sshd.port")}:${it.config.getInt("sshd.port")}")),
+                    "ports" to listOf(it.rpcPort.get(),
+                            when (it.usesDefaultSSHPort) {
+                               true -> it.config.getInt("sshd.port")
+                               false -> QuotedString("${it.config.getInt("sshd.port")}:${it.config.getInt("sshd.port")}")
+                            }),
                     "image" to dockerImage.get()
             )
 
