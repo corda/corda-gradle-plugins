@@ -4,10 +4,11 @@ import org.gradle.api.*
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ResolvedConfiguration
+import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.publish.maven.MavenPom
-import net.corda.plugins.publish.bintray.*
+import net.corda.plugins.publish.bintray.BintrayConfigExtension
 
 /**
  * A utility plugin that when applied will automatically create source and javadoc publishing tasks
@@ -37,13 +38,13 @@ class PublishTasks implements Plugin<Project> {
      * values set after this call in the DSL will not be configured properly (and will use the default value)
      */
     void setPublishName(String publishName) {
-        project.logger.info("Changing publishing name from ${project.name} to $publishName")
+        project.logger.info('Changing publishing name from {} to {}', project.name, publishName)
         this.publishName = publishName
         checkAndConfigurePublishing()
     }
 
     void checkAndConfigurePublishing() {
-        project.logger.info("Checking whether to publish $publishName")
+        project.logger.info('Checking whether to publish {}', publishName)
         def bintrayConfig = project.rootProject.extensions.findByType(BintrayConfigExtension.class)
         if ((bintrayConfig != null) && (bintrayConfig.publications) && (bintrayConfig.publications.any { it == publishName })) {
             configurePublishing(bintrayConfig)
@@ -51,29 +52,29 @@ class PublishTasks implements Plugin<Project> {
     }
 
     void configurePublishing(BintrayConfigExtension bintrayConfig) {
-        project.logger.info("Configuring bintray for $publishName")
+        project.logger.info('Configuring bintray for {}', publishName)
         configureMavenPublish(bintrayConfig)
         configureBintray(bintrayConfig)
     }
 
     void configureMavenPublish(BintrayConfigExtension bintrayConfig) {
-        project.logger.info("Configuring maven publish for $publishName")
-        project.apply([plugin: 'maven-publish'])
+        project.logger.info('Configuring maven publish for {}', publishName)
+        project.pluginManager.apply(MavenPublishPlugin)
         project.publishing.publications.create(publishName, MavenPublication) {
             groupId project.group
             artifactId publishName
 
             if (publishConfig.publishSources) {
-                project.logger.info("Publishing sources for $publishName")
+                project.logger.info('Publishing sources for {}', publishName)
                 artifact project.tasks.sourceJar
             }
             if (publishConfig.publishJavadoc) {
-                project.logger.info("Publishing javadoc for $publishName")
+                project.logger.info('Publishing javadoc for {}', publishName)
                 artifact project.tasks.javadocJar
             }
 
             project.configurations.publish.artifacts.each {
-                project.logger.info("Adding artifact: ${it.file}")
+                project.logger.info('Adding artifact: {}', it.file.path)
                 delegate.artifact it
             }
 
@@ -87,7 +88,9 @@ class PublishTasks implements Plugin<Project> {
 
             extendPomForMavenCentral(pom, bintrayConfig)
         }
-        project.task("install", dependsOn: "publishToMavenLocal")
+        project.tasks.register('install') { Task task ->
+            task.dependsOn(project.tasks.named('publishToMavenLocal'))
+        }
     }
 
     void fromConfiguration(MavenPom pom, ResolvedConfiguration configuration) {
@@ -168,17 +171,19 @@ class PublishTasks implements Plugin<Project> {
     }
 
     void createTasks() {
-        if(project.hasProperty('classes')) {
-            project.task("sourceJar", type: Jar, dependsOn: project.classes) {
-                classifier = 'sources'
-                from project.sourceSets.main.allSource
+        if (project.hasProperty('classes')) {
+            project.tasks.register('sourceJar', Jar) { task ->
+                task.dependsOn(project.classes)
+                task.archiveClassifier.set('sources')
+                task.from project.sourceSets.main.allSource
             }
         }
 
-        if(project.hasProperty('javadoc')) {
-            project.task("javadocJar", type: Jar, dependsOn: project.javadoc) {
-                classifier = 'javadoc'
-                from project.javadoc.destinationDir
+        if (project.hasProperty('javadoc')) {
+            project.tasks.register('javadocJar', Jar) { task ->
+                task.dependsOn(project.javadoc)
+                task.archiveClassifier.set('javadoc')
+                task.from project.javadoc.destinationDir
             }
         }
     }
