@@ -292,6 +292,10 @@ open class Node @Inject constructor(private val project: Project) {
         config.getInt("sshd.port")
     }
 
+    @get:Internal
+    internal var usesDefaultSSHPort: Boolean = false
+        private set
+
     /**
      * Install a cordapp to this node
      *
@@ -640,6 +644,7 @@ open class Node @Inject constructor(private val project: Project) {
 
         if (!config.hasPath("sshd.port")) {
             sshdPort(defaultSSHPort)
+            usesDefaultSSHPort = true
         }
 
         val configDefaults = ConfigFactory.empty()
