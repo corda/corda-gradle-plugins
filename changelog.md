@@ -8,6 +8,7 @@
 * `cordapp`: Raise minimum Gradle version to 5.1.
 * `cordapp`: Refresh the certificate for the development CorDapp signing key.
 * `api-scanner`: Refactor this plugin into its own package.
+* `publish-utils`: Configure publication tasks lazily.
 
 ### Version 5.0.10
 
