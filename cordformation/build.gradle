@@ -77,8 +77,6 @@ dependencies {
     implementation "org.yaml:snakeyaml:$snake_yaml_version"
     //DockerFile Generation
     implementation "com.spotify:docker-client:$docker_client_version"
-
-
 }
 
 /**

@@ -74,7 +74,7 @@ processTestResources {
     }
 }
 
-tasks.withType(Test) {
+tasks.withType(Test).configureEach {
     systemProperty 'test.kotlin.api', test_kotlin_api_version
 }
 
