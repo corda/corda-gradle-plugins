@@ -3,6 +3,8 @@ package net.corda.plugins
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
+import org.gradle.api.plugins.JavaPlugin.COMPILE_CONFIGURATION_NAME
+import org.gradle.api.plugins.JavaPlugin.RUNTIME_CONFIGURATION_NAME
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardCopyOption
@@ -23,11 +25,13 @@ class CordappUtils {
         }
 
         fun createCompileConfiguration(name: String, configurations: ConfigurationContainer): Configuration {
-            return createChildConfiguration(name, configurations.single { it.name == "compile" }, configurations)
+            @Suppress("deprecation")
+            return createChildConfiguration(name, configurations.single { it.name == COMPILE_CONFIGURATION_NAME }, configurations)
         }
 
         fun createRuntimeConfiguration(name: String, configurations: ConfigurationContainer): Configuration {
-            return createChildConfiguration(name, configurations.single { it.name == "runtime" }, configurations)
+            @Suppress("deprecation")
+            return createChildConfiguration(name, configurations.single { it.name == RUNTIME_CONFIGURATION_NAME }, configurations)
         }
 
         fun compareVersions(v1: String, v2: String): Int {
