@@ -8,6 +8,8 @@ import org.gradle.api.artifacts.Dependency
 import org.gradle.api.java.archives.Attributes
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.JavaPlugin
+import org.gradle.api.plugins.JavaPlugin.JAR_TASK_NAME
+import org.gradle.api.plugins.JavaPlugin.RUNTIME_CONFIGURATION_NAME
 import org.gradle.api.provider.Property
 import org.gradle.api.publish.maven.tasks.GenerateMavenPom
 import org.gradle.api.tasks.bundling.ZipEntryCompression.DEFLATED
@@ -66,7 +68,7 @@ class CordappPlugin @Inject constructor(private val objects: ObjectFactory): Plu
      */
     private fun configureCordappJar(project: Project) {
         // Note: project.afterEvaluate did not have full dependency resolution completed, hence a task is used instead
-        val jarTask = project.tasks.getByName("jar") as Jar
+        val jarTask = project.tasks.getByName(JAR_TASK_NAME) as Jar
         jarTask.fileMode = Integer.parseInt("444", 8)
         jarTask.dirMode = Integer.parseInt("555", 8)
         jarTask.manifestContentCharset = "UTF-8"
@@ -148,7 +150,7 @@ class CordappPlugin @Inject constructor(private val objects: ObjectFactory): Plu
     }
 
     private fun configurePomCreation(project: Project) {
-        project.tasks.withType(GenerateMavenPom::class.java) { task ->
+        project.tasks.withType(GenerateMavenPom::class.java).configureEach { task ->
             task.doFirst {
                 project.logger.info("Modifying task: ${task.name} in project ${project.path} to exclude all dependencies from pom")
                 // The CorDapp is a semi-fat jar, so we need to exclude its compile and runtime
@@ -171,7 +173,7 @@ class CordappPlugin @Inject constructor(private val objects: ObjectFactory): Plu
     private fun getDirectNonCordaDependencies(project: Project): Set<File> {
         project.logger.info("Finding direct non-corda dependencies for inclusion in CorDapp JAR")
 
-        val runtimeConfiguration = project.configuration("runtime")
+        val runtimeConfiguration = project.configuration(RUNTIME_CONFIGURATION_NAME)
         // The direct dependencies of this project
         val excludeDeps = calculateExcludedDependencies(project)
         val directDeps = runtimeConfiguration.allDependencies - excludeDeps
