@@ -18,7 +18,9 @@ scope for classes or fields yet as these are currently `public` inside the `.cla
 Include this line in the `build.gradle` file of every Corda module that exports public API:
 
 ```gradle
-apply plugin: 'net.corda.plugins.api-scanner'
+plugins {
+    id 'net.corda.plugins.api-scanner'
+}
 ```
 
 This will create a Gradle task called `scanApi` which will analyse that module's Jar artifacts. More precisely,

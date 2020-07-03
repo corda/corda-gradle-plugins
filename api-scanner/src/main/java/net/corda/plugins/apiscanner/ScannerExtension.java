@@ -1,38 +1,35 @@
 package net.corda.plugins.apiscanner;
 
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
 
+import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import java.util.List;
-import java.util.Map;
-
-import static java.util.Collections.emptyMap;
 
 @SuppressWarnings({"unused", "WeakerAccess", "UnstableApiUsage"})
 public class ScannerExtension {
 
-    private boolean verbose;
     private boolean enabled = true;
+    private final Property<Boolean> verbose;
     private final SetProperty<String> excludeClasses;
-    private Map<String, List<String>> excludeMethods = emptyMap();
+    private final MapProperty<String, List> excludeMethods;
     private final SetProperty<String> excludePackages;
     private final Property<String> targetClassifier;
 
     @Inject
-    public ScannerExtension(ObjectFactory objectFactory, String defaultClassifier) {
+    public ScannerExtension(@Nonnull ObjectFactory objectFactory, String defaultClassifier) {
+        verbose = objectFactory.property(Boolean.class).convention(false);
         excludeClasses = objectFactory.setProperty(String.class);
         excludePackages = objectFactory.setProperty(String.class);
+        excludeMethods = objectFactory.mapProperty(String.class, List.class);
         targetClassifier = objectFactory.property(String.class).convention(defaultClassifier);
     }
 
-    public boolean isVerbose() {
+    public Property<Boolean> getVerbose() {
         return verbose;
-    }
-
-    public void setVerbose(boolean verbose) {
-        this.verbose = verbose;
     }
 
     public boolean isEnabled() {
@@ -47,12 +44,8 @@ public class ScannerExtension {
         return excludeClasses;
     }
 
-    public Map<String, List<String>> getExcludeMethods() {
+    public MapProperty<String, ? extends List> getExcludeMethods() {
         return excludeMethods;
-    }
-
-    public void setExcludeMethods(Map<String, List<String>> excludeMethods) {
-        this.excludeMethods = excludeMethods;
     }
 
     public SetProperty<String> getExcludePackages() {

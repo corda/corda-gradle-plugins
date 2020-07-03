@@ -11,14 +11,15 @@ import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toCollection;
 import static nonapi.io.github.classgraph.types.TypeUtils.ModifierType.METHOD;
 
-public class ApiPrintWriter extends PrintWriter {
+@SuppressWarnings("SameParameterValue")
+class ApiPrintWriter extends PrintWriter {
     private static final int METHOD_MASK = Modifier.methodModifiers() | Modifier.TRANSIENT;
 
     ApiPrintWriter(File file, String encoding) throws FileNotFoundException, UnsupportedEncodingException {
         super(file, encoding);
     }
 
-    public void println(ClassInfo classInfo, int modifierMask, List<String> filteredAnnotations) {
+    void println(ClassInfo classInfo, int modifierMask, List<String> filteredAnnotations) {
         append(asAnnotations(filteredAnnotations, ""));
         append(Modifier.toString(classInfo.loadClass().getModifiers() & modifierMask));
         if (classInfo.isAnnotation()) {
@@ -51,7 +52,7 @@ public class ApiPrintWriter extends PrintWriter {
         println();
     }
 
-    public void println(MethodInfo method, AnnotationInfoList visibleAnnotations, String indentation) {
+    void println(MethodInfo method, AnnotationInfoList visibleAnnotations, String indentation) {
         append(asAnnotations(visibleAnnotations.getNames(), indentation));
         append(indentation).append(pureModifiersFor(method)).append(' ');
         if (!method.isConstructor()) {
@@ -71,7 +72,7 @@ public class ApiPrintWriter extends PrintWriter {
         println(')');
     }
 
-    public void println(FieldInfo field, AnnotationInfoList visibleAnnotations, String indentation) {
+    void println(FieldInfo field, AnnotationInfoList visibleAnnotations, String indentation) {
         append(asAnnotations(visibleAnnotations.getNames(), indentation))
             .append(indentation)
             .append(field.getModifierStr())
