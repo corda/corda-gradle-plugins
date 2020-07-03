@@ -8,6 +8,8 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.JavaPlugin
+import static org.gradle.api.plugins.JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME
+import static org.gradle.api.plugins.JavaPlugin.RUNTIME_CONFIGURATION_NAME
 import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.testing.Test
 
@@ -22,7 +24,6 @@ class QuasarPlugin implements Plugin<Project> {
     @PackageScope static final String defaultGroup = "co.paralleluniverse"
     @PackageScope static final String defaultVersion = "0.7.10"
     @PackageScope static final String defaultClassifier = "jdk8"
-    private static final String RUNTIME_CLASSPATH = "runtime"
 
     private final ObjectFactory objects
 
@@ -66,7 +67,7 @@ class QuasarPlugin implements Plugin<Project> {
         }
 
         // Add Quasar to the compile classpath WITHOUT any of its transitive dependencies.
-        project.dependencies.add("compileOnly", quasar)
+        project.dependencies.add(COMPILE_ONLY_CONFIGURATION_NAME, quasar)
 
         // Instrumented code needs both the Quasar agent and its transitive dependencies at runtime.
         def cordaRuntime = createRuntimeConfiguration("cordaRuntime", project.configurations)
@@ -79,13 +80,13 @@ class QuasarPlugin implements Plugin<Project> {
     }
 
     private void configureQuasarTasks(Project project, QuasarExtension extension) {
-        project.tasks.withType(Test) {
+        project.tasks.withType(Test).configureEach {
             doFirst {
                 jvmArgs "-javaagent:${project.configurations[QUASAR].singleFile}${extension.options.get()}",
                         "-Dco.paralleluniverse.fibers.verifyInstrumentation"
             }
         }
-        project.tasks.withType(JavaExec) {
+        project.tasks.withType(JavaExec).configureEach {
             doFirst {
                 jvmArgs "-javaagent:${project.configurations[QUASAR].singleFile}${extension.options.get()}",
                         "-Dco.paralleluniverse.fibers.verifyInstrumentation"
@@ -93,10 +94,11 @@ class QuasarPlugin implements Plugin<Project> {
         }
     }
 
+    @SuppressWarnings("GrDeprecatedAPIUsage")
     private static Configuration createRuntimeConfiguration(String name, ConfigurationContainer configurations) {
         Configuration configuration = configurations.findByName(name)
         if (configuration == null) {
-            Configuration parent = configurations.getByName(RUNTIME_CLASSPATH)
+            Configuration parent = configurations.getByName(RUNTIME_CONFIGURATION_NAME)
             configuration = configurations.create(name)
             configuration.transitive = false
             parent.extendsFrom(configuration)
