@@ -1,6 +1,6 @@
 plugins {
-    id 'org.jetbrains.kotlin.jvm' version '$kotlin_version'
     id 'net.corda.plugins.api-scanner'
+    id 'org.jetbrains.kotlin.jvm'
 }
 apply from: 'repositories.gradle'
 
