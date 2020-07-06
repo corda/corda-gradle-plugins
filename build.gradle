@@ -1,33 +1,11 @@
 import static org.gradle.api.JavaVersion.*
 
-buildscript {
-    ext {
-        gradle_plugins_version = '5.0.11-SNAPSHOT'
-        typesafe_config_version = '1.3.1'
-        classgraph_version = '4.8.78'
-        kotlin_version = '1.3.21'
-        snake_yaml_version = '1.19'
-        commons_io_version = '2.6'
-        assertj_version = '3.12.1'
-        junit_jupiter_version = '5.6.2'
-        hamcrest_version = '2.1'
-        asm_version = '7.3.1'
-        docker_client_version = '8.15.1'
-    }
-
-    repositories {
-        mavenCentral()
-    }
-
-    dependencies {
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-    }
-}
-
 plugins {
-    id 'com.gradle.plugin-publish' version '0.12.0' apply false
-    id 'com.jfrog.bintray' version '1.8.5' apply false
-    id 'com.jfrog.artifactory' version '4.16.0'
+    id 'org.jetbrains.kotlin.jvm' apply false
+    id 'com.gradle.plugin-publish' apply false
+    id 'com.jfrog.artifactory' apply false
+    id 'com.jfrog.bintray' apply false
+    id 'com.gradle.build-scan'
 }
 
 ext {
@@ -226,6 +204,13 @@ artifactory {
 }
 
 wrapper {
-    gradleVersion = '5.4.1'
+    gradleVersion = '5.6.4'
     distributionType = Wrapper.DistributionType.ALL
+}
+
+gradleEnterprise {
+    buildScan {
+        termsOfServiceUrl = 'https://gradle.com/terms-of-service'
+        termsOfServiceAgree = 'yes'
+    }
 }
