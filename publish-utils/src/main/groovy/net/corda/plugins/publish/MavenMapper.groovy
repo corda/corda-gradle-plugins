@@ -8,6 +8,8 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ResolvedConfiguration
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 
+/* Ross was 'ere */
+
 @CompileStatic
 class MavenMapper {
     private final Map<ModuleVersionIdentifier, String> publishedAliases
