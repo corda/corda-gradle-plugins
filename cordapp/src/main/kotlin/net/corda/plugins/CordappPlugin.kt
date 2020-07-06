@@ -64,53 +64,57 @@ class CordappPlugin @Inject constructor(private val objects: ObjectFactory): Plu
 
     /**
      * Configures this project's JAR as a Cordapp JAR. Ensure that the
-     * JAR is reproducible, i.e. that its SHA256 hash is stable!
+     * JAR is reproducible, i.e. that its SHA-256 hash is stable!
      */
     private fun configureCordappJar(project: Project) {
-        // Note: project.afterEvaluate did not have full dependency resolution completed, hence a task is used instead
-        val jarTask = project.tasks.getByName(JAR_TASK_NAME) as Jar
-        jarTask.fileMode = Integer.parseInt("444", 8)
-        jarTask.dirMode = Integer.parseInt("555", 8)
-        jarTask.manifestContentCharset = "UTF-8"
-        jarTask.isPreserveFileTimestamps = false
-        jarTask.isReproducibleFileOrder = true
-        jarTask.entryCompression = DEFLATED
-        jarTask.includeEmptyDirs = false
-        jarTask.isCaseSensitive = true
-        jarTask.isZip64 = false
-        jarTask.doFirst {
-            val attributes = jarTask.manifest.attributes
-            // check whether metadata has been configured (not mandatory for non-flow, non-contract gradle build files)
-            if (cordapp.contract.isEmpty() && cordapp.workflow.isEmpty() && cordapp.info.isEmpty()) {
-                project.logger.warn("Cordapp metadata not defined for this gradle build file. See https://docs.corda.net/head/cordapp-build-systems.html#separation-of-cordapp-contracts-flows-and-services")
-            } else {
-                configureCordappAttributes(project, jarTask, attributes)
-            }
-        }.doLast {
-            if (cordapp.signing.enabled.get()) {
-                sign(project, cordapp.signing, it.outputs.files.singleFile)
-            } else {
-                project.logger.info("CorDapp JAR signing is disabled, the CorDapp's contracts will not use signature constraints.")
+        val cordappTask = project.tasks.register("configureCordappFatJar")
+
+        val jarTask = project.tasks.named(JAR_TASK_NAME, Jar::class.java) { task ->
+            task.dependsOn(cordappTask)
+            task.fileMode = Integer.parseInt("444", 8)
+            task.dirMode = Integer.parseInt("555", 8)
+            task.manifestContentCharset = "UTF-8"
+            task.isPreserveFileTimestamps = false
+            task.isReproducibleFileOrder = true
+            task.entryCompression = DEFLATED
+            task.includeEmptyDirs = false
+            task.isCaseSensitive = true
+            task.isZip64 = false
+            task.doFirst {
+                val attributes = task.manifest.attributes
+                // check whether metadata has been configured (not mandatory for non-flow, non-contract gradle build files)
+                if (cordapp.contract.isEmpty() && cordapp.workflow.isEmpty() && cordapp.info.isEmpty()) {
+                    it.logger.warn("Cordapp metadata not defined for this gradle build file. See https://docs.corda.net/head/cordapp-build-systems.html#separation-of-cordapp-contracts-flows-and-services")
+                } else {
+                    configureCordappAttributes(project, task, attributes)
+                }
+            }.doLast {
+                if (cordapp.signing.enabled.get()) {
+                    sign(project, cordapp.signing, it.outputs.files.singleFile)
+                } else {
+                    it.logger.info("CorDapp JAR signing is disabled, the CorDapp's contracts will not use signature constraints.")
+                }
             }
         }
 
-        val cordappTask = project.task("configureCordappFatJar")
-        cordappTask.doLast {
-            jarTask.from(getDirectNonCordaDependencies(project).map { file ->
-                it.logger.info("CorDapp dependency: ${file.name}")
-                project.zipTree(file)
-            }).apply {
-                exclude("META-INF/*.SF")
-                exclude("META-INF/*.EC")
-                exclude("META-INF/*.DSA")
-                exclude("META-INF/*.RSA")
-                exclude("META-INF/*.MF")
-                exclude("META-INF/LICENSE*")
-                exclude("META-INF/NOTICE*")
-                exclude("META-INF/INDEX.LIST")
+        // Note: project.afterEvaluate did not have full dependency resolution completed, hence a task is used instead
+        cordappTask.configure { task ->
+            task.doLast {
+                jarTask.get().from(getDirectNonCordaDependencies(project).map { file ->
+                    it.logger.info("CorDapp dependency: ${file.name}")
+                    project.zipTree(file)
+                }).apply {
+                    exclude("META-INF/*.SF")
+                    exclude("META-INF/*.EC")
+                    exclude("META-INF/*.DSA")
+                    exclude("META-INF/*.RSA")
+                    exclude("META-INF/*.MF")
+                    exclude("META-INF/LICENSE*")
+                    exclude("META-INF/NOTICE*")
+                    exclude("META-INF/INDEX.LIST")
+                }
             }
         }
-        jarTask.dependsOn(cordappTask)
     }
 
     private fun configureCordappAttributes(project: Project, jarTask: Jar, attributes: Attributes) {
