@@ -4,15 +4,19 @@ plugins {
 }
 
 repositories {
-    mavenLocal()
     mavenCentral()
+    jcenter()
+}
+
+dependencies {
+    implementation "com.jfrog.bintray.gradle:gradle-bintray-plugin:$bintray_version"
 }
 
 gradlePlugin {
     plugins {
         publishUtilsPlugin {
             id = 'net.corda.plugins.publish-utils'
-            implementationClass = 'net.corda.plugins.publish.PublishTasks'
+            implementationClass = 'net.corda.plugins.publish.PublishPlugin'
         }
     }
     automatedPublishing = false

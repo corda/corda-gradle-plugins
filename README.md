@@ -87,8 +87,8 @@ been successfully tested with Kotlin 1.2.x - 1.3.71.
 
 - [`net.corda.plugins.publish-utils`](publish-utils/README.rst): **_Here
 be Dragons!_** This plugin helps configure Gradle's `maven-publish` plugin
-to publish Corda modules to R3's Artifactory. However, its workings probably
-shouldn't be allowed and they should _most definitely_ **never** be copied.
-Unfortunately, my prior attempts at rewriting it also broke its interaction
-with JFrog's Artifactory plugin and so we're currently stuck with it "as is".
-It _is_ useful though - just shut your eyes and hold your nose.
+to publish Corda modules to Bintray and to R3's Artifactory. However, its
+workings probably shouldn't be allowed and they should _most definitely_
+**never** be copied. Unfortunately, it is heavily constrained by how JFrog's
+Bintray and Artifactory plugins themselves work, and so we're currently stuck
+with it "as is". It _is_ useful though - just shut your eyes and hold your nose.
