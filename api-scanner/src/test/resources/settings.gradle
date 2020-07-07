@@ -3,4 +3,8 @@ pluginManagement {
     repositories {
         gradlePluginPortal()
     }
+
+    plugins {
+        id 'org.jetbrains.kotlin.jvm' version kotlin_version
+    }
 }

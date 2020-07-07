@@ -52,11 +52,9 @@ dependencies {
 }
 
 processTestResources {
-    filesMatching('**/kotlin-*/build.gradle') {
-        expand(['kotlin_version': kotlin_version])
-    }
     filesMatching('gradle.properties') {
         expand(['jacocoAgent': configurations.jacocoRuntime.asPath.replace('\\', '/'),
+                'kotlin_version': kotlin_version,
                 'buildDir': buildDir])
     }
 }

@@ -64,17 +64,16 @@ dependencies {
 }
 
 processTestResources {
-    filesMatching('**/build.gradle') {
-        expand(['kotlin_version': kotlin_version])
-    }
     filesMatching('gradle.properties') {
         expand(['jacocoAgent': configurations.jacocoRuntime.asPath.replace('\\', '/'),
                 'kotlin_api_version': test_kotlin_api_version,
+                'kotlin_version': kotlin_version,
                 'buildDir': buildDir])
     }
 }
 
 tasks.withType(Test).configureEach {
+    // Configures the @RequiresKotlin14 annotation.
     systemProperty 'test.kotlin.api', test_kotlin_api_version
 }
 
