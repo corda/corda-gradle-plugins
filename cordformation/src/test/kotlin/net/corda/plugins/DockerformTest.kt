@@ -99,6 +99,7 @@ class DockerformTest : BaseformTest() {
         assertThat(getNetworkParameterOverrides(notaryNodeName)).isRegularFile()
     }
 
+    @Suppress("unchecked_cast")
     @Test
     fun `deploy two nodes with cordapp dependencies`() {
         val runner = getStandardGradleRunnerFor(
