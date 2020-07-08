@@ -147,17 +147,14 @@ open class Node @Inject constructor(private val project: Project) {
 
     // Should the cordform set up run data base migration scripts after installation - defaults to false for compatibility
     // with current and previous Corda versions
-    @get:Optional
     @get:Input
     var runSchemaMigration: Boolean = false
 
     // If generating schemas, should app schema be generated using hibernate if missing migration scripts
-    @get:Optional
     @get:Input
     var allowHibernateToManageAppSchema: Boolean = false
 
     //Configure the timeout for schema generation runtime
-    @get:Optional
     @get:Internal
     var nodeJobTimeOutInMinutes: Long = 3
 

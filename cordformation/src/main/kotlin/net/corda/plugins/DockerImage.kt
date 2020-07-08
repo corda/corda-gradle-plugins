@@ -50,7 +50,6 @@ open class DockerImage @Inject constructor(objects: ObjectFactory, layouts: Proj
         this.trustRootStoreFile = trustRootStoreFile
     }
 
-    @get:Optional
     @get:Input
     internal var buildImage: Boolean = true
 
