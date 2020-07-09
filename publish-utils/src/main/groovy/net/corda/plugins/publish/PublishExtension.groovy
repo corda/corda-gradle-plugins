@@ -5,6 +5,7 @@ import org.gradle.api.Action
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
+import org.gradle.api.provider.Provider
 import org.gradle.util.ConfigureUtil
 
 import javax.inject.Inject
@@ -34,6 +35,10 @@ class PublishExtension {
      */
     Property<String> getName() {
         return name
+    }
+
+    void name(Provider<String> provider) {
+        name.set(provider)
     }
 
     void name(String value) {
