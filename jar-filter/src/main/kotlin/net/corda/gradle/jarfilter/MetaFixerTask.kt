@@ -2,11 +2,15 @@ package net.corda.gradle.jarfilter
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.file.Directory
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileCollection
+import org.gradle.api.file.FileSystemLocation
 import org.gradle.api.file.ProjectLayout
+import org.gradle.api.file.RegularFile
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
@@ -33,11 +37,11 @@ open class MetaFixerTask @Inject constructor(objects: ObjectFactory, layouts: Pr
         group = GROUP_NAME
     }
 
-    private val _jars: ConfigurableFileCollection = project.files()
-    @get:PathSensitive(RELATIVE)
-    @get:SkipWhenEmpty
-    @get:InputFiles
+    private val _jars: ConfigurableFileCollection = objects.fileCollection()
     val jars: FileCollection
+        @PathSensitive(RELATIVE)
+        @SkipWhenEmpty
+        @InputFiles
         get() = _jars
 
     @Suppress("MemberVisibilityCanBePrivate")
@@ -63,10 +67,26 @@ open class MetaFixerTask @Inject constructor(objects: ObjectFactory, layouts: Pr
     @get:Input
     val preserveTimestamps: Property<Boolean> = objects.property(Boolean::class.javaObjectType).convention(true)
 
-    @get:OutputFiles
-    val metafixed: FileCollection get() = project.files(jars.map(::toMetaFixed))
+    private val _metafixed: ConfigurableFileCollection = project.files(outputDir.map { dir ->
+        _jars.elements.map { files ->
+            files.map { file -> toMetaFixed(dir, file) }
+        }
+    })
+    val metafixed: FileCollection
+        @OutputFiles
+        get() {
+            // Don't compute these values more than once.
+            // Replace with finalizeValueOnRead() immediately after
+            // construction when we upgrade this plugin to Gradle 6.1.
+            _metafixed.finalizeValue()
+            return _metafixed
+        }
 
-    private fun toMetaFixed(source: File) = outputDir.file(suffix.map { sfx -> source.name.replace(JAR_PATTERN, "$sfx\$1") })
+    private fun toMetaFixed(dir: Directory, source: File): Provider<RegularFile> {
+        return dir.file(suffix.map { sfx -> source.name.replace(JAR_PATTERN, "$sfx\$1") })
+    }
+
+    private fun toMetaFixed(dir: Directory, source: FileSystemLocation): Provider<RegularFile> = toMetaFixed(dir, source.asFile)
 
     @TaskAction
     fun fixMetadata() {
@@ -86,7 +106,7 @@ open class MetaFixerTask @Inject constructor(objects: ObjectFactory, layouts: Pr
          * Use [ZipFile] instead of [java.util.jar.JarInputStream] because
          * JarInputStream consumes MANIFEST.MF when it's the first or second entry.
          */
-        private val target: Path = toMetaFixed(inFile).get().asFile.toPath()
+        private val target: Path = outputDir.flatMap { dir -> toMetaFixed(dir, inFile) }.get().asFile.toPath()
         private val inJar = ZipFile(inFile)
         private val outJar: ZipOutputStream
 
