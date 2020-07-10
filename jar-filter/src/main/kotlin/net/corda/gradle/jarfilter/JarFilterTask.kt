@@ -4,9 +4,12 @@ import org.gradle.api.Action
 import org.gradle.api.DefaultTask
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.file.Directory
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileCollection
+import org.gradle.api.file.FileSystemLocation
 import org.gradle.api.file.ProjectLayout
+import org.gradle.api.file.RegularFile
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Console
@@ -45,11 +48,12 @@ open class JarFilterTask @Inject constructor(objects: ObjectFactory, layouts: Pr
         group = GROUP_NAME
     }
 
-    private val _jars: ConfigurableFileCollection = project.files()
-    @get:PathSensitive(RELATIVE)
-    @get:SkipWhenEmpty
-    @get:InputFiles
-    val jars: FileCollection get() = _jars
+    private val _jars: ConfigurableFileCollection = objects.fileCollection()
+    val jars: FileCollection
+        @PathSensitive(RELATIVE)
+        @SkipWhenEmpty
+        @InputFiles
+        get() = _jars
 
     @Suppress("MemberVisibilityCanBePrivate")
     fun setJars(inputs: Any?) {
@@ -82,15 +86,31 @@ open class JarFilterTask @Inject constructor(objects: ObjectFactory, layouts: Pr
         outputDir.set(dir)
     }
 
-    @get:OutputFiles
-    val filtered: FileCollection get() = project.files(jars.map(::toFiltered))
+    private val _filtered: ConfigurableFileCollection = project.files(outputDir.map { dir ->
+        _jars.elements.map { files ->
+            files.map { file -> toFiltered(dir, file) }
+        }
+    })
+    val filtered: FileCollection
+        @OutputFiles
+        get() {
+            // Don't compute these values more than once.
+            // Replace with finalizeValueOnRead() immediately after
+            // construction when we upgrade this plugin to Gradle 6.1.
+            _filtered.finalizeValue()
+            return _filtered
+        }
 
-    private fun toFiltered(source: File) = outputDir.file(source.name.replace(JAR_PATTERN, "-filtered\$1"))
+    private fun toFiltered(dir: Directory, source: File): RegularFile {
+        return dir.file(source.name.replace(JAR_PATTERN, "-filtered\$1"))
+    }
+
+    private fun toFiltered(dir: Directory, source: FileSystemLocation): RegularFile = toFiltered(dir, source.asFile)
 
     @TaskAction
     fun filterJars() {
         logger.info("JarFiltering:")
-        val annotationValues = annotations.values
+        val annotationValues = annotations.values.get()
         with(annotationValues.forDelete) {
             if (isNotEmpty()) {
                 logger.info("- Elements annotated with one of '{}' will be deleted", joinToString())
@@ -152,7 +172,7 @@ open class JarFilterTask @Inject constructor(objects: ObjectFactory, layouts: Pr
         private val unwantedElements = UnwantedCache()
         private val initialUnwanted: UnwantedMap = mutableMapOf()
         private val source: Path = inFile.toPath()
-        private val target: Path = toFiltered(inFile).get().asFile.toPath()
+        private val target: Path = outputDir.map { dir -> toFiltered(dir, inFile) }.get().asFile.toPath()
 
         private val descriptorsForRemove = toDescriptors(annotationValues.forRemove)
         private val descriptorsForDelete = toDescriptors(annotationValues.forDelete)
