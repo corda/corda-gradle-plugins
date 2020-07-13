@@ -3,6 +3,7 @@ plugins {
     id 'org.jetbrains.kotlin.jvm'
 }
 apply from: 'repositories.gradle'
+apply from: 'kotlin.gradle'
 
 description 'Test appearance of Kotlin vararg functions'
 
@@ -18,8 +19,6 @@ dependencies {
     implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
     implementation 'org.jetbrains.kotlin:kotlin-reflect'
 }
-
-apply from: 'kotlin.gradle'
 
 jar {
     archiveBaseName = "kotlin-vararg-method"

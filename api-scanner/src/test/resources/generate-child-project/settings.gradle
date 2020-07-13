@@ -1,0 +1,2 @@
+rootProject.name = 'generate-child-project'
+include 'child-project'

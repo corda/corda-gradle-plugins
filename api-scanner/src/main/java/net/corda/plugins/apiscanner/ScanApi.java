@@ -4,12 +4,19 @@ import io.github.classgraph.*;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.Directory;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.FileSystemLocation;
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.MapProperty;
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.*;
 import org.gradle.api.tasks.Console;
 
+import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import java.io.*;
 import java.lang.annotation.Annotation;
@@ -21,7 +28,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.*;
-import java.util.stream.StreamSupport;
 
 import static java.util.Collections.*;
 import static java.util.stream.Collectors.*;
@@ -29,7 +35,7 @@ import static net.corda.plugins.apiscanner.ApiScanner.GROUP_NAME;
 import static org.gradle.api.tasks.PathSensitivity.RELATIVE;
 
 @SuppressWarnings({"unused", "WeakerAccess", "UnstableApiUsage"})
-public class ScanApi extends DefaultTask {
+class ScanApi extends DefaultTask {
     private static final int CLASS_MASK = Modifier.classModifiers();
     private static final int INTERFACE_MASK = Modifier.interfaceModifiers() & ~Modifier.ABSTRACT;
     /**
@@ -76,20 +82,29 @@ public class ScanApi extends DefaultTask {
 
     private final ConfigurableFileCollection sources;
     private final ConfigurableFileCollection classpath;
+    private final ConfigurableFileCollection targets;
     private final SetProperty<String> excludePackages;
     private final SetProperty<String> excludeClasses;
-    private final Map<String, Set<String>> excludeMethods;
-    private final File outputDir;
-    private boolean verbose;
+    private final MapProperty<String, Set> excludeMethods;
+    private final Provider<Directory> outputDir;
+    private final Property<Boolean> verbose;
 
     @Inject
-    public ScanApi(ObjectFactory objectFactory) {
-        sources = getProject().files();
-        classpath = getProject().files();
+    public ScanApi(@Nonnull ObjectFactory objectFactory) {
+        sources = objectFactory.fileCollection();
+        classpath = objectFactory.fileCollection();
         excludePackages = objectFactory.setProperty(String.class);
         excludeClasses = objectFactory.setProperty(String.class);
-        excludeMethods = new LinkedHashMap<>();
-        outputDir = new File(getProject().getBuildDir(), "api");
+        excludeMethods = objectFactory.mapProperty(String.class, Set.class);
+        verbose = objectFactory.property(Boolean.class).convention(false);
+
+        outputDir = getProject().getLayout().getBuildDirectory().dir("api");
+        targets = getProject().files(
+            outputDir.map(dir -> sources.getElements().map(files ->
+                files.stream().map(file -> toTarget(dir, file)).collect(toList())
+            ))
+        );
+
         setDescription("Summarises the target JAR's public and protected API elements.");
         setGroup(GROUP_NAME);
     }
@@ -116,53 +131,64 @@ public class ScanApi extends DefaultTask {
     }
 
     @Input
-    public SetProperty<String> getExcludePackages() {
+    public Provider<? extends Set<String>> getExcludePackages() {
         return excludePackages;
     }
 
-    void setExcludePackages(SetProperty<String> excludePackages) {
+    void setExcludePackages(Provider<? extends Set<String>> excludePackages) {
         this.excludePackages.set(excludePackages);
     }
 
     @Input
-    public SetProperty<String> getExcludeClasses() {
+    public Provider<? extends Set<String>> getExcludeClasses() {
         return excludeClasses;
     }
 
-    void setExcludeClasses(SetProperty<String> excludeClasses) {
+    void setExcludeClasses(Provider<? extends Set<String>> excludeClasses) {
         this.excludeClasses.set(excludeClasses);
     }
 
     @Input
-    public Map<String, Collection<String>> getExcludeMethods() {
-        return unmodifiableMap(excludeMethods);
+    public Provider<? extends Map<String, ? extends Set>> getExcludeMethods() {
+        return excludeMethods;
     }
 
-    void setExcludeMethods(Map<String, ? extends Collection<String>> excludeMethods) {
-        this.excludeMethods.clear();
-        excludeMethods.forEach((key, value) -> this.excludeMethods.put(key, new LinkedHashSet<>(value)));
+    @SuppressWarnings("unchecked")
+    void setExcludeMethods(@Nonnull Provider<? extends Map<String, ? extends Collection>> excludeMethods) {
+        this.excludeMethods.empty()
+            .putAll(excludeMethods.map(m -> {
+                Map<String, Set<String>> result = new LinkedHashMap<>();
+                m.forEach((key, value) -> result.put(key, new LinkedHashSet<String>((Collection<String>)value)));
+                return result;
+            }));
     }
 
     @OutputFiles
     public FileCollection getTargets() {
-        return getProject().files(
-            StreamSupport.stream(sources.spliterator(), false)
-                .map(this::toTarget)
-                .collect(toList())
-        );
+        // Don't compute these values more than once.
+        // Replace with finalizeValueOnRead() immediately after
+        // construction when we upgrade this plugin to Gradle 6.1.
+        targets.finalizeValue();
+        return targets;
     }
 
     @Console
-    public boolean isVerbose() {
+    public Provider<Boolean> isVerbose() {
         return verbose;
     }
 
-    void setVerbose(boolean verbose) {
-        this.verbose = verbose;
+    void setVerbose(Provider<Boolean> verbose) {
+        this.verbose.set(verbose);
     }
 
-    private File toTarget(File source) {
-        return new File(outputDir, source.getName().replaceAll("\\.jar$", ".txt"));
+    @Nonnull
+    private static RegularFile toTargetFile(@Nonnull Directory outputDir, @Nonnull File source) {
+        return outputDir.file(source.getName().replaceAll("\\.jar$", ".txt"));
+    }
+
+    @Nonnull
+    private static RegularFile toTarget(Directory outputDir, @Nonnull FileSystemLocation source) {
+        return toTargetFile(outputDir, source.getAsFile());
     }
 
     @TaskAction
@@ -216,7 +242,7 @@ public class ScanApi extends DefaultTask {
         }
 
         void scan(File source) {
-            File target = toTarget(source);
+            File target = outputDir.map(dir -> toTargetFile(dir, source)).get().getAsFile();
             getLogger().info("API file: {}", target.getAbsolutePath());
             try (
                 URLClassLoader appLoader = new URLClassLoader(new URL[]{toURL(source)}, classpathLoader);
@@ -244,7 +270,7 @@ public class ScanApi extends DefaultTask {
                     .enableClassInfo()
                     .enableMethodInfo()
                     .enableFieldInfo()
-                    .verbose(verbose)
+                    .verbose(verbose.get())
                     .scan()) {
                 loadAnnotationCaches(result);
                 getLogger().info("Annotations:");
@@ -255,7 +281,7 @@ public class ScanApi extends DefaultTask {
             }
         }
 
-        private void loadAnnotationCaches(ScanResult result) {
+        private void loadAnnotationCaches(@Nonnull ScanResult result) {
             ClassInfoList scannedAnnotations = result.getAllAnnotations();
             Set<String> internal = scannedAnnotations.getNames().stream()
                 .filter(s -> s.endsWith(INTERNAL_ANNOTATION_NAME))
@@ -279,7 +305,7 @@ public class ScanApi extends DefaultTask {
             inheritedAnnotations = unmodifiableSet(new LinkedHashSet<>(inherited));
         }
 
-        private void writeApis(ApiPrintWriter writer, ScanResult result) {
+        private void writeApis(ApiPrintWriter writer, @Nonnull ScanResult result) {
             Map<String, ClassInfo> allInfo = result.getAllClassesAsMap();
             result.getAllClasses().getNames().forEach(className -> {
                 if (className.contains(".internal.")) {
@@ -329,7 +355,7 @@ public class ScanApi extends DefaultTask {
             });
         }
 
-        private void writeClass(ApiPrintWriter writer, ClassInfo classInfo) {
+        private void writeClass(ApiPrintWriter writer, @Nonnull ClassInfo classInfo) {
             if (classInfo.isAnnotation()) {
                 writer.println(classInfo, INTERFACE_MASK, emptyList());
             } else if (classInfo.isStandardClass()) {
@@ -383,7 +409,8 @@ public class ScanApi extends DefaultTask {
             return 0;
         }
 
-        private Names toNames(Collection<ClassInfo> classes) {
+        @Nonnull
+        private Names toNames(@Nonnull Collection<ClassInfo> classes) {
             Map<Boolean, List<String>> partitioned = classes.stream()
                 .map(ClassInfo::getName)
                 .filter(ScanApi::isApplicationClass)
@@ -399,7 +426,8 @@ public class ScanApi extends DefaultTask {
             return new Names(visible, ordering(partitioned.get(false)));
         }
 
-        private Set<ClassInfo> readClassAnnotationsFor(ClassInfo classInfo) {
+        @Nonnull
+        private Set<ClassInfo> readClassAnnotationsFor(@Nonnull ClassInfo classInfo) {
             // The annotation ordering doesn't matter, as they will be sorted later.
             Set<ClassInfo> annotations = new HashSet<>(classInfo.getAnnotations().directOnly());
             annotations.addAll(selectInheritedAnnotations(classInfo.getSuperclasses()));
@@ -407,7 +435,8 @@ public class ScanApi extends DefaultTask {
             return annotations;
         }
 
-        private Set<ClassInfo> readInterfaceAnnotationsFor(ClassInfo classInfo) {
+        @Nonnull
+        private Set<ClassInfo> readInterfaceAnnotationsFor(@Nonnull ClassInfo classInfo) {
             // The annotation ordering doesn't matter, as they will be sorted later.
             Set<ClassInfo> annotations = new HashSet<>(classInfo.getAnnotations().directOnly());
             annotations.addAll(selectInheritedAnnotations(classInfo.getInterfaces()));
@@ -417,14 +446,14 @@ public class ScanApi extends DefaultTask {
         /**
          * Returns those annotations which have themselves been annotated as "Inherited".
          */
-        private List<ClassInfo> selectInheritedAnnotations(Collection<ClassInfo> classes) {
+        private List<ClassInfo> selectInheritedAnnotations(@Nonnull Collection<ClassInfo> classes) {
             return classes.stream()
                 .flatMap(cls -> cls.getAnnotations().directOnly().stream())
                 .filter(ann -> inheritedAnnotations.contains(ann.getName()))
                 .collect(toList());
         }
 
-        private boolean isVisibleAnnotation(AnnotationInfo annotation) {
+        private boolean isVisibleAnnotation(@Nonnull AnnotationInfo annotation) {
             return isVisibleAnnotation(annotation.getName());
         }
 
@@ -432,7 +461,7 @@ public class ScanApi extends DefaultTask {
             return !invisibleAnnotations.contains(className);
         }
 
-        private boolean hasInternalAnnotation(Collection<String> annotationNames) {
+        private boolean hasInternalAnnotation(@Nonnull Collection<String> annotationNames) {
             return annotationNames.stream().anyMatch(internalAnnotations::contains);
         }
     }
@@ -442,14 +471,14 @@ public class ScanApi extends DefaultTask {
         return list;
     }
 
-    private static boolean isKotlinInternalScope(MethodInfo method) {
+    private static boolean isKotlinInternalScope(@Nonnull MethodInfo method) {
         return method.getName().indexOf('$') >= 0;
     }
 
     // Kotlin 1.2 declares Enum constructors as protected, although
     // both Java and Kotlin 1.3 declare them as private. But exclude
     // them because Enum classes are final anyway.
-    private static boolean isEnumConstructor(MethodInfo method) {
+    private static boolean isEnumConstructor(@Nonnull MethodInfo method) {
         return method.isConstructor() && method.getClassInfo().extendsSuperclass(ENUM_BASE_CLASS);
     }
 
@@ -457,27 +486,29 @@ public class ScanApi extends DefaultTask {
         return (modifiers & mask) == modifiers;
     }
 
-    private boolean isExcluded(MethodInfo method) {
+    private boolean isExcluded(@Nonnull MethodInfo method) {
         final String methodSignature = method.getName() + method.getTypeDescriptorStr();
         final String className = method.getClassInfo().getName();
 
-        return this.excludeMethods.containsKey(className) &&
-                this.excludeMethods.get(className).contains(methodSignature);
+        Provider<? extends Set> excluded = excludeMethods.getting(className);
+        return excluded.isPresent() && excluded.get().contains(methodSignature);
     }
 
     private static boolean isVisible(int accessFlags) {
         return (accessFlags & VISIBILITY_MASK) != 0;
     }
 
-    private static boolean isApplicationClass(String typeName) {
+    private static boolean isApplicationClass(@Nonnull String typeName) {
         return !typeName.startsWith("java.") && !typeName.startsWith("kotlin.");
     }
 
-    private static URL toURL(File file) throws MalformedURLException {
+    @Nonnull
+    private static URL toURL(@Nonnull File file) throws MalformedURLException {
         return file.toURI().toURL();
     }
 
-    private static URL[] toURLs(Iterable<File> files) throws MalformedURLException {
+    @Nonnull
+    private static URL[] toURLs(@Nonnull Iterable<File> files) throws MalformedURLException {
         List<URL> urls = new LinkedList<>();
         for (File file : files) {
             urls.add(toURL(file));
@@ -496,7 +527,7 @@ class Names {
         this.hidden = unmodifiable(hidden);
     }
 
-    private static <T> List<T> unmodifiable(List<T> list) {
+    private static <T> List<T> unmodifiable(@Nonnull List<T> list) {
         return list.isEmpty() ? emptyList() : unmodifiableList(new ArrayList<>(list));
     }
 }

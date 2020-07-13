@@ -4,6 +4,7 @@ plugins {
     id 'net.corda.plugins.api-scanner'
 }
 apply from: 'repositories.gradle'
+apply from: 'kotlin.gradle'
 
 description 'Test API for a library'
 
@@ -20,8 +21,6 @@ dependencies {
     implementation 'org.slf4j:slf4j-api:1.7.26'
     compileOnly files('../../annotations/build/libs/annotations.jar')
 }
-
-apply from: 'kotlin.gradle'
 
 jar {
     archiveBaseName = "kotlin-library"

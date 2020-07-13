@@ -14,6 +14,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Function;
 
 import static java.util.Collections.emptyList;
 import static net.corda.plugins.apiscanner.CopyUtils.*;
@@ -24,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * Executes the API Scanner plugin in a test Gradle project.
  */
-@SuppressWarnings("WeakerAccess")
+@SuppressWarnings({"WeakerAccess", "unused"})
 public class GradleProject {
     private static final String TEST_GRADLE_USER_HOME = System.getProperty("test.gradle.user.home", "");
 
@@ -46,6 +47,25 @@ public class GradleProject {
     public GradleProject withResource(String resourceName) throws IOException {
         installResource(projectDir, resourceName);
         return this;
+    }
+
+    public GradleProject withSubResource(String resourceName) throws IOException {
+        installResource(subDirectoryFor(resourceName), name + '/' + resourceName);
+        return this;
+    }
+
+    private Path subDirectoryFor(@Nonnull String resourceName) throws IOException {
+        Path directory = projectDir;
+        int startIdx = 0;
+        while (true) {
+            int endIdx = resourceName.indexOf('/', startIdx);
+            if (endIdx == -1) {
+                break;
+            }
+            directory = Files.createDirectory(directory.resolve(resourceName.substring(startIdx, endIdx)));
+            startIdx = endIdx + 1;
+        }
+        return directory;
     }
 
     public GradleProject withTaskName(String taskName) {
@@ -88,21 +108,26 @@ public class GradleProject {
         }
     }
 
-    public GradleProject build() throws IOException {
+    private void configureGradle(Function<GradleRunner, BuildResult> builder, String[] args) throws IOException {
         installResource(projectDir, name + "/build.gradle");
         installResource(projectDir, "repositories.gradle");
-        installResource(projectDir, "settings.gradle");
         installResource(projectDir, "gradle.properties");
+        if (!installResource(projectDir, name + "/settings.gradle")) {
+            installResource(projectDir, "settings.gradle");
+        }
 
-        result = GradleRunner.create()
+        GradleRunner runner = GradleRunner.create()
             .withProjectDir(projectDir.toFile())
-            .withArguments(getGradleArgsForTasks(taskName))
+            .withArguments(getGradleArgs(args))
             .withPluginClasspath()
-            .withDebug(true)
-            .build();
+            .withDebug(true);
+        result = builder.apply(runner);
         output = result.getOutput();
         System.out.println(output);
+    }
 
+    public GradleProject build(String... args) throws IOException {
+        configureGradle(GradleRunner::build, args);
         assertEquals(expectedOutcome, getOutcomeOf(taskName));
 
         api = pathOf(projectDir, "build", "api", name + ".txt");
@@ -110,17 +135,27 @@ public class GradleProject {
         return this;
     }
 
-    public static Path pathOf(@Nonnull Path folder, String... elements) {
+    public GradleProject buildAndFail(String... args) throws IOException {
+        configureGradle(GradleRunner::buildAndFail, args);
+        return this;
+    }
+
+    @Nonnull
+    private static Path pathOf(@Nonnull Path folder, String... elements) {
         return Paths.get(folder.toAbsolutePath().toString(), elements);
     }
 
-    public static List<String> getGradleArgsForTasks(@Nonnull String... taskNames) {
-        List<String> args = new ArrayList<>(taskNames.length + 4);
-        Collections.addAll(args, taskNames);
+    @Nonnull
+    private List<String> getGradleArgs(@Nonnull String[] extraArgs) {
+        List<String> args = new ArrayList<>(extraArgs.length + 5);
         Collections.addAll(args, "--info", "--stacktrace");
         if (!TEST_GRADLE_USER_HOME.isEmpty()) {
             Collections.addAll(args, "-g", TEST_GRADLE_USER_HOME);
         }
+        if (taskName != null) {
+            args.add(taskName);
+        }
+        Collections.addAll(args, extraArgs);
         return args;
     }
 }

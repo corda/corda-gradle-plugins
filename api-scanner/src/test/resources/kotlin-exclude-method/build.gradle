@@ -3,6 +3,7 @@ plugins {
     id 'org.jetbrains.kotlin.jvm'
 }
 apply from: 'repositories.gradle'
+apply from: 'kotlin.gradle'
 
 description 'Test behaviour of filtering'
 
@@ -19,8 +20,6 @@ dependencies {
     implementation 'org.jetbrains.kotlin:kotlin-reflect'
 }
 
-apply from: 'kotlin.gradle'
-
 jar {
     archiveBaseName = "kotlin-exclude-method"
 }
@@ -28,8 +27,8 @@ jar {
 scanApi {
     verbose = true
     excludeMethods = [
-            "net.corda.example.ClassWithExtraConstructorGenerated": [
-                    "<init>(Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V"
-            ]
+        "net.corda.example.ClassWithExtraConstructorGenerated": [
+            "<init>(Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V"
+        ]
     ]
 }

@@ -3,6 +3,7 @@ plugins {
     id 'org.jetbrains.kotlin.jvm'
 }
 apply from: 'repositories.gradle'
+apply from: 'kotlin.gradle'
 
 description 'Test Legacy Gradle API'
 
@@ -18,8 +19,6 @@ dependencies {
     compile 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
     compileOnly files('../../annotations/build/libs/annotations.jar')
 }
-
-apply from: 'kotlin.gradle'
 
 jar {
     archiveBaseName = "kotlin-legacy"
