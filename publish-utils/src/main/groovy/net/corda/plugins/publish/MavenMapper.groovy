@@ -1,6 +1,7 @@
 package net.corda.plugins.publish
 
 import groovy.transform.CompileStatic
+import groovy.transform.PackageScope
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.Dependency
@@ -9,6 +10,7 @@ import org.gradle.api.artifacts.ResolvedConfiguration
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 
 @CompileStatic
+@PackageScope
 class MavenMapper {
     private final Map<ModuleVersionIdentifier, String> publishedAliases
     private final Set<ModuleVersionIdentifier> apiElements
@@ -16,6 +18,7 @@ class MavenMapper {
     private final Set<ModuleVersionIdentifier> compile
     private final Set<ModuleVersionIdentifier> runtime
 
+    @PackageScope
     MavenMapper(ConfigurationContainer configurations, ResolvedConfiguration resolvedConfiguration) {
         // Ensure that we use these artifacts' published names, because
         // these aren't necessarily the same as their internal names.
@@ -29,6 +32,7 @@ class MavenMapper {
         runtime = resolveArtifactsFor(configurations, "runtimeClasspath")
     }
 
+    @PackageScope
     String getScopeFor(ModuleVersionIdentifier id, String defaultScope) {
         if (compile.contains(id) && (!compileOnly.contains(id) || apiElements.contains(id))) {
             // This dependency is on the compile classpath. Also, it has
@@ -45,6 +49,7 @@ class MavenMapper {
         }
     }
 
+    @PackageScope
     String getModuleNameFor(ModuleVersionIdentifier id) {
         return publishedAliases[id]
     }

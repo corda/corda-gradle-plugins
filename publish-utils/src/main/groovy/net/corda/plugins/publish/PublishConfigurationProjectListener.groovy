@@ -2,6 +2,7 @@ package net.corda.plugins.publish
 
 import com.jfrog.bintray.gradle.BintrayExtension
 import com.jfrog.bintray.gradle.tasks.BintrayUploadTask
+import groovy.transform.PackageScope
 import net.corda.plugins.publish.bintray.BintrayConfigExtension
 import org.gradle.api.Project
 import org.gradle.api.ProjectEvaluationListener
@@ -23,38 +24,38 @@ import static net.corda.plugins.publish.PublishPlugin.*
  * into {@link BintrayExtension} before the Bintray plugin can configure all of its
  * {@link BintrayUploadTask}s.
  */
+@PackageScope
 class PublishConfigurationProjectListener implements ProjectEvaluationListener {
-    private final PublishExtension publishConfig
-    private final Project project
+    private final Project rootProject
 
-    PublishConfigurationProjectListener(PublishExtension publishConfig, Project project) {
-        this.publishConfig = publishConfig
-        this.project = project
-    }
-
-    private boolean isListenerFor(Project project) {
-        return this.project == project
+    @PackageScope
+    PublishConfigurationProjectListener(Project rootProject) {
+        this.rootProject = rootProject
     }
 
     private BintrayConfigExtension fetchBintrayConfig() {
-        return project.rootProject.extensions.findByType(BintrayConfigExtension)
+        return rootProject.extensions.getByType(BintrayConfigExtension)
     }
 
     @Override
     void beforeEvaluate(Project project) {
     }
 
+    /**
+     * This listener will be called for every single project in the build.
+     * We are only interested in those projects which have applied our plugin.
+     * @param project
+     * @param state
+     */
     @Override
     void afterEvaluate(final Project project, ProjectState state) {
-        if (!isListenerFor(project)) {
+        final PublishExtension publishConfig = project.extensions.findByType(PublishExtension)
+        if (!publishConfig) {
+            // This project has not applied publish-utils.
             return
         }
 
         final BintrayConfigExtension bintrayConfig = fetchBintrayConfig()
-        if (!bintrayConfig) {
-            return
-        }
-
         final String publishName = publishConfig.name.get()
         if (bintrayConfig.isPublishing(publishName)) {
             project.extensions.configure(BintrayExtension) { bintray ->
@@ -106,14 +107,15 @@ class PublishConfigurationProjectListener implements ProjectEvaluationListener {
 
                 Configuration publishDependencies = publishConfig.publishDependencies
                 if (publishDependencies) {
-                    fromConfiguration(pub.pom, publishDependencies.resolvedConfiguration)
+                    String defaultScope = publishConfig.dependencyConfig.defaultScope.get()
+                    fromConfiguration(pub.pom, project, publishDependencies.resolvedConfiguration, defaultScope)
                 } else if (!publishConfig.disableDefaultJar.get() && !publishConfig.publishWar.get()) {
                     from project.components.java
                 } else if (publishConfig.publishWar.get()) {
                     from project.components.web
                 }
 
-                extendPomForMavenCentral(pub.pom, publishName, bintrayConfig)
+                extendPomForMavenCentral(pub.pom, publishName, project.description, bintrayConfig)
             }
         } else {
             project.tasks.withType(BintrayUploadTask).configureEach { upload ->
@@ -122,7 +124,7 @@ class PublishConfigurationProjectListener implements ProjectEvaluationListener {
         }
     }
 
-    private void fromConfiguration(MavenPom pom, ResolvedConfiguration configuration) {
+    private void fromConfiguration(MavenPom pom, Project project, ResolvedConfiguration configuration, String defaultScope) {
         pom.withXml {
             Node dependenciesNode = asNode().appendNode('dependencies')
             MavenMapper mapper = new MavenMapper(project.configurations, configuration)
@@ -140,18 +142,18 @@ class PublishConfigurationProjectListener implements ProjectEvaluationListener {
                  * configuration(s) this dependency belongs to. Or use the default
                  * scope if it can't be found at all.
                  */
-                dependencyNode.appendNode('scope', mapper.getScopeFor(id, publishConfig.dependencyConfig.defaultScope.get()))
+                dependencyNode.appendNode('scope', mapper.getScopeFor(id, defaultScope))
             }
         }
     }
 
     // Maven central requires all of the below fields for this to be a valid POM
-    private void extendPomForMavenCentral(MavenPom pom, String publishName, BintrayConfigExtension config) {
+    private void extendPomForMavenCentral(MavenPom pom, String publishName, String publishDescription, BintrayConfigExtension config) {
         pom.withXml {
             asNode().children().last() + {
                 resolveStrategy = DELEGATE_FIRST
                 name publishName
-                description project.description
+                description publishDescription
                 url config.projectUrl.get()
                 scm {
                     url config.vcsUrl.get()
