@@ -32,10 +32,11 @@ class PublishPlugin implements Plugin<Project> {
 
     @Override
     void apply(Project project) {
+        publishConfig = project.extensions.create(PUBLISH_EXTENSION_NAME, PublishExtension, project.name)
         if (project == project.rootProject) {
             project.extensions.create(BINTRAY_CONFIG_EXTENSION_NAME, BintrayConfigExtension)
+            createRootProjectListener(project)
         }
-        publishConfig = project.extensions.create(PUBLISH_EXTENSION_NAME, PublishExtension, project.name)
 
         // We cannot register new tasks inside the project's afterEvaluate handler,
         // which means we cannot risk registering plugins there either.
@@ -44,11 +45,10 @@ class PublishPlugin implements Plugin<Project> {
 
         createTasks(project)
         createConfigurations(project)
-        createProjectListener(project)
     }
 
-    private void createProjectListener(Project project) {
-        project.gradle.addListener(new PublishConfigurationProjectListener(publishConfig, project))
+    private void createRootProjectListener(Project rootProject) {
+        rootProject.gradle.addListener(new PublishConfigurationProjectListener(rootProject))
     }
 
     private void createTasks(Project project) {
