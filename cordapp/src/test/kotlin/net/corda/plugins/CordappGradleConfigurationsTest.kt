@@ -16,6 +16,7 @@ class CordappGradleConfigurationsTest {
         private lateinit var testProject: GradleProject
         private lateinit var poms: List<ZipEntry>
 
+        @Suppress("unused")
         @BeforeAll
         @JvmStatic
         fun setup(@TempDir testProjectDir: Path, reporter: TestReporter) {
@@ -55,9 +56,10 @@ class CordappGradleConfigurationsTest {
             val cordapp = testProject.pathOf("build", "libs", "configurations.jar")
             assertThat(cordapp).isRegularFile()
 
-            poms = ZipFile(cordapp.toFile()).stream()
-                .filter { entry -> entry.name.endsWith("/pom.xml") }
-                .collect(toList())
+            poms = ZipFile(cordapp.toFile()).use { zip ->
+                zip.stream().filter { entry -> entry.name.endsWith("/pom.xml") }
+                   .collect(toList())
+            }
         }
     }
 

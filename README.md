@@ -47,10 +47,10 @@ This metadata is currently optional, but you are _strongly_ advised to provide i
     <sup>Requires Gradle 5.1</sup>
 
 - [`net.corda.plugins.cordformation`](cordformation/README.rst)\
-This plugin provides `Cordform` and `Dockerform` Gradle tasks for creating
-test deployments of multiple Corda nodes and their CorDapps. It also invokes
-the Network Bootstrapper over the deployment for you, and provides you with a
-`runnodes` script to boot it all up afterwards.
+This plugin provides `Cordform`, `Dockerform` and `DockerImage` Gradle tasks
+for creating test deployments of multiple Corda nodes and their CorDapps. It
+also invokes the Network Bootstrapper over the deployment for you, and provides
+you with a `runnodes` script to boot it all up afterwards.
 
     <sup>Requires Gradle 5.1</sup>
 
