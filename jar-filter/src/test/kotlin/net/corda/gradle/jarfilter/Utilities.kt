@@ -90,8 +90,9 @@ fun <T> ClassLoader.load(className: String)
 
 fun Path.getClassNames(prefix: String): List<String> {
     val resourcePrefix = prefix.toPathFormat
-    return ZipFile(toFile()).stream()
-        .filter { it.name.startsWith(resourcePrefix) && it.name.endsWith(".class") }
-        .map { it.name.removeSuffix(".class").toPackageFormat }
-        .collect(toList<String>())
+    return ZipFile(toFile()).use { zip ->
+        zip.stream().filter { it.name.startsWith(resourcePrefix) && it.name.endsWith(".class") }
+           .map { it.name.removeSuffix(".class").toPackageFormat }
+           .collect(toList<String>())
+    }
 }
