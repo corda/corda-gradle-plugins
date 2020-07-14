@@ -24,8 +24,10 @@ class Cordformation : Plugin<Project> {
             val tmpDir = File(project.buildDir, "tmp")
             val outputFile = File(tmpDir, filePathInJar)
             tmpDir.mkdir()
-            outputFile.outputStream().use {
-                Cordformation::class.java.getResourceAsStream(filePathInJar).copyTo(it)
+            outputFile.outputStream().use { output ->
+                Cordformation::class.java.getResourceAsStream(filePathInJar)?.use { input ->
+                    input.copyTo(output)
+                }
             }
             return outputFile
         }

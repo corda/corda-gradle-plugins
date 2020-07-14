@@ -7,8 +7,8 @@ import net.corda.serialization.internal.amqp.amqpMagic
 import org.gradle.testkit.runner.GradleRunner
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.io.TempDir
-import java.io.FileNotFoundException
 import java.nio.file.Files
+import java.nio.file.NoSuchFileException
 import java.nio.file.Path
 import java.nio.file.Paths
 
@@ -46,19 +46,22 @@ open class BaseformTest {
                 .withPluginClasspath()
     }
 
-    fun createBuildFile(buildFileResourceName: String) = Files.copy(javaClass.getResourceAsStream(buildFileResourceName), buildFile)
+    private fun createBuildFile(buildFileResourceName: String): Long = javaClass.getResourceAsStream(buildFileResourceName)?.use { s ->
+        Files.copy(s, buildFile)
+    } ?: throw NoSuchFileException(buildFileResourceName)
+
     fun installResource(resourceName: String) {
         val buildFile = testProjectDir.resolve(resourceName.substring(1 + resourceName.lastIndexOf('/')))
         javaClass.classLoader.getResourceAsStream(resourceName)?.use { input ->
             Files.copy(input, buildFile)
-        } ?: throw FileNotFoundException(resourceName)
+        } ?: throw NoSuchFileException(resourceName)
     }
 
-    fun getNodeLogFile( nodeName: String, fileName: String ) = Paths.get(testProjectDir.toAbsolutePath().toString(), "build", "nodes", nodeName, "logs", "$fileName")
-    fun getNodeCordappJar(nodeName: String, cordappJarName: String) = Paths.get(testProjectDir.toAbsolutePath().toString(), "build", "nodes", nodeName, "cordapps", "$cordappJarName.jar")
-    fun getNodeCordappConfig(nodeName: String, cordappJarName: String) = Paths.get(testProjectDir.toAbsolutePath().toString(), "build", "nodes", nodeName, "cordapps", "config", "$cordappJarName.conf")
-    fun getNetworkParameterOverrides(nodeName: String) = Paths.get(testProjectDir.toAbsolutePath().toString(), "build", "nodes", nodeName, "network-parameters")
-    fun getNodeConfig(nodeName: String) = Paths.get(testProjectDir.toAbsolutePath().toString(), "build", "nodes", nodeName, "node.conf")
+    fun getNodeLogFile( nodeName: String, fileName: String ): Path = Paths.get(testProjectDir.toAbsolutePath().toString(), "build", "nodes", nodeName, "logs", fileName)
+    fun getNodeCordappJar(nodeName: String, cordappJarName: String): Path = Paths.get(testProjectDir.toAbsolutePath().toString(), "build", "nodes", nodeName, "cordapps", "$cordappJarName.jar")
+    fun getNodeCordappConfig(nodeName: String, cordappJarName: String): Path = Paths.get(testProjectDir.toAbsolutePath().toString(), "build", "nodes", nodeName, "cordapps", "config", "$cordappJarName.conf")
+    fun getNetworkParameterOverrides(nodeName: String): Path = Paths.get(testProjectDir.toAbsolutePath().toString(), "build", "nodes", nodeName, "network-parameters")
+    fun getNodeConfig(nodeName: String): Path = Paths.get(testProjectDir.toAbsolutePath().toString(), "build", "nodes", nodeName, "node.conf")
 
     class AMQPParametersSerializationScheme : AbstractAMQPSerializationScheme(emptyList()) {
         override fun rpcClientSerializerFactory(context: SerializationContext) = throw UnsupportedOperationException()
