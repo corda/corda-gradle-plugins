@@ -7,6 +7,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Files
+import java.nio.file.NoSuchFileException
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.jar.JarInputStream
@@ -268,6 +269,8 @@ class CordappTest {
                 .withPluginClasspath()
     }
 
-    private fun createBuildFile(buildFileResourceName: String) = Files.copy(javaClass.getResourceAsStream(buildFileResourceName), buildFile)
+    private fun createBuildFile(buildFileResourceName: String): Long = javaClass.getResourceAsStream(buildFileResourceName)?.use { s ->
+        Files.copy(s, buildFile)
+    } ?: throw NoSuchFileException(buildFileResourceName)
     private fun getCordappJar(cordappJarName: String): Path = Paths.get(testProjectDir.toFile().absolutePath, "build", "libs", "$cordappJarName.jar")
 }
