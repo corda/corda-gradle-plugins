@@ -18,8 +18,8 @@ open class BaseformTest {
     lateinit var buildFile: Path
 
     companion object {
-        const val cordaFinanceWorkflowsJarName = "corda-finance-workflows-4.0"
-        const val cordaFinanceContractsJarName = "corda-finance-contracts-4.0"
+        const val cordaFinanceWorkflowsJarName = "corda-finance-workflows-4.3"
+        const val cordaFinanceContractsJarName = "corda-finance-contracts-4.3"
         const val localCordappJarName = "locally-built-cordapp"
         const val notaryNodeName = "NotaryService"
         const val notaryNodeUnitName = "OrgUnit"
@@ -33,7 +33,11 @@ open class BaseformTest {
     }
 
 
-    fun getStandardGradleRunnerFor(buildFileResourceName: String, taskName: String = "deployNodes"): GradleRunner {
+    fun getStandardGradleRunnerFor(
+            buildFileResourceName: String,
+            taskName: String = "deployNodes",
+            vararg extraArgs: String
+    ): GradleRunner {
         createBuildFile(buildFileResourceName)
         installResource("settings.gradle")
         installResource("repositories.gradle")
@@ -42,7 +46,7 @@ open class BaseformTest {
         return GradleRunner.create()
                 .withDebug(true)
                 .withProjectDir(testProjectDir.toFile())
-                .withArguments(taskName, "-s", "--info", "-g", testGradleUserHome)
+                .withArguments(taskName, "-s", "--info", "-g", testGradleUserHome, *extraArgs)
                 .withPluginClasspath()
     }
 

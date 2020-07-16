@@ -18,14 +18,21 @@ import java.time.Duration
 class CordformTest : BaseformTest() {
     @Test
     fun `network parameter overrides`() {
-        val runner = getStandardGradleRunnerFor("DeploySingleNodeWithNetworkParameterOverrides.gradle")
+        val financeReleaseVersion = "4.0"
+        val cordaReleaseVersion = "4.3"
+
+        val runner = getStandardGradleRunnerFor(
+            "DeploySingleNodeWithNetworkParameterOverrides.gradle",
+            "deployNodes",
+            "-Pcorda_release_version=$cordaReleaseVersion", "-Pfinance_release_version=$financeReleaseVersion"
+        )
         installResource("testkeystore")
 
         val result = runner.build()
 
         assertThat(result.task(":deployNodes")!!.outcome).isEqualTo(TaskOutcome.SUCCESS)
-        assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceWorkflowsJarName)).isRegularFile()
-        assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceContractsJarName)).isRegularFile()
+        assertThat(getNodeCordappJar(notaryNodeName, "corda-finance-workflows-$financeReleaseVersion")).isRegularFile()
+        assertThat(getNodeCordappJar(notaryNodeName, "corda-finance-contracts-$financeReleaseVersion")).isRegularFile()
         assertThat(getNetworkParameterOverrides(notaryNodeName)).isRegularFile()
 
         ThreadLocalToggleField<SerializationEnvironment>("contextSerializationEnv")
@@ -58,8 +65,14 @@ class CordformTest : BaseformTest() {
     }
 
     @Test
-    fun `a node that requires an extra command to create schema`(){
-        val runner = getStandardGradleRunnerFor("DeploySingleNodeWithExtraCommandForDbSchema.gradle")
+    fun `a node that requires an extra command to create schema`() {
+        val cordaReleaseVersion = "4.6-20200608_123659-1da174c"
+
+        val runner = getStandardGradleRunnerFor(
+            "DeploySingleNodeWithExtraCommandForDbSchema.gradle",
+            "deployNodes",
+            "-Pcorda_release_version=$cordaReleaseVersion"
+        )
 
         val result = runner.build()
 
@@ -123,25 +136,25 @@ class CordformTest : BaseformTest() {
         val jarName = "corda"
 
         var releaseVersion = "4.3"
-        var pattern = "\\Q$jarName\\E(-enterprise)?-\\Q$releaseVersion\\E(-.+)?\\.jar\$".toRegex()
-        assertThat("corda-4.3.jar".contains(pattern)).isTrue()
-        assertThat("corda-4.3.jar".contains(pattern)).isTrue()
-        assertThat("corda-4.3.jarBla".contains(pattern)).isFalse()
-        assertThat("bla\\bla\\bla\\corda-4.3.jar".contains(pattern)).isTrue()
-        assertThat("corda-4.3-jdk11.jar".contains(pattern)).isTrue()
-        assertThat("corda-4.3jdk11.jar".contains(pattern)).isFalse()
-        assertThat("bla\\bla\\bla\\corda-enterprise-4.3.jar".contains(pattern)).isTrue()
-        assertThat("corda-enterprise-4.3.jar".contains(pattern)).isTrue()
-        assertThat("corda-enterprise-4.3-jdk11.jar".contains(pattern)).isTrue()
+        var pattern = "\\Q$jarName\\E(-enterprise)?-\\Q$releaseVersion\\E(-.+)?\\.jar\$".toRegex().pattern
+        assertThat("corda-4.3.jar").containsPattern(pattern)
+        assertThat("corda-4.3.jar").containsPattern(pattern)
+        assertThat("corda-4.3.jarBla").doesNotContainPattern(pattern)
+        assertThat("bla\\bla\\bla\\corda-4.3.jar").containsPattern(pattern)
+        assertThat("corda-4.3-jdk11.jar").containsPattern(pattern)
+        assertThat("corda-4.3jdk11.jar").doesNotContainPattern(pattern)
+        assertThat("bla\\bla\\bla\\corda-enterprise-4.3.jar").containsPattern(pattern)
+        assertThat("corda-enterprise-4.3.jar").containsPattern(pattern)
+        assertThat("corda-enterprise-4.3-jdk11.jar").containsPattern(pattern)
 
         releaseVersion = "4.3-RC01"
-        pattern = "\\Q$jarName\\E(-enterprise)?-\\Q$releaseVersion\\E(-.+)?\\.jar\$".toRegex()
-        assertThat("corda-4.3-RC01.jar".contains(pattern)).isTrue()
-        assertThat("corda-4.3RC01.jar".contains(pattern)).isFalse()
+        pattern = "\\Q$jarName\\E(-enterprise)?-\\Q$releaseVersion\\E(-.+)?\\.jar\$".toRegex().pattern
+        assertThat("corda-4.3-RC01.jar").containsPattern(pattern)
+        assertThat("corda-4.3RC01.jar").doesNotContainPattern(pattern)
 
         releaseVersion = "4.3.20190925"
-        pattern = "\\Q$jarName\\E(-enterprise)?-\\Q$releaseVersion\\E(-.+)?\\.jar\$".toRegex()
-        assertThat("corda-4.3.20190925.jar".contains(pattern)).isTrue()
-        assertThat("corda-4.3.20190925-TEST.jar".contains(pattern)).isTrue()
+        pattern = "\\Q$jarName\\E(-enterprise)?-\\Q$releaseVersion\\E(-.+)?\\.jar\$".toRegex().pattern
+        assertThat("corda-4.3.20190925.jar").containsPattern(pattern)
+        assertThat("corda-4.3.20190925-TEST.jar").containsPattern(pattern)
     }
 }

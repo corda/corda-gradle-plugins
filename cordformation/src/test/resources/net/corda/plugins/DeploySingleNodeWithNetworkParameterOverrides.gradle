@@ -1,12 +1,5 @@
 import java.time.Duration
 
-buildscript {
-    ext {
-        corda_release_version = '4.3'
-        finance_release_version = '4.0'
-    }
-}
-
 plugins {
     id 'net.corda.plugins.cordformation'
 }
