@@ -285,10 +285,10 @@ open class Baseform(objects: ObjectFactory) : DefaultTask() {
         try {
             if (networkParameterOverrides.isEmpty()) {
                 val bootstrapMethod = networkBootstrapperClass.getMethod("bootstrapCordform", Path::class.java, List::class.java).apply { isAccessible = true }
-                bootstrapMethod.invoke(networkBootstrapperClass.newInstance(), rootDir, allCordapps)
+                bootstrapMethod.invoke(networkBootstrapperClass.getDeclaredConstructor().newInstance(), rootDir, allCordapps)
             } else {
                 val bootstrapMethod = networkBootstrapperClass.getMethod("bootstrapCordform", Path::class.java, List::class.java, String::class.java).apply { isAccessible = true }
-                bootstrapMethod.invoke(networkBootstrapperClass.newInstance(), rootDir, allCordapps, networkParameterOverrides.toConfig().root().render(ConfigRenderOptions.concise()))
+                bootstrapMethod.invoke(networkBootstrapperClass.getDeclaredConstructor().newInstance(), rootDir, allCordapps, networkParameterOverrides.toConfig().root().render(ConfigRenderOptions.concise()))
             }
         } catch (e: NoSuchMethodException) {
             throw InvalidUserDataException("Unrecognised configuration options passed. Please ensure you're using the correct 'corda-node-api' version on Gradle's runtime classpath.", e)
