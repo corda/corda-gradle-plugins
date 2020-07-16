@@ -21,6 +21,7 @@ sourceSets {
 dependencies {
     implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
     compileOnly files('../../unwanteds/build/libs/unwanteds.jar')
+    compileOnly "javax.annotation:javax.annotation-api:$javax_annotations_version"
 }
 
 jar {

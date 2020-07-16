@@ -29,6 +29,14 @@ class SanitiseStubConstructorTest {
         fun setup(@TempDir testProjectDir: Path) {
             testProject = JarFilterProject(testProjectDir, "sanitise-stub-constructor").build()
         }
+
+        fun <T> newInstance(clazz: Class<T>): T {
+            return try {
+                clazz.getDeclaredConstructor().newInstance()
+            } catch (e: InvocationTargetException) {
+                throw e.targetException
+            }
+        }
     }
 
     @Test
@@ -60,7 +68,7 @@ class SanitiseStubConstructorTest {
 
                 val noArg = kotlin.noArgConstructor ?: fail("no-arg constructor missing")
                 assertThat(noArg.callBy(emptyMap()).longData()).isEqualTo(0)
-                assertThat(newInstance().longData()).isEqualTo(0)
+                assertThat(newInstance(this).longData()).isEqualTo(0)
             }
         }
 
@@ -80,7 +88,7 @@ class SanitiseStubConstructorTest {
                 assertThat(assertFailsWith<InvocationTargetException> { noArg.callBy(emptyMap()) }.targetException)
                     .isInstanceOf(UnsupportedOperationException::class.java)
                     .hasMessage("Method has been deleted")
-                assertThat(assertFailsWith<UnsupportedOperationException> { newInstance() })
+                assertThat(assertFailsWith<UnsupportedOperationException> { newInstance(this) })
                     .hasMessage("Method has been deleted")
             }
         }
@@ -115,7 +123,7 @@ class SanitiseStubConstructorTest {
 
                 val noArg = kotlin.noArgConstructor ?: fail("no-arg constructor missing")
                 assertThat(noArg.callBy(emptyMap()).intData()).isEqualTo(0)
-                assertThat(newInstance().intData()).isEqualTo(0)
+                assertThat(newInstance(this).intData()).isEqualTo(0)
             }
         }
 
@@ -135,7 +143,7 @@ class SanitiseStubConstructorTest {
                 assertThat(assertFailsWith<InvocationTargetException> { noArg.callBy(emptyMap()) }.targetException)
                     .isInstanceOf(UnsupportedOperationException::class.java)
                     .hasMessage("Method has been deleted")
-                assertThat(assertFailsWith<UnsupportedOperationException> { newInstance() })
+                assertThat(assertFailsWith<UnsupportedOperationException> { newInstance(this) })
                     .hasMessage("Method has been deleted")
             }
         }
@@ -170,7 +178,7 @@ class SanitiseStubConstructorTest {
 
                 val noArg = kotlin.noArgConstructor ?: fail("no-arg constructor missing")
                 assertThat(noArg.callBy(emptyMap()).stringData()).isEqualTo(DEFAULT_MESSAGE)
-                assertThat(newInstance().stringData()).isEqualTo(DEFAULT_MESSAGE)
+                assertThat(newInstance(this).stringData()).isEqualTo(DEFAULT_MESSAGE)
             }
         }
 
@@ -190,7 +198,7 @@ class SanitiseStubConstructorTest {
                 assertThat(assertFailsWith<InvocationTargetException> { noArg.callBy(emptyMap()) }.targetException)
                     .isInstanceOf(UnsupportedOperationException::class.java)
                     .hasMessage("Method has been deleted")
-                assertThat(assertFailsWith<UnsupportedOperationException> { newInstance() })
+                assertThat(assertFailsWith<UnsupportedOperationException> { newInstance(this) })
                     .hasMessage("Method has been deleted")
             }
         }

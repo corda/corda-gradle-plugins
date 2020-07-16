@@ -25,14 +25,14 @@ class MetaFixFieldValPropertyTest {
 
         // Check that the unwanted property has been successfully
         // added to the metadata, and that the class is valid.
-        val sourceObj = sourceClass.newInstance()
+        val sourceObj = sourceClass.getDeclaredConstructor().newInstance()
         assertEquals(NUMBER, sourceClass.getField("wantedVal").get(sourceObj))
         assertThat("unwantedVal not found", sourceClass.kotlin.declaredMemberProperties, hasItem(unwantedVal))
         assertThat("wantedVal not found", sourceClass.kotlin.declaredMemberProperties, hasItem(wantedVal))
 
         // Rewrite the metadata according to the contents of the bytecode.
         val fixedClass = bytecode.fixMetadata(logger, pathsOf(WithFieldValProperty::class)).toClass<WithFieldValProperty, Any>()
-        val fixedObj = fixedClass.newInstance()
+        val fixedObj = fixedClass.getDeclaredConstructor().newInstance()
         assertEquals(NUMBER, fixedClass.getField("wantedVal").get(fixedObj))
         assertThat("unwantedVal still exists", fixedClass.kotlin.declaredMemberProperties, not(hasItem(unwantedVal)))
         assertThat("wantedVal not found", fixedClass.kotlin.declaredMemberProperties, hasItem(wantedVal))

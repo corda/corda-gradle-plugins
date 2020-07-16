@@ -26,7 +26,7 @@ class MetaFixFunctionTest {
 
         // Check that the unwanted function has been successfully
         // added to the metadata, and that the class is valid.
-        val sourceObj = sourceClass.newInstance()
+        val sourceObj = sourceClass.getDeclaredConstructor().newInstance()
         assertEquals(BIG_NUMBER, sourceObj.longData())
         with(sourceClass.kotlin.declaredFunctions) {
             assertThat("unwantedFun(String) not found", this, hasItem(unwantedFun))
@@ -35,7 +35,7 @@ class MetaFixFunctionTest {
 
         // Rewrite the metadata according to the contents of the bytecode.
         val fixedClass = bytecode.fixMetadata(logger, pathsOf(WithFunction::class)).toClass<WithFunction, HasLong>()
-        val fixedObj = fixedClass.newInstance()
+        val fixedObj = fixedClass.getDeclaredConstructor().newInstance()
         assertEquals(BIG_NUMBER, fixedObj.longData())
         with(fixedClass.kotlin.declaredFunctions) {
             assertThat("unwantedFun(String) still exists", this, not(hasItem(unwantedFun)))

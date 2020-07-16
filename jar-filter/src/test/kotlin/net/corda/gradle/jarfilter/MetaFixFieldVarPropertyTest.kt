@@ -25,14 +25,14 @@ class MetaFixFieldVarPropertyTest {
 
         // Check that the unwanted property has been successfully
         // added to the metadata, and that the class is valid.
-        val sourceObj = sourceClass.newInstance()
+        val sourceObj = sourceClass.getDeclaredConstructor().newInstance()
         assertEquals(NUMBER, sourceClass.getField("wantedVar").get(sourceObj))
         assertThat("unwantedVar not found", sourceClass.kotlin.declaredMemberProperties, hasItem(unwantedVar))
         assertThat("wantedVar not found", sourceClass.kotlin.declaredMemberProperties, hasItem(wantedVar))
 
         // Rewrite the metadata according to the contents of the bytecode.
         val fixedClass = bytecode.fixMetadata(logger, pathsOf(WithFieldVarProperty::class)).toClass<WithFieldVarProperty, Any>()
-        val fixedObj = fixedClass.newInstance()
+        val fixedObj = fixedClass.getDeclaredConstructor().newInstance()
         assertEquals(NUMBER, fixedClass.getField("wantedVar").get(fixedObj))
         assertThat("unwantedVar still exists", fixedClass.kotlin.declaredMemberProperties, not(hasItem(unwantedVar)))
         assertThat("wantedVar not found", fixedClass.kotlin.declaredMemberProperties, hasItem(wantedVar))

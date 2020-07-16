@@ -33,7 +33,7 @@ class DeleteOverloadedFunctionTest {
     fun deleteFunction() {
         classLoaderFor(testProject.sourceJar).use { cl ->
             with(cl.load<Any>(FUNCTION_CLASS)) {
-                newInstance().also {
+                getDeclaredConstructor().newInstance().also {
                     assertEquals(MESSAGE, getDeclaredMethod("stringData", String::class.java).invoke(it, MESSAGE))
                     assertEquals("$NUMBER: $MESSAGE",
                         getDeclaredMethod("stringData", Int::class.java, String::class.java).invoke(it, NUMBER, MESSAGE))
@@ -45,7 +45,7 @@ class DeleteOverloadedFunctionTest {
 
         classLoaderFor(testProject.filteredJar).use { cl ->
             with(cl.load<Any>(FUNCTION_CLASS)) {
-                newInstance().also {
+                getDeclaredConstructor().newInstance().also {
                     assertFailsWith<NoSuchMethodException> { getDeclaredMethod("stringData", String::class.java) }
                     assertEquals("$NUMBER: $MESSAGE",
                         getDeclaredMethod("stringData", Int::class.java, String::class.java).invoke(it, NUMBER, MESSAGE))
@@ -60,7 +60,7 @@ class DeleteOverloadedFunctionTest {
     fun deleteFunctionWithLambda() {
         classLoaderFor(testProject.sourceJar).use { cl ->
             with(cl.load<Any>(LAMBDA_CLASS)) {
-                newInstance().also {
+                getDeclaredConstructor().newInstance().also {
                     assertEquals("[$MESSAGE]", getDeclaredMethod("lambdaData", String::class.java).invoke(it, MESSAGE))
                     assertEquals("($NUMBER)", getDeclaredMethod("lambdaData", Int::class.java).invoke(it, NUMBER))
                 }
@@ -70,7 +70,7 @@ class DeleteOverloadedFunctionTest {
 
         classLoaderFor(testProject.filteredJar).use { cl ->
             with(cl.load<Any>(LAMBDA_CLASS)) {
-                newInstance().also {
+                getDeclaredConstructor().newInstance().also {
                     assertFailsWith<NoSuchMethodException> { getDeclaredMethod("lambdaData", String::class.java) }
                     assertEquals("($NUMBER)", getDeclaredMethod("lambdaData", Int::class.java).invoke(it, NUMBER))
                 }

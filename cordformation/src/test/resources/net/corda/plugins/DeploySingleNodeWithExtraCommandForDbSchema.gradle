@@ -1,9 +1,3 @@
-buildscript {
-    ext {
-        corda_release_version = '4.6-20200608_123659-1da174c'
-    }
-}
-
 plugins {
     id 'net.corda.plugins.cordformation'
 }

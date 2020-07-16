@@ -43,13 +43,13 @@ class MetaFixFunctionDefaultParameterTest {
         }
 
         val sourceUnwanted = sourceClass.kotlin.declaredFunctions.findOrFail("hasMandatoryParams")
-        assertThat(sourceUnwanted.call(sourceClass.newInstance(), BIG_NUMBER, NUMBER, MESSAGE))
+        assertThat(sourceUnwanted.call(sourceClass.getDeclaredConstructor().newInstance(), BIG_NUMBER, NUMBER, MESSAGE))
             .isEqualTo("Long: $BIG_NUMBER, Int: $NUMBER, String: $MESSAGE")
 
         assertTrue(sourceUnwanted.hasAllOptionalParameters, "All source parameters should be optional")
 
         val sourceWanted = sourceClass.kotlin.declaredFunctions.findOrFail("hasOptionalParams")
-        assertThat(sourceWanted.call(sourceClass.newInstance(), MESSAGE))
+        assertThat(sourceWanted.call(sourceClass.getDeclaredConstructor().newInstance(), MESSAGE))
             .isEqualTo(MESSAGE)
 
         assertTrue(sourceWanted.hasAllOptionalParameters, "All source parameters should be optional")
