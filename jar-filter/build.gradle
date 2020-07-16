@@ -58,6 +58,7 @@ dependencies {
     testImplementation "org.assertj:assertj-core:$assertj_version"
     testImplementation "org.junit.jupiter:junit-jupiter-api:$junit_jupiter_version"
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junit_jupiter_version"
+    testImplementation "javax.annotation:javax.annotation-api:$javax_annotations_version"
     testImplementation project(':jar-filter:unwanteds')
 
     jacocoRuntime "org.jacoco:org.jacoco.agent:${jacoco.toolVersion}:runtime"
@@ -66,6 +67,7 @@ dependencies {
 processTestResources {
     filesMatching('gradle.properties') {
         expand(['jacocoAgent': configurations.jacocoRuntime.asPath.replace('\\', '/'),
+                'javax_annotations_version': javax_annotations_version,
                 'kotlin_api_version': test_kotlin_api_version,
                 'kotlin_version': kotlin_version,
                 'buildDir': buildDir])

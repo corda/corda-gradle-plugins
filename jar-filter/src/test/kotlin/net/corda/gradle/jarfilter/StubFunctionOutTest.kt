@@ -32,7 +32,7 @@ class StubFunctionOutTest {
             val parameter = cl.load<Annotation>(PARAMETER_ANNOTATION)
 
             cl.load<HasUnwantedFun>(FUNCTION_CLASS).apply {
-                newInstance().also { obj ->
+                getDeclaredConstructor().newInstance().also { obj ->
                     assertEquals(MESSAGE, obj.unwantedFun(MESSAGE))
                 }
                 getMethod("unwantedFun", String::class.java).also { method ->
@@ -52,7 +52,7 @@ class StubFunctionOutTest {
             val parameter = cl.load<Annotation>(PARAMETER_ANNOTATION)
 
             cl.load<HasUnwantedFun>(FUNCTION_CLASS).apply {
-                newInstance().also { obj ->
+                getDeclaredConstructor().newInstance().also { obj ->
                     assertFailsWith<UnsupportedOperationException> { obj.unwantedFun(MESSAGE) }.also { ex ->
                         assertEquals("Method has been deleted", ex.message)
                     }

@@ -67,13 +67,23 @@ class JarFilterConfigurationTest {
         output = result.output
         println(output)
 
-        assertThat(output).containsSubsequence(
-            "Caused by: org.gradle.api.InvalidUserCodeException:",
-            "Caused by: java.io.FileNotFoundException:"
-        )
+        val exceptions = output.reader().readLines()
+            .filter { it.startsWith("Caused by: ") }
+            .map(::extractExceptionName)
+
+        assertThat(exceptions).hasSize(2)
+        assertThat(exceptions[0]).isEqualTo("org.gradle.api.InvalidUserCodeException")
+        assertThat(exceptions[1]).isIn("java.io.FileNotFoundException", "java.nio.file.NoSuchFileException")
 
         val jarFilter = result.forTask("jarFilter")
         assertEquals(FAILED, jarFilter.outcome)
+    }
+
+    // The exception class name comes after "Caused by:" and is followed by another ':'.
+    private fun extractExceptionName(text: String): String {
+        val startIdx = text.indexOf(':') + 1
+        val endIdx = text.indexOf(':', startIdx)
+        return text.substring(startIdx, endIdx).trim()
     }
 
     @Test

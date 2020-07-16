@@ -66,7 +66,7 @@ class SanitiseDeleteConstructorTest {
 
                 val noArg = kotlin.noArgConstructor ?: fail("no-arg constructor missing")
                 assertThat(noArg.callBy(emptyMap()).longData()).isEqualTo(0)
-                assertThat(newInstance().longData()).isEqualTo(0)
+                assertThat(getDeclaredConstructor().newInstance().longData()).isEqualTo(0)
             }
         }
 
@@ -124,7 +124,7 @@ class SanitiseDeleteConstructorTest {
 
                 val noArg = kotlin.noArgConstructor ?: fail("no-arg constructor missing")
                 assertThat(noArg.callBy(emptyMap()).intData()).isEqualTo(0)
-                assertThat(newInstance().intData()).isEqualTo(0)
+                assertThat(getDeclaredConstructor().newInstance().intData()).isEqualTo(0)
             }
         }
 
@@ -180,7 +180,7 @@ class SanitiseDeleteConstructorTest {
 
                 val noArg = kotlin.noArgConstructor ?: fail("no-arg constructor missing")
                 assertThat(noArg.callBy(emptyMap()).stringData()).isEqualTo(DEFAULT_MESSAGE)
-                assertThat(newInstance().stringData()).isEqualTo(DEFAULT_MESSAGE)
+                assertThat(getDeclaredConstructor().newInstance().stringData()).isEqualTo(DEFAULT_MESSAGE)
             }
         }
 

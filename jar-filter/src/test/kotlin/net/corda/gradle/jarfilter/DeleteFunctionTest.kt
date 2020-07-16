@@ -36,7 +36,7 @@ class DeleteFunctionTest {
     fun deleteFunction() {
         classLoaderFor(testProject.sourceJar).use { cl ->
             with(cl.load<HasUnwantedFun>(FUNCTION_CLASS)) {
-                newInstance().also {
+                getDeclaredConstructor().newInstance().also {
                     assertEquals(MESSAGE, it.unwantedFun(MESSAGE))
                 }
                 assertThat("unwantedFun(String) not found", kotlin.declaredFunctions, hasItem(unwantedFun))
@@ -45,7 +45,7 @@ class DeleteFunctionTest {
 
         classLoaderFor(testProject.filteredJar).use { cl ->
             with(cl.load<HasUnwantedFun>(FUNCTION_CLASS)) {
-                newInstance().also {
+                getDeclaredConstructor().newInstance().also {
                     assertFailsWith<AbstractMethodError> { it.unwantedFun(MESSAGE) }
                 }
                 assertThat("unwantedFun(String) still exists", kotlin.declaredFunctions, not(hasItem(unwantedFun)))
@@ -91,7 +91,7 @@ class DeleteFunctionTest {
                 assertThat("Java unwantedFun\$default(String) is missing", declaredMethods.toList(), hasItem(javaDefaultUnwantedFun))
 
                 val function = kotlin.declaredFunctions.single { it.name == "unwantedFun" }
-                newInstance().also {
+                getDeclaredConstructor().newInstance().also {
                     assertEquals(MESSAGE, function.call(it, MESSAGE))
                     assertEquals(DEFAULT_MESSAGE, function.callBy(mapOf(function.parameters[0] to it)))
                 }
@@ -106,7 +106,7 @@ class DeleteFunctionTest {
                 val javaDefaultUnwantedFun = isMethod("unwantedFun\$default", String::class.java, this, String::class.java, Integer.TYPE, Any::class.java)
                 assertThat("Java unwantedFun\$default(String) still exists", declaredMethods.toList(), not(hasItem(javaDefaultUnwantedFun)))
 
-                assertNotNull(newInstance())
+                assertNotNull(getDeclaredConstructor().newInstance())
             }
         }
     }
