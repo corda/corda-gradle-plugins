@@ -15,6 +15,15 @@ class QuasarPluginTest {
     private static final String QUASAR_VERSION = QuasarPlugin.defaultVersion
     private static final String QUASAR_CLASSIFIER = QuasarPlugin.defaultClassifier
 
+    private static final String QUASAR_R3 = """\
+if (org.gradle.api.JavaVersion.current().isJava9Compatible()) {
+    version = '0.8.0_r3'
+    classifier = ''
+} else {
+    version = '0.7.12_r3'
+}
+"""
+
     @TempDir
     public Path testProjectDir
 
@@ -211,6 +220,10 @@ dependencies {
     testImplementation 'junit:junit:4.12'
 }
 
+quasar {
+    ${QUASAR_R3}
+}
+
 jar {
     enabled = false
 }
@@ -224,7 +237,7 @@ test {
 }
 """, "test"
         assertThat(output).anyMatch {
-            it.startsWith("TEST-JVM: -javaagent:") && it.endsWith("quasar-core-${QUASAR_VERSION}-${QUASAR_CLASSIFIER}.jar")
+            it.startsWith("TEST-JVM: -javaagent:") && it.contains("quasar-core-") && it.endsWith(".jar")
         }.anyMatch {
             it == "TEST-JVM: -Dco.paralleluniverse.fibers.verifyInstrumentation"
         }
@@ -252,6 +265,7 @@ dependencies {
 }
 
 quasar {
+    ${QUASAR_R3}
     excludePackages.addAll 'groovy**', 'org.junit.**'
 }
 
@@ -289,6 +303,7 @@ dependencies {
 }
 
 quasar {
+    ${QUASAR_R3}
     excludePackages.addAll 'groovy**', 'org.junit.**'
 }
 
@@ -331,6 +346,7 @@ dependencies {
 }
 
 quasar {
+    ${QUASAR_R3}
     excludePackages = [ 'co.paralleluniverse**', 'org.junit.**' ]
 }
 
@@ -392,6 +408,7 @@ dependencies {
 }
 
 quasar {
+    ${QUASAR_R3}
     verbose = true
 }
 
@@ -426,6 +443,7 @@ dependencies {
 }
 
 quasar {
+    ${QUASAR_R3}
     debug = true
 }
 
@@ -460,7 +478,7 @@ dependencies {
 }
 
 quasar {
-    version = '0.7.12_r3'
+   ${QUASAR_R3}
     excludeClassLoaders = [ 'net.corda.**', 'org.testing.*' ]
 }
 
