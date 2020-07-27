@@ -173,7 +173,7 @@ class ScanApi extends DefaultTask {
     }
 
     @Console
-    public Provider<Boolean> isVerbose() {
+    public Provider<Boolean> getVerbose() {
         return verbose;
     }
 
