@@ -4,6 +4,8 @@
 
 ### Version 5.0.12
 
+* `quasar-utils`: Upgrade default Quasar version to 0.7.13_r3.
+
 ### Version 5.0.11
 
 * `cordformation`: Map the host to the same ssh port as in the container

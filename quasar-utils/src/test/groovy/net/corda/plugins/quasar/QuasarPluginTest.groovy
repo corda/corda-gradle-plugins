@@ -55,11 +55,11 @@ configs.collectEntries { [(it.name):it] }.forEach { name, files ->
 }
 """, "jar"
         assertThat(output).containsOnlyOnce(
-            "quasar: quasar-core-${QUASAR_VERSION}-${QUASAR_CLASSIFIER}.jar".toString(),
-            "cordaRuntime: quasar-core-${QUASAR_VERSION}-${QUASAR_CLASSIFIER}.jar".toString(),
-            "runtimeClasspath: quasar-core-${QUASAR_VERSION}-${QUASAR_CLASSIFIER}.jar".toString(),
-            "compileOnly: quasar-core-${QUASAR_VERSION}-${QUASAR_CLASSIFIER}.jar".toString(),
-            "compileClasspath: quasar-core-${QUASAR_VERSION}-${QUASAR_CLASSIFIER}.jar".toString()
+            "quasar: quasar-core-${QUASAR_VERSION}.jar".toString(),
+            "cordaRuntime: quasar-core-${QUASAR_VERSION}.jar".toString(),
+            "runtimeClasspath: quasar-core-${QUASAR_VERSION}.jar".toString(),
+            "compileOnly: quasar-core-${QUASAR_VERSION}.jar".toString(),
+            "compileClasspath: quasar-core-${QUASAR_VERSION}.jar".toString()
         )
     }
 
@@ -93,11 +93,11 @@ configs.collectEntries { [(it.name):it] }.forEach { name, files ->
 }
 """, "jar"
         assertThat(output).containsOnlyOnce(
-            "quasar: quasar-core-${quasarVersion}-${QUASAR_CLASSIFIER}.jar".toString(),
-            "cordaRuntime: quasar-core-${quasarVersion}-${QUASAR_CLASSIFIER}.jar".toString(),
-            "runtimeClasspath: quasar-core-${quasarVersion}-${QUASAR_CLASSIFIER}.jar".toString(),
-            "compileOnly: quasar-core-${quasarVersion}-${QUASAR_CLASSIFIER}.jar".toString(),
-            "compileClasspath: quasar-core-${quasarVersion}-${QUASAR_CLASSIFIER}.jar".toString()
+            "quasar: quasar-core-${quasarVersion}.jar".toString(),
+            "cordaRuntime: quasar-core-${quasarVersion}.jar".toString(),
+            "runtimeClasspath: quasar-core-${quasarVersion}.jar".toString(),
+            "compileOnly: quasar-core-${quasarVersion}.jar".toString(),
+            "compileClasspath: quasar-core-${quasarVersion}.jar".toString()
         )
     }
 
@@ -132,18 +132,18 @@ configs.collectEntries { [(it.name):it] }.forEach { name, files ->
 }
 """, "jar"
         assertThat(output).containsOnlyOnce(
-            "quasar: quasar-core-${quasarVersion}-${QUASAR_CLASSIFIER}.jar".toString(),
-            "cordaRuntime: quasar-core-${quasarVersion}-${QUASAR_CLASSIFIER}.jar".toString(),
-            "runtimeClasspath: quasar-core-${quasarVersion}-${QUASAR_CLASSIFIER}.jar".toString(),
-            "compileOnly: quasar-core-${quasarVersion}-${QUASAR_CLASSIFIER}.jar".toString(),
-            "compileClasspath: quasar-core-${quasarVersion}-${QUASAR_CLASSIFIER}.jar".toString()
+            "quasar: quasar-core-${quasarVersion}.jar".toString(),
+            "cordaRuntime: quasar-core-${quasarVersion}.jar".toString(),
+            "runtimeClasspath: quasar-core-${quasarVersion}.jar".toString(),
+            "compileOnly: quasar-core-${quasarVersion}.jar".toString(),
+            "compileClasspath: quasar-core-${quasarVersion}.jar".toString()
         )
     }
 
     @Test
     void checkLocalOverriddenClassifierVersionIsUsed() {
-        def quasarVersion = "0.8.0"
-        def quasarClassifier = ''
+        def quasarVersion = '0.7.12_r3'
+        def quasarClassifier = 'jdk8'
         assertThat(quasarVersion).isNotEqualTo(QUASAR_VERSION)
         assertThat(quasarClassifier).isNotEqualTo(QUASAR_CLASSIFIER)
 
@@ -169,11 +169,11 @@ configs.collectEntries { [(it.name):it] }.forEach { name, files ->
 }
 """, "jar"
         assertThat(output).containsOnlyOnce(
-            "quasar: quasar-core-${quasarVersion}.jar".toString(),
-            "cordaRuntime: quasar-core-${quasarVersion}.jar".toString(),
-            "runtimeClasspath: quasar-core-${quasarVersion}.jar".toString(),
-            "compileOnly: quasar-core-${quasarVersion}.jar".toString(),
-            "compileClasspath: quasar-core-${quasarVersion}.jar".toString()
+            "quasar: quasar-core-${quasarVersion}-${quasarClassifier}.jar".toString(),
+            "cordaRuntime: quasar-core-${quasarVersion}-${quasarClassifier}.jar".toString(),
+            "runtimeClasspath: quasar-core-${quasarVersion}-${quasarClassifier}.jar".toString(),
+            "compileOnly: quasar-core-${quasarVersion}-${quasarClassifier}.jar".toString(),
+            "compileClasspath: quasar-core-${quasarVersion}-${quasarClassifier}.jar".toString()
         )
     }
 
