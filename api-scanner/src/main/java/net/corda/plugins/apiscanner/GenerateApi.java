@@ -6,14 +6,21 @@ import org.gradle.api.Project;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.*;
 
 import javax.annotation.Nonnull;
-import java.io.*;
+import javax.inject.Inject;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.file.Files;
 
 import static java.util.Comparator.comparing;
@@ -29,22 +36,26 @@ public class GenerateApi extends DefaultTask {
     private final Provider<RegularFile> target;
     private final ConfigurableFileCollection sources;
 
-    public GenerateApi() {
+    @Inject
+    public GenerateApi(
+        @Nonnull ObjectFactory objects,
+        @Nonnull ProjectLayout layout,
+        @Nonnull ProviderFactory providers
+    ) {
         setGroup(GROUP_NAME);
         setDescription("Aggregates API scan results found in any sub-projects into a single output.");
 
         Project project = getProject();
-        ObjectFactory objectFactory = project.getObjects();
-        baseName = objectFactory.property(String.class).convention("api-" + project.getName());
-        version = objectFactory.property(String.class).convention(project.getVersion().toString());
+        baseName = objects.property(String.class).convention("api-" + project.getName());
+        version = objects.property(String.class).convention(project.getVersion().toString());
 
-        DirectoryProperty outputDir = objectFactory.directoryProperty().convention(
-            project.getLayout().getBuildDirectory().dir("api")
+        DirectoryProperty outputDir = objects.directoryProperty().convention(
+            layout.getBuildDirectory().dir("api")
         );
         target = outputDir.file(version.flatMap(v -> baseName.map(n -> createFileName(n, v))));
 
-        sources = project.files(
-            project.provider(() ->
+        sources = objects.fileCollection().from(
+            providers.provider(() ->
                 // This will trigger configuration of every ScanApi task in the project.
                 project.getAllprojects().stream()
                     .flatMap(p -> p.getTasks()

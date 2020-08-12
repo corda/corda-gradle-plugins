@@ -7,6 +7,7 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileSystemLocation;
+import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.MapProperty;
@@ -90,16 +91,16 @@ class ScanApi extends DefaultTask {
     private final Property<Boolean> verbose;
 
     @Inject
-    public ScanApi(@Nonnull ObjectFactory objectFactory) {
-        sources = objectFactory.fileCollection();
-        classpath = objectFactory.fileCollection();
-        excludePackages = objectFactory.setProperty(String.class);
-        excludeClasses = objectFactory.setProperty(String.class);
-        excludeMethods = objectFactory.mapProperty(String.class, Set.class);
-        verbose = objectFactory.property(Boolean.class).convention(false);
+    public ScanApi(@Nonnull ObjectFactory objects, @Nonnull ProjectLayout layout) {
+        sources = objects.fileCollection();
+        classpath = objects.fileCollection();
+        excludePackages = objects.setProperty(String.class);
+        excludeClasses = objects.setProperty(String.class);
+        excludeMethods = objects.mapProperty(String.class, Set.class);
+        verbose = objects.property(Boolean.class).convention(false);
 
-        outputDir = getProject().getLayout().getBuildDirectory().dir("api");
-        targets = getProject().files(
+        outputDir = layout.getBuildDirectory().dir("api");
+        targets = objects.fileCollection().from(
             outputDir.map(dir -> sources.getElements().map(files ->
                 files.stream().map(file -> toTarget(dir, file)).collect(toList())
             ))
