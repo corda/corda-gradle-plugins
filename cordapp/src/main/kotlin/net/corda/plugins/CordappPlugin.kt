@@ -90,7 +90,7 @@ class CordappPlugin @Inject constructor(private val objects: ObjectFactory): Plu
                 }
             }.doLast {
                 if (cordapp.signing.enabled.get()) {
-                    sign(project, cordapp.signing, it.outputs.files.singleFile)
+                    sign(it, cordapp.signing, it.outputs.files.singleFile)
                 } else {
                     it.logger.info("CorDapp JAR signing is disabled, the CorDapp's contracts will not use signature constraints.")
                 }
@@ -138,7 +138,7 @@ class CordappPlugin @Inject constructor(private val objects: ObjectFactory): Plu
         // Deprecated support (Corda 3)
         if (!cordapp.info.isEmpty()) {
             if (skip) {
-                project.logger.warn("Ignoring deprecated 'info' attributes. Using 'contract' and 'workflow' attributes.")
+                jarTask.logger.warn("Ignoring deprecated 'info' attributes. Using 'contract' and 'workflow' attributes.")
             } else {
                 attributes["Name"] = cordapp.info.name.getOrElse(defaultName)
                 attributes["Implementation-Version"] = cordapp.info.version.getOrElse(project.version.toString())
@@ -156,10 +156,10 @@ class CordappPlugin @Inject constructor(private val objects: ObjectFactory): Plu
     private fun configurePomCreation(project: Project) {
         project.tasks.withType(GenerateMavenPom::class.java).configureEach { task ->
             task.doFirst {
-                project.logger.info("Modifying task: ${task.name} in project ${project.path} to exclude all dependencies from pom")
+                it.logger.info("Modifying task: ${it.name} in project ${project.path} to exclude all dependencies from pom")
                 // The CorDapp is a semi-fat jar, so we need to exclude its compile and runtime
                 // scoped dependencies from its Maven POM when we publish it.
-                task.pom = filterDependenciesFor(task.pom)
+                (it as GenerateMavenPom).pom = filterDependenciesFor(it.pom)
             }
         }
     }
