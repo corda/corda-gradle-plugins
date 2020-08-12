@@ -86,7 +86,7 @@ open class JarFilterTask @Inject constructor(objects: ObjectFactory, layouts: Pr
         outputDir.set(dir)
     }
 
-    private val _filtered: ConfigurableFileCollection = project.files(outputDir.map { dir ->
+    private val _filtered: ConfigurableFileCollection = objects.fileCollection().from(outputDir.map { dir ->
         _jars.elements.map { files ->
             files.map { file -> toFiltered(dir, file) }
         }

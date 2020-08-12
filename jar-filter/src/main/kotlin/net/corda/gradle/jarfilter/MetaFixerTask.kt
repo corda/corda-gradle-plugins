@@ -67,7 +67,7 @@ open class MetaFixerTask @Inject constructor(objects: ObjectFactory, layouts: Pr
     @get:Input
     val preserveTimestamps: Property<Boolean> = objects.property(Boolean::class.javaObjectType).convention(true)
 
-    private val _metafixed: ConfigurableFileCollection = project.files(outputDir.map { dir ->
+    private val _metafixed: ConfigurableFileCollection = objects.fileCollection().from(outputDir.map { dir ->
         _jars.elements.map { files ->
             files.map { file -> toMetaFixed(dir, file) }
         }
