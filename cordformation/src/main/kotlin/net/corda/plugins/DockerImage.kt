@@ -23,7 +23,7 @@ import java.nio.file.Paths
 import javax.inject.Inject
 
 @Suppress("UnstableApiUsage", "unused")
-open class DockerImage @Inject constructor(objects: ObjectFactory, layouts: ProjectLayout) : DefaultTask() {
+open class DockerImage @Inject constructor(objects: ObjectFactory, private val layouts: ProjectLayout) : DefaultTask() {
 
     private companion object{
         private const val DOCKER_FILE_NAME = "Dockerfile"
@@ -130,7 +130,7 @@ open class DockerImage @Inject constructor(objects: ObjectFactory, layouts: Proj
         val trustRootStore = trustRootStoreFile ?: return ""
 
         logger.lifecycle("Copying Trust Store: $trustRootStore")
-        logger.lifecycle("Copying From: ${project.projectDir}")
+        logger.lifecycle("Copying From: ${layouts.projectDirectory}")
 
         project.copy {
             it.apply {

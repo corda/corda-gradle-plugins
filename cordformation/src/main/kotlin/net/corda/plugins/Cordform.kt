@@ -59,7 +59,7 @@ open class Cordform @Inject constructor(objects: ObjectFactory) : Baseform(objec
      */
     @TaskAction
     fun build() {
-        project.logger.lifecycle("Running Cordform task")
+        logger.lifecycle("Running Cordform task")
         initializeConfiguration()
         nodes.forEach {
             if (it.p2pAddress == null) {

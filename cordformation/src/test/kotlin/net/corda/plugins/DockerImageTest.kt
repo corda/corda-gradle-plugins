@@ -11,6 +11,7 @@ class DockerImageTest :BaseformTest() {
         val runner = getStandardGradleRunnerFor("DeployDockerImage.gradle", "dockerImage")
 
         val result = runner.build()
+        println(result.output)
         Assertions.assertThat(result.task(":dockerImage")!!.outcome).isEqualTo(TaskOutcome.SUCCESS)
         Assertions.assertThat(Paths.get(testProjectDir.toAbsolutePath().toString(), "build", "docker", "Dockerfile")).isRegularFile()
 
@@ -25,6 +26,7 @@ class DockerImageTest :BaseformTest() {
         val runner = getStandardGradleRunnerFor("DeployDockerImage.gradle", "dockerImage")
         installResource("dummyJar.jar")
         val result = runner.build()
+        println(result.output)
 
         Assertions.assertThat(result.task(":dockerImage")!!.outcome).isEqualTo(TaskOutcome.SUCCESS)
         Assertions.assertThat(Paths.get(testProjectDir.toAbsolutePath().toString(), "build", "docker","corda-finance-contracts-4.3.jar")).isRegularFile()
