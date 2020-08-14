@@ -69,8 +69,10 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
     @get:Input
     val dockerImage: Property<String> = objects.property(String::class.java)
 
-    @get:Optional
-    @get:Input
+    /**
+     * External service config
+     */
+    @get:Nested
     var external: External = objects.newInstance(External::class.java)
 
     /**
