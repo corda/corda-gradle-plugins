@@ -1,0 +1,11 @@
+ext {
+    externalServiceConfig = [
+            containerImage: "docker.io/bitnami/tomcat:latest",
+            volumes: [
+                    [
+                            "sourceFile":"C:\\Projects\\gs-rest-service\\target\\CordaDevTestAPI-0.0.1-SNAPSHOT.war",
+                            "deploymentPath":"/usr/local/tomcat/webapps/CordaDevTestAPI.war"
+                    ]
+            ]
+    ]
+}

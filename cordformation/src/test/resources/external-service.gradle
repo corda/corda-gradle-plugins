@@ -1,0 +1,23 @@
+ext {
+    externalServiceConfig = [
+            containerName: "example-service",
+            containerImage: "docker.io/bitnami/java:latest",
+            servicePorts: [
+                    8080,
+                    8000
+            ],
+            volumes: [
+                    [
+                            "sourceFile":"C:\\Projects\\gs-rest-service\\target\\CordaDevTestAPI-0.0.1-SNAPSHOT.jar",
+                            "deploymentPath":"/home/CordaDevTestAPI.jar"
+                    ]
+            ],
+            environment: [
+                    "rpcUsername" : "user1",
+                    "rpcPassword" : "pass2"
+            ],
+            commands: "cd home && java -jar CordaDevTestAPI.jar",
+            privileged: true
+
+    ]
+}

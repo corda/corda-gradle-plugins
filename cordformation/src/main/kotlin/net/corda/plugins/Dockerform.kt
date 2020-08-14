@@ -69,6 +69,10 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
     @get:Input
     val dockerImage: Property<String> = objects.property(String::class.java)
 
+    @get:Optional
+    @get:Input
+    var external: External = objects.newInstance(External::class.java)
+
     /**
      * This task action will create and install the nodes based on the node configurations added.
      */
@@ -199,6 +203,28 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
             }
 
             services[it.containerName] = service
+        }
+
+        if (!external.isEmpty()) {
+            val extra = mutableMapOf(
+                    "image" to external.containerImage,
+                    "volumes" to external.volumes.toList().map{ "${it["sourceFile"]}:${it["deploymentPath"]}" },
+                    "ports" to external.servicePorts.toList().map{QuotedString("${it}:${it}")},
+                    "expose" to external.servicePorts
+            )
+            if(external.environment.isNotEmpty()){
+                extra["environment"] = external.environment.toList().map { "${it.first}=${it.second}" }
+            }
+            if(external.containerName.isNotEmpty()){
+                extra["container_name"] = external.containerName
+            }
+            if(external.privileged) {
+                extra["privileged"] = true
+            }
+            if(external.commands.isNotEmpty()){
+                extra["command"] = "bash -c \"${external.commands}\""
+            }
+            services["${external.containerName}"] = extra
         }
 
         val dockerComposeObject = mutableMapOf(

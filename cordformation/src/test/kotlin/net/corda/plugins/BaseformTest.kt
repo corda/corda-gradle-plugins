@@ -43,6 +43,8 @@ open class BaseformTest {
         installResource("repositories.gradle")
         installResource("gradle.properties")
         installResource("postgres.gradle")
+        installResource("external-service.gradle")
+        installResource("external-service-2.gradle")
         return GradleRunner.create()
                 .withDebug(true)
                 .withProjectDir(testProjectDir.toFile())

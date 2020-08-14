@@ -157,4 +157,98 @@ class DockerformTest : BaseformTest() {
         val bankOfCordaPortsList = bankOfCorda["ports"] as List<Any>
         assertThat(bankOfCordaPortsList).contains("22235:22235")
     }
+
+    @Suppress("unchecked_cast")
+    @Test
+    fun `deploy two nodes with Docker and external service`() {
+        val runner = getStandardGradleRunnerFor(
+                "DeployTwoNodeCordappWithExternalService.gradle",
+                "prepareDockerNodes")
+
+        val result = runner.build()
+        assertThat(result.task(":prepareDockerNodes")!!.outcome).isEqualTo(TaskOutcome.SUCCESS)
+
+        val dockerComposePath = getDockerCompose()
+
+        val yaml = dockerComposePath.toFile().bufferedReader().use { reader ->
+            Yaml().load(reader) as Map<String, Any>
+        }
+
+        val services = yaml["services"] as Map<String, Any>
+
+        val external = services["example-service"] as Map<String, Any>
+        assertThat(external).containsKey("container_name")
+        assertThat(external).containsKey("volumes")
+        assertThat(external).containsKey("ports")
+        assertThat(external).containsKey("expose")
+        assertThat(external).containsKey("image")
+        assertThat(external).containsKey("privileged")
+        assertThat(external).containsKey("command")
+        assertThat(external).containsKey("environment")
+
+        val name = external["container_name"] as String
+        assertThat(name).isEqualTo("example-service")
+
+        val image = external["image"] as String
+        assertThat(image).isEqualTo("docker.io/bitnami/java:latest")
+
+        val volumes = external["volumes"] as List<String>
+        assertThat(volumes).contains("C:\\Projects\\gs-rest-service\\target\\CordaDevTestAPI-0.0.1-SNAPSHOT.jar:/home/CordaDevTestAPI.jar")
+
+        val environment = external["environment"] as List<String>
+        assertThat(environment).contains("rpcUsername=user1")
+        assertThat(environment).contains("rpcPassword=pass2")
+
+        val ports = external["ports"] as List<String>
+        assertThat(ports).contains("8080:8080")
+        assertThat(ports).contains("8000:8000")
+
+        val exposedPort = external["expose"] as List<Int>
+        assertThat(exposedPort).contains(8080)
+        assertThat(exposedPort).contains(8000)
+
+        val cmd = external["command"] as String
+        assertThat(cmd).isEqualTo("bash -c \"cd home && java -jar CordaDevTestAPI.jar\"")
+
+        val privileged = external["privileged"] as Boolean
+        assertThat(privileged).isTrue()
+    }
+
+    @Suppress("unchecked_cast")
+    @Test
+    fun `deploy two nodes with Docker and external service (minimal options)`() {
+        val runner = getStandardGradleRunnerFor(
+                "DeployTwoNodeCordappWithExternalServiceNoOption.gradle",
+                "prepareDockerNodes")
+
+        val result = runner.build()
+        assertThat(result.task(":prepareDockerNodes")!!.outcome).isEqualTo(TaskOutcome.SUCCESS)
+
+        val dockerComposePath = getDockerCompose()
+
+        val yaml = dockerComposePath.toFile().bufferedReader().use { reader ->
+            Yaml().load(reader) as Map<String, Any>
+        }
+
+        val services = yaml["services"] as Map<String, Any>
+
+        val external = services["external-service"] as Map<String, Any>
+        assertThat(external).containsOnlyKeys("container_name","volumes","image","ports","expose")
+
+        val name = external["container_name"] as String
+        assertThat(name).isEqualTo("external-service")
+
+        val image = external["image"] as String
+        assertThat(image).isEqualTo("docker.io/bitnami/tomcat:latest")
+
+        val ports = external["ports"] as List<String>
+        assertThat(ports).contains("8080:8080")
+
+        val exposedPort = external["expose"] as List<Int>
+        assertThat(exposedPort).contains(8080)
+
+        val volumes = external["volumes"] as List<String>
+        assertThat(volumes).contains("C:\\Projects\\gs-rest-service\\target\\CordaDevTestAPI-0.0.1-SNAPSHOT.war:/usr/local/tomcat/webapps/CordaDevTestAPI.war")
+
+    }
 }
