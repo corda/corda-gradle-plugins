@@ -16,7 +16,7 @@ ext {
                     "rpcUsername" : "user1",
                     "rpcPassword" : "pass2"
             ],
-            commands: "cd home && java -jar CordaDevTestAPI.jar",
+            commands: "bash -c \"cd home && java -jar CordaDevTestAPI.jar\"",
             privileged: true
 
     ]

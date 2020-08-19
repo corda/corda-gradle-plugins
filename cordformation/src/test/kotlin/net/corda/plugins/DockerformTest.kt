@@ -177,14 +177,7 @@ class DockerformTest : BaseformTest() {
         val services = yaml["services"] as Map<String, Any>
 
         val external = services["example-service"] as Map<String, Any>
-        assertThat(external).containsKey("container_name")
-        assertThat(external).containsKey("volumes")
-        assertThat(external).containsKey("ports")
-        assertThat(external).containsKey("expose")
-        assertThat(external).containsKey("image")
-        assertThat(external).containsKey("privileged")
-        assertThat(external).containsKey("command")
-        assertThat(external).containsKey("environment")
+        assertThat(external).containsOnlyKeys("container_name","volumes","image","ports","expose","privileged","command","environment")
 
         val name = external["container_name"] as String
         assertThat(name).isEqualTo("example-service")
@@ -233,22 +226,18 @@ class DockerformTest : BaseformTest() {
         val services = yaml["services"] as Map<String, Any>
 
         val external = services["external-service"] as Map<String, Any>
-        assertThat(external).containsOnlyKeys("container_name","volumes","image","ports","expose")
+        assertThat(external).containsOnlyKeys("container_name","image","ports","expose")
 
         val name = external["container_name"] as String
         assertThat(name).isEqualTo("external-service")
 
         val image = external["image"] as String
-        assertThat(image).isEqualTo("docker.io/bitnami/tomcat:latest")
+        assertThat(image).isEqualTo("docker/test/customTomcat")
 
         val ports = external["ports"] as List<String>
         assertThat(ports).contains("8080:8080")
 
         val exposedPort = external["expose"] as List<Int>
         assertThat(exposedPort).contains(8080)
-
-        val volumes = external["volumes"] as List<String>
-        assertThat(volumes).contains("C:\\Projects\\gs-rest-service\\target\\CordaDevTestAPI-0.0.1-SNAPSHOT.war:/usr/local/tomcat/webapps/CordaDevTestAPI.war")
-
     }
 }

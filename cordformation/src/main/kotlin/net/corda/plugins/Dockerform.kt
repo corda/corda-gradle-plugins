@@ -207,13 +207,15 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
             services[it.containerName] = service
         }
 
-        if (!external.isEmpty()) {
+        if (external.containerImage.isNotEmpty()) {
             val extra = mutableMapOf(
                     "image" to external.containerImage,
-                    "volumes" to external.volumes.toList().map{ "${it["sourceFile"]}:${it["deploymentPath"]}" },
                     "ports" to external.servicePorts.toList().map{QuotedString("${it}:${it}")},
                     "expose" to external.servicePorts
             )
+            if(external.volumes.isNotEmpty()){
+                extra["volumes"] = external.volumes.toList().map{ "${it["sourceFile"]}:${it["deploymentPath"]}" }
+            }
             if(external.environment.isNotEmpty()){
                 extra["environment"] = external.environment.toList().map { "${it.first}=${it.second}" }
             }
@@ -224,7 +226,7 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
                 extra["privileged"] = true
             }
             if(external.commands.isNotEmpty()){
-                extra["command"] = "bash -c \"${external.commands}\""
+                extra["command"] = external.commands
             }
             services["${external.containerName}"] = extra
         }

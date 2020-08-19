@@ -25,8 +25,4 @@ open class External {
     @get:Input
     var privileged: Boolean = false
 
-    fun isEmpty(): Boolean {
-        return volumes.isEmpty() && containerImage.isEmpty()
-    }
-
 }
