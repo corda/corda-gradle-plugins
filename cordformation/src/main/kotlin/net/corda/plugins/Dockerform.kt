@@ -2,6 +2,7 @@ package net.corda.plugins
 
 import com.typesafe.config.ConfigFactory
 import com.typesafe.config.ConfigValueFactory
+import org.gradle.api.Action
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
@@ -73,7 +74,11 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
      * External service config
      */
     @get:Nested
-    var external: External = objects.newInstance(External::class.java)
+    val external: External = objects.newInstance(External::class.java)
+
+    fun external(action: Action<in External>) {
+        action.execute(external)
+    }
 
     /**
      * This task action will create and install the nodes based on the node configurations added.
@@ -207,28 +212,27 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
             services[it.containerName] = service
         }
 
-        if (external.containerImage.isNotEmpty()) {
+        if (external.containerImage.isPresent()) {
+
             val extra = mutableMapOf(
-                    "image" to external.containerImage,
-                    "ports" to external.servicePorts.toList().map{QuotedString("${it}:${it}")},
-                    "expose" to external.servicePorts
+                    "container_name" to external.containerName.get(),
+                    "image" to external.containerImage.get(),
+                    "ports" to external.servicePorts.get().map {QuotedString("${it}:${it}") },
+                    "expose" to external.servicePorts.get()
             )
-            if(external.volumes.isNotEmpty()){
-                extra["volumes"] = external.volumes.toList().map{ "${it["sourceFile"]}:${it["deploymentPath"]}" }
+            if(external.volumes.get().isNotEmpty()){
+                extra["volumes"] = external.volumes.get().map{ "${it["sourceFile"]}:${it["deploymentPath"]}" }
             }
-            if(external.environment.isNotEmpty()){
-                extra["environment"] = external.environment.toList().map { "${it.first}=${it.second}" }
+            if(external.environment.get().isNotEmpty()){
+                extra["environment"] = external.environment.get().map { "${it.key}=${it.value}" }
             }
-            if(external.containerName.isNotEmpty()){
-                extra["container_name"] = external.containerName
+            if(external.privileged.get() == true) {
+                extra["privileged"] = external.privileged.get()
             }
-            if(external.privileged) {
-                extra["privileged"] = true
+            if(external.commands.get().isNotEmpty()){
+                extra["command"] = external.commands.get()
             }
-            if(external.commands.isNotEmpty()){
-                extra["command"] = external.commands
-            }
-            services["${external.containerName}"] = extra
+            services["${external.containerName.get()}"] = extra
         }
 
         val dockerComposeObject = mutableMapOf(

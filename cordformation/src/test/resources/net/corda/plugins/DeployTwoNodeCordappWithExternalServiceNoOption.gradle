@@ -3,7 +3,6 @@ plugins {
 }
 
 apply from: 'repositories.gradle'
-apply from: 'external-service-2.gradle'
 
 dependencies {
     cordaRuntime "$corda_group:corda:$corda_release_version"
@@ -44,6 +43,8 @@ task prepareDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: ['jar']) 
         sshdPort 22235
     }
 
-    external = externalServiceConfig
+    external {
+        containerImage = "docker/test/customTomcat"
+    }
     dockerImage = docker_image_name
 }
