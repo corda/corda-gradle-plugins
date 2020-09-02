@@ -27,6 +27,9 @@ class JsonApiPrintWriter extends PrintWriter implements ApiWriter {
     }
 
     public void println(ClassInfo classInfo, int modifierMask, List<String> filteredAnnotations) {
+        lastWriteWasField = false;
+        lastWriteWasMethod = false;
+
         append('{');
         append(asAnnotations(filteredAnnotations));
 
@@ -43,7 +46,7 @@ class JsonApiPrintWriter extends PrintWriter implements ApiWriter {
         // native
         // strictfp
         // interface
-        String modifiers = Arrays.stream(Modifier.toString(classInfo.loadClass().getModifiers() & modifierMask).split(" ")).map(s -> String.format("\"%s\":true", s)).collect(joining(","));
+        String modifiers = Arrays.stream(Modifier.toString(classInfo.loadClass().getModifiers() & modifierMask).split(" ")).map(s -> String.format("\"%s\":true", s)).collect(joining(",", "", ","));
         append(modifiers);
 
         append(String.format("\"name\":\"%s\",", classInfo.getName()));
@@ -79,7 +82,9 @@ class JsonApiPrintWriter extends PrintWriter implements ApiWriter {
 
     public void println(MethodInfo method, AnnotationInfoList visibleAnnotations, String indentation) {
         // DONE
-println("{");
+        if (lastWriteWasMethod)
+            println(",");
+        println("{");
         append(asAnnotations(visibleAnnotations.getNames()));
         append(pureModifiersFor(method));
 
@@ -99,11 +104,13 @@ println("{");
             paramTypes.add(vararg.substring(0, vararg.length() - 2) + "...");
         }
         printf("\"parameters\":[%s]", paramTypes.stream().map(s -> String.format("\"%s\"", s)).collect(joining(",")));
-        println("},");
+        print("}");
         lastWriteWasMethod = true;
+        lastWriteWasField = false;
     }
 
     private boolean lastWriteWasMethod = false;
+    private boolean lastWriteWasField = false;
 
     public void println(FieldInfo field, AnnotationInfoList visibleAnnotations, String indentation) {
         // DONE
@@ -112,6 +119,11 @@ println("{");
             println("], \"fields\":[");
             lastWriteWasMethod = false;
         }
+
+        if (lastWriteWasField){
+            println(",");
+        }
+
         println("{");
         append(asAnnotations(visibleAnnotations.getNames()));
 
@@ -130,12 +142,11 @@ println("{");
                 // bridge
                 // native
                 // strictfp
-            append(Arrays.stream(field.getModifierStr()
-                    .split(" "))
-                    .map(s -> String.format("\"%s\":true", s))
-                    .collect(joining(",")));
-            append(String.format("\"type\":\"%s\",", removeQualifierFromBaseTypes(field.getTypeSignatureOrTypeDescriptor())));
-            append(String.format("\"name\":\"%s\",", field.getName()));
+        append(Arrays.stream(field.getModifierStr()
+                .split(" "))
+                .map(s -> String.format("\"%s\":true", s))
+                .collect(joining(",", "", ",")));
+        append(String.format("\"type\":\"%s\",", removeQualifierFromBaseTypes(field.getTypeSignatureOrTypeDescriptor())));
         Object constantInitializer = field.getConstantInitializerValue();
         if (constantInitializer != null) {
             append("\"value\":");
@@ -146,8 +157,12 @@ println("{");
             } else {
                 append(constantInitializer.toString());
             }
+            append(",");
         }
-        println("},");
+        append(String.format("\"name\":\"%s\"", field.getName()));
+        println("}");
+
+        lastWriteWasField = true;
     }
 
     @Override
@@ -190,8 +205,8 @@ println("{");
         TypeUtils.modifiersToString(method.getModifiers() & METHOD_MASK, METHOD, false, builder);
         String result = Arrays.stream(builder.toString()
                 .split(" "))
-                .map(s1 -> "\"" + s1 + "\":true")
-                .collect(joining(","));
+                .map(s1 -> String.format("\"%s\":true", s1))
+                .collect(joining(",", "", ","));
 
         return result;
     }
