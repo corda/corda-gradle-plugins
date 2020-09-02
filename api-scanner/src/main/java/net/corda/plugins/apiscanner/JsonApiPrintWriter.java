@@ -3,25 +3,47 @@ package net.corda.plugins.apiscanner;
 import io.github.classgraph.*;
 import nonapi.io.github.classgraph.types.TypeUtils;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Modifier;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
 
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toCollection;
 import static nonapi.io.github.classgraph.types.TypeUtils.ModifierType.METHOD;
 
 @SuppressWarnings("SameParameterValue")
-class ApiPrintWriter extends PrintWriter implements ApiWriter {
+class JsonApiPrintWriter extends PrintWriter implements ApiWriter {
     private static final int METHOD_MASK = Modifier.methodModifiers() | Modifier.TRANSIENT;
 
-    ApiPrintWriter(File file, String encoding) throws FileNotFoundException, UnsupportedEncodingException {
+    JsonApiPrintWriter(File file, String encoding) throws FileNotFoundException, UnsupportedEncodingException {
         super(file, encoding);
     }
 
     public void println(ClassInfo classInfo, int modifierMask, List<String> filteredAnnotations) {
-        append(asAnnotations(filteredAnnotations, ""));
+        append(asAnnotations(filteredAnnotations));
+
+        // Next line outputs
+        // public
+        // protected
+        // private
+        // abstract
+        // static
+        // final
+        // transient
+        // volatile
+        // synchronized
+        // native
+        // strictfp
+        // interface
         append(Modifier.toString(classInfo.loadClass().getModifiers() & modifierMask));
+
+        
         if (classInfo.isAnnotation()) {
             /*
              * Annotation declaration.
@@ -53,7 +75,7 @@ class ApiPrintWriter extends PrintWriter implements ApiWriter {
     }
 
     public void println(MethodInfo method, AnnotationInfoList visibleAnnotations, String indentation) {
-        append(asAnnotations(visibleAnnotations.getNames(), indentation));
+        append(asAnnotations(visibleAnnotations.getNames()));
         append(indentation).append(pureModifiersFor(method)).append(' ');
         if (!method.isConstructor()) {
             append(removeQualifierFromBaseTypes(method.getTypeSignatureOrTypeDescriptor().getResultType())).append(' ');
@@ -61,7 +83,7 @@ class ApiPrintWriter extends PrintWriter implements ApiWriter {
         append(method.getName()).append('(');
         LinkedList<String> paramTypes = Arrays.stream(method.getParameterInfo())
             .map(MethodParameterInfo::getTypeSignatureOrTypeDescriptor)
-            .map(ApiPrintWriter::removeQualifierFromBaseTypes)
+            .map(JsonApiPrintWriter::removeQualifierFromBaseTypes)
             .collect(toCollection(LinkedList::new));
         //if parameter is varargs, remove the array [] qualifier and replace with ellipsis
         if (method.isVarArgs() && !paramTypes.isEmpty()) {
@@ -73,7 +95,7 @@ class ApiPrintWriter extends PrintWriter implements ApiWriter {
     }
 
     public void println(FieldInfo field, AnnotationInfoList visibleAnnotations, String indentation) {
-        append(asAnnotations(visibleAnnotations.getNames(), indentation))
+        append(asAnnotations(visibleAnnotations.getNames()))
             .append(indentation)
             .append(field.getModifierStr())
             .append(' ')
@@ -96,15 +118,18 @@ class ApiPrintWriter extends PrintWriter implements ApiWriter {
 
     @Override
     public void endOfClass() {
-        this.println("##");
+        throw new UnsupportedOperationException();
     }
 
-    private static String asAnnotations(Collection<String> items, String indentation) {
+    private static String asAnnotations(Collection<String> items) {
+        // DONE
         if (items.isEmpty()) {
-            return "";
+            return "\"annotations\": [],";
         }
-        return items.stream().map(ApiPrintWriter::removePackageName)
-            .collect(joining(System.lineSeparator() + indentation + '@', indentation + '@', System.lineSeparator()));
+        return String.format("\"annotations\": [%s],",
+                items.stream()
+                        .map(className -> String.format("\"%s\"", removePackageName(className)))
+                        .collect(joining(",")));
     }
 
     private static String pureModifiersFor(MethodInfo method) {
