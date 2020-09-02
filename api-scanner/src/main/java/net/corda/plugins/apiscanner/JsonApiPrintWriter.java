@@ -12,6 +12,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toCollection;
@@ -26,6 +27,7 @@ class JsonApiPrintWriter extends PrintWriter implements ApiWriter {
     }
 
     public void println(ClassInfo classInfo, int modifierMask, List<String> filteredAnnotations) {
+        append('{');
         append(asAnnotations(filteredAnnotations));
 
         // Next line outputs
@@ -41,46 +43,52 @@ class JsonApiPrintWriter extends PrintWriter implements ApiWriter {
         // native
         // strictfp
         // interface
-        append(Modifier.toString(classInfo.loadClass().getModifiers() & modifierMask));
+        String modifiers = Arrays.stream(Modifier.toString(classInfo.loadClass().getModifiers() & modifierMask).split(" ")).map(s -> String.format("\"%s\":true", s)).collect(joining(","));
+        append(modifiers);
 
-        
+        append(String.format("\"name\":\"%s\",", classInfo.getName()));
+
         if (classInfo.isAnnotation()) {
             /*
              * Annotation declaration.
              */
-            append(" @interface ").print(classInfo.getName());
+            append("\"isAnnotation\":true,");
         } else if (classInfo.isStandardClass()) {
             /*
              * Class declaration.
              */
-            append(" class ").print(classInfo.getName());
-            append(" extends ");
+            append("\"isClass\":true,");
+            append("\"extends\":[");
             ClassInfo superclass = classInfo.getSuperclass();
-            print(superclass == null ? "java.lang.Object" : superclass.getName());
+            print(superclass == null ? "\"java.lang.Object\"" : String.format("\"%s\"", superclass.getName()));
+            append("],");
+
             ClassInfoList interfaces = classInfo.getInterfaces().getImplementedInterfaces().directOnly();
-            if (!interfaces.isEmpty()) {
-                append(" implements ").print(stringOf(interfaces));
-            }
+            append("\"implements\":[").printf("%s],", stringOf(interfaces));
         } else {
             /*
              * Interface declaration.
              */
-            append(" interface ").print(classInfo.getName());
+            append("\"isInterface\":true,");
             ClassInfoList superinterfaces = classInfo.getInterfaces().directOnly();
-            if (!superinterfaces.isEmpty()) {
-                append(" extends ").print(stringOf(superinterfaces));
-            }
+            append("\"extends\":[").print(stringOf(superinterfaces) + "],");
         }
         println();
+        println("\"methods\":[");
     }
 
     public void println(MethodInfo method, AnnotationInfoList visibleAnnotations, String indentation) {
+        // DONE
+println("{");
         append(asAnnotations(visibleAnnotations.getNames()));
-        append(indentation).append(pureModifiersFor(method)).append(' ');
+        append(pureModifiersFor(method));
+
         if (!method.isConstructor()) {
-            append(removeQualifierFromBaseTypes(method.getTypeSignatureOrTypeDescriptor().getResultType())).append(' ');
+            append(String.format("\"returns\":\"%s\",", removeQualifierFromBaseTypes(method.getTypeSignatureOrTypeDescriptor().getResultType())));
         }
-        append(method.getName()).append('(');
+        append(String.format("\"name\":\"%s\",", method.getName()));
+
+
         LinkedList<String> paramTypes = Arrays.stream(method.getParameterInfo())
             .map(MethodParameterInfo::getTypeSignatureOrTypeDescriptor)
             .map(JsonApiPrintWriter::removeQualifierFromBaseTypes)
@@ -90,21 +98,47 @@ class JsonApiPrintWriter extends PrintWriter implements ApiWriter {
             String vararg = paramTypes.removeLast();
             paramTypes.add(vararg.substring(0, vararg.length() - 2) + "...");
         }
-        append(String.join(", ", paramTypes));
-        println(')');
+        printf("\"parameters\":[%s]", paramTypes.stream().map(s -> String.format("\"%s\"", s)).collect(joining(",")));
+        println("},");
+        lastWriteWasMethod = true;
     }
 
+    private boolean lastWriteWasMethod = false;
+
     public void println(FieldInfo field, AnnotationInfoList visibleAnnotations, String indentation) {
-        append(asAnnotations(visibleAnnotations.getNames()))
-            .append(indentation)
-            .append(field.getModifierStr())
-            .append(' ')
-            .append(removeQualifierFromBaseTypes(field.getTypeSignatureOrTypeDescriptor()))
-            .append(' ')
-            .append(field.getName());
+        // DONE
+
+        if (lastWriteWasMethod) {
+            println("], \"fields\":[");
+            lastWriteWasMethod = false;
+        }
+        println("{");
+        append(asAnnotations(visibleAnnotations.getNames()));
+
+                // Outputs
+                // public
+                // private
+                // protected
+                // abstract
+                // static
+                // volatile
+                // transient
+                // final
+                // synchronized
+                // default
+                // synthetic
+                // bridge
+                // native
+                // strictfp
+            append(Arrays.stream(field.getModifierStr()
+                    .split(" "))
+                    .map(s -> String.format("\"%s\":true", s))
+                    .collect(joining(",")));
+            append(String.format("\"type\":\"%s\",", removeQualifierFromBaseTypes(field.getTypeSignatureOrTypeDescriptor())));
+            append(String.format("\"name\":\"%s\",", field.getName()));
         Object constantInitializer = field.getConstantInitializerValue();
         if (constantInitializer != null) {
-            append(" = ");
+            append("\"value\":");
             if (constantInitializer instanceof String) {
                 append('"').append(constantInitializer.toString()).append('"');
             } else if (constantInitializer instanceof Character) {
@@ -113,19 +147,20 @@ class JsonApiPrintWriter extends PrintWriter implements ApiWriter {
                 append(constantInitializer.toString());
             }
         }
-        println();
+        println("},");
     }
 
     @Override
     public void endOfClass() {
-        throw new UnsupportedOperationException();
+        // DONE
+        append("]},");
     }
 
     private static String asAnnotations(Collection<String> items) {
         // DONE
-        if (items.isEmpty()) {
-            return "\"annotations\": [],";
-        }
+//        if (items.isEmpty()) {
+//            return "\"annotations\": [],";
+//        }
         return String.format("\"annotations\": [%s],",
                 items.stream()
                         .map(className -> String.format("\"%s\"", removePackageName(className)))
@@ -133,24 +168,54 @@ class JsonApiPrintWriter extends PrintWriter implements ApiWriter {
     }
 
     private static String pureModifiersFor(MethodInfo method) {
+        // DONE
+
         StringBuilder builder = new StringBuilder();
+
+        // Outputs:
+        // public
+        // private
+        // protected
+        // abstract
+        // static
+        // volatile
+        // transient
+        // final
+        // synchronized
+        // default
+        // synthetic
+        // bridge
+        // native
+        // strictfp
         TypeUtils.modifiersToString(method.getModifiers() & METHOD_MASK, METHOD, false, builder);
-        return builder.toString();
+        String result = Arrays.stream(builder.toString()
+                .split(" "))
+                .map(s1 -> "\"" + s1 + "\":true")
+                .collect(joining(","));
+
+        return result;
     }
 
     private static String removePackageName(String className) {
+        // DONE
         return className.substring(className.lastIndexOf('.') + 1);
     }
 
     private static String stringOf(Collection<ClassInfo> items) {
-        return items.stream().map(ClassInfo::getName).sorted().collect(joining(", "));
+        // DONE
+        return items.stream()
+                .map(classInfo -> String.format("\"%s\"", classInfo.getName()))
+                .sorted()
+                .collect(joining(", "));
     }
 
     private static String removeQualifierFromBaseTypes(String className) {
+        // DONE
         return className.replace("java.lang.", "");
     }
 
     private static String removeQualifierFromBaseTypes(TypeSignature typeSignature) {
+        // DONE
         return removeQualifierFromBaseTypes(typeSignature.toString());
     }
 }
