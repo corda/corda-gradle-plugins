@@ -1,4 +1,4 @@
-package net.corda.plugins;
+package net.corda.plugins
 
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ListProperty
