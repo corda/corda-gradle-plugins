@@ -217,8 +217,7 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
             val extra = mutableMapOf(
                     "container_name" to external.containerName.get(),
                     "image" to external.containerImage.get(),
-                    "ports" to external.servicePorts.get().map {QuotedString("${it}:${it}") },
-                    "expose" to external.servicePorts.get()
+                    "ports" to external.servicePorts.get().map {QuotedString("${it}:${it}") }
             )
             if(external.volumes.get().isNotEmpty()){
                 extra["volumes"] = external.volumes.get().map{ "${it["sourceFile"]}:${it["deploymentPath"]}" }

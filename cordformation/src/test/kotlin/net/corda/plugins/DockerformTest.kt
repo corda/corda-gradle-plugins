@@ -177,7 +177,7 @@ class DockerformTest : BaseformTest() {
         val services = yaml["services"] as Map<String, Any>
 
         val external = services["example-service"] as Map<String, Any>
-        assertThat(external).containsOnlyKeys("container_name","volumes","image","ports","expose","privileged","command","environment")
+        assertThat(external).containsOnlyKeys("container_name","volumes","image","ports","privileged","command","environment")
 
         val name = external["container_name"] as String
         assertThat(name).isEqualTo("example-service")
@@ -195,10 +195,6 @@ class DockerformTest : BaseformTest() {
         val ports = external["ports"] as List<String>
         assertThat(ports).contains("8080:8080")
         assertThat(ports).contains("8000:8000")
-
-        val exposedPort = external["expose"] as List<Int>
-        assertThat(exposedPort).contains(8080)
-        assertThat(exposedPort).contains(8000)
 
         val cmd = external["command"] as String
         assertThat(cmd).isEqualTo("bash -c \"cd home && java -jar CordaDevTestAPI.jar\"")
@@ -226,7 +222,7 @@ class DockerformTest : BaseformTest() {
         val services = yaml["services"] as Map<String, Any>
 
         val external = services["external-service"] as Map<String, Any>
-        assertThat(external).containsOnlyKeys("container_name","image","ports","expose")
+        assertThat(external).containsOnlyKeys("container_name","image","ports")
 
         val name = external["container_name"] as String
         assertThat(name).isEqualTo("external-service")
@@ -237,7 +233,5 @@ class DockerformTest : BaseformTest() {
         val ports = external["ports"] as List<String>
         assertThat(ports).contains("8080:8080")
 
-        val exposedPort = external["expose"] as List<Int>
-        assertThat(exposedPort).contains(8080)
     }
 }
