@@ -229,7 +229,7 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
             if(external.privileged.get() == true) {
                 extra["privileged"] = external.privileged.get()
             }
-            if(external.commands.get().isNotEmpty()){
+            if(external.commands.isPresent()){
                 extra["command"] = external.commands.get()
             }
             services["${external.containerName.get()}"] = extra
