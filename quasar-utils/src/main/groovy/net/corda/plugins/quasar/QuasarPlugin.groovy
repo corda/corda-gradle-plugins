@@ -10,6 +10,10 @@ import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.util.GradleVersion
+import org.gradle.api.tasks.compile.JavaCompile
+
+import java.util.jar.Attributes
+import java.util.jar.Manifest
 
 import static org.gradle.api.plugins.JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME
 import static org.gradle.api.plugins.JavaPlugin.RUNTIME_CONFIGURATION_NAME
@@ -25,6 +29,7 @@ class QuasarPlugin implements Plugin<Project> {
 
     private static final String QUASAR = "quasar"
     private static final String MINIMUM_GRADLE_VERSION = "5.1"
+    private static final String JAVAC_PLUGIN = "javac_plugin"
     @PackageScope static final String defaultGroup = "co.paralleluniverse"
     @PackageScope static final String defaultVersion = "0.7.13_r3"
     @PackageScope static final String defaultClassifier = ""
@@ -59,7 +64,12 @@ class QuasarPlugin implements Plugin<Project> {
             throw new InvalidUserDataException("quasar_classloader_exclusions property must be an Iterable<String>")
         }
         def quasarExtension = project.extensions.create(QUASAR, QuasarExtension, objects,
-                quasarGroup, quasarVersion, quasarClassifier, quasarPackageExclusions, quasarClassLoaderExclusions)
+                quasarGroup,
+                quasarVersion,
+                quasarClassifier,
+                quasarPackageExclusions,
+                quasarClassLoaderExclusions
+        )
 
         addQuasarDependencies(project, quasarExtension)
         configureQuasarTasks(project, quasarExtension)
@@ -85,6 +95,26 @@ class QuasarPlugin implements Plugin<Project> {
             }
             dependencies.add(quasarDependency)
         }
+
+        def javacPluginConfiguration = project.configurations.create(JAVAC_PLUGIN)
+        javacPluginConfiguration.withDependencies { dependencies ->
+            if(extension.enableJavacPlugin.get()) {
+                def cls = getClass()
+                def resourceName = cls.name.replace('.', '/') + ".class"
+                def classUrl = cls.classLoader.getResource(resourceName)
+                if (classUrl.protocol.startsWith("jar")) {
+                    def path = classUrl.toString()
+                    String manifestPath = path.substring(0, path.lastIndexOf("!") + 1) +
+                            "/META-INF/MANIFEST.MF"
+                    Manifest manifest = new Manifest(new URL(manifestPath).openStream())
+                    Attributes attr = manifest.getMainAttributes()
+                    String version = attr.getValue("version")
+                    dependencies.add(project.dependencies.create("net.corda.plugins:javac-plugin:$version") {
+                        it.transitive = false
+                    })
+                }
+            }
+        }
     }
 
     private void configureQuasarTasks(Project project, QuasarExtension extension) {
@@ -98,6 +128,14 @@ class QuasarPlugin implements Plugin<Project> {
             doFirst {
                 jvmArgs "-javaagent:${project.configurations[QUASAR].singleFile}${extension.options.get()}",
                         "-Dco.paralleluniverse.fibers.verifyInstrumentation"
+            }
+        }
+        project.tasks.withType(JavaCompile).configureEach {
+            doFirst {
+                if(extension.enableJavacPlugin.get()) {
+                    options.annotationProcessorPath += project.configurations[JAVAC_PLUGIN]
+                    options.compilerArgs += "-Xplugin:net.corda.plugins.javac.quasar.SuspendableChecker"
+                }
             }
         }
     }

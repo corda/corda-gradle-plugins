@@ -5,6 +5,8 @@ import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Optional
 
 import javax.inject.Inject
 
@@ -29,6 +31,13 @@ class QuasarExtension {
      * Dependency notation for the Quasar agent to use.
      */
     final Provider<Map<String, String>> dependency
+
+    /**
+     * Activates the javac compiler plugin to detect missing @Suspendable annotations
+     */
+    @Optional
+    @Input
+    final Property<Boolean> enableJavacPlugin
 
     /**
      * Runtime options for the Quasar agent:
@@ -67,6 +76,7 @@ class QuasarExtension {
                 }
             }
         }
+        enableJavacPlugin = objects.property(Boolean).convention(false)
 
         debug = objects.property(Boolean).convention(false)
         verbose = objects.property(Boolean).convention(false)

@@ -16,6 +16,7 @@ pluginManagement {
 rootProject.name = 'corda-gradle-plugins'
 include 'publish-utils'
 include 'quasar-utils'
+include 'quasar-utils:javac-plugin'
 include 'cordformation'
 include 'api-scanner'
 include 'api-scanner:annotations'
