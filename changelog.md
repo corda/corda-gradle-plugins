@@ -2,11 +2,9 @@
 
 ## Version 5
 
-### Version 5.0.14
+### Version 5.0.13
 
 * `dockerform`: Parsing for adding external service to docker-compose
-
-### Version 5.0.13
 
 ### Version 5.0.12
 
