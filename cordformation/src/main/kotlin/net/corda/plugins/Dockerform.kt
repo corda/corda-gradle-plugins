@@ -2,6 +2,7 @@ package net.corda.plugins
 
 import com.typesafe.config.ConfigFactory
 import com.typesafe.config.ConfigValueFactory
+import org.gradle.api.Action
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
@@ -68,6 +69,16 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
      */
     @get:Input
     val dockerImage: Property<String> = objects.property(String::class.java)
+
+    /**
+     * External service config
+     */
+    @get:Nested
+    val external: External = objects.newInstance(External::class.java)
+
+    fun external(action: Action<in External>) {
+        action.execute(external)
+    }
 
     /**
      * This task action will create and install the nodes based on the node configurations added.
@@ -199,6 +210,28 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
             }
 
             services[it.containerName] = service
+        }
+
+        if (external.containerImage.isPresent()) {
+
+            val extra = mutableMapOf(
+                    "container_name" to external.containerName.get(),
+                    "image" to external.containerImage.get(),
+                    "ports" to external.servicePorts.get().map {QuotedString("${it}:${it}") }
+            )
+            if(external.volumes.get().isNotEmpty()){
+                extra["volumes"] = external.volumes.get().map{ "${it["sourceFile"]}:${it["deploymentPath"]}" }
+            }
+            if(external.environment.get().isNotEmpty()){
+                extra["environment"] = external.environment.get().map { "${it.key}=${it.value}" }
+            }
+            if(external.privileged.get() == true) {
+                extra["privileged"] = external.privileged.get()
+            }
+            if(external.commands.isPresent()){
+                extra["command"] = external.commands.get()
+            }
+            services["${external.containerName.get()}"] = extra
         }
 
         val dockerComposeObject = mutableMapOf(

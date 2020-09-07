@@ -4,6 +4,8 @@
 
 ### Version 5.0.13
 
+* `dockerform`: Parsing for adding external service to docker-compose
+
 ### Version 5.0.12
 
 * `quasar-utils`: Upgrade default Quasar version to 0.7.13_r3.

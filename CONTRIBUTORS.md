@@ -65,6 +65,7 @@ changes to this list.
 * James Carlyle (R3)
 * James Mac Mahon (R3)
 * Jared Harwayne-Gidansky (BNY Mellon)
+* Jerome Gerakis (R3)
 * Joel Dudley (R3)
 * Johan Hörmark (SEB)
 * Johann Palychata (BNP Paribas)
