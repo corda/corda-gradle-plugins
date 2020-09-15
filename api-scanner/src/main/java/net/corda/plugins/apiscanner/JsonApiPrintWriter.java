@@ -12,7 +12,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toCollection;
@@ -127,21 +126,21 @@ class JsonApiPrintWriter extends PrintWriter implements ApiWriter {
         println("{");
         append(asAnnotations(visibleAnnotations.getNames()));
 
-                // Outputs
-                // public
-                // private
-                // protected
-                // abstract
-                // static
-                // volatile
-                // transient
-                // final
-                // synchronized
-                // default
-                // synthetic
-                // bridge
-                // native
-                // strictfp
+        // Outputs
+        // public
+        // private
+        // protected
+        // abstract
+        // static
+        // volatile
+        // transient
+        // final
+        // synchronized
+        // default
+        // synthetic
+        // bridge
+        // native
+        // strictfp
         append(Arrays.stream(field.getModifierStr()
                 .split(" "))
                 .map(s -> String.format("\"%s\":true", s))
