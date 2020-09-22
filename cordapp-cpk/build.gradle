@@ -13,6 +13,7 @@ ext {
 
 repositories {
     mavenCentral()
+    gradlePluginPortal()
 }
 
 gradlePlugin {
@@ -54,6 +55,10 @@ dependencies {
     // own provided Kotlin libraries at runtime. So ensure that
     // we don't add Kotlin as a dependency in our published POM.
     compileOnly 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
+
+    // Add the Bnd plugins to our classpath too, so that we can use them.
+    implementation "biz.aQute.bnd:biz.aQute.bnd.gradle:$bnd_version"
+
     testImplementation 'org.jetbrains.kotlin:kotlin-test'
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junit_jupiter_version")
     testImplementation("org.junit.jupiter:junit-jupiter-params:$junit_jupiter_version")
