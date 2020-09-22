@@ -15,6 +15,7 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.file.RegularFile
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME
+import org.gradle.api.provider.HasConfigurableValue
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
@@ -64,9 +65,7 @@ open class DependencyConstraintsTask @Inject constructor(
 
     private val _dependencies: ConfigurableFileCollection = objects.fileCollection().from(
         providers.provider(::getNonCordaDependencies)
-    ).apply {
-        disallowChanges()
-    }
+    ).apply(HasConfigurableValue::disallowChanges)
 
     val dependencies: FileCollection
         @PathSensitive(RELATIVE)

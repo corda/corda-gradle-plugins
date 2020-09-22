@@ -9,12 +9,15 @@ import org.gradle.api.artifacts.Dependency.ARCHIVES_CONFIGURATION
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.java.archives.Attributes
 import org.gradle.api.plugins.JavaPlugin
+import org.gradle.api.plugins.JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME
 import org.gradle.api.plugins.JavaPlugin.JAR_TASK_NAME
 import org.gradle.api.plugins.JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.bundling.ZipEntryCompression.DEFLATED
+import org.osgi.framework.Constants.BUNDLE_NAME
+import org.osgi.framework.Constants.BUNDLE_SYMBOLICNAME
 import javax.inject.Inject
 
 /**
@@ -24,6 +27,7 @@ import javax.inject.Inject
 class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plugin<Project> {
     private companion object {
         private const val DEPENDENCY_CONSTRAINTS_TASK_NAME = "cordappDependencyConstraints"
+        private const val BND_BUILDER_PLUGIN_ID = "biz.aQute.bnd.builder"
         private const val CORDAPP_EXTENSION_NAME = "cordapp"
         private const val MIN_GRADLE_VERSION = "5.6"
         private const val CPK_TASK_NAME = "cpk"
@@ -46,10 +50,22 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
         // Apply the Java plugin on the assumption that we're building a JAR.
         // This will also create the "implementation", "compileOnly" and "runtimeOnly" configurations.
         project.pluginManager.apply(JavaPlugin::class.java)
+
+        // Apply the Bnd "builder" plugin to generate OSGi metadata for the CorDapp.
+        project.pluginManager.apply(BND_BUILDER_PLUGIN_ID)
+
+        // Create our plugin's "cordapp" extension.
+        cordapp = project.extensions.create(CORDAPP_EXTENSION_NAME, CordappExtension::class.java)
+
         project.configurations.apply {
             createCompileConfiguration(CORDAPP_CONFIGURATION_NAME)
             createRuntimeConfiguration(CORDA_RUNTIME_CONFIGURATION_NAME)
             createCompileOnlyConfiguration(CORDA_IMPLEMENTATION_CONFIGURATION_NAME)
+
+            getByName(COMPILE_ONLY_CONFIGURATION_NAME).withDependencies { dependencies ->
+                val osgiDependency = project.dependencies.create("org.osgi:osgi.annotation:" + cordapp.osgiVersion.get())
+                dependencies.add(osgiDependency)
+            }
 
             // We need to resolve the contents of our CPK file based on both
             // the runtimeClasspath and cordaImplementation configurations.
@@ -62,7 +78,6 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
                 .setVisible(false)
         }
 
-        cordapp = project.extensions.create(CORDAPP_EXTENSION_NAME, CordappExtension::class.java)
         configureCordappTasks(project)
     }
 
@@ -72,7 +87,16 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
      */
     private fun configureCordappTasks(project: Project) {
         val jarTask = project.tasks.named(JAR_TASK_NAME, Jar::class.java) { task ->
-            val defaultName = task.archiveBaseName.map { baseName -> "${project.group}.$baseName" }
+            // Create a lazy provider to generate the CorDapp's symbolic name.
+            val symbolicName = task.archiveBaseName.flatMap { baseName ->
+                project.provider { project.group.toString() }.map { groupName ->
+                    if (groupName.isEmpty()) {
+                        baseName
+                    } else {
+                        "$groupName.$baseName"
+                    }
+                }
+            }
             task.doFirst { t ->
                 t as Jar
                 t.fileMode = Integer.parseInt("444", 8)
@@ -90,7 +114,7 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
                 if (cordapp.contract.isEmpty() && cordapp.workflow.isEmpty()) {
                     throw InvalidUserDataException("Cordapp metadata not defined for this gradle build file. See https://docs.corda.net/head/cordapp-build-systems.html#separation-of-cordapp-contracts-flows-and-services")
                 }
-                configureCordappAttributes(defaultName.get(), attributes)
+                configureCordappAttributes(symbolicName.get(), attributes)
             }.doLast { t ->
                 if (cordapp.signing.enabled.get()) {
                     sign(t, cordapp.signing, (t as Jar).archiveFile.get().asFile)
@@ -135,15 +159,21 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
         project.artifacts.add(ARCHIVES_CONFIGURATION, cpkTask)
     }
 
-    private fun configureCordappAttributes(defaultName: String, attributes: Attributes) {
+    private fun configureCordappAttributes(symbolicName: String, attributes: Attributes) {
+        attributes[BUNDLE_SYMBOLICNAME] = symbolicName
+
         if (!cordapp.contract.isEmpty()) {
-            attributes["Cordapp-Contract-Name"] = cordapp.contract.name.getOrElse(defaultName)
+            val contractName = cordapp.contract.name.getOrElse(symbolicName)
+            attributes[BUNDLE_NAME] = contractName
+            attributes["Cordapp-Contract-Name"] = contractName
             attributes["Cordapp-Contract-Version"] = checkCorDappVersionId(cordapp.contract.versionId)
             attributes["Cordapp-Contract-Vendor"] = cordapp.contract.vendor.getOrElse(UNKNOWN)
             attributes["Cordapp-Contract-Licence"] = cordapp.contract.licence.getOrElse(UNKNOWN)
         }
         if (!cordapp.workflow.isEmpty()) {
-            attributes["Cordapp-Workflow-Name"] = cordapp.workflow.name.getOrElse(defaultName)
+            val workflowName = cordapp.contract.name.getOrElse(symbolicName)
+            attributes[BUNDLE_NAME] = workflowName
+            attributes["Cordapp-Workflow-Name"] = workflowName
             attributes["Cordapp-Workflow-Version"] = checkCorDappVersionId(cordapp.workflow.versionId)
             attributes["Cordapp-Workflow-Vendor"] = cordapp.workflow.vendor.getOrElse(UNKNOWN)
             attributes["Cordapp-Workflow-Licence"] = cordapp.workflow.licence.getOrElse(UNKNOWN)

@@ -43,6 +43,9 @@ open class CordappExtension @Inject constructor(objectFactory: ObjectFactory)  {
     @get:Nested
     val sealing: Sealing = objectFactory.newInstance(Sealing::class.java)
 
+    @get:Input
+    val osgiVersion: Property<String> = objectFactory.property(String::class.java).convention("7.0.0")
+
     fun contract(action: Action<in CordappData>) {
         action.execute(contract)
     }

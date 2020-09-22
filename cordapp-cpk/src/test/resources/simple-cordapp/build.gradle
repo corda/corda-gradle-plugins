@@ -1,8 +1,18 @@
+import static org.gradle.api.JavaVersion.*
+
 plugins {
     id 'net.corda.plugins.cordapp-cpk'
 }
 
 apply from: 'repositories.gradle'
+
+group = 'com.example'
+version = '1.0.1-SNAPSHOT'
+
+tasks.withType(JavaCompile).configureEach {
+    sourceCompatibility = VERSION_1_8
+    targetCompatibility = VERSION_1_8
+}
 
 cordapp {
     targetPlatformVersion = platform_version.toInteger()
@@ -16,11 +26,19 @@ cordapp {
     }
 }
 
-jar {
-    archiveBaseName = 'simple-cordapp'
+configurations {
+    runtimeClaspath.resolutionStrategy {
+        dependencySubstitution {
+            substitute module('org.jetbrains.kotlin:kotlin-stdlib-common') with module("org.jetbrains.kotlin:kotlin-osgi-bundle:1.2.71")
+        }
+    }
 }
 
 dependencies {
     cordaImplementation "net.corda:corda-core:\$corda_release_version"
     implementation "commons-io:commons-io:2.7"
+}
+
+jar {
+    archiveBaseName = 'simple-cordapp'
 }
