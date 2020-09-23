@@ -5,7 +5,6 @@ plugins {
     id 'com.gradle.plugin-publish' apply false
     id 'com.jfrog.artifactory' apply false
     id 'com.jfrog.bintray' apply false
-    id 'com.gradle.build-scan'
 }
 
 ext {
@@ -66,7 +65,7 @@ allprojects {
         }
     }
 
-    tasks.withType(ValidateTaskProperties).configureEach {
+    tasks.withType(ValidatePlugins).configureEach {
         // Ask Gradle to tell us how to annotate tasks correctly.
         enableStricterValidation = true
     }
@@ -225,13 +224,6 @@ artifactory {
 }
 
 wrapper {
-    gradleVersion = '5.6.4'
+    gradleVersion = '6.6.1'
     distributionType = Wrapper.DistributionType.ALL
-}
-
-gradleEnterprise {
-    buildScan {
-        termsOfServiceUrl = 'https://gradle.com/terms-of-service'
-        termsOfServiceAgree = 'yes'
-    }
 }
