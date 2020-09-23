@@ -8,6 +8,7 @@ import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileSystemLocation
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.HasConfigurableValue
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Input
@@ -91,16 +92,12 @@ open class SignJar @Inject constructor(objects: ObjectFactory) : DefaultTask() {
         _inputJars.elements.map { files ->
             files.map(::toSigned)
         }
-    )
+    ).apply(HasConfigurableValue::finalizeValueOnRead)
+        .apply(HasConfigurableValue::disallowChanges)
+
     val outputJars: FileCollection
         @OutputFiles
-        get() {
-            // Don't compute these values more than once.
-            // Replace with finalizeValueOnRead() immediately after
-            // construction when we upgrade this plugin to Gradle 6.1.
-            _outputJars.finalizeValue()
-            return _outputJars
-        }
+        get() = _outputJars
 
     private fun toSigned(file: File): Provider<File> {
         val path = file.absolutePath

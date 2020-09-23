@@ -14,6 +14,8 @@ import org.gradle.api.plugins.JavaPlugin.JAR_TASK_NAME
 import org.gradle.api.plugins.JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.provider.Property
+import org.gradle.api.provider.Provider
+import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.bundling.ZipEntryCompression.DEFLATED
 import org.osgi.framework.Constants.BUNDLE_NAME
@@ -29,10 +31,20 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
         private const val DEPENDENCY_CONSTRAINTS_TASK_NAME = "cordappDependencyConstraints"
         private const val BND_BUILDER_PLUGIN_ID = "biz.aQute.bnd.builder"
         private const val CORDAPP_EXTENSION_NAME = "cordapp"
-        private const val MIN_GRADLE_VERSION = "5.6"
+        private const val OSGI_VERSION_PROPERTY = "osgi_version"
+        private const val DEFAULT_OSGI_VERSION = "7.0.0"
+        private const val MIN_GRADLE_VERSION = "6.6"
         private const val CPK_TASK_NAME = "cpk"
         private const val UNKNOWN = "Unknown"
         private const val VERSION_X = 999
+
+        fun dashConcat(first: String, second: String): String {
+            return if (second.isEmpty()) {
+                first
+            } else {
+                "$first-$second"
+            }
+        }
     }
 
     /**
@@ -54,8 +66,16 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
         // Apply the Bnd "builder" plugin to generate OSGi metadata for the CorDapp.
         project.pluginManager.apply(BND_BUILDER_PLUGIN_ID)
 
+        val osgiVersion = with(project.rootProject) {
+            if (hasProperty(OSGI_VERSION_PROPERTY)) {
+                property(OSGI_VERSION_PROPERTY)
+            } else {
+                DEFAULT_OSGI_VERSION
+            }
+        }
+
         // Create our plugin's "cordapp" extension.
-        cordapp = project.extensions.create(CORDAPP_EXTENSION_NAME, CordappExtension::class.java)
+        cordapp = project.extensions.create(CORDAPP_EXTENSION_NAME, CordappExtension::class.java, osgiVersion)
 
         project.configurations.apply {
             createCompileConfiguration(CORDAPP_CONFIGURATION_NAME)
@@ -88,15 +108,7 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
     private fun configureCordappTasks(project: Project) {
         val jarTask = project.tasks.named(JAR_TASK_NAME, Jar::class.java) { task ->
             // Create a lazy provider to generate the CorDapp's symbolic name.
-            val symbolicName = task.archiveBaseName.flatMap { baseName ->
-                project.provider { project.group.toString() }.map { groupName ->
-                    if (groupName.isEmpty()) {
-                        baseName
-                    } else {
-                        "$groupName.$baseName"
-                    }
-                }
-            }
+            val symbolicName = createSymbolicName(project, task)
             task.doFirst { t ->
                 t as Jar
                 t.fileMode = Integer.parseInt("444", 8)
@@ -159,6 +171,23 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
         project.artifacts.add(ARCHIVES_CONFIGURATION, cpkTask)
     }
 
+    private fun createSymbolicName(project: Project, task: AbstractArchiveTask): Provider<String> {
+        val groupName = project.provider { project.group.toString() }
+        val archiveName = createArchiveName(task)
+        return groupName.zip(archiveName) { group, name ->
+            if (group.isEmpty()) {
+                name
+            } else {
+                "$group.$name"
+            }
+        }
+    }
+
+    private fun createArchiveName(task: AbstractArchiveTask): Provider<String> {
+        return task.archiveBaseName.zip(task.archiveAppendix.orElse(""), Companion::dashConcat)
+            .zip(task.archiveClassifier.orElse(""), Companion::dashConcat)
+    }
+
     private fun configureCordappAttributes(symbolicName: String, attributes: Attributes) {
         attributes[BUNDLE_SYMBOLICNAME] = symbolicName
 
@@ -183,7 +212,7 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
         attributes["Target-Platform-Version"] = targetPlatformVersion
         attributes["Min-Platform-Version"] = minimumPlatformVersion
         if (cordapp.sealing.enabled.get()) {
-            attributes["Sealed"] = java.lang.Boolean.TRUE
+            attributes["Sealed"] = true
         }
     }
 

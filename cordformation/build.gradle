@@ -86,7 +86,7 @@ dependencies {
  * rather than resort to shading!
  */
 def generateSource = tasks.register('generateSource', Copy) {
-    from "${project(':cordapp').projectDir}/src/main/template"
+    from "${project(':cordapp-cpk').projectDir}/src/main/template"
     filter(ReplaceTokens, tokens: [root_package: 'net.corda.plugins.cordformation'])
     into file("$buildDir/generated-source")
 }

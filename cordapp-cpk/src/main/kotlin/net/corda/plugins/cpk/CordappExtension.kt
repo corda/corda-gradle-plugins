@@ -8,7 +8,7 @@ import org.gradle.api.tasks.Nested
 import javax.inject.Inject
 
 @Suppress("UnstableApiUsage", "Unused")
-open class CordappExtension @Inject constructor(objectFactory: ObjectFactory)  {
+open class CordappExtension @Inject constructor(objectFactory: ObjectFactory, osgiVersion: String)  {
 
     /**
      * Top-level CorDapp attributes
@@ -26,13 +26,13 @@ open class CordappExtension @Inject constructor(objectFactory: ObjectFactory)  {
     val contract: CordappData = objectFactory.newInstance(CordappData::class.java)
 
     /**
-     * CorDapp Worflow (flows and services) distribution information.
+     * CorDapp Workflow (flows and services) distribution information.
      */
     @get:Nested
     val workflow: CordappData = objectFactory.newInstance(CordappData::class.java)
 
     /**
-     * Optional parameters for ANT signJar tasks to sign Cordapps.
+     * Optional parameters for ANT signJar tasks to sign CorDapps.
      */
     @get:Nested
     val signing: Signing = objectFactory.newInstance(Signing::class.java)
@@ -44,7 +44,7 @@ open class CordappExtension @Inject constructor(objectFactory: ObjectFactory)  {
     val sealing: Sealing = objectFactory.newInstance(Sealing::class.java)
 
     @get:Input
-    val osgiVersion: Property<String> = objectFactory.property(String::class.java).convention("7.0.0")
+    val osgiVersion: Property<String> = objectFactory.property(String::class.java).convention(osgiVersion)
 
     fun contract(action: Action<in CordappData>) {
         action.execute(contract)

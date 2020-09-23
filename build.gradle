@@ -70,6 +70,10 @@ allprojects {
         enableStricterValidation = true
     }
 
+    tasks.withType(GenerateModuleMetadata).configureEach {
+        enabled = false
+    }
+
     idea {
         module {
             downloadJavadoc = true
@@ -207,8 +211,8 @@ artifactory {
         contextUrl = 'https://software.r3.com/artifactory'
         repository {
             repoKey = 'corda-dev'
-            username = System.getenv('CORDA_ARTIFACTORY_USERNAME') ?: System.getProperty('corda.artifactory.username')
-            password = System.getenv('CORDA_ARTIFACTORY_PASSWORD') ?: System.getProperty('corda.artifactory.password')
+            username = project.findProperty('cordaArtifactoryUsername') ?: System.getenv('CORDA_ARTIFACTORY_USERNAME') ?: System.getProperty('corda.artifactory.username')
+            password = project.findProperty('cordaArtifactoryPassword') ?: System.getenv('CORDA_ARTIFACTORY_PASSWORD') ?: System.getProperty('corda.artifactory.password')
         }
 
         defaults {

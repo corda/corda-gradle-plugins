@@ -8,7 +8,7 @@ plugins {
 description 'Configures this project to create a CPK CorDapp'
 
 ext {
-    test_quasar_utils_version = '5.0.10'
+    test_quasar_utils_version = '5.0.12'
 }
 
 repositories {
@@ -44,9 +44,6 @@ sourceSets {
         kotlin {
             srcDirs files('src/main/kotlin', "$buildDir/generated-source")
         }
-        resources {
-            srcDirs files('resources', "${project(':cordapp').projectDir}/src/main/resources")
-        }
     }
 }
 
@@ -73,7 +70,7 @@ dependencies {
  * rather than resort to shading!
  */
 def generateSource = tasks.register('generateSource', Copy) {
-    from "${project(':cordapp').projectDir}/src/main/template"
+    from 'src/main/template'
     filter(ReplaceTokens, tokens: [root_package: 'net.corda.plugins.cpk'])
     into file("$buildDir/generated-source")
 }
