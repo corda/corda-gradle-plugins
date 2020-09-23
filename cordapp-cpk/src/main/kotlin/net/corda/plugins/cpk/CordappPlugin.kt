@@ -1,5 +1,7 @@
 package net.corda.plugins.cpk
 
+import aQute.bnd.gradle.BndBuilderPlugin
+import aQute.bnd.gradle.BundleTaskConvention
 import net.corda.plugins.cpk.SignJar.Companion.sign
 import org.gradle.api.GradleException
 import org.gradle.api.InvalidUserDataException
@@ -14,12 +16,13 @@ import org.gradle.api.plugins.JavaPlugin.JAR_TASK_NAME
 import org.gradle.api.plugins.JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.provider.Property
-import org.gradle.api.provider.Provider
-import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.bundling.ZipEntryCompression.DEFLATED
+import org.osgi.framework.Constants.BUNDLE_LICENSE
 import org.osgi.framework.Constants.BUNDLE_NAME
 import org.osgi.framework.Constants.BUNDLE_SYMBOLICNAME
+import org.osgi.framework.Constants.BUNDLE_VENDOR
+import org.osgi.framework.Constants.EXPORT_PACKAGE
 import javax.inject.Inject
 
 /**
@@ -29,8 +32,8 @@ import javax.inject.Inject
 class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plugin<Project> {
     private companion object {
         private const val DEPENDENCY_CONSTRAINTS_TASK_NAME = "cordappDependencyConstraints"
-        private const val BND_BUILDER_PLUGIN_ID = "biz.aQute.bnd.builder"
         private const val CORDAPP_EXTENSION_NAME = "cordapp"
+        private const val OSGI_EXTENSION_NAME = "osgi"
         private const val OSGI_VERSION_PROPERTY = "osgi_version"
         private const val DEFAULT_OSGI_VERSION = "7.0.0"
         private const val MIN_GRADLE_VERSION = "6.6"
@@ -38,12 +41,9 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
         private const val UNKNOWN = "Unknown"
         private const val VERSION_X = 999
 
-        fun dashConcat(first: String, second: String): String {
-            return if (second.isEmpty()) {
-                first
-            } else {
-                "$first-$second"
-            }
+        val Array<String>.packageRange: IntRange get() {
+            val firstIdx = if (size > 2 && this[0] == "META-INF" && this[1] == "versions") { 3 } else { 0 }
+            return firstIdx..size - 2
         }
     }
 
@@ -64,7 +64,7 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
         project.pluginManager.apply(JavaPlugin::class.java)
 
         // Apply the Bnd "builder" plugin to generate OSGi metadata for the CorDapp.
-        project.pluginManager.apply(BND_BUILDER_PLUGIN_ID)
+        project.pluginManager.apply(BndBuilderPlugin::class.java)
 
         val osgiVersion = with(project.rootProject) {
             if (hasProperty(OSGI_VERSION_PROPERTY)) {
@@ -107,8 +107,8 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
      */
     private fun configureCordappTasks(project: Project) {
         val jarTask = project.tasks.named(JAR_TASK_NAME, Jar::class.java) { task ->
-            // Create a lazy provider to generate the CorDapp's symbolic name.
-            val symbolicName = createSymbolicName(project, task)
+            val osgi = task.extensions.create(OSGI_EXTENSION_NAME, OsgiExtension::class.java, project, task)
+
             task.doFirst { t ->
                 t as Jar
                 t.fileMode = Integer.parseInt("444", 8)
@@ -126,7 +126,24 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
                 if (cordapp.contract.isEmpty() && cordapp.workflow.isEmpty()) {
                     throw InvalidUserDataException("Cordapp metadata not defined for this gradle build file. See https://docs.corda.net/head/cordapp-build-systems.html#separation-of-cordapp-contracts-flows-and-services")
                 }
-                configureCordappAttributes(symbolicName.get(), attributes)
+
+                task.rootSpec.eachFile { file ->
+                    if (!file.isDirectory) {
+                        val elements = file.relativePath.segments
+                        val packageRange = elements.packageRange
+                        if (!packageRange.isEmpty()) {
+                            val packageName = elements.slice(packageRange)
+                            if (packageName[0] != "META-INF" && packageName[0] != "OSGI-INF") {
+                                osgi.add(packageName.joinToString("."))
+                            }
+                        }
+                    }
+                }
+
+                task.convention.getPlugin(BundleTaskConvention::class.java)
+                    .bnd("$EXPORT_PACKAGE=\${task.osgi.exports}")
+
+                configureCordappAttributes(osgi.symbolicName.get(), attributes)
             }.doLast { t ->
                 if (cordapp.signing.enabled.get()) {
                     sign(t, cordapp.signing, (t as Jar).archiveFile.get().asFile)
@@ -171,41 +188,32 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
         project.artifacts.add(ARCHIVES_CONFIGURATION, cpkTask)
     }
 
-    private fun createSymbolicName(project: Project, task: AbstractArchiveTask): Provider<String> {
-        val groupName = project.provider { project.group.toString() }
-        val archiveName = createArchiveName(task)
-        return groupName.zip(archiveName) { group, name ->
-            if (group.isEmpty()) {
-                name
-            } else {
-                "$group.$name"
-            }
-        }
-    }
-
-    private fun createArchiveName(task: AbstractArchiveTask): Provider<String> {
-        return task.archiveBaseName.zip(task.archiveAppendix.orElse(""), Companion::dashConcat)
-            .zip(task.archiveClassifier.orElse(""), Companion::dashConcat)
-    }
-
     private fun configureCordappAttributes(symbolicName: String, attributes: Attributes) {
         attributes[BUNDLE_SYMBOLICNAME] = symbolicName
 
         if (!cordapp.contract.isEmpty()) {
             val contractName = cordapp.contract.name.getOrElse(symbolicName)
+            val vendor = cordapp.contract.vendor.getOrElse(UNKNOWN)
+            val licence = cordapp.contract.licence.getOrElse(UNKNOWN)
             attributes[BUNDLE_NAME] = contractName
+            attributes[BUNDLE_VENDOR] = vendor
+            attributes[BUNDLE_LICENSE] = licence
             attributes["Cordapp-Contract-Name"] = contractName
             attributes["Cordapp-Contract-Version"] = checkCorDappVersionId(cordapp.contract.versionId)
-            attributes["Cordapp-Contract-Vendor"] = cordapp.contract.vendor.getOrElse(UNKNOWN)
-            attributes["Cordapp-Contract-Licence"] = cordapp.contract.licence.getOrElse(UNKNOWN)
+            attributes["Cordapp-Contract-Vendor"] = vendor
+            attributes["Cordapp-Contract-Licence"] = licence
         }
         if (!cordapp.workflow.isEmpty()) {
             val workflowName = cordapp.contract.name.getOrElse(symbolicName)
+            val vendor = cordapp.workflow.vendor.getOrElse(UNKNOWN)
+            val licence = cordapp.workflow.licence.getOrElse(UNKNOWN)
             attributes[BUNDLE_NAME] = workflowName
+            attributes[BUNDLE_VENDOR] = vendor
+            attributes[BUNDLE_LICENSE] = licence
             attributes["Cordapp-Workflow-Name"] = workflowName
             attributes["Cordapp-Workflow-Version"] = checkCorDappVersionId(cordapp.workflow.versionId)
-            attributes["Cordapp-Workflow-Vendor"] = cordapp.workflow.vendor.getOrElse(UNKNOWN)
-            attributes["Cordapp-Workflow-Licence"] = cordapp.workflow.licence.getOrElse(UNKNOWN)
+            attributes["Cordapp-Workflow-Vendor"] = vendor
+            attributes["Cordapp-Workflow-Licence"] = licence
         }
 
         val (targetPlatformVersion, minimumPlatformVersion) = checkPlatformVersionInfo()

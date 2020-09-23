@@ -80,7 +80,7 @@ tasks.named('compileKotlin') { Task task ->
 }
 
 processTestResources {
-    filesMatching('**/build.gradle') {
+    filesMatching('gradle.properties') {
         expand(['quasar_utils_version': test_quasar_utils_version])
     }
 }

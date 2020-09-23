@@ -1,23 +1,35 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import static org.gradle.api.JavaVersion.*
+
 plugins {
     id 'net.corda.plugins.cordapp-cpk'
+    id 'org.jetbrains.kotlin.jvm'
 }
 
 apply from: 'repositories.gradle'
+
+group = 'com.example'
+version = '1.0.1-SNAPSHOT'
+
+tasks.withType(KotlinCompile).configureEach {
+    kotlinOptions {
+        jvmTarget = VERSION_1_8
+        apiVersion = '1.3'
+        languageVersion = '1.3'
+        freeCompilerArgs = ['-Xjvm-default=enable']
+    }
+}
 
 cordapp {
     targetPlatformVersion = platform_version.toInteger()
     minimumPlatformVersion = platform_version.toInteger()
 
     contract {
-        name = 'Eager Dependencies'
+        name = 'Simple Kotlin'
         versionId = cordapp_contract_version.toInteger()
         licence = 'Test-Licence'
         vendor = 'R3'
     }
-}
-
-jar {
-    archiveBaseName = 'eager-dependencies'
 }
 
 dependencies {
@@ -25,6 +37,6 @@ dependencies {
     implementation "commons-io:commons-io:2.7"
 }
 
-tasks.withType(net.corda.plugins.cpk.DependencyConstraintsTask) {
-    println "Eagerly configuring DependencyConstraints task '$name'"
+jar {
+    archiveBaseName = 'simple-kotlin-cordapp'
 }
