@@ -19,23 +19,15 @@ cordapp {
     minimumPlatformVersion = platform_version.toInteger()
 
     contract {
-        name = 'Simple'
+        name = 'Simple Java'
         versionId = cordapp_contract_version.toInteger()
         licence = 'Test-Licence'
         vendor = 'R3'
     }
 }
 
-configurations {
-    runtimeClaspath.resolutionStrategy {
-        dependencySubstitution {
-            substitute module('org.jetbrains.kotlin:kotlin-stdlib-common') with module("org.jetbrains.kotlin:kotlin-osgi-bundle:1.2.71")
-        }
-    }
-}
-
 dependencies {
-    cordaImplementation "net.corda:corda-core:\$corda_release_version"
+    cordaImplementation "net.corda:corda-core:$corda_release_version"
     implementation "commons-io:commons-io:2.7"
 }
 

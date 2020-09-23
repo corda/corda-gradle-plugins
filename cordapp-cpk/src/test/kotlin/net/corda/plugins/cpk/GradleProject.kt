@@ -13,7 +13,7 @@ import org.junit.jupiter.api.TestReporter
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
-import java.nio.file.StandardCopyOption
+import java.nio.file.StandardCopyOption.REPLACE_EXISTING
 import java.util.stream.Collectors.toList
 import kotlin.test.fail
 
@@ -37,7 +37,7 @@ class GradleProject(private val projectDir: Path, private val reporter: TestRepo
         @Throws(IOException::class)
         private fun copyResourceTo(resourceName: String, target: Path): Long {
             return GradleProject::class.java.classLoader.getResourceAsStream(resourceName)?.use { input ->
-                Files.copy(input, target, StandardCopyOption.REPLACE_EXISTING)
+                Files.copy(input, target, REPLACE_EXISTING)
             } ?: -1
         }
     }
@@ -70,7 +70,7 @@ class GradleProject(private val projectDir: Path, private val reporter: TestRepo
             if (endIdx == -1) {
                 break
             }
-            directory = Files.createDirectory(directory.resolve(resourceName.substring(startIdx, endIdx)))
+            directory = Files.createDirectories(directory.resolve(resourceName.substring(startIdx, endIdx)))
             startIdx = endIdx + 1
         }
         return directory

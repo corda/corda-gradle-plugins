@@ -18,8 +18,9 @@ import org.osgi.framework.Constants.REQUIRE_CAPABILITY
 import java.nio.file.Path
 import java.util.jar.JarFile
 
-class SimpleCordappTest {
+class SimpleKotlinCordappTest {
     companion object {
+        const val kotlinVersion = "1.3.72"
         private lateinit var testProject: GradleProject
 
         @Suppress("unused")
@@ -27,11 +28,13 @@ class SimpleCordappTest {
         @JvmStatic
         fun setup(@TempDir testProjectDir: Path, reporter: TestReporter) {
             testProject = GradleProject(testProjectDir, reporter)
-                .withTestName("simple-cordapp")
-                .withSubResource("src/main/java/com/example/contract/ExampleContract.java")
+                .withTestName("simple-kotlin-cordapp")
+                .withSubResource("src/main/kotlin/com/example/contract/ExampleContract.kt")
+                .withSubResource("src/main/kotlin/com/example/contract/states/ExampleState.kt")
                 .build(
                     "-Pcordapp_contract_version=$expectedCordappContractVersion",
-                    "-Pcorda_release_version=$cordaReleaseVersion"
+                    "-Pcorda_release_version=$cordaReleaseVersion",
+                    "-Pkotlin_version=$kotlinVersion"
                 )
         }
     }
@@ -55,11 +58,11 @@ class SimpleCordappTest {
         println(jarManifest.mainAttributes.entries)
 
         with(jarManifest.mainAttributes) {
-            assertEquals("Simple Java", getValue(BUNDLE_NAME))
-            assertEquals("com.example.simple-cordapp", getValue(BUNDLE_SYMBOLICNAME))
+            assertEquals("Simple Kotlin", getValue(BUNDLE_NAME))
+            assertEquals("com.example.simple-kotlin-cordapp", getValue(BUNDLE_SYMBOLICNAME))
             assertEquals("1.0.1.SNAPSHOT", getValue(BUNDLE_VERSION))
-            assertEquals("net.corda.core.contracts,net.corda.core.transactions,org.apache.commons.io;version=\"[1.4,2)\"", getValue(IMPORT_PACKAGE))
-            assertEquals("com.example.contract;uses:=\"net.corda.core.contracts,net.corda.core.transactions\";version=\"1.0.1\"", getValue(EXPORT_PACKAGE))
+            assertEquals("kotlin,kotlin.collections,kotlin.io,kotlin.jvm.internal,kotlin.text,net.corda.core.contracts,net.corda.core.identity,net.corda.core.transactions,org.apache.commons.io;version=\"[1.4,2)\"", getValue(IMPORT_PACKAGE))
+            assertEquals("com.example.contract;uses:=\"kotlin,net.corda.core.contracts,net.corda.core.transactions\";version=\"1.0.1\",com.example.contract.states;uses:=\"kotlin,net.corda.core.contracts,net.corda.core.identity\";version=\"1.0.1\"", getValue(EXPORT_PACKAGE))
             assertEquals("osgi.ee;filter:=\"(&(osgi.ee=JavaSE)(version=1.8))\"", getValue(REQUIRE_CAPABILITY))
             assertEquals("Test-Licence", getValue(BUNDLE_LICENSE))
             assertEquals("R3", getValue(BUNDLE_VENDOR))

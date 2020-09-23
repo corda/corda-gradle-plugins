@@ -21,10 +21,10 @@ jar {
 }
 
 dependencies {
-    cordaImplementation "net.corda:corda-core:\$corda_release_version"
+    cordaImplementation "net.corda:corda-core:$corda_release_version"
     implementation "commons-io:commons-io:2.7"
 }
 
 tasks.withType(Jar) {
-    println "Eagerly configuring JAR task '\$name'"
+    println "Eagerly configuring JAR task '$name'"
 }

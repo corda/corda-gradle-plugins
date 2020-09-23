@@ -9,5 +9,5 @@ jar {
 }
 
 dependencies {
-    implementation "net.corda:corda-core:\$corda_release_version"
+    implementation "net.corda:corda-core:$corda_release_version"
 }

@@ -11,7 +11,7 @@ import java.io.UncheckedIOException;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-class ExampleContract implements Contract {
+public class ExampleContract implements Contract {
     @Override
     public void verify(LedgerTransaction ltx) {
         try (InputStream input = new ByteArrayInputStream("Hello Corda!".getBytes(UTF_8))) {
