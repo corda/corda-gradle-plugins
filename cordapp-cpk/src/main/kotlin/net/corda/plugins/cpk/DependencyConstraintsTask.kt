@@ -54,7 +54,8 @@ open class DependencyConstraintsTask @Inject constructor(
             "org.slf4j" to "slf4j-api",
             "org.slf4j" to "jcl-over-slf4j",
             "commons-logging" to "commons-logging",
-            "co.paralleluniverse" to "quasar-core"
+            "co.paralleluniverse" to "quasar-core",
+            "co.paralleluniverse" to "quasar-core-osgi"
         ))
     }
 
@@ -65,15 +66,13 @@ open class DependencyConstraintsTask @Inject constructor(
 
     private val _dependencies: ConfigurableFileCollection = objects.fileCollection().from(
         providers.provider(::getNonCordaDependencies)
-    ).apply(HasConfigurableValue::disallowChanges)
+    ).apply(HasConfigurableValue::finalizeValueOnRead)
+        .apply(HasConfigurableValue::disallowChanges)
 
     val dependencies: FileCollection
         @PathSensitive(RELATIVE)
         @InputFiles
-        get() {
-            _dependencies.finalizeValue()
-            return _dependencies
-        }
+        get() = _dependencies
 
     @get:Input
     val algorithm: Property<String> = objects.property(String::class.java).convention(CORDAPP_HASH_ALGORITHM)
