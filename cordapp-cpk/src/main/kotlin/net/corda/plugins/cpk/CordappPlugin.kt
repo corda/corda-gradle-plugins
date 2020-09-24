@@ -109,6 +109,28 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
         val jarTask = project.tasks.named(JAR_TASK_NAME, Jar::class.java) { task ->
             val osgi = task.extensions.create(OSGI_EXTENSION_NAME, OsgiExtension::class.java, project, task)
 
+            // Install a "listener" for files copied into the CorDapp jar.
+            // We will extract the names of the non-empty packages inside
+            // this jar as we go...
+            task.rootSpec.eachFile { file ->
+                if (!file.isDirectory) {
+                    val elements = file.relativePath.segments
+                    val packageRange = elements.packageRange
+                    if (!packageRange.isEmpty()) {
+                        val packageName = elements.slice(packageRange)
+                        if (packageName[0] != "META-INF" && packageName[0] != "OSGI-INF") {
+                            osgi.add(packageName.joinToString("."))
+                        }
+                    }
+                }
+            }
+
+            // Add a Bnd instruction to export the set of observed
+            // package names. This instruction reads this task's
+            // osgi.exports property by invoking it lazily as a macro.
+            task.convention.getPlugin(BundleTaskConvention::class.java)
+                .bnd("$EXPORT_PACKAGE=\${task.osgi.exports}")
+
             task.doFirst { t ->
                 t as Jar
                 t.fileMode = Integer.parseInt("444", 8)
@@ -126,22 +148,6 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
                 if (cordapp.contract.isEmpty() && cordapp.workflow.isEmpty()) {
                     throw InvalidUserDataException("Cordapp metadata not defined for this gradle build file. See https://docs.corda.net/head/cordapp-build-systems.html#separation-of-cordapp-contracts-flows-and-services")
                 }
-
-                task.rootSpec.eachFile { file ->
-                    if (!file.isDirectory) {
-                        val elements = file.relativePath.segments
-                        val packageRange = elements.packageRange
-                        if (!packageRange.isEmpty()) {
-                            val packageName = elements.slice(packageRange)
-                            if (packageName[0] != "META-INF" && packageName[0] != "OSGI-INF") {
-                                osgi.add(packageName.joinToString("."))
-                            }
-                        }
-                    }
-                }
-
-                task.convention.getPlugin(BundleTaskConvention::class.java)
-                    .bnd("$EXPORT_PACKAGE=\${task.osgi.exports}")
 
                 configureCordappAttributes(osgi.symbolicName.get(), attributes)
             }.doLast { t ->
