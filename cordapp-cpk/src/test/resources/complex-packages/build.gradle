@@ -1,0 +1,34 @@
+import static org.gradle.api.JavaVersion.*
+
+plugins {
+    id 'net.corda.plugins.cordapp-cpk'
+}
+
+apply from: 'repositories.gradle'
+
+group = 'com.example'
+version = '1.0.1-SNAPSHOT'
+
+tasks.withType(JavaCompile).configureEach {
+    sourceCompatibility = VERSION_1_8
+    targetCompatibility = VERSION_1_8
+}
+
+cordapp {
+    targetPlatformVersion = platform_version.toInteger()
+    minimumPlatformVersion = platform_version.toInteger()
+
+    contract {
+        name = 'Complex Packages'
+        versionId = cordapp_contract_version.toInteger()
+        licence = 'Test-Licence'
+        vendor = 'R3'
+    }
+}
+
+jar {
+    archiveBaseName = 'complex-packages'
+    osgi {
+        autoExport = false
+    }
+}

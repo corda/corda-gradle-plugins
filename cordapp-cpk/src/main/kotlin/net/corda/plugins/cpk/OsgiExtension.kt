@@ -2,8 +2,10 @@ package net.corda.plugins.cpk
 
 import org.gradle.api.Project
 import org.gradle.api.provider.HasMultipleValues
+import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.SetProperty
+import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.bundling.Jar
 
@@ -16,9 +18,20 @@ open class OsgiExtension(project: Project, jar: Jar) {
         packages.add(packageName)
     }
 
+    @get:Input
+    val autoExport: Property<Boolean> = project.objects.property(Boolean::class.java).convention(true)
+
     @Suppress("unused")
     @get:Internal
-    val exports: Provider<String> = packages.map { it.joinToString(",") }
+    val exports: Provider<String> = autoExport.flatMap { isAuto ->
+        packages.map { names ->
+            if (isAuto){
+                names.joinToString(",")
+            } else {
+                ""
+            }
+        }
+    }
 
     @get:Internal
     val symbolicName: Provider<String>
