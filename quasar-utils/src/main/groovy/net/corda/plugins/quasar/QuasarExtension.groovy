@@ -21,14 +21,14 @@ class QuasarExtension {
     final Property<String> version
 
     /**
-     * Maven classifier for the Quasar agent.
+     * Dependency notation for the Quasar bundle to use.
      */
-    final Property<String> classifier
+    final Provider<Map<String, String>> dependency
 
     /**
      * Dependency notation for the Quasar agent to use.
      */
-    final Provider<Map<String, String>> dependency
+    final Provider<Map<String, String>> agent
 
     /**
      * Runtime options for the Quasar agent:
@@ -53,19 +53,17 @@ class QuasarExtension {
         ObjectFactory objects,
         String defaultGroup,
         String defaultVersion,
-        String defaultClassifier,
         Iterable<? extends String> initialPackageExclusions,
         Iterable<? extends String> initialClassLoaderExclusions
     ) {
         group = objects.property(String).convention(defaultGroup)
         version = objects.property(String).convention(defaultVersion)
-        classifier = objects.property(String).convention(defaultClassifier)
-        dependency = group.flatMap { grp ->
-            version.flatMap { ver ->
-                classifier.map { cls ->
-                    [ group: grp, name: 'quasar-core', version: ver, classifier: cls, ext: 'jar' ]
-                }
-            }
+        dependency = group.zip(version) { grp, ver ->
+            [ group: grp, name: 'quasar-core-osgi', version: ver, ext: 'jar' ]
+        }
+        agent = dependency.map {
+            it['classifier'] = 'agent'
+            it
         }
 
         debug = objects.property(Boolean).convention(false)
