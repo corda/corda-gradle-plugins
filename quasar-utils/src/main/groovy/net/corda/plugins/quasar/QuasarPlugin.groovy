@@ -12,22 +12,23 @@ import org.gradle.api.plugins.JavaPlugin
 import org.gradle.util.GradleVersion
 
 import static org.gradle.api.plugins.JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME
-import static org.gradle.api.plugins.JavaPlugin.RUNTIME_CONFIGURATION_NAME
+import static org.gradle.api.plugins.JavaPlugin.RUNTIME_ONLY_CONFIGURATION_NAME
 import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.testing.Test
 
 import javax.inject.Inject
 
 /**
- * QuasarPlugin creates a "quasar" configuration and adds quasar as a dependency.
+ * QuasarPlugin creates "quasar" and "quasarAgent" configurations and adds Quasar as a dependency.
  */
 class QuasarPlugin implements Plugin<Project> {
 
     private static final String QUASAR = "quasar"
+    private static final String QUASAR_AGENT = "quasarAgent"
     private static final String MINIMUM_GRADLE_VERSION = "5.1"
+    private static final String CORDA_RUNTIME_ONLY_CONFIGURATION_NAME = "cordaRuntimeOnly"
     @PackageScope static final String defaultGroup = "co.paralleluniverse"
-    @PackageScope static final String defaultVersion = "0.7.13_r3"
-    @PackageScope static final String defaultClassifier = ""
+    @PackageScope static final String defaultVersion = "0.8.2_r3"
 
     private final ObjectFactory objects
 
@@ -43,13 +44,12 @@ class QuasarPlugin implements Plugin<Project> {
         }
 
         // Apply the Java plugin on the assumption that we're building a JAR.
-        // This will also create the "compile", "compileOnly" and "runtime" configurations.
+        // This will also create the "compileOnly" and "runtimeOnly" configurations.
         project.pluginManager.apply(JavaPlugin)
 
         def rootProject = project.rootProject
         def quasarGroup = rootProject.hasProperty('quasar_group') ? rootProject.property('quasar_group') : defaultGroup
         def quasarVersion = rootProject.hasProperty('quasar_version') ? rootProject.property('quasar_version') : defaultVersion
-        def quasarClassifier = rootProject.hasProperty('quasar_classifier') ? rootProject.property('quasar_classifier') : defaultClassifier
         def quasarPackageExclusions = rootProject.hasProperty("quasar_exclusions") ? rootProject.property('quasar_exclusions') : Collections.emptyList()
         if (!(quasarPackageExclusions instanceof Iterable<?>)) {
             throw new InvalidUserDataException("quasar_exclusions property must be an Iterable<String>")
@@ -59,7 +59,7 @@ class QuasarPlugin implements Plugin<Project> {
             throw new InvalidUserDataException("quasar_classloader_exclusions property must be an Iterable<String>")
         }
         def quasarExtension = project.extensions.create(QUASAR, QuasarExtension, objects,
-                quasarGroup, quasarVersion, quasarClassifier, quasarPackageExclusions, quasarClassLoaderExclusions)
+                quasarGroup, quasarVersion, quasarPackageExclusions, quasarClassLoaderExclusions)
 
         addQuasarDependencies(project, quasarExtension)
         configureQuasarTasks(project, quasarExtension)
@@ -68,17 +68,25 @@ class QuasarPlugin implements Plugin<Project> {
     private void addQuasarDependencies(Project project, QuasarExtension extension) {
         def quasar = project.configurations.create(QUASAR)
         quasar.withDependencies { dependencies ->
-            def quasarDependency = project.dependencies.create(extension.dependency.get()) {
-                it.transitive = false
+            def quasarDependency = project.dependencies.create(extension.dependency.get()) { dep ->
+                dep.transitive = false
             }
             dependencies.add(quasarDependency)
         }
 
-        // Add Quasar to the compile classpath WITHOUT any of its transitive dependencies.
+        def quasarAgent = project.configurations.create(QUASAR_AGENT)
+        quasarAgent.withDependencies { dependencies ->
+            def quasarAgentDependency = project.dependencies.create(extension.agent.get()) { dep ->
+                dep.transitive = false
+            }
+            dependencies.add(quasarAgentDependency)
+        }
+
+        // Add Quasar bundle to the compile classpath WITHOUT any of its transitive dependencies.
         project.configurations.getByName(COMPILE_ONLY_CONFIGURATION_NAME).extendsFrom(quasar)
 
-        // Instrumented code needs both the Quasar agent and its transitive dependencies at runtime.
-        def cordaRuntime = createRuntimeConfiguration("cordaRuntime", project.configurations)
+        // Instrumented code needs both the Quasar bundle and its transitive dependencies at runtime.
+        def cordaRuntime = createRuntimeOnlyConfiguration(CORDA_RUNTIME_ONLY_CONFIGURATION_NAME, project.configurations)
         cordaRuntime.withDependencies { dependencies ->
             def quasarDependency = project.dependencies.create(extension.dependency.get()) {
                 it.transitive = true
@@ -90,23 +98,22 @@ class QuasarPlugin implements Plugin<Project> {
     private void configureQuasarTasks(Project project, QuasarExtension extension) {
         project.tasks.withType(Test).configureEach {
             doFirst {
-                jvmArgs "-javaagent:${project.configurations[QUASAR].singleFile}${extension.options.get()}",
+                jvmArgs "-javaagent:${project.configurations[QUASAR_AGENT].singleFile}${extension.options.get()}",
                         "-Dco.paralleluniverse.fibers.verifyInstrumentation"
             }
         }
         project.tasks.withType(JavaExec).configureEach {
             doFirst {
-                jvmArgs "-javaagent:${project.configurations[QUASAR].singleFile}${extension.options.get()}",
+                jvmArgs "-javaagent:${project.configurations[QUASAR_AGENT].singleFile}${extension.options.get()}",
                         "-Dco.paralleluniverse.fibers.verifyInstrumentation"
             }
         }
     }
 
-    @SuppressWarnings("GrDeprecatedAPIUsage")
-    private static Configuration createRuntimeConfiguration(String name, ConfigurationContainer configurations) {
+    private static Configuration createRuntimeOnlyConfiguration(String name, ConfigurationContainer configurations) {
         Configuration configuration = configurations.findByName(name)
         if (configuration == null) {
-            Configuration parent = configurations.getByName(RUNTIME_CONFIGURATION_NAME)
+            Configuration parent = configurations.getByName(RUNTIME_ONLY_CONFIGURATION_NAME)
             configuration = configurations.create(name)
             configuration.transitive = false
             parent.extendsFrom(configuration)

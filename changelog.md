@@ -1,5 +1,13 @@
 # Changelog
 
+## Version 6
+
+### Version 6.0.0
+
+* Requires Gradle 6.6+.
+* `quasar-utils`: Upgrade to use Quasar 0.8.2_r3 OSGi bundles.
+* `cordapp`: Generate CPK format CorDapps.
+
 ## Version 5
 
 ### Version 5.0.13
