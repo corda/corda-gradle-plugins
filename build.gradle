@@ -209,6 +209,10 @@ artifactory {
         defaults {
             if (publishProjects.contains(project)) {
                 publications(project.name)
+
+                project.extensions['gradlePlugin'].plugins.forEach { plugin ->
+                    publications(project.name + '-' + plugin.name)
+                }
             }
         }
     }
