@@ -35,7 +35,7 @@ class CordappLibraryGradleConfigurationsTest {
                     |    compile "javax.activation:javax.activation-api:1.2.0"
                     |    runtime "commons-io:commons-io:2.7"
                     |    cordaImplementation "com.google.guava:guava:20.0"
-                    |    cordaRuntime "javax.servlet:javax.servlet-api:3.1.0"
+                    |    cordaRuntimeOnly "javax.servlet:javax.servlet-api:3.1.0"
                     |    api "javax.annotation:javax.annotation-api:1.3.2"
                     |    implementation "javax.persistence:javax.persistence-api:2.2"
                     |    runtimeOnly "javax.validation:validation-api:1.1.0.Final"

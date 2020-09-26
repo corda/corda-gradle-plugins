@@ -79,7 +79,7 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
 
         project.configurations.apply {
             createCompileConfiguration(CORDAPP_CONFIGURATION_NAME)
-            createRuntimeConfiguration(CORDA_RUNTIME_CONFIGURATION_NAME)
+            createRuntimeOnlyConfiguration(CORDA_RUNTIME_ONLY_CONFIGURATION_NAME)
             createCompileOnlyConfiguration(CORDA_IMPLEMENTATION_CONFIGURATION_NAME)
 
             getByName(COMPILE_ONLY_CONFIGURATION_NAME).withDependencies { dependencies ->
