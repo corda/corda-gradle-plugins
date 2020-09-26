@@ -16,7 +16,7 @@ class QuasarPluginTest {
     private static final String QUASAR_CLASSIFIER = QuasarPlugin.defaultClassifier
 
     private static final String QUASAR_R3 = """\
-if (org.gradle.api.JavaVersion.current().isJava9Compatible()) {
+if (org.gradle.api.JavaVersion.current().java9Compatible) {
     version = '0.8.0_r3'
     classifier = ''
 } else {
@@ -39,27 +39,34 @@ if (org.gradle.api.JavaVersion.current().isJava9Compatible()) {
     void checkDefaultVersionIsUsed() {
         def output = runGradleFor """
 plugins {
-    id 'net.corda.plugins.quasar-utils' apply false
+    id 'net.corda.plugins.quasar-utils'
 }
 
 description 'Show quasar-core added to configurations'
     
-apply plugin: 'net.corda.plugins.quasar-utils'
 apply from: 'repositories.gradle'
 
-def configs = configurations.matching { it.name in ['quasar', 'cordaRuntime', 'compileOnly', 'compileClasspath', 'runtimeClasspath'] }
-configs.collectEntries { [(it.name):it] }.forEach { name, files ->
-    files.forEach { file ->
-        println "\$name: \${file.name}"
+task show {
+    doFirst {
+        def configs = configurations.matching {
+            it.name in ['quasar', 'cordaRuntime', 'compileOnly', 'compileClasspath', 'runtimeClasspath']
+        }
+        configs.collectEntries { [(it.name):it.incoming.dependencies] }.each { name, dependencies ->
+            dependencies.each { dep ->
+                dep.artifacts.each { art ->
+                    println "\$name: \${dep.group}:\${dep.name}:\${art.extension}:\${dep.version}:\${art.classifier ?: ''}"
+                }
+            }
+        }
     }
 }
-""", "jar"
+""", "show"
         assertThat(output).containsOnlyOnce(
-            "quasar: quasar-core-${QUASAR_VERSION}.jar".toString(),
-            "cordaRuntime: quasar-core-${QUASAR_VERSION}.jar".toString(),
-            "runtimeClasspath: quasar-core-${QUASAR_VERSION}.jar".toString(),
-            "compileOnly: quasar-core-${QUASAR_VERSION}.jar".toString(),
-            "compileClasspath: quasar-core-${QUASAR_VERSION}.jar".toString()
+            "quasar: co.paralleluniverse:quasar-core:jar:${QUASAR_VERSION}:".toString(),
+            "cordaRuntime: co.paralleluniverse:quasar-core:jar:${QUASAR_VERSION}:".toString(),
+            "runtimeClasspath: co.paralleluniverse:quasar-core:jar:${QUASAR_VERSION}:".toString(),
+            "compileOnly: co.paralleluniverse:quasar-core:jar:${QUASAR_VERSION}:".toString(),
+            "compileClasspath: co.paralleluniverse:quasar-core:jar:${QUASAR_VERSION}:".toString()
         )
     }
 
@@ -77,27 +84,34 @@ buildscript {
 }
 
 plugins {
-    id 'net.corda.plugins.quasar-utils' apply false
+    id 'net.corda.plugins.quasar-utils'
 }
 
 description 'Show quasar-core added to configurations'
     
-apply plugin: 'net.corda.plugins.quasar-utils'
 apply from: 'repositories.gradle'
 
-def configs = configurations.matching { it.name in ['quasar', 'cordaRuntime', 'compileOnly', 'compileClasspath', 'runtimeClasspath'] }
-configs.collectEntries { [(it.name):it] }.forEach { name, files ->
-    files.forEach { file ->
-        println "\$name: \${file.name}"
+task show {
+    doFirst {
+        def configs = configurations.matching {
+            it.name in ['quasar', 'cordaRuntime', 'compileOnly', 'compileClasspath', 'runtimeClasspath']
+        }
+        configs.collectEntries { [(it.name):it.incoming.dependencies] }.each { name, dependencies ->
+            dependencies.each { dep ->
+                dep.artifacts.each { art ->
+                    println "\$name: \${dep.group}:\${dep.name}:\${art.extension}:\${dep.version}:\${art.classifier ?: ''}"
+                }
+            }
+        }
     }
 }
-""", "jar"
+""", "show"
         assertThat(output).containsOnlyOnce(
-            "quasar: quasar-core-${quasarVersion}.jar".toString(),
-            "cordaRuntime: quasar-core-${quasarVersion}.jar".toString(),
-            "runtimeClasspath: quasar-core-${quasarVersion}.jar".toString(),
-            "compileOnly: quasar-core-${quasarVersion}.jar".toString(),
-            "compileClasspath: quasar-core-${quasarVersion}.jar".toString()
+            "quasar: co.paralleluniverse:quasar-core:jar:${quasarVersion}:".toString(),
+            "cordaRuntime: co.paralleluniverse:quasar-core:jar:${quasarVersion}:".toString(),
+            "runtimeClasspath: co.paralleluniverse:quasar-core:jar:${quasarVersion}:".toString(),
+            "compileOnly: co.paralleluniverse:quasar-core:jar:${quasarVersion}:".toString(),
+            "compileClasspath: co.paralleluniverse:quasar-core:jar:${quasarVersion}:".toString()
         )
     }
 
@@ -114,7 +128,7 @@ buildscript {
 }
 
 plugins {
-    id 'net.corda.plugins.quasar-utils' apply false
+    id 'net.corda.plugins.quasar-utils'
 }
 
 apply plugin: 'net.corda.plugins.quasar-utils'
@@ -124,19 +138,27 @@ quasar {
     version = '${quasarVersion}'
 }
 
-def configs = configurations.matching { it.name in ['quasar', 'cordaRuntime', 'compileOnly', 'compileClasspath', 'runtimeClasspath'] }
-configs.collectEntries { [(it.name):it] }.forEach { name, files ->
-    files.forEach { file ->
-        println "\$name: \${file.name}"
+task show {
+    doFirst {
+        def configs = configurations.matching {
+            it.name in ['quasar', 'cordaRuntime', 'compileOnly', 'compileClasspath', 'runtimeClasspath']
+        }
+        configs.collectEntries { [(it.name):it.incoming.dependencies] }.each { name, dependencies ->
+            dependencies.each { dep ->
+                dep.artifacts.each { art ->
+                    println "\$name: \${dep.group}:\${dep.name}:\${art.extension}:\${dep.version}:\${art.classifier ?: ''}"
+                }
+            }
+        }
     }
 }
-""", "jar"
+""", "show"
         assertThat(output).containsOnlyOnce(
-            "quasar: quasar-core-${quasarVersion}.jar".toString(),
-            "cordaRuntime: quasar-core-${quasarVersion}.jar".toString(),
-            "runtimeClasspath: quasar-core-${quasarVersion}.jar".toString(),
-            "compileOnly: quasar-core-${quasarVersion}.jar".toString(),
-            "compileClasspath: quasar-core-${quasarVersion}.jar".toString()
+            "quasar: co.paralleluniverse:quasar-core:jar:${quasarVersion}:".toString(),
+            "cordaRuntime: co.paralleluniverse:quasar-core:jar:${quasarVersion}:".toString(),
+            "runtimeClasspath: co.paralleluniverse:quasar-core:jar:${quasarVersion}:".toString(),
+            "compileOnly: co.paralleluniverse:quasar-core:jar:${quasarVersion}:".toString(),
+            "compileClasspath: co.paralleluniverse:quasar-core:jar:${quasarVersion}:".toString()
         )
     }
 
@@ -149,10 +171,9 @@ configs.collectEntries { [(it.name):it] }.forEach { name, files ->
 
         def output = runGradleFor """
 plugins {
-    id 'net.corda.plugins.quasar-utils' apply false
+    id 'net.corda.plugins.quasar-utils'
 }
 
-apply plugin: 'net.corda.plugins.quasar-utils'
 apply from: 'repositories.gradle'
 
 quasar {
@@ -161,19 +182,27 @@ quasar {
     classifier = '${quasarClassifier}'
 }
 
-def configs = configurations.matching { it.name in ['quasar', 'cordaRuntime', 'compileOnly', 'compileClasspath', 'runtimeClasspath'] }
-configs.collectEntries { [(it.name):it] }.forEach { name, files ->
-    files.forEach { file ->
-        println "\$name: \${file.name}"
+task show {
+    doFirst {
+        def configs = configurations.matching {
+            it.name in ['quasar', 'cordaRuntime', 'compileOnly', 'compileClasspath', 'runtimeClasspath']
+        }
+        configs.collectEntries { [(it.name):it.incoming.dependencies] }.each { name, dependencies ->
+            dependencies.each { dep ->
+                dep.artifacts.each { art ->
+                    println "\$name: \${dep.group}:\${dep.name}:\${art.extension}:\${dep.version}:\${art.classifier ?: ''}"
+                }
+            }
+        }
     }
 }
-""", "jar"
+""", "show"
         assertThat(output).containsOnlyOnce(
-            "quasar: quasar-core-${quasarVersion}-${quasarClassifier}.jar".toString(),
-            "cordaRuntime: quasar-core-${quasarVersion}-${quasarClassifier}.jar".toString(),
-            "runtimeClasspath: quasar-core-${quasarVersion}-${quasarClassifier}.jar".toString(),
-            "compileOnly: quasar-core-${quasarVersion}-${quasarClassifier}.jar".toString(),
-            "compileClasspath: quasar-core-${quasarVersion}-${quasarClassifier}.jar".toString()
+            "quasar: co.paralleluniverse:quasar-core:jar:${quasarVersion}:${quasarClassifier}".toString(),
+            "cordaRuntime: co.paralleluniverse:quasar-core:jar:${quasarVersion}:${quasarClassifier}".toString(),
+            "runtimeClasspath: co.paralleluniverse:quasar-core:jar:${quasarVersion}:${quasarClassifier}".toString(),
+            "compileOnly: co.paralleluniverse:quasar-core:jar:${quasarVersion}:${quasarClassifier}".toString(),
+            "compileClasspath: co.paralleluniverse:quasar-core:jar:${quasarVersion}:${quasarClassifier}".toString()
         )
     }
 
@@ -181,7 +210,7 @@ configs.collectEntries { [(it.name):it] }.forEach { name, files ->
     void checkForTransitiveDependencies() {
         def output = runGradleFor """
 plugins {
-    id 'net.corda.plugins.quasar-utils' apply false
+    id 'net.corda.plugins.quasar-utils'
 }
 
 description 'Show quasar-core added to configurations'
@@ -190,13 +219,17 @@ apply from: 'repositories.gradle'
 
 apply plugin: 'net.corda.plugins.quasar-utils'
 
-def configs = configurations.matching { it.name in ['quasar', 'cordaRuntime', 'compileClasspath', 'compileOnly', 'runtimeClasspath'] }
-configs.collectEntries { [(it.name):it] }.forEach { name, files ->
-    files.forEach { file ->
-        println "\$name: \${file.name}"
+task show {
+    doFirst {
+        def configs = configurations.matching { it.name in ['quasar', 'cordaRuntime', 'compileClasspath', 'compileOnly', 'runtimeClasspath'] }
+        configs.collectEntries { [(it.name):it] }.each { name, files ->
+            files.each { file ->
+                println "\$name: \${file.name}"
+            }
+        }
     }
 }
-""", "jar"
+""", "show"
         assertThat(output.findAll { it.startsWith("quasar:") }).hasSize(1)
         assertThat(output.findAll { it.startsWith("cordaRuntime:") }).hasSize(1)
         assertThat(output.findAll { it.startsWith("compileOnly:") }).hasSize(1)
@@ -208,12 +241,11 @@ configs.collectEntries { [(it.name):it] }.forEach { name, files ->
     void checkJVMArgsAddedForTests() {
         def output = runGradleFor """
 plugins {
-    id 'net.corda.plugins.quasar-utils' apply false
+    id 'net.corda.plugins.quasar-utils'
 }
 
 description 'Show quasar-core added to test JVM arguments'
 
-apply plugin: 'net.corda.plugins.quasar-utils'
 apply from: 'repositories.gradle'
 
 dependencies {
@@ -230,7 +262,7 @@ jar {
 
 test {
     doLast {
-        allJvmArgs.forEach {
+        allJvmArgs.each {
             println "TEST-JVM: \${it}"
         }
     }
@@ -246,19 +278,19 @@ test {
     @Test
     void checkOverriddenExclusionsAreUsed() {
         def output = runGradleFor """
+buildscript {
+    ext {
+        quasar_exclusions = [ 'co.paralleluniverse**' ]
+    }
+}
+
 plugins {
-    id 'net.corda.plugins.quasar-utils' apply false
+    id 'net.corda.plugins.quasar-utils'
 }
 
 description 'Show quasar-core added to test JVM arguments'
 
 apply from: 'repositories.gradle'
-
-ext {
-    quasar_exclusions = [ 'co.paralleluniverse**' ]
-}
-
-apply plugin: 'net.corda.plugins.quasar-utils'
 
 dependencies {
     testImplementation 'junit:junit:4.12'
@@ -275,7 +307,7 @@ jar {
 
 test {
     doLast {
-        allJvmArgs.forEach {
+        allJvmArgs.each {
             println "TEST-JVM: \${it}"
         }
     }
@@ -290,12 +322,11 @@ test {
     void checkAddingExclusionsWithoutAnyDefaults() {
         def output = runGradleFor """
 plugins {
-    id 'net.corda.plugins.quasar-utils' apply false
+    id 'net.corda.plugins.quasar-utils'
 }
 
 description 'Show quasar-core added to test JVM arguments'
 
-apply plugin: 'net.corda.plugins.quasar-utils'
 apply from: 'repositories.gradle'
 
 dependencies {
@@ -313,7 +344,7 @@ jar {
 
 test {
     doLast {
-        allJvmArgs.forEach {
+        allJvmArgs.each {
             println "TEST-JVM: \${it}"
         }
     }
@@ -328,7 +359,7 @@ test {
     void checkDefaultExclusionsCanBeReplaced() {
         def output = runGradleFor """
 plugins {
-    id 'net.corda.plugins.quasar-utils' apply false
+    id 'net.corda.plugins.quasar-utils'
 }
 
 description 'Show quasar-core added to test JVM arguments'
@@ -338,8 +369,6 @@ apply from: 'repositories.gradle'
 ext {
     quasar_exclusions = [ 'groovy**', 'java**' ]
 }
-
-apply plugin: 'net.corda.plugins.quasar-utils'
 
 dependencies {
     testImplementation 'junit:junit:4.12'
@@ -356,7 +385,7 @@ jar {
 
 test {
     doLast {
-        allJvmArgs.forEach {
+        allJvmArgs.each {
             println "TEST-JVM: \${it}"
         }
     }
@@ -370,19 +399,18 @@ test {
     @Test
     void checkValidationForQuasarExclusionsProperty() {
         def result = runnerFor("""
+buildscript {
+    ext {
+        quasar_exclusions = 'stringy thing'
+    }
+}
 plugins {
-    id 'net.corda.plugins.quasar-utils' apply false
+    id 'net.corda.plugins.quasar-utils'
 }
 
 description 'Show quasar-core added to test JVM arguments'
 
 apply from: 'repositories.gradle'
-
-ext {
-    quasar_exclusions = 'stringy thing'
-}
-
-apply plugin: 'net.corda.plugins.quasar-utils'
 """, "test").buildAndFail()
 
         def output = result.output
@@ -398,9 +426,8 @@ apply plugin: 'net.corda.plugins.quasar-utils'
     void testEnableVerboseOption() {
         def output = runGradleFor """
 plugins {
-    id 'net.corda.plugins.quasar-utils' apply false
+    id 'net.corda.plugins.quasar-utils'
 }
-apply plugin: 'net.corda.plugins.quasar-utils'
 apply from: 'repositories.gradle'
 
 dependencies {
@@ -418,7 +445,7 @@ jar {
 
 test {
     doLast {
-        allJvmArgs.forEach {
+        allJvmArgs.each {
             println "TEST-JVM: \${it}"
         }
     }
@@ -433,9 +460,8 @@ test {
     void testEnableDebugOption() {
         def output = runGradleFor """
 plugins {
-    id 'net.corda.plugins.quasar-utils' apply false
+    id 'net.corda.plugins.quasar-utils'
 }
-apply plugin: 'net.corda.plugins.quasar-utils'
 apply from: 'repositories.gradle'
 
 dependencies {
@@ -453,7 +479,7 @@ jar {
 
 test {
     doLast {
-        allJvmArgs.forEach {
+        allJvmArgs.each {
             println "TEST-JVM: \${it}"
         }
     }
@@ -468,9 +494,8 @@ test {
     void testExcludeClassLoaders() {
         def output = runGradleFor """
 plugins {
-    id 'net.corda.plugins.quasar-utils' apply false
+    id 'net.corda.plugins.quasar-utils'
 }
-apply plugin: 'net.corda.plugins.quasar-utils'
 apply from: 'repositories.gradle'
 
 dependencies {
@@ -488,7 +513,7 @@ jar {
 
 test {
     doLast {
-        allJvmArgs.forEach {
+        allJvmArgs.each {
             println "TEST-JVM: \${it}"
         }
     }
