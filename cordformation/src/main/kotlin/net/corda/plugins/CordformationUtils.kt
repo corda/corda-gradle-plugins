@@ -36,8 +36,8 @@ fun createCompileConfiguration(name: String, configurations: ConfigurationContai
     return createChildConfiguration(name, configurations.single { it.name == "compile" }, configurations)
 }
 
-fun createRuntimeConfiguration(name: String, configurations: ConfigurationContainer): Configuration {
-    return createChildConfiguration(name, configurations.single { it.name == "runtime" }, configurations)
+fun createRuntimeOnlyConfiguration(name: String, configurations: ConfigurationContainer): Configuration {
+    return createChildConfiguration(name, configurations.single { it.name == "runtimeOnly" }, configurations)
 }
 
 fun createTempFileFromResource(resourcePath: String, tempFileName: String, tempFileExtension: String): Path {

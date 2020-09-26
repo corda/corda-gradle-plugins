@@ -5,13 +5,13 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.plugins.JavaPlugin.COMPILE_CONFIGURATION_NAME
 import org.gradle.api.plugins.JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME
-import org.gradle.api.plugins.JavaPlugin.RUNTIME_CONFIGURATION_NAME
+import org.gradle.api.plugins.JavaPlugin.RUNTIME_ONLY_CONFIGURATION_NAME
 import kotlin.math.max
 
 const val GROUP_NAME = "Cordapp"
 
 const val CORDAPP_CONFIGURATION_NAME = "cordapp"
-const val CORDA_RUNTIME_CONFIGURATION_NAME = "cordaRuntime"
+const val CORDA_RUNTIME_ONLY_CONFIGURATION_NAME = "cordaRuntimeOnly"
 const val CORDA_IMPLEMENTATION_CONFIGURATION_NAME = "cordaImplementation"
 const val CORDAPP_PACKAGING_CONFIGURATION_NAME = "cordappPackaging"
 
@@ -58,7 +58,6 @@ fun ConfigurationContainer.createCompileOnlyConfiguration(name: String): Configu
     }
 }
 
-fun ConfigurationContainer.createRuntimeConfiguration(name: String): Configuration {
-    @Suppress("deprecation")
-    return createChildConfiguration(name, getByName(RUNTIME_CONFIGURATION_NAME))
+fun ConfigurationContainer.createRuntimeOnlyConfiguration(name: String): Configuration {
+    return createChildConfiguration(name, getByName(RUNTIME_ONLY_CONFIGURATION_NAME))
 }

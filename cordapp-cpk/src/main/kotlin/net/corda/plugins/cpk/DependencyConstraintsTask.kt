@@ -126,7 +126,7 @@ open class DependencyConstraintsTask @Inject constructor(
     private fun calculateExcludedDependencies(): Set<Dependency> {
         return with(project.configurations) {
             getByName(CORDA_IMPLEMENTATION_CONFIGURATION_NAME).allDependencies +
-                getByName(CORDA_RUNTIME_CONFIGURATION_NAME).allDependencies
+                getByName(CORDA_RUNTIME_ONLY_CONFIGURATION_NAME).allDependencies
         }
     }
 
@@ -144,8 +144,8 @@ open class DependencyConstraintsTask @Inject constructor(
         // Compute the (unresolved) dependencies on the runtime classpath
         // that the user has selected for this CPK archive.
         val runtimeConfiguration = configurations.getByName(RUNTIME_CLASSPATH_CONFIGURATION_NAME)
-        val excludeRuntimeDeps = configurations.getByName(CORDA_RUNTIME_CONFIGURATION_NAME).allDependencies
-        val runtimeDeps = runtimeConfiguration.allDependencies - excludeRuntimeDeps
+        val excludeRuntimeOnlyDeps = configurations.getByName(CORDA_RUNTIME_ONLY_CONFIGURATION_NAME).allDependencies
+        val runtimeDeps = runtimeConfiguration.allDependencies - excludeRuntimeOnlyDeps
 
         // There are some dependencies that Corda MUST always provide.
         // Extract any of these from the user's runtime dependencies.
@@ -159,7 +159,7 @@ open class DependencyConstraintsTask @Inject constructor(
         val packagingConfiguration = configurations.getByName(CORDAPP_PACKAGING_CONFIGURATION_NAME).resolvedConfiguration
         val packageArtifacts = nonCordaDeps.resolveFor(packagingConfiguration)
                 .filterNot { artifact -> isCordaProvided(artifact.moduleVersion.id) } -
-            excludeRuntimeDeps.resolveFor(packagingConfiguration) -
+            excludeRuntimeOnlyDeps.resolveFor(packagingConfiguration) -
             cordaDeps.resolveFor(packagingConfiguration)
 
         // Corda artifacts should not be included, either directly or transitively.
