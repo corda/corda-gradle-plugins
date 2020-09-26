@@ -5,6 +5,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.plugins.JavaPlugin
+import org.gradle.api.plugins.JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME
 import org.gradle.util.GradleVersion
 import java.io.File
 
@@ -47,7 +48,7 @@ class Cordformation : Plugin<Project> {
                     ?: throw IllegalStateException("Could not find a valid declaration of \"corda_release_version\"")
             // need to cater for optional classifier (eg. corda-4.3-jdk11.jar)
             val pattern = "\\Q$jarName\\E(-enterprise)?-\\Q$releaseVersion\\E(-.+)?\\.jar\$".toRegex()
-            val maybeJar = project.configuration("runtime").filter {
+            val maybeJar = project.configuration(RUNTIME_CLASSPATH_CONFIGURATION_NAME).filter {
                 it.toString().contains(pattern)
             }
             if (maybeJar.isEmpty) {
@@ -73,8 +74,8 @@ class Cordformation : Plugin<Project> {
 
         project.configurations.apply {
             createCompileConfiguration("cordapp", this)
-            val cordaRuntime = createRuntimeConfiguration("cordaRuntime", this)
-            createChildConfiguration(CORDFORMATION_TYPE, cordaRuntime, this)
+            val cordaRuntimeOnly = createRuntimeOnlyConfiguration("cordaRuntimeOnly", this)
+            createChildConfiguration(CORDFORMATION_TYPE, cordaRuntimeOnly, this)
             create("cordaDriver")
         }
         // TODO: improve how we re-use existing declared external variables from root gradle.build
