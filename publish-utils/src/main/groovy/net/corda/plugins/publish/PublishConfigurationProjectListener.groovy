@@ -7,13 +7,14 @@ import net.corda.plugins.publish.bintray.BintrayConfigExtension
 import org.gradle.api.Project
 import org.gradle.api.ProjectEvaluationListener
 import org.gradle.api.ProjectState
-import org.gradle.api.Task
+import org.gradle.api.UnknownTaskException
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ResolvedConfiguration
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPom
 import org.gradle.api.publish.maven.MavenPublication
+import org.gradle.api.tasks.bundling.Jar
 
 import static net.corda.plugins.publish.PublishPlugin.*
 
@@ -86,17 +87,19 @@ class PublishConfigurationProjectListener implements ProjectEvaluationListener {
                 pub.artifactId = publishName
 
                 if (publishConfig.publishSources.get()) {
-                    Task sourceJar = project.tasks.findByName(SOURCES_TASK_NAME)
-                    if (sourceJar) {
+                    try {
                         project.logger.info('Publishing sources for {}', publishName)
-                        pub.artifact sourceJar
+                        pub.artifact project.tasks.named(SOURCES_TASK_NAME, Jar)
+                    } catch (UnknownTaskException ignored) {
+                        project.logger.warn("Missing {} task", SOURCES_TASK_NAME)
                     }
                 }
                 if (publishConfig.publishJavadoc.get()) {
-                    Task javadocJar = project.tasks.findByName(JAVADOC_JAR_TASK_NAME)
-                    if (javadocJar) {
+                    try {
                         project.logger.info('Publishing javadoc for {}', publishName)
-                        pub.artifact javadocJar
+                        pub.artifact project.tasks.named(JAVADOC_JAR_TASK_NAME, Jar)
+                    } catch (UnknownTaskException ignored) {
+                        project.logger.warn("Missing {} task", JAVADOC_JAR_TASK_NAME)
                     }
                 }
 
