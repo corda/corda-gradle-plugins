@@ -93,7 +93,7 @@ class PublishConfigurationProjectListener implements ProjectEvaluationListener {
                     }
                 }
                 if (publishConfig.publishJavadoc.get()) {
-                    Task javadocJar = project.tasks.findByName(JAVADOC_TASK_NAME)
+                    Task javadocJar = project.tasks.findByName(JAVADOC_JAR_TASK_NAME)
                     if (javadocJar) {
                         project.logger.info('Publishing javadoc for {}', publishName)
                         pub.artifact javadocJar

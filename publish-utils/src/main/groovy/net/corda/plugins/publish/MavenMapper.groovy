@@ -7,7 +7,13 @@ import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ResolvedConfiguration
+import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+
+import static org.gradle.api.plugins.JavaPlugin.API_ELEMENTS_CONFIGURATION_NAME
+import static org.gradle.api.plugins.JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME
+import static org.gradle.api.plugins.JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME
+import static org.gradle.api.plugins.JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME
 
 @CompileStatic
 @PackageScope
@@ -24,22 +30,29 @@ class MavenMapper {
         // these aren't necessarily the same as their internal names.
         publishedAliases = resolvedConfiguration.resolvedArtifacts.collectEntries {
             [ (it.moduleVersion.id):it.name ]
-        }
+        }.asUnmodifiable()
 
-        apiElements = getDependenciesFor(configurations, "apiElements", publishedAliases)
-        compileOnly = resolveArtifactsFor(configurations, "compileOnly")
-        compile = resolveArtifactsFor(configurations, "compileClasspath")
-        runtime = resolveArtifactsFor(configurations, "runtimeClasspath")
+        // We cannot resolve the compileOnly and apiElements configurations
+        // to determine all of the transitive dependencies they introduce.
+        // Instead, we must derive these transitive dependencies from the
+        // artifacts resolved from the compileClasspath configuration.
+        TransitiveDependencyBuilder builder = new TransitiveDependencyBuilder(configurations, publishedAliases)
+        ResolvedConfiguration compileClasspath = configurations.getByName(COMPILE_CLASSPATH_CONFIGURATION_NAME).resolvedConfiguration
+
+        apiElements = builder.createFor(API_ELEMENTS_CONFIGURATION_NAME).collectFrom(compileClasspath)
+        compileOnly = builder.createFor(COMPILE_ONLY_CONFIGURATION_NAME).collectFrom(compileClasspath)
+        compile = resolveArtifactsFor(configurations, COMPILE_CLASSPATH_CONFIGURATION_NAME)
+        runtime = resolveArtifactsFor(configurations, RUNTIME_CLASSPATH_CONFIGURATION_NAME)
     }
 
     @PackageScope
     String getScopeFor(ModuleVersionIdentifier id, String defaultScope) {
-        if (compile.contains(id) && (!compileOnly.contains(id) || apiElements.contains(id))) {
+        if (id in compile && (!(id in compileOnly) || id in apiElements)) {
             // This dependency is on the compile classpath. Also, it has
             //    EITHER not been declared as "compileOnly"
-            //    OR been explicitly declared as an "api" element (c.f. java-library plugin)
+            //    OR been declared as an "api" element (c.f. java-library plugin)
             return "compile"
-        } else if (runtime.contains(id)) {
+        } else if (id in runtime) {
             // This dependency is on the runtime classpath and hasn't been
             // claimed by the "compile" scope.
             return "runtime"
@@ -60,29 +73,69 @@ class MavenMapper {
     ) {
         Configuration configuration = configurations.findByName(configName)
         if (configuration) {
-            return configuration.resolvedConfiguration.resolvedArtifacts.collect { it.moduleVersion.id }.toSet()
+            return configuration.resolvedConfiguration.resolvedArtifacts.collect { it.moduleVersion.id } as Set
         } else {
-            return Collections.<ModuleVersionIdentifier>emptySet()
+            return Collections.emptySet()
         }
     }
 
-    private static Set<ModuleVersionIdentifier> getDependenciesFor(
-        ConfigurationContainer configurations,
-        String configName,
-        Map<ModuleVersionIdentifier, String> publishedAliases
-    ) {
-        Configuration configuration = configurations.findByName(configName)
-        if (configuration) {
-            return configuration.allDependencies.iterator().findAll { Dependency dep ->
-                dep.version && dep.group
-            }.collect {
-                Dependency dep = (Dependency) it
-                ModuleVersionIdentifier id = DefaultModuleVersionIdentifier.newId(dep.group, dep.name, dep.version)
-                String alias = publishedAliases[id]
-                alias == null ? id : DefaultModuleVersionIdentifier.newId(id.group, alias, id.version)
-            }.toSet()
-        } else {
-            return Collections.<ModuleVersionIdentifier>emptySet()
+    private static class TransitiveDependencyBuilder {
+        private final ConfigurationContainer configurations
+        private final Map<ModuleVersionIdentifier, String> publishedAliases
+
+        @PackageScope
+        TransitiveDependencyBuilder(
+            ConfigurationContainer configurations,
+            Map<ModuleVersionIdentifier, String> publishedAliases
+        ) {
+            this.configurations = configurations
+            this.publishedAliases = publishedAliases
+        }
+
+        @PackageScope
+        Collector createFor(String configName) {
+            return new Collector(getDependenciesFor(configName))
+        }
+
+        private Set<ModuleVersionIdentifier> getDependenciesFor(String configName) {
+            Configuration configuration = configurations.findByName(configName)
+            if (configuration) {
+                return configuration.allDependencies.findAll { Dependency dep ->
+                    dep.version && dep.group
+                }.collect { Dependency dep ->
+                    ModuleVersionIdentifier id = DefaultModuleVersionIdentifier.newId(dep.group, dep.name, dep.version)
+                    String alias = publishedAliases[id]
+                    alias == null ? id : DefaultModuleVersionIdentifier.newId(id.group, alias, id.version)
+                } as Set
+            } else {
+                return Collections.emptySet()
+            }
+        }
+
+        private static class Collector {
+            private final Set<ModuleVersionIdentifier> targets
+
+            @PackageScope
+            Collector(Set<ModuleVersionIdentifier> targets) {
+                this.targets = targets
+            }
+
+            @PackageScope
+            Set<ModuleVersionIdentifier> collectFrom(ResolvedConfiguration resolved) {
+                Set<ModuleVersionIdentifier> result = new LinkedHashSet<>()
+                collect(resolved.firstLevelModuleDependencies, result)
+                return result.asUnmodifiable()
+            }
+
+            private void collect(Set<ResolvedDependency> dependencies, Set<ModuleVersionIdentifier> result) {
+                for (ResolvedDependency dependency: dependencies) {
+                    if (dependency.module.id in targets) {
+                        result.addAll(dependency.allModuleArtifacts.collect { it.moduleVersion.id })
+                    } else {
+                        collect(dependency.children, result)
+                    }
+                }
+            }
         }
     }
 }
