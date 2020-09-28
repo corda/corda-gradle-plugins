@@ -3,9 +3,13 @@ package net.corda.plugins.publish
 import com.jfrog.bintray.gradle.BintrayPlugin
 import groovy.transform.PackageScope
 import org.gradle.api.*
+import org.gradle.api.plugins.JavaPlugin
+import static org.gradle.api.plugins.JavaPlugin.CLASSES_TASK_NAME
+import static org.gradle.api.plugins.JavaPlugin.JAVADOC_TASK_NAME
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
 import org.gradle.api.tasks.bundling.Jar
 import net.corda.plugins.publish.bintray.BintrayConfigExtension
+import org.gradle.api.tasks.javadoc.Javadoc
 
 /**
  * A utility plugin that when applied will automatically create source and javadoc publishing tasks
@@ -26,7 +30,7 @@ class PublishPlugin implements Plugin<Project> {
     static final String SOURCES_TASK_NAME = 'sourceJar'
 
     @PackageScope
-    static final String JAVADOC_TASK_NAME = 'javadocJar'
+    static final String JAVADOC_JAR_TASK_NAME = 'javadocJar'
 
     private PublishExtension publishConfig
 
@@ -42,6 +46,7 @@ class PublishPlugin implements Plugin<Project> {
         // which means we cannot risk registering plugins there either.
         project.pluginManager.apply(MavenPublishPlugin)
         project.pluginManager.apply(BintrayPlugin)
+        project.pluginManager.apply(JavaPlugin)
 
         createTasks(project)
         createConfigurations(project)
@@ -52,19 +57,24 @@ class PublishPlugin implements Plugin<Project> {
     }
 
     private void createTasks(Project project) {
-        if (project.hasProperty('classes')) {
-            project.tasks.register(SOURCES_TASK_NAME, Jar) { task ->
-                task.dependsOn(project.classes)
+        project.tasks.register(SOURCES_TASK_NAME, Jar) { task ->
+            try {
+                task.dependsOn(project.tasks.named(CLASSES_TASK_NAME))
                 task.archiveClassifier.set('sources')
                 task.from project.sourceSets.main.allSource
+            } catch (UnknownTaskException ignored) {
+                task.enabled = false
             }
         }
 
-        if (project.hasProperty('javadoc')) {
-            project.tasks.register(JAVADOC_TASK_NAME, Jar) { task ->
-                task.dependsOn(project.javadoc)
+        project.tasks.register(JAVADOC_JAR_TASK_NAME, Jar) { task ->
+            try {
+                def javadoc = project.tasks.named(JAVADOC_TASK_NAME, Javadoc)
+                task.dependsOn(javadoc)
                 task.archiveClassifier.set('javadoc')
-                task.from project.javadoc.destinationDir
+                task.from javadoc.map { it.destinationDir }
+            } catch (UnknownTaskException ignored) {
+                task.enabled = false
             }
         }
 
