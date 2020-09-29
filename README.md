@@ -12,7 +12,7 @@ belong in this repository.
 To modify the version number edit the root build.gradle.
 
 Until `v4.0`, the version number was tracking the Corda version number it was built for. Eg; Corda `4.0` was built as `4.0.x`.
-This was broken from `v4.5` onwards (Corda 4.5 and plugins 5.0). The major version number will change when there is a breaking change,
+This was broken from `v4.3` onwards (Corda 4.3 and plugins 5.0). The major version number will change when there is a breaking change,
 for example when the minimum (major) version of Gradle changes.
 
 ## Getting started
