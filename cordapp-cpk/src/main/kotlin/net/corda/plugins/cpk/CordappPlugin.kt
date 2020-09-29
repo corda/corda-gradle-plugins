@@ -80,7 +80,7 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
         project.configurations.apply {
             createCompileConfiguration(CORDAPP_CONFIGURATION_NAME)
             createRuntimeOnlyConfiguration(CORDA_RUNTIME_ONLY_CONFIGURATION_NAME)
-            createCompileOnlyConfiguration(CORDA_IMPLEMENTATION_CONFIGURATION_NAME)
+            createCompileOnlyConfiguration(CORDA_PROVIDED_CONFIGURATION_NAME)
 
             getByName(COMPILE_ONLY_CONFIGURATION_NAME).withDependencies { dependencies ->
                 val osgiDependency = project.dependencies.create("org.osgi:osgi.annotation:" + cordapp.osgiVersion.get())
@@ -94,7 +94,7 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
             @Suppress("UsePropertyAccessSyntax")
             create(CORDAPP_PACKAGING_CONFIGURATION_NAME)
                 .extendsFrom(getByName(RUNTIME_CLASSPATH_CONFIGURATION_NAME))
-                .extendsFrom(getByName(CORDA_IMPLEMENTATION_CONFIGURATION_NAME))
+                .extendsFrom(getByName(CORDA_PROVIDED_CONFIGURATION_NAME))
                 .setVisible(false)
         }
 

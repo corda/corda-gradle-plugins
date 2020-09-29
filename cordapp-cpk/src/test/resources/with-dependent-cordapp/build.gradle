@@ -22,5 +22,5 @@ jar {
 
 dependencies {
     cordapp project(':cordapp')
-    cordaImplementation "net.corda:corda-core:$corda_release_version"
+    cordaProvided "net.corda:corda-core:$corda_release_version"
 }
