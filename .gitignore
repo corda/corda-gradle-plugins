@@ -6,6 +6,7 @@ tags
 .DS_Store
 *.log
 *.orig
+.vscode
 
 # Created by .ignore support plugin (hsz.mobi)
 
