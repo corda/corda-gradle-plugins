@@ -19,7 +19,8 @@ class EagerJarsTest {
                 .withTestName("eager-jars")
                 .build(
                     "-Pcordapp_contract_version=$expectedCordappContractVersion",
-                    "-Pcorda_release_version=$cordaReleaseVersion"
+                    "-Pcorda_release_version=$cordaReleaseVersion",
+                    "-Pcommons_io_version=$commonsIoVersion"
                 )
         }
     }
@@ -27,7 +28,7 @@ class EagerJarsTest {
     @Test
     fun eagerJarsTest() {
         assertThat(testProject.dependencyConstraints)
-            .anyMatch { it.startsWith("commons-io-2.7.jar,") }
+            .anyMatch { it.startsWith("commons-io-$commonsIoVersion.jar,") }
             .hasSize(1)
 
         val artifacts = testProject.artifacts

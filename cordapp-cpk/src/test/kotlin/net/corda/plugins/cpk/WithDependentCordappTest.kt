@@ -19,6 +19,7 @@ class WithDependentCordappTest {
                 .build(
                     "-Pcordapp_contract_version=$expectedCordappContractVersion",
                     "-Pcorda_release_version=$cordaReleaseVersion",
+                    "-Pcommons_io_version=$commonsIoVersion",
                     "-Pguava_version=$guavaVersion"
                 )
         }
@@ -36,7 +37,7 @@ class WithDependentCordappTest {
         val testProject = buildProject(guavaVersion, testProjectDir, reporter)
 
         assertThat(testProject.dependencyConstraints)
-            .anyMatch { it.startsWith("commons-io-2.7.jar") }
+            .anyMatch { it.startsWith("commons-io-$commonsIoVersion.jar") }
             .anyMatch { it.startsWith("guava-$expectedGuavaVersion.jar") }
             .anyMatch { it.startsWith("library.jar") }
             .anyMatch { it.startsWith("cordapp.jar") }

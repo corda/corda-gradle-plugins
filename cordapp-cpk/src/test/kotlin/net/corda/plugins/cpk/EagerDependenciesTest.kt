@@ -22,7 +22,8 @@ class EagerDependenciesTest {
                 .withTestName("eager-dependencies")
                 .build(
                     "-Pcordapp_contract_version=$expectedCordappContractVersion",
-                    "-Pcorda_release_version=$cordaReleaseVersion"
+                    "-Pcorda_release_version=$cordaReleaseVersion",
+                    "-Pcommons_io_version=$commonsIoVersion"
                 )
         }
     }
@@ -33,7 +34,7 @@ class EagerDependenciesTest {
         assertEquals(SUCCESS, result.outcome)
 
         assertThat(testProject.dependencyConstraints)
-            .anyMatch { it.startsWith("commons-io-2.7.jar,") }
+            .anyMatch { it.startsWith("commons-io-$commonsIoVersion.jar,") }
             .hasSize(1)
     }
 }

@@ -22,7 +22,7 @@ jar {
 
 dependencies {
     cordaImplementation "net.corda:corda-core:$corda_release_version"
-    implementation "commons-io:commons-io:2.7"
+    implementation "commons-io:commons-io:$commons_io_version"
 }
 
 tasks.withType(net.corda.plugins.cpk.DependencyConstraintsTask) {

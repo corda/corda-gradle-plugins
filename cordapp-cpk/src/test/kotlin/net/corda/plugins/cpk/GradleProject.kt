@@ -19,6 +19,7 @@ import kotlin.test.fail
 
 const val expectedCordappContractVersion = 2
 const val cordaReleaseVersion = "4.5"
+const val commonsIoVersion = "2.8.0"
 
 @Suppress("unused", "MemberVisibilityCanBePrivate")
 class GradleProject(private val projectDir: Path, private val reporter: TestReporter) {
