@@ -125,7 +125,7 @@ open class DependencyConstraintsTask @Inject constructor(
 
     private fun calculateExcludedDependencies(): Set<Dependency> {
         return with(project.configurations) {
-            getByName(CORDA_IMPLEMENTATION_CONFIGURATION_NAME).allDependencies +
+            getByName(CORDA_PROVIDED_CONFIGURATION_NAME).allDependencies +
                 getByName(CORDA_RUNTIME_ONLY_CONFIGURATION_NAME).allDependencies
         }
     }
