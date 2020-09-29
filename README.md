@@ -11,7 +11,9 @@ belong in this repository.
 
 To modify the version number edit the root build.gradle.
 
-The version number should track the Corda version number it is built for. Eg; Corda `4.0` should be built as `4.0.x`.
+Until `v4.0`, the version number was tracking the Corda version number it was built for. Eg; Corda `4.0` was built as `4.0.x`.
+This was broken from `v4.3` onwards (Corda 4.3 and plugins 5.0). The major version number will change when there is a breaking change,
+for example when the minimum (major) version of Gradle changes.
 
 ## Getting started
 
@@ -25,7 +27,7 @@ To install locally for testing a new build against Corda you can run the followi
 
 ## Release process
 
-The version number of the "bleeding edge" in `master` is always a `-SNAPSHOT` version. To create a new release, a _maintainer_ must create a new branch off the latest commit in this release, remove the `-SNAPSHOT` from the version number, create a tag and then run the publish to artifactory task for the created tag in TeamCity. The version number in `master` is then advanced to the next `-SNAPSHOT` number.
+The version number of the "bleeding edge" in `master` is always a `-SNAPSHOT` version. To create a new release, a _maintainer_ must create a new branch off the latest commit in this release, remove the `-SNAPSHOT` from the version number, create a tag and then run the publish to artifactory task for the created tag in Jenkins. The version number in `master` is then advanced to the next `-SNAPSHOT` number.
 
 ## Using the plugins.
 
