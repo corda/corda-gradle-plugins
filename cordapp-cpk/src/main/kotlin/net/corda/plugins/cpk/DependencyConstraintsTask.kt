@@ -3,6 +3,7 @@ package net.corda.plugins.cpk
 import org.gradle.api.DefaultTask
 import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ProjectDependency
@@ -53,6 +54,7 @@ open class DependencyConstraintsTask @Inject constructor(
             "org.jetbrains.kotlin" to "*",
             "org.slf4j" to "slf4j-api",
             "org.slf4j" to "jcl-over-slf4j",
+            "org.osgi" to "org.osgi.service.log",
             "commons-logging" to "commons-logging",
             "co.paralleluniverse" to "quasar-core",
             "co.paralleluniverse" to "quasar-core-osgi"
@@ -142,12 +144,15 @@ open class DependencyConstraintsTask @Inject constructor(
         val configurations = project.configurations
 
         // Compute the (unresolved) dependencies on the runtime classpath
-        // that the user has selected for this CPK archive.
+        // that the user has selected for this CPK archive. We ignore any
+        // dependencies from the cordaRuntimeOnly configuration because
+        // these will be provided by Corda.
         val runtimeConfiguration = configurations.getByName(RUNTIME_CLASSPATH_CONFIGURATION_NAME)
-        val excludeRuntimeOnlyDeps = configurations.getByName(CORDA_RUNTIME_ONLY_CONFIGURATION_NAME).allDependencies
-        val runtimeDeps = runtimeConfiguration.allDependencies - excludeRuntimeOnlyDeps
+        val runtimeDeps = DependencyCollector(CORDA_RUNTIME_ONLY_CONFIGURATION_NAME)
+            .collectFrom(runtimeConfiguration)
 
-        // There are some dependencies that Corda MUST always provide.
+        // There are some dependencies that Corda MUST always provide,
+        // even if the CorDapp also declares them itself.
         // Extract any of these from the user's runtime dependencies.
         val (cordaDeps, nonCordaDeps) = runtimeDeps.groupBy { dep ->
             isCordaProvided(dep.group, dep.name)
@@ -157,10 +162,9 @@ open class DependencyConstraintsTask @Inject constructor(
 
         // Compute the set of resolved artifacts that will define this CorDapp.
         val packagingConfiguration = configurations.getByName(CORDAPP_PACKAGING_CONFIGURATION_NAME).resolvedConfiguration
-        val packageArtifacts = nonCordaDeps.resolveFor(packagingConfiguration)
-                .filterNot { artifact -> isCordaProvided(artifact.moduleVersion.id) } -
-            excludeRuntimeOnlyDeps.resolveFor(packagingConfiguration) -
-            cordaDeps.resolveFor(packagingConfiguration)
+        val packageArtifacts = (nonCordaDeps.resolveFor(packagingConfiguration)
+                .filterNot { artifact -> isCordaProvided(artifact.moduleVersion.id) }
+            - cordaDeps.resolveFor(packagingConfiguration))
 
         // Corda artifacts should not be included, either directly or transitively.
         // However, we will make an exception for any which have been declared as CorDapps.
@@ -233,6 +237,26 @@ open class DependencyConstraintsTask @Inject constructor(
                 add(String.format("%02x", b))
             }
             toString()
+        }
+    }
+}
+
+private class DependencyCollector(excludeName: String) {
+    private val excludeNames = mutableSetOf(excludeName)
+
+    fun collectFrom(source: Configuration): Set<Dependency> {
+        val result = mutableSetOf<Dependency>()
+        collectFrom(source, result)
+        return result
+    }
+
+    private fun collectFrom(source: Configuration, result: MutableSet<Dependency>) {
+        if (!excludeNames.add(source.name)) {
+            return
+        }
+        result.addAll(source.dependencies)
+        for (parent in source.extendsFrom) {
+            collectFrom(parent, result)
         }
     }
 }

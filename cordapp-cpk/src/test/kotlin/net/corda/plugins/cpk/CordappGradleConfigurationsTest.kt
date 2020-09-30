@@ -101,7 +101,7 @@ class CordappGradleConfigurationsTest {
     }
 
     @Test
-    fun testCordaRuntimeExcluded() {
+    fun testCordaRuntimeOnlyExcluded() {
         assertThat(testProject.output)
             .doesNotContain("CorDapp dependency: javax.servlet-api-3.1.0.jar")
         assertThat(dependencies)
@@ -109,7 +109,7 @@ class CordappGradleConfigurationsTest {
     }
 
     @Test
-    fun testCordaImplementationExcluded() {
+    fun testCordaProvidedExcluded() {
         assertThat(testProject.output)
             .doesNotContain("CorDapp dependency: guava-20.0.jar")
         assertThat(dependencies)
