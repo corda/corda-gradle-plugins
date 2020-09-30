@@ -87,9 +87,9 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
                 dependencies.add(osgiDependency)
             }
 
-            // We need to resolve the contents of our CPK file based on both
-            // the runtimeClasspath and cordaImplementation configurations.
-            // This won't happen by default because cordaImplementation is a
+            // We need to resolve the contents of our CPK archive based on
+            // both the runtimeClasspath and cordaProvided configurations.
+            // This won't happen by default because cordaProvided is a
             // "compile only" configuration.
             @Suppress("UsePropertyAccessSyntax")
             create(CORDAPP_PACKAGING_CONFIGURATION_NAME)

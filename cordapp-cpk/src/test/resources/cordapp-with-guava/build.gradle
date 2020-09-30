@@ -1,0 +1,37 @@
+import static org.gradle.api.JavaVersion.*
+
+plugins {
+    id 'net.corda.plugins.cordapp-cpk'
+}
+
+apply from: 'repositories.gradle'
+
+group = 'com.example'
+version = '1.0.1-SNAPSHOT'
+
+tasks.withType(JavaCompile).configureEach {
+    sourceCompatibility = VERSION_1_8
+    targetCompatibility = VERSION_1_8
+}
+
+cordapp {
+    targetPlatformVersion = platform_version.toInteger()
+    minimumPlatformVersion = platform_version.toInteger()
+
+    contract {
+        name = 'CorDapp With Guava'
+        versionId = cordapp_contract_version.toInteger()
+        licence = 'Test-Licence'
+        vendor = 'R3'
+    }
+}
+
+dependencies {
+    cordaProvided "net.corda:corda-core:$corda_release_version"
+    cordaRuntimeOnly "com.google.guava:guava:$corda_guava_version"
+    implementation "com.google.guava:guava:$guava_version"
+}
+
+jar {
+    archiveBaseName = 'cordapp-with-guava'
+}
