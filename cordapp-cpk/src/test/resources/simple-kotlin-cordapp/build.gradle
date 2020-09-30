@@ -35,6 +35,7 @@ cordapp {
 dependencies {
     cordaProvided "net.corda:corda-core:$corda_release_version"
     implementation "commons-io:commons-io:$commons_io_version"
+    implementation "com.google.guava:guava:$guava_version"
 }
 
 jar {

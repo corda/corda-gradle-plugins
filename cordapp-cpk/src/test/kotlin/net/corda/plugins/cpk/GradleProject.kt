@@ -18,7 +18,7 @@ import java.util.stream.Collectors.toList
 import kotlin.test.fail
 
 const val expectedCordappContractVersion = 2
-const val cordaReleaseVersion = "4.5"
+const val cordaReleaseVersion = "4.6"
 const val commonsIoVersion = "2.8.0"
 
 @Suppress("unused", "MemberVisibilityCanBePrivate")
