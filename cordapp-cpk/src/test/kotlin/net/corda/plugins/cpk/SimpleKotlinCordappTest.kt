@@ -20,6 +20,7 @@ import java.util.jar.JarFile
 
 class SimpleKotlinCordappTest {
     companion object {
+        const val guavaVersion = "29.0-jre"
         const val kotlinVersion = "1.3.72"
         private lateinit var testProject: GradleProject
 
@@ -35,6 +36,7 @@ class SimpleKotlinCordappTest {
                     "-Pcordapp_contract_version=$expectedCordappContractVersion",
                     "-Pcorda_release_version=$cordaReleaseVersion",
                     "-Pcommons_io_version=$commonsIoVersion",
+                    "-Pguava_version=$guavaVersion",
                     "-Pkotlin_version=$kotlinVersion"
                 )
         }
@@ -44,7 +46,8 @@ class SimpleKotlinCordappTest {
     fun simpleTest() {
         assertThat(testProject.dependencyConstraints)
             .anyMatch { it.startsWith("commons-io-$commonsIoVersion.jar") }
-            .hasSize(1)
+            .anyMatch { it.startsWith("guava-$guavaVersion.jar") }
+            .hasSizeGreaterThanOrEqualTo(2)
 
         val artifacts = testProject.artifacts
         assertThat(artifacts).hasSize(2)
@@ -62,7 +65,7 @@ class SimpleKotlinCordappTest {
             assertEquals("Simple Kotlin", getValue(BUNDLE_NAME))
             assertEquals("com.example.simple-kotlin-cordapp", getValue(BUNDLE_SYMBOLICNAME))
             assertEquals("1.0.1.SNAPSHOT", getValue(BUNDLE_VERSION))
-            assertEquals("kotlin,kotlin.collections,kotlin.io,kotlin.jvm.internal,kotlin.text,net.corda.core.contracts,net.corda.core.identity,net.corda.core.transactions,org.apache.commons.io;version=\"[1.4,2)\"", getValue(IMPORT_PACKAGE))
+            assertEquals("com.google.common.collect;version=\"[29.0,30)\",kotlin,kotlin.io,kotlin.jvm.internal,kotlin.text,net.corda.core.contracts,net.corda.core.identity,net.corda.core.transactions,org.apache.commons.io;version=\"[1.4,2)\"", getValue(IMPORT_PACKAGE))
             assertEquals("com.example.contract;uses:=\"kotlin,net.corda.core.contracts,net.corda.core.transactions\";version=\"1.0.1\",com.example.contract.states;uses:=\"kotlin,net.corda.core.contracts,net.corda.core.identity\";version=\"1.0.1\"", getValue(EXPORT_PACKAGE))
             assertEquals("osgi.ee;filter:=\"(&(osgi.ee=JavaSE)(version=1.8))\"", getValue(REQUIRE_CAPABILITY))
             assertEquals("Test-Licence", getValue(BUNDLE_LICENSE))
