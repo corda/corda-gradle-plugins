@@ -52,9 +52,9 @@ open class DependencyConstraintsTask @Inject constructor(
 
         private val HARDCODED_EXCLUDES: Set<Pair<String, String>> = unmodifiableSet(setOf(
             "org.jetbrains.kotlin" to "*",
+            "org.osgi" to "*",
             "org.slf4j" to "slf4j-api",
             "org.slf4j" to "jcl-over-slf4j",
-            "org.osgi" to "org.osgi.service.log",
             "commons-logging" to "commons-logging",
             "co.paralleluniverse" to "quasar-core",
             "co.paralleluniverse" to "quasar-core-osgi"
