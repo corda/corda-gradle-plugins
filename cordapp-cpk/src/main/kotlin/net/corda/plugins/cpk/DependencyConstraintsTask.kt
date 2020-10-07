@@ -4,6 +4,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ProjectDependency
@@ -120,7 +121,9 @@ open class DependencyConstraintsTask @Inject constructor(
 
     private fun calculateTaskDependencies(): Set<TaskDependency> {
         val runtimeClasspath = project.configurations.getByName(RUNTIME_CLASSPATH_CONFIGURATION_NAME)
+        val cordapps = project.configurations.getByName(CORDAPP_CONFIGURATION_NAME)
         return (runtimeClasspath.allDependencies.filterIsInstance<ProjectDependency>()
+                + cordapps.allDependencies.filterIsInstance<ProjectDependency>()
                 - calculateExcludedDependencies().filterIsInstance<ProjectDependency>())
             .mapTo(LinkedHashSet(), ProjectDependency::getBuildDependencies)
     }
@@ -161,14 +164,14 @@ open class DependencyConstraintsTask @Inject constructor(
         }
 
         // Compute the set of resolved artifacts that will define this CorDapp.
-        val packagingConfiguration = configurations.getByName(CORDAPP_PACKAGING_CONFIGURATION_NAME).resolvedConfiguration
+        val packagingConfiguration = runtimeConfiguration.resolvedConfiguration
         val packageArtifacts = (nonCordaDeps.resolveFor(packagingConfiguration)
                 .filterNot { artifact -> isCordaProvided(artifact.moduleVersion.id) }
+            + getCordappArtifacts(configurations)
             - cordaDeps.resolveFor(packagingConfiguration))
 
         // Corda artifacts should not be included, either directly or transitively.
-        // However, we will make an exception for any which have been declared as CorDapps.
-        forbidCordaArtifacts(packageArtifacts - cordappArtifactsFor(packagingConfiguration))
+        forbidCordaArtifacts(packageArtifacts)
 
         return packageArtifacts.mapTo(LinkedHashSet(), ResolvedArtifact::getFile)
     }
@@ -178,10 +181,13 @@ open class DependencyConstraintsTask @Inject constructor(
             .flatMapTo(LinkedHashSet(), ResolvedDependency::getAllModuleArtifacts)
     }
 
-    private fun cordappArtifactsFor(configuration: ResolvedConfiguration): Set<ResolvedArtifact> {
-        val cordapps = project.configurations.getByName(CORDAPP_CONFIGURATION_NAME).allDependencies
-        return configuration.getFirstLevelModuleDependencies { cordapps.contains(it) }
-            .flatMapTo(LinkedHashSet(), ResolvedDependency::getModuleArtifacts)
+    // Resolve transitive dependencies for each CorDapp individually.
+    private fun getCordappArtifacts(configurations: ConfigurationContainer): Set<ResolvedArtifact> {
+        return configurations.getByName(CORDAPP_CONFIGURATION_NAME)
+            .allDependencies
+            .flatMapTo(LinkedHashSet()) {
+                configurations.detachedConfiguration(it).resolvedConfiguration.resolvedArtifacts
+            }
     }
 
     private fun forbidCordaArtifacts(artifacts: Iterable<ResolvedArtifact>) {

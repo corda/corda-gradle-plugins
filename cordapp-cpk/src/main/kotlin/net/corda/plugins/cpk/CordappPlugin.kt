@@ -13,7 +13,6 @@ import org.gradle.api.java.archives.Attributes
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME
 import org.gradle.api.plugins.JavaPlugin.JAR_TASK_NAME
-import org.gradle.api.plugins.JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.bundling.Jar
@@ -78,24 +77,14 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
         cordapp = project.extensions.create(CORDAPP_EXTENSION_NAME, CordappExtension::class.java, osgiVersion)
 
         project.configurations.apply {
-            createCompileConfiguration(CORDAPP_CONFIGURATION_NAME)
-            createRuntimeOnlyConfiguration(CORDA_RUNTIME_ONLY_CONFIGURATION_NAME)
+            createCompileOnlyConfiguration(CORDAPP_CONFIGURATION_NAME)
             createCompileOnlyConfiguration(CORDA_PROVIDED_CONFIGURATION_NAME)
+            createRuntimeOnlyConfiguration(CORDA_RUNTIME_ONLY_CONFIGURATION_NAME)
 
             getByName(COMPILE_ONLY_CONFIGURATION_NAME).withDependencies { dependencies ->
                 val osgiDependency = project.dependencies.create("org.osgi:osgi.annotation:" + cordapp.osgiVersion.get())
                 dependencies.add(osgiDependency)
             }
-
-            // We need to resolve the contents of our CPK archive based on
-            // both the runtimeClasspath and cordaProvided configurations.
-            // This won't happen by default because cordaProvided is a
-            // "compile only" configuration.
-            @Suppress("UsePropertyAccessSyntax")
-            create(CORDAPP_PACKAGING_CONFIGURATION_NAME)
-                .extendsFrom(getByName(RUNTIME_CLASSPATH_CONFIGURATION_NAME))
-                .extendsFrom(getByName(CORDA_PROVIDED_CONFIGURATION_NAME))
-                .setVisible(false)
         }
 
         configureCordappTasks(project)
