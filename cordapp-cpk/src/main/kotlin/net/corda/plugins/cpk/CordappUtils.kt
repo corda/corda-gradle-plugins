@@ -3,7 +3,6 @@ package net.corda.plugins.cpk
 
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
-import org.gradle.api.plugins.JavaPlugin.COMPILE_CONFIGURATION_NAME
 import org.gradle.api.plugins.JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME
 import org.gradle.api.plugins.JavaPlugin.RUNTIME_ONLY_CONFIGURATION_NAME
 import kotlin.math.max
@@ -13,7 +12,6 @@ const val GROUP_NAME = "Cordapp"
 const val CORDAPP_CONFIGURATION_NAME = "cordapp"
 const val CORDA_RUNTIME_ONLY_CONFIGURATION_NAME = "cordaRuntimeOnly"
 const val CORDA_PROVIDED_CONFIGURATION_NAME = "cordaProvided"
-const val CORDAPP_PACKAGING_CONFIGURATION_NAME = "cordappPackaging"
 
 fun compareVersions(v1: String, v2: String): Int {
     val parsed1 = parseVersionString(v1)
@@ -43,11 +41,6 @@ private fun ConfigurationContainer.createChildConfiguration(name: String, parent
         parent.extendsFrom(configuration)
         configuration
     }
-}
-
-fun ConfigurationContainer.createCompileConfiguration(name: String): Configuration {
-    @Suppress("deprecation")
-    return createChildConfiguration(name, getByName(COMPILE_CONFIGURATION_NAME))
 }
 
 fun ConfigurationContainer.createCompileOnlyConfiguration(name: String): Configuration {

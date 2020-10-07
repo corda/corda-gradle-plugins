@@ -11,7 +11,12 @@ class WithDependentCordappTest {
     companion object {
         const val CORDA_GUAVA_VERSION = "20.0"
 
-        private fun buildProject(guavaVersion: String, @TempDir testProjectDir: Path, reporter: TestReporter): GradleProject {
+        private fun buildProject(
+            guavaVersion: String,
+            libraryGuavaVersion: String,
+            @TempDir testProjectDir: Path,
+            reporter: TestReporter
+        ): GradleProject {
             return GradleProject(testProjectDir, reporter)
                 .withTestName("with-dependent-cordapp")
                 .withSubResource("library/build.gradle")
@@ -20,28 +25,34 @@ class WithDependentCordappTest {
                     "-Pcordapp_contract_version=$expectedCordappContractVersion",
                     "-Pcorda_release_version=$cordaReleaseVersion",
                     "-Pcommons_io_version=$commonsIoVersion",
+                    "-Plibrary_guava_version=$libraryGuavaVersion",
                     "-Pguava_version=$guavaVersion"
                 )
         }
     }
 
     @ParameterizedTest
-    @CsvSource("19.0,$CORDA_GUAVA_VERSION", "28.2-jre,28.2-jre")
+    @CsvSource(
+        "$CORDA_GUAVA_VERSION,29.0-jre",
+        "19.0,$CORDA_GUAVA_VERSION",
+        "19.0,19.0",
+        "28.2-jre,28.2-jre"
+    )
     fun hasCordappDependencyTest(
         guavaVersion: String,
-        expectedGuavaVersion: String,
+        libraryGuavaVersion: String,
         @TempDir testProjectDir: Path,
         reporter: TestReporter
     ) {
-        assertThat(guavaVersion).isNotEqualTo(CORDA_GUAVA_VERSION)
-        val testProject = buildProject(guavaVersion, testProjectDir, reporter)
+        val testProject = buildProject(guavaVersion, libraryGuavaVersion, testProjectDir, reporter)
 
         assertThat(testProject.dependencyConstraints)
             .anyMatch { it.startsWith("commons-io-$commonsIoVersion.jar") }
-            .anyMatch { it.startsWith("guava-$expectedGuavaVersion.jar") }
+            .anyMatch { it.startsWith("guava-$libraryGuavaVersion.jar") }
+            .anyMatch { it.startsWith("guava-$guavaVersion.jar") }
             .anyMatch { it.startsWith("library.jar") }
             .anyMatch { it.startsWith("cordapp.jar") }
-            .hasSizeGreaterThanOrEqualTo(4)
+            .hasSizeGreaterThanOrEqualTo(5)
 
         val artifacts = testProject.artifacts
         assertThat(artifacts).hasSize(2)
