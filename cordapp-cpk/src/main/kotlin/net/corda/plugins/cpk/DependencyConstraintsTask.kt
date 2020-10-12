@@ -167,11 +167,13 @@ open class DependencyConstraintsTask @Inject constructor(
         val packagingConfiguration = runtimeConfiguration.resolvedConfiguration
         val packageArtifacts = (nonCordaDeps.resolveFor(packagingConfiguration)
                 .filterNot { artifact -> isCordaProvided(artifact.moduleVersion.id) }
+                .also { artifacts ->
+                    // Corda artifacts should not be included, either directly or transitively.
+                    warnAboutCordaArtifacts("net.corda", artifacts)
+                    warnAboutCordaArtifacts("com.r3.corda", artifacts)
+                }
             + getCordappArtifacts(configurations)
             - cordaDeps.resolveFor(packagingConfiguration))
-
-        // Corda artifacts should not be included, either directly or transitively.
-        forbidCordaArtifacts(packageArtifacts)
 
         return packageArtifacts.mapTo(LinkedHashSet(), ResolvedArtifact::getFile)
     }
@@ -190,22 +192,22 @@ open class DependencyConstraintsTask @Inject constructor(
             }
     }
 
-    private fun forbidCordaArtifacts(artifacts: Iterable<ResolvedArtifact>) {
+    private fun warnAboutCordaArtifacts(packageName: String, artifacts: Iterable<ResolvedArtifact>) {
+        val nameLength = packageName.length
         for (artifact in artifacts) {
-            if (isCordaArtifact(artifact)) {
-                throw InvalidUserDataException("CorDapp must not contain '${artifact.moduleVersion}' (${artifact.file.name})")
+            val group = artifact.moduleVersion.id.group
+            if (group.startsWith(packageName)) {
+                when {
+                    nameLength == group.length ->
+                        throw InvalidUserDataException("CorDapp must not contain '${artifact.moduleVersion}' (${artifact.file.name})")
+                    group.length > nameLength && group[nameLength] == '.' ->
+                        logger.warn("You appear to have included a Corda platform component '${artifact.moduleVersion}' (${artifact.file.name})."
+                            + "You probably want to use either the $CORDA_PROVIDED_CONFIGURATION_NAME or the $CORDAPP_CONFIGURATION_NAME configuration here. "
+                            + "See http://docs.corda.net/cordapp-build-systems.html"
+                    )
+                }
             }
         }
-    }
-
-    private fun isCordaArtifact(artifact: ResolvedArtifact): Boolean {
-        val group = artifact.moduleVersion.id.group
-        return group.belongsTo("net.corda") || group.belongsTo("com.r3.corda")
-    }
-
-    private fun String.belongsTo(parent: String): Boolean {
-        val parentLength = parent.length
-        return startsWith(parent) && (length == parentLength || (length > parentLength && this[parentLength] == '.'))
     }
 
     private fun isCordaProvided(id: ModuleVersionIdentifier): Boolean {
