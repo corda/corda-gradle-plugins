@@ -80,6 +80,7 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
             createCompileOnlyConfiguration(CORDAPP_CONFIGURATION_NAME)
             createCompileOnlyConfiguration(CORDA_PROVIDED_CONFIGURATION_NAME)
             createRuntimeOnlyConfiguration(CORDA_RUNTIME_ONLY_CONFIGURATION_NAME)
+            findByName(CORDA_CPK_CONFIGURATION_NAME) ?: create(CORDA_CPK_CONFIGURATION_NAME)
 
             getByName(COMPILE_ONLY_CONFIGURATION_NAME).withDependencies { dependencies ->
                 val osgiDependency = project.dependencies.create("org.osgi:osgi.annotation:" + cordapp.osgiVersion.get())
@@ -181,6 +182,7 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
             }
         }
         project.artifacts.add(ARCHIVES_CONFIGURATION, cpkTask)
+        project.artifacts.add(CORDA_CPK_CONFIGURATION_NAME, cpkTask)
     }
 
     private fun configureCordappAttributes(symbolicName: String, attributes: Attributes) {
