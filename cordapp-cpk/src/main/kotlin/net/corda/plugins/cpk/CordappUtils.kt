@@ -12,6 +12,7 @@ const val GROUP_NAME = "Cordapp"
 const val CORDAPP_CONFIGURATION_NAME = "cordapp"
 const val CORDA_RUNTIME_ONLY_CONFIGURATION_NAME = "cordaRuntimeOnly"
 const val CORDA_PROVIDED_CONFIGURATION_NAME = "cordaProvided"
+const val CORDA_CPK_CONFIGURATION_NAME = "cordaCPK"
 
 fun compareVersions(v1: String, v2: String): Int {
     val parsed1 = parseVersionString(v1)
