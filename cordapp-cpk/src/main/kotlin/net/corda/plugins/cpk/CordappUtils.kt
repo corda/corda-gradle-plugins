@@ -48,6 +48,9 @@ fun ConfigurationContainer.createCompileOnlyConfiguration(name: String): Configu
     return findByName(name) ?: run {
         val configuration = create(name)
         getByName(COMPILE_ONLY_CONFIGURATION_NAME).extendsFrom(configuration)
+        matching { it.name.endsWith("CompileOnly") }.configureEach { cfg ->
+            cfg.extendsFrom(configuration)
+        }
         configuration
     }
 }
