@@ -1,7 +1,7 @@
 package net.corda.plugins.cpk
 
 import org.gradle.api.Project
-import org.gradle.api.provider.HasMultipleValues
+import org.gradle.api.provider.HasConfigurableValue
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.SetProperty
@@ -12,7 +12,7 @@ import org.gradle.api.tasks.bundling.Jar
 @Suppress("UnstableApiUsage")
 open class OsgiExtension(project: Project, jar: Jar) {
     private val packages: SetProperty<String> = project.objects.setProperty(String::class.java)
-        .apply(HasMultipleValues<String>::finalizeValueOnRead)
+        .apply(HasConfigurableValue::finalizeValueOnRead)
 
     fun add(packageName: String) {
         packages.add(packageName)
