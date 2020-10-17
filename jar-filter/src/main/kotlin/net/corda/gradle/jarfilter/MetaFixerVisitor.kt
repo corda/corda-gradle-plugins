@@ -19,7 +19,7 @@ class MetaFixerVisitor private constructor(
     private val fields: MutableSet<FieldElement>,
     private val methods: MutableSet<String>,
     private val nestedClasses: MutableSet<String>
-) : KotlinAfterProcessor(ASM7, visitor, logger, kotlinMetadata), Repeatable<MetaFixerVisitor> {
+) : KotlinAfterProcessor(ASM8, visitor, logger, kotlinMetadata), Repeatable<MetaFixerVisitor> {
     constructor(visitor: ClassVisitor, logger: Logger, classNames: Set<String>)
         : this(visitor, logger, mutableMapOf(), classNames, mutableSetOf(), mutableSetOf(), mutableSetOf())
 

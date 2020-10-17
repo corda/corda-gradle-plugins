@@ -23,6 +23,13 @@ class DeleteNestedClassTest {
         private const val WANTED_SUBCLASS = "$SEALED_CLASS\$Wanted"
         private const val UNWANTED_SUBCLASS = "$SEALED_CLASS\$Unwanted"
 
+        private const val OUTER_CLASS = "net.corda.gradle.OuterClass"
+        private const val INNER_CLASS = "$OUTER_CLASS\$InnerClass"
+        private const val STATIC_INNER_CLASS = "$OUTER_CLASS\$StaticInnerClass"
+        private const val LEFT_OVER_CLASS = "$OUTER_CLASS\$LeftOver"
+        private const val DELETED_OUTER_CLASS = "net.corda.gradle.DeletedOuterClass"
+        private const val DELETED_INNER_CLASS = "$DELETED_OUTER_CLASS\$InnerClass"
+
         private val keptClass = isKClass(KEPT_CLASS)
         private val deletedClass = isKClass(DELETED_CLASS)
         private val wantedSubclass = isKClass(WANTED_SUBCLASS)
@@ -84,6 +91,44 @@ class DeleteNestedClassTest {
                 assertThat("Wanted class is missing", kotlin.nestedClasses, hasItem(wantedSubclass))
                 assertThat(classMetadata.sealedSubclasses).containsExactly(WANTED_SUBCLASS)
             }
+        }
+    }
+
+    @Test
+    fun deleteJavaInnerClasses() {
+        classLoaderFor(testProject.sourceJar).use { cl ->
+            val outerClass = cl.load<Any>(OUTER_CLASS)
+            val innerClass = cl.load<Any>(INNER_CLASS)
+            val staticInnerClass = cl.load<Any>(STATIC_INNER_CLASS)
+            val leftOverClass = cl.load<Any>(LEFT_OVER_CLASS)
+            assertThat(outerClass.classes).containsExactlyInAnyOrder(innerClass, staticInnerClass, leftOverClass)
+            assertThat(innerClass.enclosingClass).isEqualTo(outerClass)
+            assertThat(staticInnerClass.enclosingClass).isEqualTo(outerClass)
+            assertThat(leftOverClass.enclosingClass).isEqualTo(outerClass)
+        }
+
+        classLoaderFor(testProject.filteredJar).use { cl ->
+            val outerClass = cl.load<Any>(OUTER_CLASS)
+            val leftOverClass = cl.load<Any>(LEFT_OVER_CLASS)
+            assertFailsWith<ClassNotFoundException> { cl.load<Any>(INNER_CLASS) }
+            assertFailsWith<ClassNotFoundException> { cl.load<Any>(STATIC_INNER_CLASS) }
+            assertThat(outerClass.declaredClasses).containsExactly(leftOverClass)
+            assertThat(leftOverClass.enclosingClass).isEqualTo(outerClass)
+        }
+    }
+
+    @Test
+    fun deleteJavaOuterClass() {
+        classLoaderFor(testProject.sourceJar).use { cl ->
+            val outerClass = cl.load<Any>(DELETED_OUTER_CLASS)
+            val innerClass = cl.load<Any>(DELETED_INNER_CLASS)
+            assertThat(outerClass.declaredClasses).containsExactly(innerClass)
+            assertThat(innerClass.enclosingClass).isEqualTo(outerClass)
+        }
+
+        classLoaderFor(testProject.filteredJar).use { cl ->
+            assertFailsWith<ClassNotFoundException> { cl.load<Any>(DELETED_OUTER_CLASS) }
+            assertFailsWith<ClassNotFoundException> { cl.load<Any>(DELETED_INNER_CLASS) }
         }
     }
 }
