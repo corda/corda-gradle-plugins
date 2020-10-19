@@ -4,8 +4,9 @@
 
 ### Version 5.0.13
 
-* `dockerform`: Parsing for adding external service to docker-compose
+* `cordformation`: Parsing for adding external service to docker-compose
 * `jar-filter`: Upgrade to ASM 8.0.1.
+* `quasar-utils`: Resolve warning about deprecated Gradle API usage.
 
 ### Version 5.0.12
 
