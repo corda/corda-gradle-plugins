@@ -67,7 +67,7 @@ class QuasarPlugin implements Plugin<Project> {
         }
 
         // Add Quasar to the compile classpath WITHOUT any of its transitive dependencies.
-        project.dependencies.add(COMPILE_ONLY_CONFIGURATION_NAME, quasar)
+        project.configurations.getByName(COMPILE_ONLY_CONFIGURATION_NAME).extendsFrom(quasar)
 
         // Instrumented code needs both the Quasar agent and its transitive dependencies at runtime.
         def cordaRuntime = createRuntimeConfiguration("cordaRuntime", project.configurations)
