@@ -26,7 +26,7 @@ class SanitisingTransformer(
     logger: Logger,
     private val unwantedAnnotations: Set<String>,
     private val syntheticMethods: UnwantedMap
-) : KotlinBeforeProcessor(ASM7, visitor, logger, mutableMapOf()) {
+) : KotlinBeforeProcessor(ASM8, visitor, logger, mutableMapOf()) {
 
     var isModified: Boolean = false
         private set

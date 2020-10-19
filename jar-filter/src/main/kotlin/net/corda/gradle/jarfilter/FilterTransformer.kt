@@ -30,7 +30,7 @@ class FilterTransformer private constructor (
     private val unwantedFields: MutableSet<FieldElement>,
     private val deletedMethods: MutableSet<MethodElement>,
     private val stubbedMethods: MutableSet<MethodElement>
-) : KotlinAfterProcessor(ASM7, visitor, logger, kotlinMetadata), Repeatable<FilterTransformer> {
+) : KotlinAfterProcessor(ASM8, visitor, logger, kotlinMetadata), Repeatable<FilterTransformer> {
     constructor(
         visitor: ClassVisitor,
         logger: Logger,
@@ -157,6 +157,24 @@ class FilterTransformer private constructor (
             }
         } else {
             super.visitOuterClass(outerName, methodName, methodDescriptor)
+        }
+    }
+
+    override fun visitNestHost(nestHost: String) {
+        logger.debug("--- nest host: {}", nestHost)
+        if (isUnwantedClass(nestHost) && unwantedElements.addClass(className)) {
+            logger.info("- Identified class {} as unwanted by its nest host {}", className, nestHost)
+        } else {
+            super.visitNestHost(nestHost)
+        }
+    }
+
+    override fun visitNestMember(nestMember: String) {
+        logger.debug("--- nest member: {}", nestMember)
+        if (isUnwantedClass(nestMember)) {
+            logger.info("- Delete unwanted nest member: {}", nestMember)
+        } else {
+            super.visitNestMember(nestMember)
         }
     }
 

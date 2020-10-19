@@ -6,7 +6,7 @@ import kotlinx.metadata.jvm.KotlinClassHeader
 import kotlinx.metadata.jvm.KotlinClassMetadata
 import net.corda.gradle.jarfilter.*
 import org.objectweb.asm.*
-import org.objectweb.asm.Opcodes.ASM7
+import org.objectweb.asm.Opcodes.ASM8
 
 /**
  * Rewrite the bytecode for this class with the Kotlin @Metadata of another class.
@@ -72,7 +72,7 @@ private fun Class<*>.readMetadata(): KotlinClassHeader {
     )
 }
 
-private class MetadataWriter(metadata: KotlinClassHeader, visitor: ClassVisitor) : ClassVisitor(ASM7, visitor) {
+private class MetadataWriter(metadata: KotlinClassHeader, visitor: ClassVisitor) : ClassVisitor(ASM8, visitor) {
     private val kotlinMetadata: MutableMap<String, Array<String>> = mutableMapOf(
         KOTLIN_METADATA_DATA_FIELD_NAME to metadata.data1,
         KOTLIN_METADATA_STRINGS_FIELD_NAME to metadata.data2

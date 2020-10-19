@@ -15,6 +15,12 @@ sourceSets {
                 '../resources/test/annotations/kotlin'
             )
         }
+        java {
+            srcDir files(
+                '../resources/test/delete-nested-class/java',
+                '../resources/test/annotations/java'
+            )
+        }
     }
 }
 
@@ -29,6 +35,9 @@ jar {
 task jarFilter(type: JarFilterTask) {
     jars jar
     annotations {
-        forDelete = ["net.corda.gradle.jarfilter.DeleteMe"]
+        forDelete = [
+            "net.corda.gradle.jarfilter.DeleteMe",
+            "net.corda.gradle.jarfilter.DeleteJava"
+        ]
     }
 }
