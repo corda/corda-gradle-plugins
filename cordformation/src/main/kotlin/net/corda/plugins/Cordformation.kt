@@ -1,9 +1,11 @@
 package net.corda.plugins
 
+import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.plugins.JavaPlugin
+import org.gradle.util.GradleVersion
 import java.io.File
 
 /**
@@ -13,6 +15,7 @@ import java.io.File
 class Cordformation : Plugin<Project> {
     internal companion object {
         const val CORDFORMATION_TYPE = "cordformationInternal"
+        const val MINIMUM_GRADLE_VERSION = "5.1"
 
         /**
          * Gets a resource file from this plugin's JAR file by creating an intermediate tmp dir
@@ -40,7 +43,7 @@ class Cordformation : Plugin<Project> {
          * @return A file handle to the file in the JAR.
          */
         fun verifyAndGetRuntimeJar(project: Project, jarName: String): File {
-            val releaseVersion = project.findRootProperty<String>("corda_release_version")
+            val releaseVersion = project.findRootProperty("corda_release_version")
                     ?: throw IllegalStateException("Could not find a valid declaration of \"corda_release_version\"")
             // need to cater for optional classifier (eg. corda-4.3-jdk11.jar)
             val pattern = "\\Q$jarName\\E(-enterprise)?-\\Q$releaseVersion\\E(-.+)?\\.jar\$".toRegex()
@@ -60,6 +63,10 @@ class Cordformation : Plugin<Project> {
     }
 
     override fun apply(project: Project) {
+        if (GradleVersion.current() < GradleVersion.version(MINIMUM_GRADLE_VERSION)) {
+            throw GradleException("The Cordformation plugin requires Gradle $MINIMUM_GRADLE_VERSION or newer.")
+        }
+
         // Apply the Java plugin on the assumption that we're building a JAR.
         // This will also create the "compile", "compileOnly" and "runtime" configurations.
         project.pluginManager.apply(JavaPlugin::class.java)

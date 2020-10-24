@@ -16,9 +16,8 @@ private val classLoader = object {}::class.java.classLoader
  * Mimics the "project.ext" functionality in groovy which provides a direct
  * accessor to the "ext" extension (See: ExtraPropertiesExtension)
  */
-@Suppress("unchecked_cast")
-fun <T : Any> Project.findRootProperty(name: String): T? {
-    return rootProject.findProperty(name) as? T
+fun Project.findRootProperty(name: String): String? {
+    return rootProject.findProperty(name)?.toString()
 }
 
 fun Project.configuration(name: String): Configuration = configurations.single { it.name == name }

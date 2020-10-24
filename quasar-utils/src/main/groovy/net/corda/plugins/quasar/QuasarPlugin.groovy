@@ -1,6 +1,7 @@
 package net.corda.plugins.quasar
 
 import groovy.transform.PackageScope
+import org.gradle.api.GradleException
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -8,6 +9,8 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.JavaPlugin
+import org.gradle.util.GradleVersion
+
 import static org.gradle.api.plugins.JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME
 import static org.gradle.api.plugins.JavaPlugin.RUNTIME_CONFIGURATION_NAME
 import org.gradle.api.tasks.JavaExec
@@ -21,6 +24,7 @@ import javax.inject.Inject
 class QuasarPlugin implements Plugin<Project> {
 
     private static final String QUASAR = "quasar"
+    private static final String MINIMUM_GRADLE_VERSION = "5.1"
     @PackageScope static final String defaultGroup = "co.paralleluniverse"
     @PackageScope static final String defaultVersion = "0.7.13_r3"
     @PackageScope static final String defaultClassifier = ""
@@ -34,6 +38,10 @@ class QuasarPlugin implements Plugin<Project> {
 
     @Override
     void apply(Project project) {
+        if (GradleVersion.current() < GradleVersion.version(MINIMUM_GRADLE_VERSION)) {
+            throw new GradleException("The Quasar-Utils plugin requires Gradle $MINIMUM_GRADLE_VERSION or newer.")
+        }
+
         // Apply the Java plugin on the assumption that we're building a JAR.
         // This will also create the "compile", "compileOnly" and "runtime" configurations.
         project.pluginManager.apply(JavaPlugin)

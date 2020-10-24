@@ -538,7 +538,7 @@ open class Node @Inject constructor(private val project: Project) {
     }
 
     fun runtimeVersion(): String {
-        val releaseVersion = project.findRootProperty<String>("corda_release_version")
+        val releaseVersion = project.findRootProperty("corda_release_version")
         val runtimeJarVersion = project.configuration("cordaRuntime").dependencies.filterNot { it.name.contains("web") }.singleOrNull()?.version
         if (releaseVersion == null && runtimeJarVersion == null) {
             throw IllegalStateException("Could not find a valid definition of corda version to use")
@@ -718,12 +718,10 @@ open class Node @Inject constructor(private val project: Project) {
      * Appends installed config file with properties from an optional file.
      */
     private fun appendOptionalConfig(confFile: File) {
-        val optionalConfig: File? = when {
-            project.findProperty(configFileProperty) != null -> //provided by -PconfigFile command line property when running Gradle task
-                File(project.findProperty(configFileProperty) as String)
-            configFile != null -> File(configFile)
-            else -> null
-        }
+        val optionalConfig = project.findProperty(configFileProperty)?.let {
+            //provided by -PconfigFile command line property when running Gradle task
+            File(it.toString())
+        } ?: configFile?.let(::File)
 
         if (optionalConfig != null) {
             if (!optionalConfig.exists()) {

@@ -1,6 +1,5 @@
 package net.corda.plugins
 
-import net.corda.plugins.CordappUtils.Companion.compareVersions
 import net.corda.plugins.SignJar.Companion.sign
 import org.gradle.api.*
 import org.gradle.api.artifacts.Configuration
@@ -14,6 +13,7 @@ import org.gradle.api.provider.Property
 import org.gradle.api.publish.maven.tasks.GenerateMavenPom
 import org.gradle.api.tasks.bundling.ZipEntryCompression.DEFLATED
 import org.gradle.jvm.tasks.Jar
+import org.gradle.util.GradleVersion
 import java.io.File
 import java.util.Collections.unmodifiableSet
 import javax.inject.Inject
@@ -46,8 +46,8 @@ class CordappPlugin @Inject constructor(private val objects: ObjectFactory): Plu
     override fun apply(project: Project) {
         project.logger.info("Configuring ${project.name} as a cordapp")
 
-        if (compareVersions(project.gradle.gradleVersion, MIN_GRADLE_VERSION) < 0) {
-            throw GradleException("Gradle versionId ${project.gradle.gradleVersion} is below the supported minimum versionId $MIN_GRADLE_VERSION. Please update Gradle or consider using Gradle wrapper if it is provided with the project. More information about CorDapp build system can be found here: https://docs.corda.net/cordapp-build-systems.html")
+        if (GradleVersion.current() < GradleVersion.version(MIN_GRADLE_VERSION)) {
+            throw GradleException("Gradle versionId ${GradleVersion.current().version} is below the supported minimum versionId $MIN_GRADLE_VERSION. Please update Gradle or consider using Gradle wrapper if it is provided with the project. More information about CorDapp build system can be found here: https://docs.corda.net/cordapp-build-systems.html")
         }
 
         // Apply the Java plugin on the assumption that we're building a JAR.

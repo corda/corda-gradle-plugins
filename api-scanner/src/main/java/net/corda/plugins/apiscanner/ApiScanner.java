@@ -1,5 +1,6 @@
 package net.corda.plugins.apiscanner;
 
+import org.gradle.api.GradleException;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.file.FileCollection;
@@ -8,17 +9,19 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskCollection;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.jvm.tasks.Jar;
+import org.gradle.util.GradleVersion;
 
 import javax.annotation.Nonnull;
 import java.util.Objects;
 
 import static org.gradle.api.plugins.JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME;
 
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "UnstableApiUsage"})
 public class ApiScanner implements Plugin<Project> {
     private static final String CLASSIFIER_PROPERTY_NAME = "cordaScanApiClassifier";
     private static final String DEFAULT_CLASSIFIER = "";
     private static final String SCAN_TASK_NAME = "scanApi";
+    private static final String MINIMUM_GRADLE_VERSION = "5.6";
     static final String GROUP_NAME = "Corda API";
 
     /**
@@ -29,12 +32,14 @@ public class ApiScanner implements Plugin<Project> {
     @Override
     public void apply(@Nonnull Project project) {
         project.getLogger().info("Applying API scanner to {}", project.getName());
+        if (GradleVersion.current().compareTo(GradleVersion.version(MINIMUM_GRADLE_VERSION)) < 0) {
+            throw new GradleException("The API Scanner plugin requires Gradle " + MINIMUM_GRADLE_VERSION + " or newer.");
+        }
         project.getPluginManager().apply(JavaPlugin.class);
 
-        String targetClassifier = (String) project.findProperty(CLASSIFIER_PROPERTY_NAME);
-        if (targetClassifier == null) {
-            targetClassifier = DEFAULT_CLASSIFIER;
-        }
+        // Do not type-cast to String because the property may be a Groovy GString.
+        Object classifierValue = project.findProperty(CLASSIFIER_PROPERTY_NAME);
+        final String targetClassifier = classifierValue == null ? DEFAULT_CLASSIFIER : classifierValue.toString();
 
         ScannerExtension extension = project.getExtensions().create(SCAN_TASK_NAME, ScannerExtension.class, targetClassifier);
 
