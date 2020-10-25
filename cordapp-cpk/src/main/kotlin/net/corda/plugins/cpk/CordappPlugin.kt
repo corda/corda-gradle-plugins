@@ -4,6 +4,7 @@ import aQute.bnd.gradle.BndBuilderPlugin
 import aQute.bnd.gradle.BundleTaskConvention
 import net.corda.plugins.cpk.SignJar.Companion.sign
 import org.gradle.api.GradleException
+import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -22,6 +23,7 @@ import org.osgi.framework.Constants.BUNDLE_NAME
 import org.osgi.framework.Constants.BUNDLE_SYMBOLICNAME
 import org.osgi.framework.Constants.BUNDLE_VENDOR
 import org.osgi.framework.Constants.EXPORT_PACKAGE
+import java.util.Properties
 import javax.inject.Inject
 
 /**
@@ -30,11 +32,10 @@ import javax.inject.Inject
 @Suppress("Unused", "UnstableApiUsage")
 class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plugin<Project> {
     private companion object {
+        private const val BNDLIB_PROPERTIES = "META-INF/maven/biz.aQute.bnd/biz.aQute.bndlib/pom.properties"
         private const val DEPENDENCY_CONSTRAINTS_TASK_NAME = "cordappDependencyConstraints"
         private const val CORDAPP_EXTENSION_NAME = "cordapp"
         private const val OSGI_EXTENSION_NAME = "osgi"
-        private const val OSGI_VERSION_PROPERTY = "osgi_version"
-        private const val DEFAULT_OSGI_VERSION = "7.0.0"
         private const val MIN_GRADLE_VERSION = "6.6"
         private const val CPK_TASK_NAME = "cpk"
         private const val UNKNOWN = "Unknown"
@@ -43,6 +44,17 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
         val Array<String>.packageRange: IntRange get() {
             val firstIdx = if (size > 2 && this[0] == "META-INF" && this[1] == "versions") { 3 } else { 0 }
             return firstIdx..size - 2
+        }
+
+        private fun getBndVersion(): String {
+            val properties = Properties().also { props ->
+                this::class.java.classLoader.getResourceAsStream(BNDLIB_PROPERTIES)?.use(props::load)
+            }
+            return properties.getValue("version")
+        }
+
+        private fun Properties.getValue(name: String): String {
+            return getProperty(name) ?: throw InvalidUserCodeException("$name missing from CPK plugin")
         }
     }
 
@@ -65,16 +77,8 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
         // Apply the Bnd "builder" plugin to generate OSGi metadata for the CorDapp.
         project.pluginManager.apply(BndBuilderPlugin::class.java)
 
-        val osgiVersion = with(project.rootProject) {
-            if (hasProperty(OSGI_VERSION_PROPERTY)) {
-                property(OSGI_VERSION_PROPERTY)
-            } else {
-                DEFAULT_OSGI_VERSION
-            }
-        }
-
         // Create our plugin's "cordapp" extension.
-        cordapp = project.extensions.create(CORDAPP_EXTENSION_NAME, CordappExtension::class.java, osgiVersion)
+        cordapp = project.extensions.create(CORDAPP_EXTENSION_NAME, CordappExtension::class.java, getBndVersion())
 
         project.configurations.apply {
             createCompileOnlyConfiguration(CORDAPP_CONFIGURATION_NAME)
@@ -83,8 +87,8 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
             findByName(CORDA_CPK_CONFIGURATION_NAME) ?: create(CORDA_CPK_CONFIGURATION_NAME)
 
             getByName(COMPILE_ONLY_CONFIGURATION_NAME).withDependencies { dependencies ->
-                val osgiDependency = project.dependencies.create("org.osgi:osgi.annotation:" + cordapp.osgiVersion.get())
-                dependencies.add(osgiDependency)
+                val bndDependency = project.dependencies.create("biz.aQute.bnd:biz.aQute.bnd.annotation:" + cordapp.bndVersion.get())
+                dependencies.add(bndDependency)
             }
         }
 

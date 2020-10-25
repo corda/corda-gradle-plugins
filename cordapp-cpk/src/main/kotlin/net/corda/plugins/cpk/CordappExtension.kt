@@ -8,43 +8,43 @@ import org.gradle.api.tasks.Nested
 import javax.inject.Inject
 
 @Suppress("UnstableApiUsage", "Unused")
-open class CordappExtension @Inject constructor(objectFactory: ObjectFactory, osgiVersion: String)  {
+open class CordappExtension @Inject constructor(objects: ObjectFactory, bndVersion: String)  {
 
     /**
      * Top-level CorDapp attributes
      */
     @get:Input
-    val targetPlatformVersion: Property<Int> = objectFactory.property(Int::class.java)
+    val targetPlatformVersion: Property<Int> = objects.property(Int::class.java)
 
     @get:Input
-    val minimumPlatformVersion: Property<Int> = objectFactory.property(Int::class.java)
+    val minimumPlatformVersion: Property<Int> = objects.property(Int::class.java)
 
     /**
      * CorDapp Contract distribution information.
      */
     @get:Nested
-    val contract: CordappData = objectFactory.newInstance(CordappData::class.java)
+    val contract: CordappData = objects.newInstance(CordappData::class.java)
 
     /**
      * CorDapp Workflow (flows and services) distribution information.
      */
     @get:Nested
-    val workflow: CordappData = objectFactory.newInstance(CordappData::class.java)
+    val workflow: CordappData = objects.newInstance(CordappData::class.java)
 
     /**
      * Optional parameters for ANT signJar tasks to sign CorDapps.
      */
     @get:Nested
-    val signing: Signing = objectFactory.newInstance(Signing::class.java)
+    val signing: Signing = objects.newInstance(Signing::class.java)
 
     /**
      * Optional marker to seal all packages in the JAR.
      */
     @get:Nested
-    val sealing: Sealing = objectFactory.newInstance(Sealing::class.java)
+    val sealing: Sealing = objects.newInstance(Sealing::class.java)
 
     @get:Input
-    val osgiVersion: Property<String> = objectFactory.property(String::class.java).convention(osgiVersion)
+    val bndVersion: Property<String> = objects.property(String::class.java).convention(bndVersion)
 
     fun contract(action: Action<in CordappData>) {
         action.execute(contract)
