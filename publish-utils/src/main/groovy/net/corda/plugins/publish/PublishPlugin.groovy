@@ -4,6 +4,8 @@ import com.jfrog.bintray.gradle.BintrayPlugin
 import groovy.transform.PackageScope
 import org.gradle.api.*
 import org.gradle.api.plugins.JavaPlugin
+import org.gradle.util.GradleVersion
+
 import static org.gradle.api.plugins.JavaPlugin.CLASSES_TASK_NAME
 import static org.gradle.api.plugins.JavaPlugin.JAVADOC_TASK_NAME
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
@@ -22,6 +24,7 @@ class PublishPlugin implements Plugin<Project> {
     private static final String BINTRAY_CONFIG_EXTENSION_NAME = 'bintrayConfig'
     private static final String PUBLISH_EXTENSION_NAME = 'publish'
     private static final String INSTALL_TASK_NAME = 'install'
+    private static final String MINIMUM_GRADLE_VERSION = "5.1"
 
     @PackageScope
     static final String PUBLISH_CONFIGURATION_NAME = 'publish'
@@ -36,6 +39,10 @@ class PublishPlugin implements Plugin<Project> {
 
     @Override
     void apply(Project project) {
+        if (GradleVersion.current() < GradleVersion.version(MINIMUM_GRADLE_VERSION)) {
+            throw new GradleException("The Publish-Utils plugin requires Gradle $MINIMUM_GRADLE_VERSION or newer.")
+        }
+
         publishConfig = project.extensions.create(PUBLISH_EXTENSION_NAME, PublishExtension, project.name)
         if (project == project.rootProject) {
             project.extensions.create(BINTRAY_CONFIG_EXTENSION_NAME, BintrayConfigExtension)

@@ -18,6 +18,7 @@ import kotlin.math.max
 import kotlin.text.RegexOption.*
 
 const val GROUP_NAME = "JarFilter"
+const val MINIMUM_GRADLE_VERSION = "5.6"
 const val FILTER_FLAGS = SKIP_DEBUG and SKIP_FRAMES
 
 @JvmField
