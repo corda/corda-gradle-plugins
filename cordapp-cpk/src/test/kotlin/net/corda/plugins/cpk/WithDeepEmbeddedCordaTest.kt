@@ -7,7 +7,7 @@ import org.junit.jupiter.api.TestReporter
 import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Path
 
-class WithCordaDependencyTest {
+class WithDeepEmbeddedCordaTest {
     companion object {
         private lateinit var testProject: GradleProject
 
@@ -16,7 +16,7 @@ class WithCordaDependencyTest {
         @JvmStatic
         fun setup(@TempDir testProjectDir: Path, reporter: TestReporter) {
             testProject = GradleProject(testProjectDir, reporter)
-                .withTestName("with-corda-dependency")
+                .withTestName("with-deep-embedded-corda")
                 .withSubResource("library/build.gradle")
                 .buildAndFail(
                     "-Pcordapp_contract_version=$expectedCordappContractVersion",
@@ -26,7 +26,7 @@ class WithCordaDependencyTest {
     }
 
     @Test
-    fun hasCordaDependency() {
+    fun hasDeepEmbeddedCorda() {
         assertThat(testProject.outcomeOf("cordappDependencyConstraints")).isNull()
         assertThat(testProject.outcomeOf("jar")).isNull()
         assertThat(testProject.outcomeOf("cpk")).isNull()

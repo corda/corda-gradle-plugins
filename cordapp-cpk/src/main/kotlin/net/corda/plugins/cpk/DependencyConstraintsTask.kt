@@ -14,6 +14,7 @@ import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileCollection
+import org.gradle.api.file.FileSystemLocation
 import org.gradle.api.file.RegularFile
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME
@@ -25,6 +26,7 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.OutputFiles
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity.RELATIVE
 import org.gradle.api.tasks.TaskAction
@@ -67,15 +69,25 @@ open class DependencyConstraintsTask @Inject constructor(
         group = GROUP_NAME
     }
 
+    private val _embeddedJars: ConfigurableFileCollection = objects.fileCollection()
     private val _dependencies: ConfigurableFileCollection = objects.fileCollection().from(
         providers.provider(::getNonCordaDependencies)
     ).apply(HasConfigurableValue::finalizeValueOnRead)
+        .apply(HasConfigurableValue::disallowUnsafeRead)
         .apply(HasConfigurableValue::disallowChanges)
 
+    /**
+     * Invoking [getNonCordaDependencies] will set both
+     * the [dependencies] and [embeddedJars] properties.
+     */
     val dependencies: FileCollection
         @PathSensitive(RELATIVE)
         @InputFiles
         get() = _dependencies
+
+    val embeddedJars: Provider<Set<FileSystemLocation>>
+        @OutputFiles
+        get() = _embeddedJars.elements
 
     @get:Input
     val algorithm: Property<String> = objects.property(String::class.java).convention(CORDAPP_HASH_ALGORITHM)
@@ -165,7 +177,8 @@ open class DependencyConstraintsTask @Inject constructor(
 
         // Compute the set of resolved artifacts that will define this CorDapp.
         val packagingConfiguration = runtimeConfiguration.resolvedConfiguration
-        val packageArtifacts = (nonCordaDeps.resolveFor(packagingConfiguration)
+        val packageFiles = (
+            nonCordaDeps.resolveFor(packagingConfiguration)
                 .filterNot { artifact -> isCordaProvided(artifact.moduleVersion.id) }
                 .also { artifacts ->
                     // Corda artifacts should not be included, either directly or transitively.
@@ -173,10 +186,20 @@ open class DependencyConstraintsTask @Inject constructor(
                     warnAboutCordaArtifacts("com.r3.corda", artifacts)
                 }
             + getCordappArtifacts(configurations)
-            - cordaDeps.resolveFor(packagingConfiguration))
+            - cordaDeps.resolveFor(packagingConfiguration)
+        ).toFiles()
 
-        return packageArtifacts.mapTo(LinkedHashSet(), ResolvedArtifact::getFile)
+        // Separate out any of these jars which we want to embed instead.
+        val embeddedDeps = configurations.getByName(CORDA_EMBEDDED_CONFIGURATION_NAME).allDependencies
+        val cpkFiles = packageFiles - embeddedDeps.resolveFor(packagingConfiguration).toFiles()
+        _embeddedJars.apply {
+            setFrom(packageFiles - cpkFiles)
+            disallowChanges()
+        }
+        return cpkFiles
     }
+
+    private fun Collection<ResolvedArtifact>.toFiles(): Set<File> = mapTo(LinkedHashSet(), ResolvedArtifact::getFile)
 
     private fun Collection<Dependency>.resolveFor(configuration: ResolvedConfiguration): Set<ResolvedArtifact> {
         return configuration.getFirstLevelModuleDependencies { contains(it) }

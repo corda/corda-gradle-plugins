@@ -8,7 +8,7 @@ cordapp {
     targetPlatformVersion = platform_version.toInteger()
     minimumPlatformVersion = platform_version.toInteger()
 
-    workflow {
+    contract {
         name = 'With Corda Dependency'
         versionId = cordapp_contract_version.toInteger()
         licence = 'Test-Licence'
