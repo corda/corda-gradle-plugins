@@ -22,6 +22,7 @@ class WithDependentCordappTest {
                 .withSubResource("library/build.gradle")
                 .withSubResource("cordapp/build.gradle")
                 .build(
+                    "-Pcordapp_workflow_version=$expectedCordappWorkflowVersion",
                     "-Pcordapp_contract_version=$expectedCordappContractVersion",
                     "-Pcorda_release_version=$cordaReleaseVersion",
                     "-Pcommons_io_version=$commonsIoVersion",
@@ -38,7 +39,7 @@ class WithDependentCordappTest {
         "19.0,19.0",
         "28.2-jre,28.2-jre"
     )
-    fun hasCordappDependencyTest(
+    fun hasCordappDependency(
         guavaVersion: String,
         libraryGuavaVersion: String,
         @TempDir testProjectDir: Path,

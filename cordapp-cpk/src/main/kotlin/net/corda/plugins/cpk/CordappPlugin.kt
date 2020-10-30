@@ -15,6 +15,7 @@ import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME
 import org.gradle.api.plugins.JavaPlugin.JAR_TASK_NAME
 import org.gradle.api.plugins.JavaPluginConvention
+import org.gradle.api.provider.HasConfigurableValue
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.bundling.ZipEntryCompression.DEFLATED
@@ -23,7 +24,6 @@ import org.osgi.framework.Constants.BUNDLE_LICENSE
 import org.osgi.framework.Constants.BUNDLE_NAME
 import org.osgi.framework.Constants.BUNDLE_SYMBOLICNAME
 import org.osgi.framework.Constants.BUNDLE_VENDOR
-import org.osgi.framework.Constants.EXPORT_PACKAGE
 import java.util.Properties
 import javax.inject.Inject
 
@@ -84,6 +84,7 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
         project.configurations.apply {
             createCompileOnlyConfiguration(CORDAPP_CONFIGURATION_NAME)
             createCompileOnlyConfiguration(CORDA_PROVIDED_CONFIGURATION_NAME)
+            createImplementationConfiguration(CORDA_EMBEDDED_CONFIGURATION_NAME)
             createRuntimeOnlyConfiguration(CORDA_RUNTIME_ONLY_CONFIGURATION_NAME)
             findByName(CORDA_CPK_CONFIGURATION_NAME) ?: create(CORDA_CPK_CONFIGURATION_NAME)
 
@@ -101,8 +102,33 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
      * JAR is reproducible, i.e. that its SHA-256 hash is stable!
      */
     private fun configureCordappTasks(project: Project) {
+        /**
+         * Generate an extra resource file containing constraints for all of this CorDapp's dependencies.
+         */
+        val constraintsDir = layouts.buildDirectory.dir("generated-constraints")
+        val constraintsTask = project.tasks.register(DEPENDENCY_CONSTRAINTS_TASK_NAME, DependencyConstraintsTask::class.java) { task ->
+            task.dependsOnConstraints()
+            task.constraintsDir.set(constraintsDir)
+        }
+        val sourceSets = project.convention.getPlugin(JavaPluginConvention::class.java).sourceSets
+        sourceSets.getByName("main") { main ->
+            main.output.dir(mapOf("builtBy" to constraintsTask), constraintsDir)
+        }
+
         val jarTask = project.tasks.named(JAR_TASK_NAME, Jar::class.java) { task ->
             val osgi = task.extensions.create(OSGI_EXTENSION_NAME, OsgiExtension::class.java, project, task)
+            osgi.embed(constraintsTask.flatMap(DependencyConstraintsTask::embeddedJars))
+
+            val noPackages = project.objects.setProperty(String::class.java)
+                .apply(HasConfigurableValue::disallowChanges)
+            val autoPackages = project.objects.setProperty(String::class.java)
+            osgi.exportAll(osgi.autoExport.flatMap { isAuto ->
+                if (isAuto) {
+                    autoPackages
+                } else {
+                    noPackages
+                }
+            })
 
             // Install a "listener" for files copied into the CorDapp jar.
             // We will extract the names of the non-empty packages inside
@@ -114,17 +140,19 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
                     if (!packageRange.isEmpty()) {
                         val packageName = elements.slice(packageRange)
                         if (packageName[0] != "META-INF" && packageName[0] != "OSGI-INF") {
-                            osgi.add(packageName.joinToString("."))
+                            autoPackages.add(packageName.joinToString("."))
                         }
                     }
                 }
             }
 
-            // Add a Bnd instruction to export the set of observed
-            // package names. This instruction reads this task's
-            // osgi.exports property by invoking it lazily as a macro.
-            task.convention.getPlugin(BundleTaskConvention::class.java)
-                .bnd("$EXPORT_PACKAGE=\${task.osgi.exports}")
+            with(task.convention.getPlugin(BundleTaskConvention::class.java)) {
+                // Add a Bnd instruction to export the set of observed package names.
+                bnd(osgi.exports)
+
+                // Add Bnd instructions to embed requested jars into this bundle.
+                bnd(osgi.embeddedJars)
+            }
 
             task.doFirst { t ->
                 t as Jar
@@ -152,19 +180,6 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
                     t.logger.lifecycle("CorDapp JAR signing is disabled, the CorDapp's contracts will not use signature constraints.")
                 }
             }
-        }
-
-        /**
-         * Generate an extra resource file containing constraints for all of this CorDapp's dependencies.
-         */
-        val constraintsDir = layouts.buildDirectory.dir("generated-constraints")
-        val constraintsTask = project.tasks.register(DEPENDENCY_CONSTRAINTS_TASK_NAME, DependencyConstraintsTask::class.java) { task ->
-            task.dependsOnConstraints()
-            task.constraintsDir.set(constraintsDir)
-        }
-        val sourceSets = project.convention.getPlugin(JavaPluginConvention::class.java).sourceSets
-        sourceSets.getByName("main") { main ->
-            main.output.dir(mapOf("builtBy" to constraintsTask), constraintsDir)
         }
 
         /**
