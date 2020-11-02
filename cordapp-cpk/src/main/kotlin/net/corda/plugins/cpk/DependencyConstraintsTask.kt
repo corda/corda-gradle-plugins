@@ -33,7 +33,6 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.TaskDependency
 import java.io.File
 import java.io.IOException
-import java.io.InputStream
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
 import java.util.Collections.unmodifiableSet
@@ -52,6 +51,7 @@ open class DependencyConstraintsTask @Inject constructor(
         const val CORDA = true
         const val DELIMITER = ','
         const val CRLF = "\r\n"
+        const val EOF = -1
 
         private val HARDCODED_EXCLUDES: Set<Pair<String, String>> = unmodifiableSet(setOf(
             "org.jetbrains.kotlin" to "*",
@@ -246,14 +246,12 @@ open class DependencyConstraintsTask @Inject constructor(
     /**
      * For computing file hashes.
      */
-    private fun MessageDigest.hashFor(file: File): ByteArray = hashFor(file.inputStream())
-
-    private fun MessageDigest.hashFor(input: InputStream): ByteArray {
-        input.use {
+    private fun MessageDigest.hashFor(file: File): ByteArray {
+        file.inputStream().use {
             val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
             while (true) {
                 val length = it.read(buffer)
-                if (length == -1) {
+                if (length == EOF) {
                     break
                 }
                 update(buffer, 0, length)
