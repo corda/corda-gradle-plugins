@@ -22,6 +22,12 @@ class CordappWithOwnGuavaVersionTest {
     companion object {
         const val cordaGuavaVersion = "20.0"
         const val guavaVersion = "29.0-jre"
+        const val kotlinVersion = "1.3.72"
+
+        const val guavaOsgiVersion = "version=\"[29.0,30)\""
+        const val cordaOsgiVersion = "version=\"[5.0,6)\""
+        const val cordappOsgiVersion = "version=\"1.0.1\""
+
         private lateinit var testProject: GradleProject
 
         @Suppress("unused")
@@ -33,9 +39,9 @@ class CordappWithOwnGuavaVersionTest {
                 .withSubResource("src/main/java/com/example/contract/GuavaContract.java")
                 .build(
                     "-Pcordapp_contract_version=$expectedCordappContractVersion",
-                    "-Pcorda_release_version=$cordaReleaseVersion",
                     "-Pcorda_guava_version=$cordaGuavaVersion",
-                    "-Pguava_version=$guavaVersion"
+                    "-Pguava_version=$guavaVersion",
+                    "-Pkotlin_version=$kotlinVersion"
                 )
         }
     }
@@ -63,8 +69,8 @@ class CordappWithOwnGuavaVersionTest {
             assertEquals("CorDapp With Guava", getValue(BUNDLE_NAME))
             assertEquals("com.example.cordapp-with-guava", getValue(BUNDLE_SYMBOLICNAME))
             assertEquals("1.0.1.SNAPSHOT", getValue(BUNDLE_VERSION))
-            assertEquals("com.google.common.collect;version=\"[29.0,30)\",net.corda.core.contracts,net.corda.core.transactions", getValue(IMPORT_PACKAGE))
-            assertEquals("com.example.contract;uses:=\"net.corda.core.contracts,net.corda.core.transactions\";version=\"1.0.1\"", getValue(EXPORT_PACKAGE))
+            assertEquals("com.google.common.collect;$guavaOsgiVersion,net.corda.core.contracts;$cordaOsgiVersion,net.corda.core.transactions;$cordaOsgiVersion", getValue(IMPORT_PACKAGE))
+            assertEquals("com.example.contract;uses:=\"net.corda.core.contracts,net.corda.core.transactions\";$cordappOsgiVersion", getValue(EXPORT_PACKAGE))
             assertEquals("osgi.ee;filter:=\"(&(osgi.ee=JavaSE)(version=1.8))\"", getValue(REQUIRE_CAPABILITY))
             assertEquals("Test-Licence", getValue(BUNDLE_LICENSE))
             assertEquals("R3", getValue(BUNDLE_VENDOR))

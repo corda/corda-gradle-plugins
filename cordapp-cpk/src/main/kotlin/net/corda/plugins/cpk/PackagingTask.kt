@@ -33,9 +33,9 @@ open class PackagingTask @Inject constructor(objects: ObjectFactory) : Jar() {
      * Don't eagerly configure the [DependencyConstraintsTask] task, even
      * if someone eagerly configures this [PackagingTask] by accident.
      */
-    internal fun setDependenciesFrom(task: TaskProvider<DependencyConstraintsTask>) {
-        // This should also automatically make us depend on task.
-        _dependencies.setFrom(task.map(DependencyConstraintsTask::dependencies))
+    internal fun setDependenciesFrom(task: TaskProvider<DependencyConstraintsTask>, vararg otherTasks: TaskProvider<out Task>) {
+        // This should also automatically make us depend on these tasks.
+        _dependencies.setFrom(task.map(DependencyConstraintsTask::dependencies), *otherTasks)
         _dependencies.disallowChanges()
     }
 

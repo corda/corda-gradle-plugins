@@ -9,5 +9,6 @@ jar {
 }
 
 dependencies {
+    // We need "real" Corda here with genuine Maven coordinates.
     implementation "net.corda:corda-core:$corda_release_version"
 }

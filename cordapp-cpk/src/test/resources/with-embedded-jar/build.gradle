@@ -21,9 +21,16 @@ cordapp {
 
 jar {
     archiveBaseName = 'with-embedded-jar'
+
+    osgi {
+        optionalImport 'sun.misc;version=\"[0,9999)\"'
+        suppressImport 'com.google.apphosting.api',
+            'com.google.appengine.api',
+            'com.google.appengine.api.utils'
+    }
 }
 
 dependencies {
-    cordaProvided "net.corda:corda-core:$corda_release_version"
+    cordaProvided files('../../corda-core/build/libs/corda-core.jar')
     cordaEmbedded project(':library')
 }

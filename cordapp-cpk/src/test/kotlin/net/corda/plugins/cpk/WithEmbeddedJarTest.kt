@@ -34,7 +34,6 @@ class WithEmbeddedJarTest {
                 .withSubResource("library/build.gradle")
                 .build(
                     "-Pcordapp_contract_version=$expectedCordappContractVersion",
-                    "-Pcorda_release_version=$cordaReleaseVersion",
                     "-Pguava_version=$guavaVersion"
                 )
         }

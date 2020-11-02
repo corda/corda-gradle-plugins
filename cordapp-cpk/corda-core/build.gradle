@@ -1,0 +1,26 @@
+plugins {
+    id 'org.jetbrains.kotlin.jvm'
+    id 'biz.aQute.bnd.builder'
+    id 'java-library'
+}
+
+group = 'net.corda'
+version = '5.0.0'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compileOnly "org.osgi:osgi.annotation:$osgi_version"
+    implementation "org.jetbrains.kotlin:kotlin-osgi-bundle:$kotlin_version"
+}
+
+tasks.named('jar', Jar) {
+    archiveFileName = 'corda-core.jar'
+
+    bnd """\
+Bundle-SymbolicName: net.corda.core
+Bundle-Name: Fake Corda Core
+"""
+}

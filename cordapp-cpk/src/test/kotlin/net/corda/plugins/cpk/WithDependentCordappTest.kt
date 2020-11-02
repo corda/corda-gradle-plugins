@@ -24,7 +24,6 @@ class WithDependentCordappTest {
                 .build(
                     "-Pcordapp_workflow_version=$expectedCordappWorkflowVersion",
                     "-Pcordapp_contract_version=$expectedCordappContractVersion",
-                    "-Pcorda_release_version=$cordaReleaseVersion",
                     "-Pcommons_io_version=$commonsIoVersion",
                     "-Plibrary_guava_version=$libraryGuavaVersion",
                     "-Pguava_version=$guavaVersion"

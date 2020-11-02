@@ -21,7 +21,7 @@ jar {
 }
 
 dependencies {
-    cordaProvided "net.corda:corda-core:$corda_release_version"
+    cordaProvided files('../../corda-core/build/libs/corda-core.jar')
     implementation "commons-io:commons-io:$commons_io_version"
 }
 
