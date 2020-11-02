@@ -35,6 +35,7 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
     private companion object {
         private const val BNDLIB_PROPERTIES = "META-INF/maven/biz.aQute.bnd/biz.aQute.bndlib/pom.properties"
         private const val DEPENDENCY_CONSTRAINTS_TASK_NAME = "cordappDependencyConstraints"
+        private const val VERIFY_BUNDLE_TASK_NAME = "verifyBundle"
         private const val CORDAPP_EXTENSION_NAME = "cordapp"
         private const val OSGI_EXTENSION_NAME = "osgi"
         private const val MIN_GRADLE_VERSION = "6.6"
@@ -152,6 +153,9 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
 
                 // Add Bnd instructions to embed requested jars into this bundle.
                 bnd(osgi.embeddedJars)
+
+                // Add a Bnd instruction for explicit package imports.
+                bnd(osgi.imports)
             }
 
             task.doFirst { t ->
@@ -180,6 +184,16 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
                     t.logger.lifecycle("CorDapp JAR signing is disabled, the CorDapp's contracts will not use signature constraints.")
                 }
             }
+        }
+
+        /**
+         * Ask Bnd to "sanity-check" this new bundle.
+         */
+        val verifyBundle = project.tasks.register(VERIFY_BUNDLE_TASK_NAME, VerifyBundle::class.java) { verify ->
+            verify.bundle.set(jarTask.flatMap(Jar::getArchiveFile))
+        }
+        jarTask.configure { jar ->
+            jar.finalizedBy(verifyBundle)
         }
 
         /**

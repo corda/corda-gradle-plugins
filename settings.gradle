@@ -5,6 +5,7 @@ pluginManagement {
 
     plugins {
         id 'org.jetbrains.kotlin.jvm' version kotlin_version
+        id 'biz.aQute.bnd.builder' version bnd_version
         id 'com.gradle.plugin-publish' version gradle_publish_version
         id 'com.jfrog.artifactory' version artifactory_version
         id 'com.jfrog.bintray' version bintray_version
@@ -24,6 +25,7 @@ include 'cordformation'
 include 'api-scanner'
 include 'api-scanner:annotations'
 include 'cordapp-cpk'
+include 'cordapp-cpk:corda-core'
 include 'jar-filter'
 include 'jar-filter:unwanteds'
 

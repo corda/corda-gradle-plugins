@@ -19,7 +19,6 @@ class EagerJarsTest {
                 .withTestName("eager-jars")
                 .build(
                     "-Pcordapp_contract_version=$expectedCordappContractVersion",
-                    "-Pcorda_release_version=$cordaReleaseVersion",
                     "-Pcommons_io_version=$commonsIoVersion"
                 )
         }

@@ -55,12 +55,14 @@ dependencies {
 
     // Add the Bnd plugins to our classpath too, so that we can use them.
     implementation "biz.aQute.bnd:biz.aQute.bnd.gradle:$bnd_version"
+    implementation "biz.aQute.bnd:biz.aQute.bndlib:$bnd_version"
 
     testImplementation 'org.jetbrains.kotlin:kotlin-test'
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junit_jupiter_version")
     testImplementation("org.junit.jupiter:junit-jupiter-params:$junit_jupiter_version")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junit_jupiter_version")
     testImplementation "org.assertj:assertj-core:$assertj_version"
+    testRuntimeOnly project(':cordapp-cpk:corda-core')
 }
 
 /**

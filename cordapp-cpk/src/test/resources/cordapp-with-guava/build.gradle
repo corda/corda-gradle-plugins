@@ -27,7 +27,8 @@ cordapp {
 }
 
 dependencies {
-    cordaProvided "net.corda:corda-core:$corda_release_version"
+    cordaProvided files('../../corda-core/build/libs/corda-core.jar')
+    implementation "org.jetbrains.kotlin:kotlin-osgi-bundle:$kotlin_version"
     cordaRuntimeOnly "com.google.guava:guava:$corda_guava_version"
     implementation "com.google.guava:guava:$guava_version"
 }

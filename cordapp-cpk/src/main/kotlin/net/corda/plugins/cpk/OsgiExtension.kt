@@ -10,45 +10,87 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.bundling.Jar
 import org.osgi.framework.Constants.BUNDLE_CLASSPATH
+import org.osgi.framework.Constants.IMPORT_PACKAGE
 import java.util.StringJoiner
 
-@Suppress("UnstableApiUsage", "unused")
+@Suppress("UnstableApiUsage", "MemberVisibilityCanBePrivate", "unused")
 open class OsgiExtension(project: Project, jar: Jar) {
-    private val packages: SetProperty<String> = project.objects.setProperty(String::class.java)
-
-    private val embeddeds: SetProperty<FileSystemLocation> = project.objects.setProperty(FileSystemLocation::class.java)
+    private val _exports: SetProperty<String> = project.objects.setProperty(String::class.java)
+    private val _imports: SetProperty<String> = project.objects.setProperty(String::class.java)
+        .apply(HasConfigurableValue::finalizeValueOnRead)
+    private val _embeddeds: SetProperty<FileSystemLocation> = project.objects.setProperty(FileSystemLocation::class.java)
         .apply(HasConfigurableValue::finalizeValueOnRead)
 
-    fun export(vararg packageName: String) {
-        packages.addAll(*packageName)
+    fun exportPackage(packageNames: Iterable<String>) {
+        _exports.addAll(packageNames)
     }
 
-    fun export(packageName: Provider<String>) {
-        packages.add(packageName)
+    fun exportPackage(vararg packageNames: String) {
+        exportPackage(packageNames.toList())
+    }
+
+    fun exportPackage(packageName: Provider<String>) {
+        _exports.add(packageName)
     }
 
     fun exportAll(packageNames: Provider<out Iterable<String>>) {
-        packages.addAll(packageNames)
+        _exports.addAll(packageNames)
+    }
+
+    fun importPackage(packageNames: Iterable<String>) {
+        _imports.addAll(packageNames)
+    }
+
+    fun importPackage(vararg packageNames: String) {
+        importPackage(packageNames.toList())
+    }
+
+    fun importPackage(packageName: Provider<String>) {
+        _imports.add(packageName)
+    }
+
+    fun optionalImport(packageNames: Iterable<String>) {
+        _imports.addAll(packageNames.map { "$it;resolution:=optional" })
+    }
+
+    fun optionalImport(vararg packageNames: String) {
+        optionalImport(packageNames.toList())
+    }
+
+    fun optionalImport(packageName: Provider<String>) {
+        importPackage(packageName.map { "$it;resolution:=optional" })
+    }
+
+    fun suppressImport(packageNames: Iterable<String>) {
+        optionalImport(packageNames.map { "$it;version='[0,0)'" })
+    }
+
+    fun suppressImport(vararg packageNames: String) {
+        suppressImport(packageNames.toList())
+    }
+
+    fun suppressImport(packageName: Provider<String>) {
+        optionalImport(packageName.map { "$it;version='[0,0)'" })
     }
 
     fun embed(files: Provider<Set<FileSystemLocation>>) {
-        embeddeds.addAll(files)
+        _embeddeds.addAll(files)
     }
 
     @get:Input
     val autoExport: Property<Boolean> = project.objects.property(Boolean::class.java).convention(true)
 
     @get:Internal
-    val exports: Provider<String> = packages.map { names ->
+    val exports: Provider<String> = _exports.map { names ->
         if (names.isNotEmpty()){
-            "-exportcontents:${names.joinToString(",")}"
+            names.joinToString(",", "-exportcontents:")
         } else {
             ""
         }
     }
 
     @get:Internal
-    val embeddedJars: Provider<String> = embeddeds.map(::declareEmbeddedJars)
+    val embeddedJars: Provider<String> = _embeddeds.map(::declareEmbeddedJars)
 
     private fun declareEmbeddedJars(locations: Set<FileSystemLocation>): String {
         return if (locations.isNotEmpty()) {
@@ -61,6 +103,17 @@ open class OsgiExtension(project: Project, jar: Jar) {
                 bundleClassPath.add(embeddedJar)
             }
             "$includeResource$bundleClassPath"
+        } else {
+            ""
+        }
+    }
+
+    @get:Internal
+    val imports: Provider<String> = _imports.map(::declareImports)
+
+    private fun declareImports(importPackages: Set<String>): String {
+        return if (importPackages.isNotEmpty()) {
+            importPackages.joinToString(",", "$IMPORT_PACKAGE=", ",*")
         } else {
             ""
         }

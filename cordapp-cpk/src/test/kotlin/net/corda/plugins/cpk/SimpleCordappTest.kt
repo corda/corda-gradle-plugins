@@ -22,6 +22,10 @@ class SimpleCordappTest {
     companion object {
         private lateinit var testProject: GradleProject
 
+        const val ioOsgiVersion = "version=\"[1.4,2)\""
+        const val cordaOsgiVersion = "version=\"[5.0,6)\""
+        const val cordappOsgiVersion = "version=\"1.0.1\""
+
         @Suppress("unused")
         @BeforeAll
         @JvmStatic
@@ -31,7 +35,6 @@ class SimpleCordappTest {
                 .withSubResource("src/main/java/com/example/contract/ExampleContract.java")
                 .build(
                     "-Pcordapp_contract_version=$expectedCordappContractVersion",
-                    "-Pcorda_release_version=$cordaReleaseVersion",
                     "-Pcommons_io_version=$commonsIoVersion"
                 )
         }
@@ -59,8 +62,8 @@ class SimpleCordappTest {
             assertEquals("Simple Java", getValue(BUNDLE_NAME))
             assertEquals("com.example.simple-cordapp", getValue(BUNDLE_SYMBOLICNAME))
             assertEquals("1.0.1.SNAPSHOT", getValue(BUNDLE_VERSION))
-            assertEquals("net.corda.core.contracts,net.corda.core.transactions,org.apache.commons.io;version=\"[1.4,2)\"", getValue(IMPORT_PACKAGE))
-            assertEquals("com.example.contract;uses:=\"net.corda.core.contracts,net.corda.core.transactions\";version=\"1.0.1\"", getValue(EXPORT_PACKAGE))
+            assertEquals("net.corda.core.contracts;$cordaOsgiVersion,net.corda.core.transactions;$cordaOsgiVersion,org.apache.commons.io;$ioOsgiVersion", getValue(IMPORT_PACKAGE))
+            assertEquals("com.example.contract;uses:=\"net.corda.core.contracts,net.corda.core.transactions\";$cordappOsgiVersion", getValue(EXPORT_PACKAGE))
             assertEquals("osgi.ee;filter:=\"(&(osgi.ee=JavaSE)(version=1.8))\"", getValue(REQUIRE_CAPABILITY))
             assertEquals("Test-Licence", getValue(BUNDLE_LICENSE))
             assertEquals("R3", getValue(BUNDLE_VENDOR))
