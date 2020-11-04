@@ -3,7 +3,6 @@ package net.corda.plugins.publish
 import com.jfrog.bintray.gradle.BintrayPlugin
 import groovy.transform.PackageScope
 import org.gradle.api.*
-import org.gradle.api.plugins.JavaPlugin
 import org.gradle.util.GradleVersion
 
 import static org.gradle.api.plugins.JavaPlugin.CLASSES_TASK_NAME
@@ -53,9 +52,11 @@ class PublishPlugin implements Plugin<Project> {
         // which means we cannot risk registering plugins there either.
         project.pluginManager.apply(MavenPublishPlugin)
         project.pluginManager.apply(BintrayPlugin)
-        project.pluginManager.apply(JavaPlugin)
+        project.pluginManager.withPlugin("java") {
+            createJavaTasks(project)
+        }
 
-        createTasks(project)
+        createPublishTasks(project)
         createConfigurations(project)
     }
 
@@ -63,7 +64,7 @@ class PublishPlugin implements Plugin<Project> {
         rootProject.gradle.addListener(new PublishConfigurationProjectListener(rootProject))
     }
 
-    private void createTasks(Project project) {
+    private void createJavaTasks(Project project) {
         project.tasks.register(SOURCES_TASK_NAME, Jar) { task ->
             try {
                 task.dependsOn(project.tasks.named(CLASSES_TASK_NAME))
@@ -84,7 +85,9 @@ class PublishPlugin implements Plugin<Project> {
                 task.enabled = false
             }
         }
+    }
 
+    private void createPublishTasks(Project project) {
         // Register an "install" task, for those familiar with Maven.
         project.tasks.register(INSTALL_TASK_NAME) { Task task ->
             task.dependsOn(project.tasks.named('publishToMavenLocal'))
