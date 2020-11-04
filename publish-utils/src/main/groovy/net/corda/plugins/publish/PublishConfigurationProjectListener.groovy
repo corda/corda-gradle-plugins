@@ -167,11 +167,19 @@ class PublishConfigurationProjectListener implements ProjectEvaluationListener {
                     }
                 }
 
-                developers {
-                    developer {
-                        id config.developer.id.get()
-                        name config.developer.name.get()
-                        email config.developer.email.get()
+                if (config.developer.isPresent()) {
+                    developers {
+                        developer {
+                            if (config.developer.id.isPresent()) {
+                                id config.developer.id.get()
+                            }
+                            if (config.developer.name.isPresent()) {
+                                name config.developer.name.get()
+                            }
+                            if (config.developer.email.isPresent()) {
+                                email config.developer.email.get()
+                            }
+                        }
                     }
                 }
             }
