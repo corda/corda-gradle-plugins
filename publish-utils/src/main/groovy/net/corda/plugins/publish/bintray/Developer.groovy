@@ -37,4 +37,11 @@ class Developer {
     Property<String> getEmail() {
         return email
     }
+
+    /**
+     * Determines whether there is any developer information.
+     */
+    boolean isPresent() {
+        return id.isPresent() || name.isPresent() || email.isPresent()
+    }
 }

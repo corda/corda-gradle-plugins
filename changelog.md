@@ -7,6 +7,7 @@
 * `cordformation`: Parsing for adding external service to docker-compose
 * `jar-filter`: Upgrade to ASM 8.0.1.
 * `quasar-utils`: Resolve warning about deprecated Gradle API usage.
+* `publish-utils`: Make the developers information optional.
 
 ### Version 5.0.12
 
