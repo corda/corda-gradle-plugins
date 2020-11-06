@@ -35,6 +35,7 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
     private companion object {
         private const val BNDLIB_PROPERTIES = "META-INF/maven/biz.aQute.bnd/biz.aQute.bndlib/pom.properties"
         private const val DEPENDENCY_CONSTRAINTS_TASK_NAME = "cordappDependencyConstraints"
+        private const val DEPENDENCY_CALCULATOR_TASK_NAME = "cordappDependencyCalculator"
         private const val VERIFY_BUNDLE_TASK_NAME = "verifyBundle"
         private const val CORDAPP_EXTENSION_NAME = "cordapp"
         private const val OSGI_EXTENSION_NAME = "osgi"
@@ -103,12 +104,16 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
      * JAR is reproducible, i.e. that its SHA-256 hash is stable!
      */
     private fun configureCordappTasks(project: Project) {
+        val calculatorTask = project.tasks.register(DEPENDENCY_CALCULATOR_TASK_NAME, DependencyCalculator::class.java) { task ->
+            task.dependsOnCordappConfigurations()
+        }
+
         /**
          * Generate an extra resource file containing constraints for all of this CorDapp's dependencies.
          */
         val constraintsDir = layouts.buildDirectory.dir("generated-constraints")
         val constraintsTask = project.tasks.register(DEPENDENCY_CONSTRAINTS_TASK_NAME, DependencyConstraintsTask::class.java) { task ->
-            task.dependsOnConstraints()
+            task.setDependenciesFrom(calculatorTask)
             task.constraintsDir.set(constraintsDir)
         }
         val sourceSets = project.convention.getPlugin(JavaPluginConvention::class.java).sourceSets
@@ -116,9 +121,9 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
             main.output.dir(mapOf("builtBy" to constraintsTask), constraintsDir)
         }
 
-        val jarTask = project.tasks.named(JAR_TASK_NAME, Jar::class.java) { task ->
-            val osgi = task.extensions.create(OSGI_EXTENSION_NAME, OsgiExtension::class.java, project, task)
-            osgi.embed(constraintsTask.flatMap(DependencyConstraintsTask::embeddedJars))
+        val jarTask = project.tasks.named(JAR_TASK_NAME, Jar::class.java) { jar ->
+            val osgi = jar.extensions.create(OSGI_EXTENSION_NAME, OsgiExtension::class.java, project, jar)
+            osgi.embed(calculatorTask.flatMap(DependencyCalculator::embeddedJars))
 
             val noPackages = project.objects.setProperty(String::class.java)
                 .apply(HasConfigurableValue::disallowChanges)
@@ -134,7 +139,7 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
             // Install a "listener" for files copied into the CorDapp jar.
             // We will extract the names of the non-empty packages inside
             // this jar as we go...
-            task.rootSpec.eachFile { file ->
+            jar.rootSpec.eachFile { file ->
                 if (!file.isDirectory) {
                     val elements = file.relativePath.segments
                     val packageRange = elements.packageRange
@@ -147,7 +152,7 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
                 }
             }
 
-            with(task.convention.getPlugin(BundleTaskConvention::class.java)) {
+            with(jar.convention.getPlugin(BundleTaskConvention::class.java)) {
                 // Add a Bnd instruction to export the set of observed package names.
                 bnd(osgi.exports)
 
@@ -158,7 +163,7 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
                 bnd(osgi.imports)
             }
 
-            task.doFirst { t ->
+            jar.doFirst { t ->
                 t as Jar
                 t.fileMode = Integer.parseInt("444", 8)
                 t.dirMode = Integer.parseInt("555", 8)
@@ -191,6 +196,7 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
          */
         val verifyBundle = project.tasks.register(VERIFY_BUNDLE_TASK_NAME, VerifyBundle::class.java) { verify ->
             verify.bundle.set(jarTask.flatMap(Jar::getArchiveFile))
+            verify.setDependenciesFrom(calculatorTask)
         }
         jarTask.configure { jar ->
             jar.finalizedBy(verifyBundle)
