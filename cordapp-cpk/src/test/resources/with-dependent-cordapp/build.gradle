@@ -22,6 +22,6 @@ jar {
 
 dependencies {
     cordapp project(':cordapp')
-    cordaProvided files('../../corda-core/build/libs/corda-core.jar')
+    cordaProvided project(':corda-core')
     implementation "com.google.guava:guava:$guava_version"
 }

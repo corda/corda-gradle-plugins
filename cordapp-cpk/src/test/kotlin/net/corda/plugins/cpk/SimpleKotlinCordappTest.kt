@@ -21,7 +21,6 @@ import java.util.jar.JarFile
 class SimpleKotlinCordappTest {
     companion object {
         const val guavaVersion = "29.0-jre"
-        const val kotlinVersion = "1.3.72"
 
         const val ioOsgiVersion = "version=\"[1.4,2)\""
         const val guavaOsgiVersion = "version=\"[29.0,30)\""
@@ -42,8 +41,7 @@ class SimpleKotlinCordappTest {
                 .build(
                     "-Pcordapp_contract_version=$expectedCordappContractVersion",
                     "-Pcommons_io_version=$commonsIoVersion",
-                    "-Pguava_version=$guavaVersion",
-                    "-Pkotlin_version=$kotlinVersion"
+                    "-Pguava_version=$guavaVersion"
                 )
         }
     }

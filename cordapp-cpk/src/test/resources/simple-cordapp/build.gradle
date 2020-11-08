@@ -27,7 +27,7 @@ cordapp {
 }
 
 dependencies {
-    cordaProvided files('../../corda-core/build/libs/corda-core.jar')
+    cordaProvided project(':corda-core')
     implementation "commons-io:commons-io:$commons_io_version"
 }
 

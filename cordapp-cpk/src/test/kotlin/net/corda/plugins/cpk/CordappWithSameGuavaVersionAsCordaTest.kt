@@ -21,7 +21,6 @@ import java.util.jar.JarFile
 class CordappWithSameGuavaVersionAsCordaTest {
     companion object {
         const val cordaGuavaVersion = "20.0"
-        const val kotlinVersion = "1.3.72"
 
         const val guavaOsgiVersion = "version=\"[20.0,21)\""
         const val cordaOsgiVersion = "version=\"[5.0,6)\""
@@ -39,8 +38,7 @@ class CordappWithSameGuavaVersionAsCordaTest {
                 .build(
                     "-Pcordapp_contract_version=$expectedCordappContractVersion",
                     "-Pcorda_guava_version=$cordaGuavaVersion",
-                    "-Pguava_version=$cordaGuavaVersion",
-                    "-Pkotlin_version=$kotlinVersion"
+                    "-Pguava_version=$cordaGuavaVersion"
                 )
         }
     }

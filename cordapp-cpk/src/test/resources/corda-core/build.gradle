@@ -7,6 +7,9 @@ plugins {
 group = 'net.corda'
 version = '5.0.0'
 
+// Share the source files, but not the output files.
+buildDir = rootProject.file("cordaBuild")
+
 repositories {
     mavenCentral()
 }
@@ -14,11 +17,10 @@ repositories {
 dependencies {
     compileOnly "org.osgi:osgi.annotation:$osgi_version"
     implementation "org.jetbrains.kotlin:kotlin-osgi-bundle:$kotlin_version"
+    runtimeOnly "com.google.guava:guava:$corda_guava_version"
 }
 
 tasks.named('jar', Jar) {
-    archiveFileName = 'corda-core.jar'
-
     bnd """\
 Bundle-SymbolicName: net.corda.core
 Bundle-Name: Fake Corda Core
