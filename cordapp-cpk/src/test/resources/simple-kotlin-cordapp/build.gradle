@@ -33,7 +33,7 @@ cordapp {
 }
 
 dependencies {
-    cordaProvided files('../../corda-core/build/libs/corda-core.jar')
+    cordaProvided project(':corda-core')
     implementation "org.jetbrains.kotlin:kotlin-osgi-bundle:$kotlin_version"
     implementation "commons-io:commons-io:$commons_io_version"
     implementation "com.google.guava:guava:$guava_version"

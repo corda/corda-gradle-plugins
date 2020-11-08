@@ -9,6 +9,7 @@ description 'Configures this project to create a CPK CorDapp'
 
 ext {
     test_quasar_utils_version = '5.0.12'
+    corda_guava_version = '20.0'
 }
 
 repositories {
@@ -62,7 +63,6 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-params:$junit_jupiter_version")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junit_jupiter_version")
     testImplementation "org.assertj:assertj-core:$assertj_version"
-    testRuntimeOnly project(':cordapp-cpk:corda-core')
 }
 
 /**
@@ -83,6 +83,12 @@ tasks.named('compileKotlin') { Task task ->
 
 processTestResources {
     filesMatching('gradle.properties') {
-        expand(['quasar_utils_version': test_quasar_utils_version])
+        expand([
+            'quasar_utils_version': test_quasar_utils_version,
+            'corda_guava_version': corda_guava_version,
+            'osgi_version': osgi_version,
+            'kotlin_version': kotlin_version,
+            'bnd_version': bnd_version
+        ])
     }
 }

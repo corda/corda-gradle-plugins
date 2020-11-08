@@ -1,13 +1,16 @@
+// Common settings for all Gradle test projects.
 pluginManagement {
+    repositories {
+        gradlePluginPortal()
+    }
+
     plugins {
         id 'org.jetbrains.kotlin.jvm' version kotlin_version
         id 'biz.aQute.bnd.builder' version bnd_version
     }
 }
 
-rootProject.name = 'with-dependent-cordapp'
+rootProject.name = 'eager-jars'
 
-include 'library'
-include 'cordapp'
 include 'corda-core'
 project(':corda-core').projectDir = file('../resources/test/corda-core')
