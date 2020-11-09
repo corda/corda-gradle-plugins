@@ -139,6 +139,8 @@ open class DependencyCalculator @Inject constructor(objects: ObjectFactory) : De
         }
 
         // Finally, work out which jars from the compile classpath are excluded from the runtime classpath.
+        // We still ignore anything that was for "compile only", because we only want to validate packages
+        // that will be available at runtime.
         val compileConfiguration = configurations.getByName(COMPILE_CLASSPATH_CONFIGURATION_NAME).resolvedConfiguration
         val cordaFiles = cordaDeps.resolveFor(compileConfiguration).toFiles()
         val providedDeps = configurations.getByName(CORDA_PROVIDED_CONFIGURATION_NAME).allDependencies
