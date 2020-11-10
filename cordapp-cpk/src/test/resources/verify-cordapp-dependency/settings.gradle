@@ -1,0 +1,15 @@
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+    }
+
+    plugins {
+        id 'org.jetbrains.kotlin.jvm' version kotlin_version
+    }
+}
+
+rootProject.name = 'verify-cordapp-dependency'
+include 'cordapp'
+
+include 'corda-core'
+project(':corda-core').projectDir = file('../resources/test/corda-core')

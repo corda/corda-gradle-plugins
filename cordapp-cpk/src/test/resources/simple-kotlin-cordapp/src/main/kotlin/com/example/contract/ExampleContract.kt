@@ -6,7 +6,7 @@ import org.apache.commons.io.IOUtils
 import java.io.ByteArrayInputStream
 
 class ExampleContract : Contract {
-    override fun verify(tx: LedgerTransaction) {
+    override fun verify(ltx: LedgerTransaction) {
         ByteArrayInputStream("Hello Corda!".toByteArray()).use { input ->
             IOUtils.copy(input, System.out)
         }

@@ -145,10 +145,8 @@ open class DependencyCalculator @Inject constructor(objects: ObjectFactory) : De
         val cordaFiles = cordaDeps.resolveFor(compileConfiguration).toFiles()
         val providedDeps = configurations.getByName(CORDA_PROVIDED_CONFIGURATION_NAME).allDependencies
         val providedFiles = providedDeps.resolvedFilesFor(compileConfiguration)
-        val cordappDeps = configurations.getByName(CORDAPP_CONFIGURATION_NAME).allDependencies
-        val cordappFiles = cordappDeps.resolvedFilesFor(compileConfiguration)
         _externalJars.apply {
-            setFrom(providedFiles, cordaFiles, cordappFiles)
+            setFrom(providedFiles, cordaFiles)
             disallowChanges()
         }
     }
