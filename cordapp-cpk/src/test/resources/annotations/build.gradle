@@ -1,0 +1,31 @@
+import static org.gradle.api.JavaVersion.VERSION_1_8
+
+plugins {
+    id 'biz.aQute.bnd.builder'
+    id 'java'
+}
+
+apply from: '../repositories.gradle'
+
+group = 'com.example'
+version = '1.0.1'
+
+// Share the source files, but not the output files.
+buildDir = rootProject.file("annotationsBuild")
+
+tasks.withType(JavaCompile).configureEach {
+    sourceCompatibility = VERSION_1_8
+    targetCompatibility = VERSION_1_8
+}
+
+dependencies {
+    compileOnly "org.osgi:osgi.annotation:$osgi_version"
+
+    // This is a completely unnecessary transitive dependency.
+    // CorDapps are expected to ignore it.
+    implementation "commons-io:commons-io:$commons_io_version"
+}
+
+jar {
+    archiveBaseName = 'annotations'
+}

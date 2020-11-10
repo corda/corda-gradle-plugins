@@ -207,6 +207,8 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
          * The CPK artifact should have the same base-name and appendix as the CorDapp's [Jar] task.
          */
         val cpkTask = project.tasks.register(CPK_TASK_NAME, PackagingTask::class.java) { task ->
+            task.mustRunAfter(verifyBundle)
+
             // Basic configuration of the packaging task.
             task.destinationDirectory.set(jarTask.flatMap(Jar::getDestinationDirectory))
             task.archiveBaseName.set(jarTask.flatMap(Jar::getArchiveBaseName))

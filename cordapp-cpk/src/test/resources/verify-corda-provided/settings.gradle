@@ -1,0 +1,4 @@
+rootProject.name = 'verify-corda-provided'
+
+include 'annotations'
+project(':annotations').projectDir = file('../resources/test/annotations')
