@@ -19,7 +19,7 @@ if (org.gradle.api.JavaVersion.current().java9Compatible) {
     version = '0.8.2_r3'
     classifier = ''
 } else {
-    version = '0.7.14_r3-SNAPSHOT'
+    version = '0.7.14_r3'
 }
 """
 
@@ -48,7 +48,7 @@ apply from: 'repositories.gradle'
 task show {
     doFirst {
         def configs = configurations.matching {
-            it.name in ['quasar', 'quasarAgent', 'cordaRuntimeOnly', 'compileOnly', 'compileClasspath', 'runtimeClasspath']
+            it.name in ['quasar', 'quasarAgent', 'cordaRuntimeOnly', 'compileOnly', 'cordaProvided','compileClasspath', 'runtimeClasspath']
         }
         configs.collectEntries { [(it.name):it.incoming.dependencies] }.each { name, dependencies ->
             dependencies.each { dep ->
@@ -66,6 +66,7 @@ task show {
             "cordaRuntimeOnly: co.paralleluniverse:quasar-core-osgi:jar:${QUASAR_VERSION}:".toString(),
             "runtimeClasspath: co.paralleluniverse:quasar-core-osgi:jar:${QUASAR_VERSION}:".toString(),
             "compileOnly: co.paralleluniverse:quasar-core-osgi:jar:${QUASAR_VERSION}:".toString(),
+            "cordaProvided: co.paralleluniverse:quasar-core-osgi:jar:${QUASAR_VERSION}:".toString(),
             "compileClasspath: co.paralleluniverse:quasar-core-osgi:jar:${QUASAR_VERSION}:".toString()
         )
     }
@@ -94,7 +95,7 @@ apply from: 'repositories.gradle'
 task show {
     doFirst {
         def configs = configurations.matching {
-            it.name in ['quasar', 'quasarAgent', 'cordaRuntimeOnly', 'compileOnly', 'compileClasspath', 'runtimeClasspath']
+            it.name in ['quasar', 'quasarAgent', 'cordaRuntimeOnly', 'compileOnly', 'cordaProvided', 'compileClasspath', 'runtimeClasspath']
         }
         configs.collectEntries { [(it.name):it.incoming.dependencies] }.each { name, dependencies ->
             dependencies.each { dep ->
@@ -112,6 +113,7 @@ task show {
             "cordaRuntimeOnly: co.paralleluniverse:quasar-core-osgi:jar:${quasarVersion}:".toString(),
             "runtimeClasspath: co.paralleluniverse:quasar-core-osgi:jar:${quasarVersion}:".toString(),
             "compileOnly: co.paralleluniverse:quasar-core-osgi:jar:${quasarVersion}:".toString(),
+            "cordaProvided: co.paralleluniverse:quasar-core-osgi:jar:${quasarVersion}:".toString(),
             "compileClasspath: co.paralleluniverse:quasar-core-osgi:jar:${quasarVersion}:".toString()
         )
     }
@@ -141,7 +143,7 @@ quasar {
 task show {
     doFirst {
         def configs = configurations.matching {
-            it.name in ['quasar', 'quasarAgent', 'cordaRuntimeOnly', 'compileOnly', 'compileClasspath', 'runtimeClasspath']
+            it.name in ['quasar', 'quasarAgent', 'cordaRuntimeOnly', 'compileOnly', 'cordaProvided', 'compileClasspath', 'runtimeClasspath']
         }
         configs.collectEntries { [(it.name):it.incoming.dependencies] }.each { name, dependencies ->
             dependencies.each { dep ->
@@ -159,6 +161,7 @@ task show {
             "cordaRuntimeOnly: co.paralleluniverse:quasar-core-osgi:jar:${quasarVersion}:".toString(),
             "runtimeClasspath: co.paralleluniverse:quasar-core-osgi:jar:${quasarVersion}:".toString(),
             "compileOnly: co.paralleluniverse:quasar-core-osgi:jar:${quasarVersion}:".toString(),
+            "cordaProvided: co.paralleluniverse:quasar-core-osgi:jar:${quasarVersion}:".toString(),
             "compileClasspath: co.paralleluniverse:quasar-core-osgi:jar:${quasarVersion}:".toString()
         )
     }
@@ -178,7 +181,7 @@ apply plugin: 'net.corda.plugins.quasar-utils'
 
 task show {
     doFirst {
-        def configs = configurations.matching { it.name in ['quasar', 'quasarAgent', 'cordaRuntimeOnly', 'compileClasspath', 'compileOnly', 'runtimeClasspath'] }
+        def configs = configurations.matching { it.name in ['quasar', 'quasarAgent', 'cordaRuntimeOnly', 'compileClasspath', 'cordaProvided', 'compileOnly', 'runtimeClasspath'] }
         configs.collectEntries { [(it.name):it] }.each { name, files ->
             files.each { file ->
                 println "\$name: \${file.name}"
@@ -191,6 +194,7 @@ task show {
         assertThat(output.findAll { it.startsWith("quasarAgent:") }).hasSize(1)
         assertThat(output.findAll { it.startsWith("cordaRuntimeOnly:") }).hasSize(1)
         assertThat(output.findAll { it.startsWith("compileOnly:") }).hasSize(1)
+        assertThat(output.findAll { it.startsWith("cordaProvided:") }).hasSize(1)
         assertThat(output.findAll { it.startsWith("compileClasspath:") }).hasSize(1)
         assertThat(output.findAll { it.startsWith("runtimeClasspath:") }.size()).isGreaterThan(1)
     }

@@ -26,6 +26,7 @@ class QuasarPlugin implements Plugin<Project> {
     private static final String QUASAR = "quasar"
     private static final String QUASAR_AGENT = "quasarAgent"
     private static final String MINIMUM_GRADLE_VERSION = "5.1"
+    private static final String CORDA_PROVIDED_CONFIGURATION_NAME = "cordaProvided"
     private static final String CORDA_RUNTIME_ONLY_CONFIGURATION_NAME = "cordaRuntimeOnly"
     @PackageScope static final String defaultGroup = "co.paralleluniverse"
     @PackageScope static final String defaultVersion = "0.8.2_r3"
@@ -83,11 +84,11 @@ class QuasarPlugin implements Plugin<Project> {
         }
 
         // Add Quasar bundle to the compile classpath WITHOUT any of its transitive dependencies.
-        project.configurations.getByName(COMPILE_ONLY_CONFIGURATION_NAME).extendsFrom(quasar)
+        createCompileOnlyConfiguration(CORDA_PROVIDED_CONFIGURATION_NAME, project.configurations).extendsFrom(quasar)
 
         // Instrumented code needs both the Quasar bundle and its transitive dependencies at runtime.
-        def cordaRuntime = createRuntimeOnlyConfiguration(CORDA_RUNTIME_ONLY_CONFIGURATION_NAME, project.configurations)
-        cordaRuntime.withDependencies { dependencies ->
+        def cordaRuntimeOnly = createRuntimeOnlyConfiguration(CORDA_RUNTIME_ONLY_CONFIGURATION_NAME, project.configurations)
+        cordaRuntimeOnly.withDependencies { dependencies ->
             def quasarDependency = project.dependencies.create(extension.dependency.get()) {
                 it.transitive = true
             }
@@ -113,10 +114,21 @@ class QuasarPlugin implements Plugin<Project> {
     private static Configuration createRuntimeOnlyConfiguration(String name, ConfigurationContainer configurations) {
         Configuration configuration = configurations.findByName(name)
         if (configuration == null) {
-            Configuration parent = configurations.getByName(RUNTIME_ONLY_CONFIGURATION_NAME)
             configuration = configurations.create(name)
             configuration.transitive = false
-            parent.extendsFrom(configuration)
+            configurations.getByName(RUNTIME_ONLY_CONFIGURATION_NAME).extendsFrom(configuration)
+        }
+        return configuration
+    }
+
+    private static Configuration createCompileOnlyConfiguration(String name, ConfigurationContainer configurations) {
+        Configuration configuration = configurations.findByName(name)
+        if (configuration == null) {
+            configuration = configurations.create(name)
+            configurations.getByName(COMPILE_ONLY_CONFIGURATION_NAME).extendsFrom(configuration)
+            configurations.matching { it.name.endsWith("CompileOnly") }.configureEach { cfg ->
+                cfg.extendsFrom(configuration)
+            }
         }
         return configuration
     }
