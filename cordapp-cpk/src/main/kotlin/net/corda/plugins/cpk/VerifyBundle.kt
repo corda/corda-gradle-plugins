@@ -13,7 +13,9 @@ import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Classpath
+import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.PathSensitive
@@ -45,6 +47,9 @@ open class VerifyBundle @Inject constructor(objects: ObjectFactory) : DefaultTas
         @InputFiles
         get() = _classpath
 
+    @get:Input
+    val strict: Property<Boolean> = objects.property(Boolean::class.java).convention(true)
+
     /**
      * Don't eagerly configure the [DependencyCalculator] task, even if
      * someone eagerly configures this [VerifyBundle] by accident.
@@ -62,7 +67,7 @@ open class VerifyBundle @Inject constructor(objects: ObjectFactory) : DefaultTas
 
     private fun verify(jar: Jar) {
         Verifier(jar).use { verifier ->
-            verifier.setProperty(STRICT, "true")
+            verifier.setProperty(STRICT, strict.get().toString())
             verifier.verify()
             verifyImportPackage(verifier)
 
