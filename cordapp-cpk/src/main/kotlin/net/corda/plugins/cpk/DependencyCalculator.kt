@@ -21,7 +21,6 @@ import org.gradle.api.tasks.OutputFiles
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.TaskDependency
 import java.io.File
-import java.util.Collections.unmodifiableSet
 import javax.inject.Inject
 
 @Suppress("UnstableApiUsage")
@@ -29,17 +28,6 @@ open class DependencyCalculator @Inject constructor(objects: ObjectFactory) : De
     private companion object {
         const val NON_CORDA = false
         const val CORDA = true
-
-        private val HARDCODED_EXCLUDES: Set<Pair<String, String>> = unmodifiableSet(setOf(
-            "org.jetbrains.kotlin" to "*",
-            "net.corda.kotlin" to "*",
-            "org.osgi" to "*",
-            "org.slf4j" to "slf4j-api",
-            "org.slf4j" to "jcl-over-slf4j",
-            "commons-logging" to "commons-logging",
-            "co.paralleluniverse" to "quasar-core",
-            "co.paralleluniverse" to "quasar-core-osgi"
-        ))
     }
 
     init {

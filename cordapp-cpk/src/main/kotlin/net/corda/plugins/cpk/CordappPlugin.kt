@@ -9,6 +9,7 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Dependency.ARCHIVES_CONFIGURATION
+import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.java.archives.Attributes
 import org.gradle.api.plugins.JavaPlugin
@@ -49,7 +50,7 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
             return firstIdx..size - 2
         }
 
-        private fun getBndVersion(): String {
+        private val bndVersion: String get() {
             val properties = Properties().also { props ->
                 this::class.java.classLoader.getResourceAsStream(BNDLIB_PROPERTIES)?.use(props::load)
             }
@@ -81,10 +82,18 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
         project.pluginManager.apply(BndBuilderPlugin::class.java)
 
         // Create our plugin's "cordapp" extension.
-        cordapp = project.extensions.create(CORDAPP_EXTENSION_NAME, CordappExtension::class.java, getBndVersion())
+        cordapp = project.extensions.create(CORDAPP_EXTENSION_NAME, CordappExtension::class.java, bndVersion)
 
         project.configurations.apply {
-            createCompileOnlyConfiguration(CORDAPP_CONFIGURATION_NAME)
+            // Strip unwanted transitive dependencies from incoming CorDapps.
+            createCompileOnlyConfiguration(CORDAPP_CONFIGURATION_NAME).withDependencies { dependencies ->
+                val excludeRules = HARDCODED_EXCLUDES.map { exclude ->
+                    mapOf("group" to exclude.first, "module" to exclude.second)
+                }
+                dependencies.filterIsInstance(ModuleDependency::class.java).forEach { dep ->
+                    excludeRules.forEach { rule -> dep.exclude(rule) }
+                }
+            }
             createCompileOnlyConfiguration(CORDA_PROVIDED_CONFIGURATION_NAME)
             createImplementationConfiguration(CORDA_EMBEDDED_CONFIGURATION_NAME)
             createRuntimeOnlyConfiguration(CORDA_RUNTIME_ONLY_CONFIGURATION_NAME)
