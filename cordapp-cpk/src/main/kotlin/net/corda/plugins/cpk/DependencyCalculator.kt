@@ -86,7 +86,7 @@ open class DependencyCalculator @Inject constructor(objects: ObjectFactory) : De
         // that the user has selected for this CPK archive. We ignore any
         // dependencies from the cordaRuntimeOnly configuration because
         // these will be provided by Corda.
-        val runtimeConfiguration = configurations.getByName(RUNTIME_CLASSPATH_CONFIGURATION_NAME)
+        val runtimeConfiguration = configurations.getByName(CORDAPP_PACKAGING_CONFIGURATION_NAME)
         val runtimeDeps = DependencyCollector(CORDA_RUNTIME_ONLY_CONFIGURATION_NAME)
             .collectFrom(runtimeConfiguration)
 

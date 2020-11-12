@@ -20,6 +20,7 @@ import kotlin.test.fail
 const val expectedCordappContractVersion = 2
 const val expectedCordappWorkflowVersion = 3
 const val cordaReleaseVersion = "4.6"
+const val commonsCollectionsVersion = "3.2.2"
 const val commonsIoVersion = "2.8.0"
 
 @Suppress("unused", "MemberVisibilityCanBePrivate")
