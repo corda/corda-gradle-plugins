@@ -55,3 +55,22 @@ fun ConfigurationContainer.createRuntimeOnlyConfiguration(name: String): Configu
 fun ConfigurationContainer.createImplementationConfiguration(name: String): Configuration {
     return createChildConfiguration(name, getByName(IMPLEMENTATION_CONFIGURATION_NAME))
 }
+
+val List<String>.isJavaIdentifiers: Boolean get() {
+    return this.all(String::isJavaIdentifier)
+}
+
+val String.isJavaIdentifier: Boolean get() {
+    if (isEmpty() || !Character.isJavaIdentifierStart(this[0])) {
+        return false
+    }
+
+    var idx = length
+    while (--idx > 0) {
+        if (!Character.isJavaIdentifierPart(this[idx])) {
+            return false
+        }
+    }
+
+    return true
+}
