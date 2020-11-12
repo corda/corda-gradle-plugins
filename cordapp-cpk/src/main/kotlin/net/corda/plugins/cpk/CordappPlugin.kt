@@ -15,6 +15,7 @@ import org.gradle.api.java.archives.Attributes
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME
 import org.gradle.api.plugins.JavaPlugin.JAR_TASK_NAME
+import org.gradle.api.plugins.JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.provider.HasConfigurableValue
 import org.gradle.api.provider.Property
@@ -95,14 +96,25 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
                 }
             }
             createCompileOnlyConfiguration(CORDA_PROVIDED_CONFIGURATION_NAME)
-            createImplementationConfiguration(CORDA_EMBEDDED_CONFIGURATION_NAME)
             createRuntimeOnlyConfiguration(CORDA_RUNTIME_ONLY_CONFIGURATION_NAME)
-            findByName(CORDA_CPK_CONFIGURATION_NAME) ?: create(CORDA_CPK_CONFIGURATION_NAME)
+            maybeCreate(CORDA_CPK_CONFIGURATION_NAME)
 
             getByName(COMPILE_ONLY_CONFIGURATION_NAME).withDependencies { dependencies ->
                 val bndDependency = project.dependencies.create("biz.aQute.bnd:biz.aQute.bnd.annotation:" + cordapp.bndVersion.get())
                 dependencies.add(bndDependency)
             }
+
+            val cordaEmbedded = createCompileOnlyConfiguration(CORDA_EMBEDDED_CONFIGURATION_NAME)
+
+            // We need to resolve the contents of our CPK file based on
+            // both the runtimeClasspath and cordaEmbedded configurations.
+            // This won't happen by default because cordaEmbedded is a
+            // "compile only" configuration.
+            @Suppress("UsePropertyAccessSyntax")
+            create(CORDAPP_PACKAGING_CONFIGURATION_NAME)
+                .extendsFrom(getByName(RUNTIME_CLASSPATH_CONFIGURATION_NAME))
+                .extendsFrom(cordaEmbedded)
+                .setVisible(false)
         }
 
         configureCordappTasks(project)

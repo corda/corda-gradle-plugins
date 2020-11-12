@@ -1,0 +1,45 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import static org.gradle.api.JavaVersion.*
+
+plugins {
+    id 'net.corda.plugins.cordapp-cpk'
+    id 'org.jetbrains.kotlin.jvm'
+}
+
+apply from: 'repositories.gradle'
+
+group = 'com.example'
+version = host_version
+
+cordapp {
+    targetPlatformVersion = platform_version.toInteger()
+    minimumPlatformVersion = platform_version.toInteger()
+
+    contract {
+        name = 'CorDapp Transitive Dependencies'
+        versionId = cordapp_contract_version.toInteger()
+        licence = 'Test-Licence'
+        vendor = 'R3'
+    }
+}
+
+allprojects {
+    tasks.withType(KotlinCompile).configureEach {
+        kotlinOptions {
+            jvmTarget = VERSION_1_8
+            apiVersion = '1.3'
+            languageVersion = '1.3'
+            freeCompilerArgs = ['-Xjvm-default=enable']
+        }
+    }
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-osgi-bundle:$kotlin_version"
+    cordaProvided project(':corda-core')
+    cordapp project(':cordapp')
+}
+
+jar {
+    archiveBaseName = 'cordapp-transitive-deps'
+}
