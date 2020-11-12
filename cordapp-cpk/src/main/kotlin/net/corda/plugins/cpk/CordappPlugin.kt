@@ -154,7 +154,7 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
                     val packageRange = elements.packageRange
                     if (!packageRange.isEmpty()) {
                         val packageName = elements.slice(packageRange)
-                        if (packageName[0] != "META-INF" && packageName[0] != "OSGI-INF") {
+                        if (packageName[0] != "META-INF" && packageName[0] != "OSGI-INF" && packageName.isJavaIdentifiers) {
                             autoPackages.add(packageName.joinToString("."))
                         }
                     }

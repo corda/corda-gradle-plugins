@@ -2,6 +2,7 @@ package net.corda.plugins.cpk
 
 import aQute.bnd.build.model.EE
 import aQute.bnd.osgi.Analyzer
+import aQute.bnd.osgi.Constants.OPTIONAL
 import aQute.bnd.osgi.Constants.RESOLUTION_DIRECTIVE
 import aQute.bnd.osgi.Constants.STRICT
 import aQute.bnd.osgi.Descriptors.TypeRef
@@ -100,7 +101,7 @@ open class VerifyBundle @Inject constructor(objects: ObjectFactory) : DefaultTas
             if (!packageSpace.contains(packageRef)
                     && !systemPackages.containsKey(packageName)
                     && !classpathPackages.contains(packageName)
-                    && !importPackage.value.containsKey(RESOLUTION_DIRECTIVE)) {
+                    && (importPackage.value[RESOLUTION_DIRECTIVE] != OPTIONAL)) {
                 verifier.error("Import Package clause found for missing package [%s]", packageName)
             }
         }
@@ -121,19 +122,26 @@ open class VerifyBundle @Inject constructor(objects: ObjectFactory) : DefaultTas
                         continue
                     }
 
-                    val binaryName = if (entryName.startsWith("META-INF/")) {
+                    val binaryFQN = if (entryName.startsWith("META-INF/")) {
                         (MULTI_RELEASE.matchEntire(entryName) ?: continue).groupValues[1]
                     } else {
                         entryName
                     }
-                    packages.add(binaryName.toPackageName())
+                    val binaryPackageName = binaryFQN.substringBeforeLast('/')
+                    if (isValidPackage(binaryPackageName)) {
+                        packages.add(binaryPackageName.toPackageName())
+                    }
                 }
             }
             packages
         }
     }
 
+    private fun isValidPackage(name: String): Boolean {
+        return name.split('/').all(String::isJavaIdentifier)
+    }
+
     private fun String.toPackageName(): String {
-        return substringBeforeLast('/').replace('/', '.')
+        return replace('/', '.')
     }
 }
