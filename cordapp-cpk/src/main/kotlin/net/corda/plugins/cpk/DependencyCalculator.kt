@@ -85,9 +85,11 @@ open class DependencyCalculator @Inject constructor(objects: ObjectFactory) : De
         // Compute the (unresolved) dependencies on the runtime classpath
         // that the user has selected for this CPK archive. We ignore any
         // dependencies from the cordaRuntimeOnly configuration because
-        // these will be provided by Corda.
+        // these will be provided by Corda. Also ignore anything from the
+        // cordaEmbedded configuration, because these will be added to the
+        // bundle classpath.
         val runtimeConfiguration = configurations.getByName(CORDAPP_PACKAGING_CONFIGURATION_NAME)
-        val runtimeDeps = DependencyCollector(CORDA_RUNTIME_ONLY_CONFIGURATION_NAME)
+        val runtimeDeps = DependencyCollector(CORDA_RUNTIME_ONLY_CONFIGURATION_NAME, CORDA_EMBEDDED_CONFIGURATION_NAME)
             .collectFrom(runtimeConfiguration)
 
         // There are some dependencies that Corda MUST always provide,
@@ -102,27 +104,21 @@ open class DependencyCalculator @Inject constructor(objects: ObjectFactory) : De
         // Compute the set of resolved artifacts that will define this CorDapp.
         val packagingConfiguration = runtimeConfiguration.resolvedConfiguration
         val packageFiles = (
-            nonCordaDeps.resolveFor(packagingConfiguration)
-                .filterNot { artifact -> isCordaProvided(artifact.moduleVersion.id) }
-                .also { artifacts ->
-                    // Corda artifacts should not be included, either directly or transitively.
-                    warnAboutCordaArtifacts("net.corda", artifacts)
-                    warnAboutCordaArtifacts("com.r3.corda", artifacts)
-                }
+            nonCordaDeps.resolveWithoutCorda(packagingConfiguration)
             + getCordappArtifacts(configurations)
             - cordaDeps.resolveFor(packagingConfiguration)
         ).toFiles() + nonCordaDeps.toSelfResolvingFiles()
 
         // Separate out any jars which we want to embed instead.
-        val embeddedDeps = configurations.getByName(CORDA_EMBEDDED_CONFIGURATION_NAME).allDependencies
-        val embeddedFiles = embeddedDeps.resolvedFilesFor(packagingConfiguration)
-        val cpkFiles = packageFiles - embeddedFiles
-        _embeddedJars.apply {
-            setFrom(packageFiles - cpkFiles)
+        // Avoid embedding anything which another CorDapp depends on.
+        val embeddedDeps = configurations.getByName(CORDA_EMBEDDED_CONFIGURATION_NAME).allDependencies - runtimeDeps
+        val embeddedFiles = embeddedDeps.resolveWithoutCorda(packagingConfiguration).toFiles() + embeddedDeps.toSelfResolvingFiles() - packageFiles
+       _embeddedJars.apply {
+            setFrom(embeddedFiles)
             disallowChanges()
         }
         _dependencies.apply {
-            setFrom(cpkFiles)
+            setFrom(packageFiles)
             disallowChanges()
         }
 
@@ -152,6 +148,16 @@ open class DependencyCalculator @Inject constructor(objects: ObjectFactory) : De
     private fun Collection<Dependency>.resolveFor(configuration: ResolvedConfiguration): Set<ResolvedArtifact> {
         return configuration.getFirstLevelModuleDependencies { contains(it) }
             .flatMapTo(LinkedHashSet(), ResolvedDependency::getAllModuleArtifacts)
+    }
+
+    private fun Collection<Dependency>.resolveWithoutCorda(configuration: ResolvedConfiguration): List<ResolvedArtifact> {
+        return resolveFor(configuration)
+            .filterNot { artifact -> isCordaProvided(artifact.moduleVersion.id) }
+            .also { artifacts ->
+                // Corda artifacts should not be included, either directly or transitively.
+                warnAboutCordaArtifacts("net.corda", artifacts)
+                warnAboutCordaArtifacts("com.r3.corda", artifacts)
+            }
     }
 
     // Resolve transitive dependencies for each CorDapp individually.
@@ -192,8 +198,8 @@ open class DependencyCalculator @Inject constructor(objects: ObjectFactory) : De
     }
 }
 
-private class DependencyCollector(excludeName: String) {
-    private val excludeNames = mutableSetOf(excludeName)
+private class DependencyCollector(vararg excludeName: String) {
+    private val excludeNames = mutableSetOf(*excludeName)
 
     fun collectFrom(source: Configuration): Set<Dependency> {
         val result = mutableSetOf<Dependency>()
