@@ -48,6 +48,11 @@ open class DependencyCalculator @Inject constructor(objects: ObjectFactory) : De
         @OutputFiles
         get() = _embeddedJars.elements
 
+    private val _unbundledJars: ConfigurableFileCollection = objects.fileCollection()
+    val unbundledJars: Provider<Set<FileSystemLocation>>
+        @OutputFiles
+        get() = _unbundledJars.elements
+
     private val _externalJars: ConfigurableFileCollection = objects.fileCollection()
     val externalJars: Provider<Set<FileSystemLocation>>
         @OutputFiles
@@ -112,9 +117,14 @@ open class DependencyCalculator @Inject constructor(objects: ObjectFactory) : De
         // Separate out any jars which we want to embed instead.
         // Avoid embedding anything which another CorDapp depends on.
         val embeddedDeps = configurations.getByName(CORDA_EMBEDDED_CONFIGURATION_NAME).allDependencies - runtimeDeps
-        val embeddedFiles = embeddedDeps.resolveWithoutCorda(packagingConfiguration).toFiles() + embeddedDeps.toSelfResolvingFiles() - packageFiles
-       _embeddedJars.apply {
-            setFrom(embeddedFiles)
+        val embeddedFiles = embeddedDeps.resolveWithoutCorda(packagingConfiguration).toFiles() + embeddedDeps.toSelfResolvingFiles()
+        val bundledFiles = embeddedFiles - packageFiles
+        _embeddedJars.apply {
+            setFrom(bundledFiles)
+            disallowChanges()
+        }
+        _unbundledJars.apply {
+            setFrom(embeddedFiles - bundledFiles)
             disallowChanges()
         }
         _dependencies.apply {

@@ -1,17 +1,16 @@
 import static org.gradle.api.JavaVersion.VERSION_1_8
 
 plugins {
-    id 'biz.aQute.bnd.builder'
+    // We are DELIBERATELY NOT creating an OSGi bundle.
     id 'java-library'
 }
 
 apply from: '../repositories.gradle'
 
 group = 'com.example'
-version = '1.0.1'
 
 // Share the source files, but not the output files.
-buildDir = rootProject.file("annotationsBuild")
+buildDir = rootProject.file("embeddableLibraryBuild")
 
 tasks.withType(JavaCompile).configureEach {
     sourceCompatibility = VERSION_1_8
@@ -19,13 +18,10 @@ tasks.withType(JavaCompile).configureEach {
 }
 
 dependencies {
-    compileOnly "org.osgi:osgi.annotation:$osgi_version"
-
-    // This is a completely unnecessary transitive dependency.
-    // CorDapps are expected to ignore it.
     implementation "commons-io:commons-io:$commons_io_version"
+    implementation "org.slf4j:slf4j-api:$slf4j_version"
 }
 
 jar {
-    archiveBaseName = 'annotations'
+    archiveBaseName = 'embeddable-library'
 }
