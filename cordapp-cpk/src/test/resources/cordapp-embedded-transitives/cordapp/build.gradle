@@ -1,0 +1,35 @@
+import static org.gradle.api.JavaVersion.*
+
+plugins {
+    id 'net.corda.plugins.cordapp-cpk'
+    id 'org.jetbrains.kotlin.jvm'
+}
+
+apply from: '../repositories.gradle'
+
+group = 'com.example'
+version = cordapp_version
+
+cordapp {
+    targetPlatformVersion = platform_version.toInteger()
+    minimumPlatformVersion = platform_version.toInteger()
+
+    contract {
+        name = 'CorDapp'
+        versionId = cordapp_contract_version.toInteger()
+        licence = 'Test-Licence'
+        vendor = 'R3'
+    }
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-osgi-bundle:$kotlin_version"
+    cordaEmbedded project(':embeddable-library')
+    cordaProvided project(':corda-core')
+    cordaProvided "org.slf4j:slf4j-api:$slf4j_version"
+    implementation "commons-io:commons-io:$commons_io_version"
+}
+
+jar {
+    archiveBaseName = 'cordapp'
+}

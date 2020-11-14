@@ -1,0 +1,47 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import static org.gradle.api.JavaVersion.*
+
+plugins {
+    id 'net.corda.plugins.cordapp-cpk'
+    id 'org.jetbrains.kotlin.jvm'
+}
+
+apply from: 'repositories.gradle'
+
+group = 'com.example'
+version = host_version
+
+cordapp {
+    targetPlatformVersion = platform_version.toInteger()
+    minimumPlatformVersion = platform_version.toInteger()
+
+    contract {
+        name = 'CorDapp Embedded Transitives'
+        versionId = cordapp_contract_version.toInteger()
+        licence = 'Test-Licence'
+        vendor = 'R3'
+    }
+}
+
+allprojects {
+    tasks.withType(KotlinCompile).configureEach {
+        kotlinOptions {
+            jvmTarget = VERSION_1_8
+            apiVersion = '1.3'
+            languageVersion = '1.3'
+            freeCompilerArgs = ['-Xjvm-default=enable']
+        }
+    }
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-osgi-bundle:$kotlin_version"
+    cordaProvided "org.slf4j:slf4j-api:$slf4j_version"
+    cordaEmbedded project(':embeddable-library')
+    cordaProvided project(':corda-core')
+    cordapp project(':cordapp')
+}
+
+jar {
+    archiveBaseName = 'cordapp-embedded-transitives'
+}

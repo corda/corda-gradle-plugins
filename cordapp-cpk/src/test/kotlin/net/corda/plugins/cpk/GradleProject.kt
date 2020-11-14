@@ -22,6 +22,7 @@ const val expectedCordappWorkflowVersion = 3
 const val cordaReleaseVersion = "4.6"
 const val commonsCollectionsVersion = "3.2.2"
 const val commonsIoVersion = "2.8.0"
+const val slf4jVersion = "1.7.30"
 
 @Suppress("unused", "MemberVisibilityCanBePrivate")
 class GradleProject(private val projectDir: Path, private val reporter: TestReporter) {

@@ -174,6 +174,10 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
             }
 
             with(jar.convention.getPlugin(BundleTaskConvention::class.java)) {
+                // Add jars which have been migrated off the Bundle-Classpath
+                // back into Bnd's regular classpath.
+                classpath(calculatorTask.flatMap(DependencyCalculator::unbundledJars))
+
                 // Add a Bnd instruction to export the set of observed package names.
                 bnd(osgi.exports)
 

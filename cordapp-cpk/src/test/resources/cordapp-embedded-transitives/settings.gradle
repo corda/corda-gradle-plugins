@@ -1,0 +1,18 @@
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+    }
+
+    plugins {
+        id 'org.jetbrains.kotlin.jvm' version kotlin_version
+    }
+}
+
+rootProject.name = 'cordapp-transitive-deps'
+
+include 'cordapp'
+include 'embeddable-library'
+project(':embeddable-library').projectDir = file("../resources/test/embeddable-library")
+
+include 'corda-core'
+project(':corda-core').projectDir = file('../resources/test/corda-core')
