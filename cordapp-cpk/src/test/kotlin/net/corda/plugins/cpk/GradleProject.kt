@@ -20,6 +20,7 @@ import kotlin.test.fail
 const val expectedCordappContractVersion = 2
 const val expectedCordappWorkflowVersion = 3
 const val cordaReleaseVersion = "4.6"
+const val annotationsVersion = "1.0.1"
 const val commonsCollectionsVersion = "3.2.2"
 const val commonsIoVersion = "2.8.0"
 const val slf4jVersion = "1.7.30"

@@ -1,0 +1,16 @@
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+    }
+
+    plugins {
+        id 'biz.aQute.bnd.builder' version bnd_version
+    }
+}
+
+rootProject.name = 'embed-transitive-deps'
+
+include 'library'
+
+include 'annotations'
+project(':annotations').projectDir = file("../resources/test/annotations")

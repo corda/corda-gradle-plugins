@@ -35,6 +35,7 @@ class VerifyCompileOnlyDependencyTest {
                 .withSubResource("src/main/java/com/example/sample/Host.java")
                 .build(
                     "-Pcordapp_contract_version=$expectedCordappContractVersion",
+                    "-Pannotations_version=$annotationsVersion",
                     "-Pcommons_io_version=$commonsIoVersion",
                     "-Pcordapp_version=$cordappVersion"
                 )

@@ -24,6 +24,7 @@ class CordappTransitiveDependencyTest {
                 .build(
                     "-Pcordapp_contract_version=$expectedCordappContractVersion",
                     "-Pcommons_collections_version=$commonsCollectionsVersion",
+                    "-Pannotations_version=$annotationsVersion",
                     "-Pcommons_io_version=$commonsIoVersion",
                     "-Pcordapp_version=$cordappVersion",
                     "-Phost_version=$hostVersion"
