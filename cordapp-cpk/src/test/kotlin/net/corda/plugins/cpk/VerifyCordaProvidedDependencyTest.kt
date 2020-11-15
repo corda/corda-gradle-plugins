@@ -23,7 +23,7 @@ class VerifyCordaProvidedDependencyTest {
     companion object {
         private const val cordappVersion = "1.0.9.SNAPSHOT"
         private const val cordappOsgiVersion = "version=\"1.0.9\""
-        private const val annotationsVersion = "version=\"[1.0,2)\""
+        private const val annotationsOsgiVersion = "version=\"[1.0,2)\""
 
         private lateinit var testProject: GradleProject
 
@@ -36,6 +36,7 @@ class VerifyCordaProvidedDependencyTest {
                 .withSubResource("src/main/java/com/example/provided/Host.java")
                 .build(
                     "-Pcordapp_contract_version=$expectedCordappContractVersion",
+                    "-Pannotations_version=$annotationsVersion",
                     "-Pcommons_io_version=$commonsIoVersion",
                     "-Pcordapp_version=$cordappVersion"
                 )
@@ -63,7 +64,7 @@ class VerifyCordaProvidedDependencyTest {
             assertEquals("Verify Corda Provided", getValue(BUNDLE_NAME))
             assertEquals("com.example.verify-corda-provided", getValue(BUNDLE_SYMBOLICNAME))
             assertEquals("1.0.9.SNAPSHOT", getValue(BUNDLE_VERSION))
-            assertEquals("com.example.annotations;$annotationsVersion", getValue(IMPORT_PACKAGE))
+            assertEquals("com.example.annotations;$annotationsOsgiVersion", getValue(IMPORT_PACKAGE))
             assertEquals("com.example.provided;uses:=\"com.example.annotations\";$cordappOsgiVersion", getValue(EXPORT_PACKAGE))
             assertEquals("osgi.ee;filter:=\"(&(osgi.ee=JavaSE)(version=1.8))\"", getValue(REQUIRE_CAPABILITY))
             assertEquals("Test-Licence", getValue(BUNDLE_LICENSE))

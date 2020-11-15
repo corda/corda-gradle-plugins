@@ -74,8 +74,8 @@ class CordappWithEmbeddedTransitivesTest {
                 .toList()
         }
         assertThat(libs)
-            .hasSize(1)
             .contains("lib/embeddable-library.jar")
+            .hasSize(1)
 
         val jarManifest = JarFile(cordapp.toFile()).use(JarFile::getManifest)
         println(jarManifest.mainAttributes.entries)
@@ -91,7 +91,7 @@ class CordappWithEmbeddedTransitivesTest {
 
             assertThat(getValue(BUNDLE_CLASSPATH))
                 .startsWith(".,")
-                .contains(*libs.map { ",$it" }.toTypedArray())
+                .contains(libs.map { ",$it" })
             assertThat(getValue(IMPORT_PACKAGE)).contains(
                 "com.example.cordapp;$cordappOsgiVersion",
                 "net.corda.core.transactions;$cordaOsgiVersion",

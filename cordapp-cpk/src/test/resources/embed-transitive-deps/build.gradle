@@ -1,0 +1,38 @@
+import static org.gradle.api.JavaVersion.VERSION_1_8
+
+plugins {
+    id 'net.corda.plugins.cordapp-cpk'
+}
+
+apply from: 'repositories.gradle'
+
+group = 'com.example'
+version = cordapp_version
+
+cordapp {
+    targetPlatformVersion = platform_version.toInteger()
+    minimumPlatformVersion = platform_version.toInteger()
+
+    contract {
+        name = 'Embed Transitive Dependencies'
+        versionId = cordapp_contract_version.toInteger()
+        licence = 'Test-Licence'
+        vendor = 'R3'
+    }
+}
+
+allprojects {
+    tasks.withType(JavaCompile).configureEach {
+        sourceCompatibility = VERSION_1_8
+        targetCompatibility = VERSION_1_8
+    }
+}
+
+dependencies {
+    implementation project(':library')
+    cordaEmbedded project(':annotations')
+}
+
+jar {
+    archiveBaseName = 'embed-transitive-deps'
+}

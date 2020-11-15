@@ -106,19 +106,28 @@ open class DependencyCalculator @Inject constructor(objects: ObjectFactory) : De
             Pair(group[CORDA] ?: emptySet<Dependency>(), group[NON_CORDA] ?: emptySet<Dependency>())
         }
 
+        // Dependent CorDapps and their own transitive dependencies.
+        // We cannot alter any of these.
+        val cordappArtifacts = getCordappArtifacts(configurations)
+
         // Compute the set of resolved artifacts that will define this CorDapp.
         val packagingConfiguration = runtimeConfiguration.resolvedConfiguration
         val packageFiles = (
             nonCordaDeps.resolveWithoutCorda(packagingConfiguration)
-            + getCordappArtifacts(configurations)
-            - cordaDeps.resolveFor(packagingConfiguration)
+            + cordappArtifacts
+            - cordaDeps.resolveAllFor(packagingConfiguration)
         ).toFiles() + nonCordaDeps.toSelfResolvingFiles()
 
         // Separate out any jars which we want to embed instead.
         // Avoid embedding anything which another CorDapp depends on.
         val embeddedDeps = configurations.getByName(CORDA_EMBEDDED_CONFIGURATION_NAME).allDependencies - runtimeDeps
         val embeddedFiles = embeddedDeps.resolveWithoutCorda(packagingConfiguration).toFiles() + embeddedDeps.toSelfResolvingFiles()
-        val bundledFiles = embeddedFiles - packageFiles
+
+        // The user has explicitly asked to embed these artifacts. The only reason
+        // for not doing so is that they might be required by dependent CorDapps.
+        val mustEmbedArtifacts = embeddedDeps.resolveFirstLevelFor(packagingConfiguration) - cordappArtifacts
+
+        val bundledFiles = embeddedFiles - packageFiles + mustEmbedArtifacts.toFiles()
         _embeddedJars.apply {
             setFrom(bundledFiles)
             disallowChanges()
@@ -128,7 +137,7 @@ open class DependencyCalculator @Inject constructor(objects: ObjectFactory) : De
             disallowChanges()
         }
         _dependencies.apply {
-            setFrom(packageFiles)
+            setFrom(packageFiles - bundledFiles)
             disallowChanges()
         }
 
@@ -136,17 +145,17 @@ open class DependencyCalculator @Inject constructor(objects: ObjectFactory) : De
         // We still ignore anything that was for "compile only", because we only want to validate packages
         // that will be available at runtime.
         val compileConfiguration = configurations.getByName(COMPILE_CLASSPATH_CONFIGURATION_NAME).resolvedConfiguration
-        val cordaFiles = cordaDeps.resolveFor(compileConfiguration).toFiles()
+        val cordaFiles = cordaDeps.resolveAllFor(compileConfiguration).toFiles()
         val providedDeps = configurations.getByName(CORDA_PROVIDED_CONFIGURATION_NAME).allDependencies
-        val providedFiles = providedDeps.resolvedFilesFor(compileConfiguration)
+        val providedFiles = providedDeps.resolvedAllFilesFor(compileConfiguration)
         _externalJars.apply {
             setFrom(providedFiles, cordaFiles)
             disallowChanges()
         }
     }
 
-    private fun Collection<Dependency>.resolvedFilesFor(configuration: ResolvedConfiguration): Set<File> {
-        return resolveFor(configuration).toFiles() + toSelfResolvingFiles()
+    private fun Collection<Dependency>.resolvedAllFilesFor(configuration: ResolvedConfiguration): Set<File> {
+        return resolveAllFor(configuration).toFiles() + toSelfResolvingFiles()
     }
 
     private fun Collection<ResolvedArtifact>.toFiles(): Set<File> = mapTo(LinkedHashSet(), ResolvedArtifact::getFile)
@@ -155,13 +164,21 @@ open class DependencyCalculator @Inject constructor(objects: ObjectFactory) : De
         = filterIsInstance(SelfResolvingDependency::class.java)
             .flatMapTo(LinkedHashSet(), SelfResolvingDependency::resolve)
 
-    private fun Collection<Dependency>.resolveFor(configuration: ResolvedConfiguration): Set<ResolvedArtifact> {
+    private fun Collection<Dependency>.resolveAllFor(configuration: ResolvedConfiguration): Set<ResolvedArtifact> {
+        return resolveFor(configuration, ResolvedDependency::getAllModuleArtifacts)
+    }
+
+    private fun Collection<Dependency>.resolveFirstLevelFor(configuration: ResolvedConfiguration): Set<ResolvedArtifact> {
+        return resolveFor(configuration, ResolvedDependency::getModuleArtifacts)
+    }
+
+    private fun Collection<Dependency>.resolveFor(configuration: ResolvedConfiguration, fetchArtifacts: (ResolvedDependency) -> Iterable<ResolvedArtifact>): Set<ResolvedArtifact> {
         return configuration.getFirstLevelModuleDependencies { contains(it) }
-            .flatMapTo(LinkedHashSet(), ResolvedDependency::getAllModuleArtifacts)
+            .flatMapTo(LinkedHashSet(), fetchArtifacts)
     }
 
     private fun Collection<Dependency>.resolveWithoutCorda(configuration: ResolvedConfiguration): List<ResolvedArtifact> {
-        return resolveFor(configuration)
+        return resolveAllFor(configuration)
             .filterNot { artifact -> isCordaProvided(artifact.moduleVersion.id) }
             .also { artifacts ->
                 // Corda artifacts should not be included, either directly or transitively.

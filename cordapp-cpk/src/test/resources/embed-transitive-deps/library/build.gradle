@@ -1,0 +1,17 @@
+import static org.gradle.api.JavaVersion.VERSION_1_8
+
+plugins {
+    id 'java-library'
+}
+
+apply from: '../repositories.gradle'
+
+group = 'com.example'
+
+dependencies {
+    api project(':annotations')
+}
+
+jar {
+    archiveBaseName = 'library'
+}

@@ -8,7 +8,7 @@ plugins {
 apply from: '../repositories.gradle'
 
 group = 'com.example'
-version = '1.0.1'
+version = annotations_version
 
 // Share the source files, but not the output files.
 buildDir = rootProject.file("annotationsBuild")

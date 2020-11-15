@@ -23,6 +23,7 @@ class VerifyNotProvidedDependencyTest {
                 .withSubResource("src/main/java/com/example/unprovided/Host.java")
                 .buildAndFail(
                     "-Pcordapp_contract_version=$expectedCordappContractVersion",
+                    "-Pannotations_version=$annotationsVersion",
                     "-Pcommons_io_version=$commonsIoVersion",
                     "-Pcordapp_version=$cordappVersion"
                 )
