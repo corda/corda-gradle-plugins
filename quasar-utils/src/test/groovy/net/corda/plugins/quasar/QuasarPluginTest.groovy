@@ -13,6 +13,7 @@ import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 class QuasarPluginTest {
     private static final String TEST_GRADLE_USER_HOME = System.getProperty("test.gradle.user.home", ".")
     private static final String QUASAR_VERSION = QuasarPlugin.defaultVersion
+    private static final String JUNIT_VERSION = "4.13"
 
     private static final String QUASAR_R3 = """\
 if (org.gradle.api.JavaVersion.current().java9Compatible) {
@@ -39,6 +40,7 @@ if (org.gradle.api.JavaVersion.current().java9Compatible) {
         def output = runGradleFor """
 plugins {
     id 'net.corda.plugins.quasar-utils'
+    id 'java-library'
 }
 
 description 'Show quasar-core-osgi added to configurations'
@@ -86,6 +88,7 @@ buildscript {
 
 plugins {
     id 'net.corda.plugins.quasar-utils'
+    id 'java-library'
 }
 
 description 'Show quasar-core-osgi added to configurations'
@@ -132,6 +135,7 @@ buildscript {
 
 plugins {
     id 'net.corda.plugins.quasar-utils'
+    id 'java-library'
 }
 
 apply from: 'repositories.gradle'
@@ -171,6 +175,7 @@ task show {
         def output = runGradleFor """
 plugins {
     id 'net.corda.plugins.quasar-utils'
+    id 'java-library'
 }
 
 description 'Show quasar-core-osgi added to configurations'
@@ -204,6 +209,7 @@ task show {
         def output = runGradleFor """
 plugins {
     id 'net.corda.plugins.quasar-utils'
+    id 'java-library'
 }
 
 description 'Show quasar-core-osgi added to test JVM arguments'
@@ -211,7 +217,7 @@ description 'Show quasar-core-osgi added to test JVM arguments'
 apply from: 'repositories.gradle'
 
 dependencies {
-    testImplementation 'junit:junit:4.12'
+    testImplementation 'junit:junit:${JUNIT_VERSION}'
 }
 
 quasar {
@@ -248,6 +254,7 @@ buildscript {
 
 plugins {
     id 'net.corda.plugins.quasar-utils'
+    id 'java-library'
 }
 
 description 'Show quasar-core-osgi added to test JVM arguments'
@@ -255,7 +262,7 @@ description 'Show quasar-core-osgi added to test JVM arguments'
 apply from: 'repositories.gradle'
 
 dependencies {
-    testImplementation 'junit:junit:4.12'
+    testImplementation 'junit:junit:${JUNIT_VERSION}'
 }
 
 quasar {
@@ -285,6 +292,7 @@ test {
         def output = runGradleFor """
 plugins {
     id 'net.corda.plugins.quasar-utils'
+    id 'java-library'
 }
 
 description 'Show quasar-core-osgi added to test JVM arguments'
@@ -292,7 +300,7 @@ description 'Show quasar-core-osgi added to test JVM arguments'
 apply from: 'repositories.gradle'
 
 dependencies {
-    testImplementation 'junit:junit:4.12'
+    testImplementation 'junit:junit:${JUNIT_VERSION}'
 }
 
 quasar {
@@ -322,6 +330,7 @@ test {
         def output = runGradleFor """
 plugins {
     id 'net.corda.plugins.quasar-utils'
+    id 'java-library'
 }
 
 description 'Show quasar-core-osgi added to test JVM arguments'
@@ -333,7 +342,7 @@ ext {
 }
 
 dependencies {
-    testImplementation 'junit:junit:4.12'
+    testImplementation 'junit:junit:${JUNIT_VERSION}'
 }
 
 quasar {
@@ -368,6 +377,7 @@ buildscript {
 }
 plugins {
     id 'net.corda.plugins.quasar-utils'
+    id 'java-library'
 }
 
 description 'Show quasar-core-osgi added to test JVM arguments'
@@ -389,11 +399,12 @@ apply from: 'repositories.gradle'
         def output = runGradleFor """
 plugins {
     id 'net.corda.plugins.quasar-utils'
+    id 'java-library'
 }
 apply from: 'repositories.gradle'
 
 dependencies {
-    testImplementation 'junit:junit:4.12'
+    testImplementation 'junit:junit:${JUNIT_VERSION}'
 }
 
 quasar {
@@ -423,11 +434,12 @@ test {
         def output = runGradleFor """
 plugins {
     id 'net.corda.plugins.quasar-utils'
+    id 'java-library'
 }
 apply from: 'repositories.gradle'
 
 dependencies {
-    testImplementation 'junit:junit:4.12'
+    testImplementation 'junit:junit:${JUNIT_VERSION}'
 }
 
 quasar {
@@ -457,11 +469,12 @@ test {
         def output = runGradleFor """
 plugins {
     id 'net.corda.plugins.quasar-utils'
+    id 'java-library'
 }
 apply from: 'repositories.gradle'
 
 dependencies {
-    testImplementation 'junit:junit:4.12'
+    testImplementation 'junit:junit:${JUNIT_VERSION}'
 }
 
 quasar {
