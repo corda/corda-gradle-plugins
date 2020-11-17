@@ -48,8 +48,9 @@ open class VerifyBundle @Inject constructor(objects: ObjectFactory) : DefaultTas
         @InputFiles
         get() = _classpath
 
+    // Enable strict verification by default when we upgrade to Bnd 5.3.
     @get:Input
-    val strict: Property<Boolean> = objects.property(Boolean::class.java).convention(true)
+    val strict: Property<Boolean> = objects.property(Boolean::class.java).convention(false)
 
     /**
      * Don't eagerly configure the [DependencyCalculator] task, even if
