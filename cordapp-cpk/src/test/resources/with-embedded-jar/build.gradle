@@ -24,7 +24,7 @@ jar {
 
     osgi {
         optionalImport 'sun.misc;version=\"[0,9999)\"'
-        suppressImport 'com.google.apphosting.api',
+        suppressImportVersion 'com.google.apphosting.api',
             'com.google.appengine.api',
             'com.google.appengine.api.utils'
     }

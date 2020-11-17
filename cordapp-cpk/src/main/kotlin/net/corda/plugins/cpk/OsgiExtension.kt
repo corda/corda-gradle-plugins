@@ -61,15 +61,15 @@ open class OsgiExtension(project: Project, jar: Jar) {
         importPackage(packageName.map { "$it;resolution:=optional" })
     }
 
-    fun suppressImport(packageNames: Iterable<String>) {
+    fun suppressImportVersion(packageNames: Iterable<String>) {
         optionalImport(packageNames.map { "$it;version='[0,0)'" })
     }
 
-    fun suppressImport(vararg packageNames: String) {
-        suppressImport(packageNames.toList())
+    fun suppressImportVersion(vararg packageNames: String) {
+        suppressImportVersion(packageNames.toList())
     }
 
-    fun suppressImport(packageName: Provider<String>) {
+    fun suppressImportVersion(packageName: Provider<String>) {
         optionalImport(packageName.map { "$it;version='[0,0)'" })
     }
 
