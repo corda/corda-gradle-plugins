@@ -20,8 +20,8 @@ task deployNodes(type: net.corda.plugins.Cordform) {
         name 'OU=Org Unit, O=Notary Service, L=Zurich, C=CH'
         notary = [validating : true]
         p2pPort 10002
-        rpcPort 10003
         rpcSettings {
+            port 10003
             adminAddress "localhost:10004"
         }
         cordapps = ["$corda_group:corda-finance-contracts:$corda_release_version",

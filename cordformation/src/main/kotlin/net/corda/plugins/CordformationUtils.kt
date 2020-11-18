@@ -6,6 +6,8 @@ import com.typesafe.config.ConfigValueFactory
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
+import org.gradle.api.plugins.JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME
+import org.gradle.api.plugins.JavaPlugin.RUNTIME_ONLY_CONFIGURATION_NAME
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardCopyOption.REPLACE_EXISTING
@@ -20,11 +22,11 @@ fun Project.findRootProperty(name: String): String? {
     return rootProject.findProperty(name)?.toString()
 }
 
-fun Project.configuration(name: String): Configuration = configurations.single { it.name == name }
+fun Project.configuration(name: String): Configuration = configurations.getByName(name)
 
-fun createChildConfiguration(name: String, parent: Configuration, configurations: ConfigurationContainer): Configuration {
-    return configurations.findByName(name) ?: run {
-        val configuration = configurations.create(name) {
+fun ConfigurationContainer.createChildConfiguration(name: String, parent: Configuration): Configuration {
+    return findByName(name) ?: run {
+        val configuration = create(name) {
             it.isTransitive = false
         }
         parent.extendsFrom(configuration)
@@ -32,12 +34,19 @@ fun createChildConfiguration(name: String, parent: Configuration, configurations
     }
 }
 
-fun createCompileConfiguration(name: String, configurations: ConfigurationContainer): Configuration {
-    return createChildConfiguration(name, configurations.single { it.name == "compile" }, configurations)
+fun ConfigurationContainer.createCompileOnlyConfiguration(name: String): Configuration {
+    return findByName(name) ?: run {
+        val configuration = create(name)
+        getByName(COMPILE_ONLY_CONFIGURATION_NAME).extendsFrom(configuration)
+        matching { it.name.endsWith("CompileOnly") }.configureEach { cfg ->
+            cfg.extendsFrom(configuration)
+        }
+        configuration
+    }
 }
 
-fun createRuntimeOnlyConfiguration(name: String, configurations: ConfigurationContainer): Configuration {
-    return createChildConfiguration(name, configurations.single { it.name == "runtimeOnly" }, configurations)
+fun ConfigurationContainer.createRuntimeOnlyConfiguration(name: String): Configuration {
+    return createChildConfiguration(name, getByName(RUNTIME_ONLY_CONFIGURATION_NAME))
 }
 
 fun createTempFileFromResource(resourcePath: String, tempFileName: String, tempFileExtension: String): Path {

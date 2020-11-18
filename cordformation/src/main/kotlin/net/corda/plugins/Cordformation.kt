@@ -15,6 +15,9 @@ import java.io.File
  */
 class Cordformation : Plugin<Project> {
     internal companion object {
+        const val CORDA_RUNTIME_ONLY_CONFIGURATION_NAME = "cordaRuntimeOnly"
+        const val CORDA_DRIVER_CONFIGURATION_NAME = "cordaDriver"
+        const val CORDAPP_CONFIGURATION_NAME = "cordapp"
         const val CORDFORMATION_TYPE = "cordformationInternal"
         const val MINIMUM_GRADLE_VERSION = "5.1"
 
@@ -69,14 +72,14 @@ class Cordformation : Plugin<Project> {
         }
 
         // Apply the Java plugin on the assumption that we're building a JAR.
-        // This will also create the "compile", "compileOnly" and "runtime" configurations.
+        // This will also create the "compileOnly" and "runtimeOnly" configurations.
         project.pluginManager.apply(JavaPlugin::class.java)
 
         project.configurations.apply {
-            createCompileConfiguration("cordapp", this)
-            val cordaRuntimeOnly = createRuntimeOnlyConfiguration("cordaRuntimeOnly", this)
-            createChildConfiguration(CORDFORMATION_TYPE, cordaRuntimeOnly, this)
-            create("cordaDriver")
+            createCompileOnlyConfiguration(CORDAPP_CONFIGURATION_NAME)
+            val cordaRuntimeOnly = createRuntimeOnlyConfiguration(CORDA_RUNTIME_ONLY_CONFIGURATION_NAME)
+            createChildConfiguration(CORDFORMATION_TYPE, cordaRuntimeOnly)
+            maybeCreate(CORDA_DRIVER_CONFIGURATION_NAME)
         }
         // TODO: improve how we re-use existing declared external variables from root gradle.build
         val jolokiaVersion = project.findRootProperty("jolokia_version") ?: "1.6.0"
