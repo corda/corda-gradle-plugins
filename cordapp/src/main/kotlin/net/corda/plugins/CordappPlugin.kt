@@ -33,6 +33,9 @@ class CordappPlugin @Inject constructor(private val objects: ObjectFactory): Plu
             "org.jetbrains.kotlin" to "kotlin-stdlib-jre8",
             "org.jetbrains.kotlin" to "kotlin-stdlib-jdk8",
             "org.jetbrains.kotlin" to "kotlin-reflect",
+            "net.corda.kotlin" to "kotlin-stdlib-jdk8-osgi",
+            "net.corda.kotlin" to "kotlin-stdlib-jdk7-osgi",
+            "co.paralleluniverse" to "quasar-core-osgi",
             "co.paralleluniverse" to "quasar-core"
         ))
     }
@@ -156,7 +159,7 @@ class CordappPlugin @Inject constructor(private val objects: ObjectFactory): Plu
     private fun configurePomCreation(project: Project) {
         project.tasks.withType(GenerateMavenPom::class.java).configureEach { task ->
             task.doFirst {
-                project.logger.info("Modifying task: ${task.name} in project ${project.path} to exclude all dependencies from pom")
+                it.logger.info("Modifying task: ${task.name} in project ${project.path} to exclude all dependencies from pom")
                 // The CorDapp is a semi-fat jar, so we need to exclude its compile and runtime
                 // scoped dependencies from its Maven POM when we publish it.
                 task.pom = filterDependenciesFor(task.pom)

@@ -25,6 +25,7 @@ include 'cordformation'
 include 'api-scanner'
 include 'api-scanner:annotations'
 include 'cordapp-cpk'
+include 'cordapp'
 include 'jar-filter'
 include 'jar-filter:unwanteds'
 
