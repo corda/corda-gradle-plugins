@@ -42,6 +42,7 @@ class VerifyCordappDependencyTest {
                 .withSubResource("cordapp/src/main/kotlin/com/example/cordapp/ExampleCordapp.kt")
                 .build(
                     "-Pcordapp_contract_version=$expectedCordappContractVersion",
+                    "-Pcommons_collections_version=$commonsCollectionsVersion",
                     "-Pcommons_io_version=$commonsIoVersion",
                     "-Pcordapp_version=$cordappVersion",
                     "-Phost_version=$hostVersion"
@@ -52,9 +53,12 @@ class VerifyCordappDependencyTest {
     @Test
     fun verifyCordappDependency() {
         assertThat(testProject.dependencyConstraints)
-            .anyMatch { it.startsWith("cordapp-$cordappVersion.jar") }
-            .anyMatch { it.startsWith("commons-io-$commonsIoVersion.jar") }
-            .hasSize(2)
+            .noneMatch { it.startsWith("cordapp-$cordappVersion.jar") }
+            .anyMatch { it.startsWith("commons-collections-$commonsCollectionsVersion.jar") }
+            .hasSize(1)
+        assertThat(testProject.cpkDependencies)
+            .contains("com.example.cordapp,${toOSGi(cordappVersion)}")
+            .hasSize(1)
         assertThat(testProject.outcomeOf("verifyBundle")).isEqualTo(SUCCESS)
 
         val artifacts = testProject.artifacts
@@ -72,7 +76,7 @@ class VerifyCordappDependencyTest {
         with(jarManifest.mainAttributes) {
             assertEquals("Verify CorDapp Dependency", getValue(BUNDLE_NAME))
             assertEquals("com.example.verify-cordapp-dependency", getValue(BUNDLE_SYMBOLICNAME))
-            assertEquals("2.0.0.SNAPSHOT", getValue(BUNDLE_VERSION))
+            assertEquals(toOSGi(hostVersion), getValue(BUNDLE_VERSION))
             assertEquals("com.example.cordapp;$cordappOsgiVersion,kotlin;$kotlinOsgiVersion,kotlin.jvm.internal;$kotlinOsgiVersion,net.corda.core.contracts;$cordaOsgiVersion,net.corda.core.transactions;$cordaOsgiVersion", getValue(IMPORT_PACKAGE))
             assertEquals("com.example.host;uses:=\"kotlin,net.corda.core.contracts,net.corda.core.transactions\";$hostOsgiVersion", getValue(EXPORT_PACKAGE))
             assertEquals("osgi.ee;filter:=\"(&(osgi.ee=JavaSE)(version=1.8))\"", getValue(REQUIRE_CAPABILITY))

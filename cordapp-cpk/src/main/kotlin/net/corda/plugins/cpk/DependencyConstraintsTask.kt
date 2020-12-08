@@ -36,15 +36,15 @@ open class DependencyConstraintsTask @Inject constructor(objects: ObjectFactory)
     }
 
     init {
-        description = "Computes the constraints for this CorDapp's dependencies."
+        description = "Computes the constraints for this CorDapp's library dependencies."
         group = GROUP_NAME
     }
 
-    private val _dependencies: ConfigurableFileCollection = objects.fileCollection()
-    val dependencies: FileCollection
+    private val _libraries: ConfigurableFileCollection = objects.fileCollection()
+    val libraries: FileCollection
         @PathSensitive(RELATIVE)
         @InputFiles
-        get() = _dependencies
+        get() = _libraries
 
     @get:Input
     val algorithm: Property<String> = objects.property(String::class.java).convention(CORDAPP_HASH_ALGORITHM)
@@ -59,9 +59,9 @@ open class DependencyConstraintsTask @Inject constructor(objects: ObjectFactory)
      * Don't eagerly configure the [DependencyCalculator] task, even if
      * someone eagerly configures this [DependencyConstraintsTask] by accident.
      */
-    internal fun setDependenciesFrom(task: TaskProvider<DependencyCalculator>) {
-        _dependencies.setFrom(task.flatMap(DependencyCalculator::dependencies))
-        _dependencies.disallowChanges()
+    internal fun setLibrariesFrom(task: TaskProvider<DependencyCalculator>) {
+        _libraries.setFrom(task.flatMap(DependencyCalculator::libraries))
+        _libraries.disallowChanges()
         dependsOn(task)
     }
 
@@ -76,11 +76,11 @@ open class DependencyConstraintsTask @Inject constructor(objects: ObjectFactory)
 
         try {
             constraintsOutput.get().asFile.bufferedWriter().use { output ->
-                dependencies.forEach { cordapp ->
-                    logger.info("CorDapp dependency: {}", cordapp.name)
-                    output.append(cordapp.name.replace(DELIMITER, '_')).append(DELIMITER)
+                libraries.forEach { library ->
+                    logger.info("CorDapp library dependency: {}", library.name)
+                    output.append(library.name.replace(DELIMITER, '_')).append(DELIMITER)
                         .append(algorithmName).append(DELIMITER)
-                        .append(digest.hashFor(cordapp).toHexString())
+                        .append(digest.hashFor(library).toHexString())
                         .append(CRLF)
                 }
             }

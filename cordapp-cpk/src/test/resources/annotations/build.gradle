@@ -13,7 +13,7 @@ version = annotations_version
 // Share the source files, but not the output files.
 buildDir = rootProject.file("annotationsBuild")
 
-tasks.withType(JavaCompile).configureEach {
+java {
     sourceCompatibility = VERSION_1_8
     targetCompatibility = VERSION_1_8
 }

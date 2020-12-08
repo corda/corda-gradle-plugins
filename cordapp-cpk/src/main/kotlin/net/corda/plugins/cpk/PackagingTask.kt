@@ -23,20 +23,20 @@ open class PackagingTask @Inject constructor(objects: ObjectFactory) : Jar() {
         private const val CORDAPP_EXTENSION = "cpk"
     }
 
-    private val _dependencies: ConfigurableFileCollection = objects.fileCollection()
-    val dependencies: FileCollection
+    private val _libraries: ConfigurableFileCollection = objects.fileCollection()
+    val libraries: FileCollection
         @PathSensitive(RELATIVE)
         @InputFiles
-        get() = _dependencies
+        get() = _libraries
 
     /**
      * Don't eagerly configure the [DependencyConstraintsTask] task, even
      * if someone eagerly configures this [PackagingTask] by accident.
      */
-    internal fun setDependenciesFrom(task: TaskProvider<DependencyConstraintsTask>) {
+    internal fun setLibrariesFrom(task: TaskProvider<DependencyConstraintsTask>) {
         // This should also automatically make us depend on the task.
-        _dependencies.setFrom(task.map(DependencyConstraintsTask::dependencies))
-        _dependencies.disallowChanges()
+        _libraries.setFrom(task.map(DependencyConstraintsTask::libraries))
+        _libraries.disallowChanges()
     }
 
     @get:PathSensitive(RELATIVE)
@@ -67,8 +67,8 @@ open class PackagingTask @Inject constructor(objects: ObjectFactory) : Jar() {
         group = GROUP_NAME
 
         mainSpec.from(cordapp) { spec ->
-            spec.from(dependencies) { deps ->
-                deps.into("lib")
+            spec.from(libraries) { libs ->
+                libs.into("lib")
             }
         }
 

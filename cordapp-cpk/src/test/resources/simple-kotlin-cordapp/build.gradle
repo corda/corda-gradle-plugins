@@ -9,7 +9,7 @@ plugins {
 apply from: 'repositories.gradle'
 
 group = 'com.example'
-version = '1.0.1-SNAPSHOT'
+version = cordapp_version
 
 tasks.withType(KotlinCompile).configureEach {
     kotlinOptions {

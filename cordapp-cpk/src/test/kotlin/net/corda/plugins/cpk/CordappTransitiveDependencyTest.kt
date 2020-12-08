@@ -24,6 +24,7 @@ class CordappTransitiveDependencyTest {
                 .build(
                     "-Pcordapp_contract_version=$expectedCordappContractVersion",
                     "-Pcommons_collections_version=$commonsCollectionsVersion",
+                    "-Pcommons_codec_version=$commonsCodecVersion",
                     "-Pannotations_version=$annotationsVersion",
                     "-Pcommons_io_version=$commonsIoVersion",
                     "-Pcordapp_version=$cordappVersion",
@@ -35,9 +36,12 @@ class CordappTransitiveDependencyTest {
     @Test
     fun testCordappTransitiveDependencies() {
         assertThat(testProject.dependencyConstraints)
-            .anyMatch { it.startsWith("commons-collections-$commonsCollectionsVersion.jar") }
-            .anyMatch { it.startsWith("cordapp-$cordappVersion.jar") }
-            .hasSize(2)
+            .anyMatch { it.startsWith("commons-codec-$commonsCodecVersion.jar") }
+            .noneMatch { it.startsWith("cordapp-$cordappVersion.jar") }
+            .hasSize(1)
+        assertThat(testProject.cpkDependencies)
+            .contains("com.example.cordapp,${toOSGi(cordappVersion)}")
+            .hasSize(1)
 
         val artifacts = testProject.artifacts
         assertThat(artifacts).hasSize(2)

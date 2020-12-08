@@ -12,13 +12,14 @@ import org.gradle.api.artifacts.Dependency.ARCHIVES_CONFIGURATION
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.java.archives.Attributes
-import org.gradle.api.plugins.JavaPlugin
+import org.gradle.api.plugins.JavaLibraryPlugin
 import org.gradle.api.plugins.JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME
 import org.gradle.api.plugins.JavaPlugin.JAR_TASK_NAME
 import org.gradle.api.plugins.JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.provider.HasConfigurableValue
 import org.gradle.api.provider.Property
+import org.gradle.api.tasks.SourceSet.MAIN_SOURCE_SET_NAME
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.bundling.ZipEntryCompression.DEFLATED
 import org.gradle.util.GradleVersion
@@ -38,6 +39,7 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
         private const val BNDLIB_PROPERTIES = "META-INF/maven/biz.aQute.bnd/biz.aQute.bndlib/pom.properties"
         private const val DEPENDENCY_CONSTRAINTS_TASK_NAME = "cordappDependencyConstraints"
         private const val DEPENDENCY_CALCULATOR_TASK_NAME = "cordappDependencyCalculator"
+        private const val CPK_DEPENDENCIES_TASK_NAME = "cordappCPKDependencies"
         private const val VERIFY_BUNDLE_TASK_NAME = "verifyBundle"
         private const val CORDAPP_EXTENSION_NAME = "cordapp"
         private const val OSGI_EXTENSION_NAME = "osgi"
@@ -75,9 +77,9 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
             throw GradleException("Gradle version ${GradleVersion.current().version} is below the supported minimum version $MIN_GRADLE_VERSION. Please update Gradle or consider using Gradle wrapper if it is provided with the project. More information about CorDapp build system can be found here: https://docs.corda.net/cordapp-build-systems.html")
         }
 
-        // Apply the Java plugin on the assumption that we're building a JAR.
-        // This will also create the "implementation", "compileOnly" and "runtimeOnly" configurations.
-        project.pluginManager.apply(JavaPlugin::class.java)
+        // Apply the JavaLibrary plugin on the assumption that we're building a JAR.
+        // This will also create the "api", "implementation", "compileOnly" and "runtimeOnly" configurations.
+        project.pluginManager.apply(JavaLibraryPlugin::class.java)
 
         // Apply the Bnd "builder" plugin to generate OSGi metadata for the CorDapp.
         project.pluginManager.apply(BndBuilderPlugin::class.java)
@@ -134,12 +136,25 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
          */
         val constraintsDir = layouts.buildDirectory.dir("generated-constraints")
         val constraintsTask = project.tasks.register(DEPENDENCY_CONSTRAINTS_TASK_NAME, DependencyConstraintsTask::class.java) { task ->
-            task.setDependenciesFrom(calculatorTask)
+            task.setLibrariesFrom(calculatorTask)
             task.constraintsDir.set(constraintsDir)
         }
+
+        /**
+         * Generate an extra resource file listing this CorDapp's CPK dependencies.
+         */
+        val cpkDependenciesDir = layouts.buildDirectory.dir("cpk-dependencies")
+        val cpkDependenciesTask = project.tasks.register(CPK_DEPENDENCIES_TASK_NAME, CPKDependenciesTask::class.java) { task ->
+            task.setCPKsFrom(calculatorTask)
+            task.outputDir.set(cpkDependenciesDir)
+        }
+
         val sourceSets = project.convention.getPlugin(JavaPluginConvention::class.java).sourceSets
-        sourceSets.getByName("main") { main ->
-            main.output.dir(mapOf("builtBy" to constraintsTask), constraintsDir)
+        sourceSets.getByName(MAIN_SOURCE_SET_NAME) { main ->
+            main.output.apply {
+                dir(mapOf("builtBy" to constraintsTask), constraintsDir)
+                dir(mapOf("builtBy" to cpkDependenciesTask), cpkDependenciesDir)
+            }
         }
 
         val jarTask = project.tasks.named(JAR_TASK_NAME, Jar::class.java) { jar ->
@@ -240,7 +255,7 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
             task.archiveAppendix.set(jarTask.flatMap(Jar::getArchiveAppendix))
 
             // Configure the CPK archive contents.
-            task.setDependenciesFrom(constraintsTask)
+            task.setLibrariesFrom(constraintsTask)
             task.cordapp.set(jarTask.flatMap(Jar::getArchiveFile))
             task.doLast { t ->
                 if (cordapp.signing.enabled.get()) {

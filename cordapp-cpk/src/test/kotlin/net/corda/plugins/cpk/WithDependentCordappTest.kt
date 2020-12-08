@@ -46,15 +46,21 @@ class WithDependentCordappTest {
     ) {
         val testProject = buildProject(guavaVersion, libraryGuavaVersion, testProjectDir, reporter)
 
-        val dependencyCount = 3 + setOf(guavaVersion, libraryGuavaVersion).size
         assertThat(testProject.dependencyConstraints)
-            .anyMatch { it.startsWith("commons-io-$commonsIoVersion.jar") }
-            .anyMatch { it.startsWith("guava-$libraryGuavaVersion.jar") }
             .anyMatch { it.startsWith("guava-$guavaVersion.jar") }
-            .anyMatch { it.startsWith("library.jar") }
-            .anyMatch { it.startsWith("cordapp.jar") }
+            .noneMatch { it.startsWith("commons-io-$commonsIoVersion.jar") }
+            .noneMatch { it.startsWith("library.jar") }
+            .noneMatch { it.startsWith("cordapp.jar") }
             .noneMatch { it.startsWith("slf4j-api") }
-            .hasSizeGreaterThanOrEqualTo(dependencyCount)
+            .hasSizeGreaterThanOrEqualTo(1)
+        assertThat(testProject.cpkDependencies)
+            .contains("com.example.cordapp,${toOSGi("0")}")
+            .hasSize(1)
+
+        if (libraryGuavaVersion != guavaVersion) {
+            assertThat(testProject.dependencyConstraints)
+                .noneMatch { it.startsWith("guava-$libraryGuavaVersion.jar") }
+        }
 
         val artifacts = testProject.artifacts
         assertThat(artifacts).hasSize(2)

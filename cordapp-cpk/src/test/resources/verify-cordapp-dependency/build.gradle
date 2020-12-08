@@ -8,17 +8,20 @@ plugins {
 
 apply from: 'repositories.gradle'
 
-group = 'com.example'
-version = host_version
+allprojects {
+    group = 'com.example'
 
-tasks.withType(KotlinCompile).configureEach {
-    kotlinOptions {
-        jvmTarget = VERSION_1_8
-        apiVersion = '1.3'
-        languageVersion = '1.3'
-        freeCompilerArgs = ['-Xjvm-default=enable']
+    tasks.withType(KotlinCompile).configureEach {
+        kotlinOptions {
+            jvmTarget = VERSION_1_8
+            apiVersion = '1.3'
+            languageVersion = '1.3'
+            freeCompilerArgs = ['-Xjvm-default=enable']
+        }
     }
 }
+
+version = host_version
 
 cordapp {
     targetPlatformVersion = platform_version.toInteger()
@@ -36,6 +39,7 @@ dependencies {
     cordapp project(':cordapp')
     cordaProvided project(':corda-core')
     implementation "org.jetbrains.kotlin:kotlin-osgi-bundle:$kotlin_version"
+    implementation "commons-collections:commons-collections:$commons_collections_version"
 }
 
 jar {

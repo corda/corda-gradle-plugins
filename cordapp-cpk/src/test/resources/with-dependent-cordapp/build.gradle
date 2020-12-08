@@ -4,6 +4,10 @@ plugins {
 
 apply from: 'repositories.gradle'
 
+allprojects {
+    group = 'com.example'
+}
+
 cordapp {
     targetPlatformVersion = platform_version.toInteger()
     minimumPlatformVersion = platform_version.toInteger()

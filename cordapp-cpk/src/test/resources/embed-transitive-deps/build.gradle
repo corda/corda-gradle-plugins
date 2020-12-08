@@ -6,7 +6,10 @@ plugins {
 
 apply from: 'repositories.gradle'
 
-group = 'com.example'
+allprojects {
+    group = 'com.example'
+}
+
 version = cordapp_version
 
 cordapp {

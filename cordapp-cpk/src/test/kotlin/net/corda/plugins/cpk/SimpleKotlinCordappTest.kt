@@ -20,6 +20,7 @@ import java.util.jar.JarFile
 
 class SimpleKotlinCordappTest {
     companion object {
+        const val cordappVersion = "1.0.1-SNAPSHOT"
         const val guavaVersion = "29.0-jre"
 
         const val ioOsgiVersion = "version=\"[1.4,2)\""
@@ -39,6 +40,7 @@ class SimpleKotlinCordappTest {
                 .withSubResource("src/main/kotlin/com/example/contract/ExampleContract.kt")
                 .withSubResource("src/main/kotlin/com/example/contract/states/ExampleState.kt")
                 .build(
+                    "-Pcordapp_version=$cordappVersion",
                     "-Pcordapp_contract_version=$expectedCordappContractVersion",
                     "-Pcommons_io_version=$commonsIoVersion",
                     "-Pguava_version=$guavaVersion"
@@ -68,7 +70,7 @@ class SimpleKotlinCordappTest {
         with(jarManifest.mainAttributes) {
             assertEquals("Simple Kotlin", getValue(BUNDLE_NAME))
             assertEquals("com.example.simple-kotlin-cordapp", getValue(BUNDLE_SYMBOLICNAME))
-            assertEquals("1.0.1.SNAPSHOT", getValue(BUNDLE_VERSION))
+            assertEquals(toOSGi(cordappVersion), getValue(BUNDLE_VERSION))
             assertEquals("com.google.common.collect;$guavaOsgiVersion,kotlin;$kotlinOsgiVersion,kotlin.io;$kotlinOsgiVersion,kotlin.jvm.internal;$kotlinOsgiVersion,kotlin.text;$kotlinOsgiVersion,net.corda.core.contracts;$cordaOsgiVersion,net.corda.core.identity;$cordaOsgiVersion,net.corda.core.transactions;$cordaOsgiVersion,org.apache.commons.io;$ioOsgiVersion", getValue(IMPORT_PACKAGE))
             assertEquals("com.example.contract;uses:=\"kotlin,net.corda.core.contracts,net.corda.core.transactions\";$cordappOsgiVersion,com.example.contract.states;uses:=\"kotlin,net.corda.core.contracts,net.corda.core.identity\";$cordappOsgiVersion", getValue(EXPORT_PACKAGE))
             assertEquals("osgi.ee;filter:=\"(&(osgi.ee=JavaSE)(version=1.8))\"", getValue(REQUIRE_CAPABILITY))

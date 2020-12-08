@@ -6,8 +6,6 @@ plugins {
 
 apply from: '../repositories.gradle'
 
-group = 'com.example'
-
 dependencies {
     api project(':annotations')
 }

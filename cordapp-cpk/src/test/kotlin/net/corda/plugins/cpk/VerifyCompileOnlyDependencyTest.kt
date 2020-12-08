@@ -45,6 +45,7 @@ class VerifyCompileOnlyDependencyTest {
     @Test
     fun verifyCompileOnlyDependency() {
         assertThat(testProject.dependencyConstraints).isEmpty()
+        assertThat(testProject.cpkDependencies).isEmpty()
         assertThat(testProject.outcomeOf("verifyBundle")).isEqualTo(SUCCESS)
 
         val artifacts = testProject.artifacts
@@ -62,7 +63,7 @@ class VerifyCompileOnlyDependencyTest {
         with(jarManifest.mainAttributes) {
             assertEquals("Verify Compile Only", getValue(BUNDLE_NAME))
             assertEquals("com.example.verify-compile-only", getValue(BUNDLE_SYMBOLICNAME))
-            assertEquals("1.0.5.SNAPSHOT", getValue(BUNDLE_VERSION))
+            assertEquals(toOSGi(cordappVersion), getValue(BUNDLE_VERSION))
             assertNull(getValue(IMPORT_PACKAGE))
             assertEquals("com.example.sample;$cordappOsgiVersion", getValue(EXPORT_PACKAGE))
             assertEquals("osgi.ee;filter:=\"(&(osgi.ee=JavaSE)(version=1.8))\"", getValue(REQUIRE_CAPABILITY))

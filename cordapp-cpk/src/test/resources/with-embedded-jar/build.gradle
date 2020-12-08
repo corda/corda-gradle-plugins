@@ -4,8 +4,11 @@ plugins {
 
 apply from: 'repositories.gradle'
 
-group = 'com.example'
-version = '1.0.2-SNAPSHOT'
+version = cordapp_version
+
+allprojects {
+    group = 'com.example'
+}
 
 cordapp {
     targetPlatformVersion = platform_version.toInteger()

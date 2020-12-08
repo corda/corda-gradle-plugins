@@ -7,9 +7,9 @@ plugins {
 apply from: 'repositories.gradle'
 
 group = 'com.example'
-version = '1.0.1-SNAPSHOT'
+version = cordapp_version
 
-tasks.withType(JavaCompile).configureEach {
+java {
     sourceCompatibility = VERSION_1_8
     targetCompatibility = VERSION_1_8
 }

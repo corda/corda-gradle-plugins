@@ -3,7 +3,6 @@ package net.corda.plugins.cpk
 import org.gradle.api.DefaultTask
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ProjectDependency
@@ -38,10 +37,15 @@ open class DependencyCalculator @Inject constructor(objects: ObjectFactory) : De
         outputs.upToDateWhen { false }
     }
 
-    private val _dependencies: ConfigurableFileCollection = objects.fileCollection()
-    val dependencies: Provider<Set<FileSystemLocation>>
+    private val _libraries: ConfigurableFileCollection = objects.fileCollection()
+    val libraries: Provider<Set<FileSystemLocation>>
         @OutputFiles
-        get() = _dependencies.elements
+        get() = _libraries.elements
+
+    private val _cordapps: ConfigurableFileCollection = objects.fileCollection()
+    val cordapps: Provider<Set<FileSystemLocation>>
+        @OutputFiles
+        get() = _cordapps.elements
 
     private val _embeddedJars: ConfigurableFileCollection = objects.fileCollection()
     val embeddedJars: Provider<Set<FileSystemLocation>>
@@ -106,15 +110,10 @@ open class DependencyCalculator @Inject constructor(objects: ObjectFactory) : De
             Pair(group[CORDA] ?: emptySet<Dependency>(), group[NON_CORDA] ?: emptySet<Dependency>())
         }
 
-        // Dependent CorDapps and their own transitive dependencies.
-        // We cannot alter any of these.
-        val cordappArtifacts = getCordappArtifacts(configurations)
-
         // Compute the set of resolved artifacts that will define this CorDapp.
         val packagingConfiguration = runtimeConfiguration.resolvedConfiguration
         val packageFiles = (
             nonCordaDeps.resolveWithoutCorda(packagingConfiguration)
-            + cordappArtifacts
             - cordaDeps.resolveAllFor(packagingConfiguration)
         ).toFiles() + nonCordaDeps.toSelfResolvingFiles()
 
@@ -123,11 +122,10 @@ open class DependencyCalculator @Inject constructor(objects: ObjectFactory) : De
         val embeddedDeps = configurations.getByName(CORDA_EMBEDDED_CONFIGURATION_NAME).allDependencies - runtimeDeps
         val embeddedFiles = embeddedDeps.resolveWithoutCorda(packagingConfiguration).toFiles() + embeddedDeps.toSelfResolvingFiles()
 
-        // The user has explicitly asked to embed these artifacts. The only reason
-        // for not doing so is that they might be required by dependent CorDapps.
-        val mustEmbedArtifacts = embeddedDeps.resolveFirstLevelFor(packagingConfiguration) - cordappArtifacts
+        // The user has explicitly asked to embed these artifacts.
+        val mustEmbedFiles = embeddedDeps.resolveFirstLevelFilesFor(packagingConfiguration)
 
-        val bundledFiles = embeddedFiles - packageFiles + mustEmbedArtifacts.toFiles()
+        val bundledFiles = embeddedFiles - packageFiles + mustEmbedFiles
         _embeddedJars.apply {
             setFrom(bundledFiles)
             disallowChanges()
@@ -136,7 +134,7 @@ open class DependencyCalculator @Inject constructor(objects: ObjectFactory) : De
             setFrom(embeddedFiles - bundledFiles)
             disallowChanges()
         }
-        _dependencies.apply {
+        _libraries.apply {
             setFrom(packageFiles - bundledFiles)
             disallowChanges()
         }
@@ -147,15 +145,26 @@ open class DependencyCalculator @Inject constructor(objects: ObjectFactory) : De
         val compileConfiguration = configurations.getByName(COMPILE_CLASSPATH_CONFIGURATION_NAME).resolvedConfiguration
         val cordaFiles = cordaDeps.resolveAllFor(compileConfiguration).toFiles()
         val providedDeps = configurations.getByName(CORDA_PROVIDED_CONFIGURATION_NAME).allDependencies
-        val providedFiles = providedDeps.resolvedAllFilesFor(compileConfiguration)
+        val providedFiles = providedDeps.resolveAllFilesFor(compileConfiguration)
+        val cordappDeps = configurations.getByName(CORDAPP_CONFIGURATION_NAME).allDependencies
+        val cordappFiles = cordappDeps.resolveFirstLevelFilesFor(compileConfiguration)
         _externalJars.apply {
-            setFrom(providedFiles, cordaFiles)
+            setFrom(providedFiles, cordaFiles, cordappFiles)
+            disallowChanges()
+        }
+
+        _cordapps.apply {
+            setFrom(cordappFiles)
             disallowChanges()
         }
     }
 
-    private fun Collection<Dependency>.resolvedAllFilesFor(configuration: ResolvedConfiguration): Set<File> {
+    private fun Collection<Dependency>.resolveAllFilesFor(configuration: ResolvedConfiguration): Set<File> {
         return resolveAllFor(configuration).toFiles() + toSelfResolvingFiles()
+    }
+
+    private fun Collection<Dependency>.resolveFirstLevelFilesFor(configuration: ResolvedConfiguration): Set<File> {
+        return resolveFirstLevelFor(configuration).toFiles() + toSelfResolvingFiles()
     }
 
     private fun Collection<ResolvedArtifact>.toFiles(): Set<File> = mapTo(LinkedHashSet(), ResolvedArtifact::getFile)
@@ -184,15 +193,6 @@ open class DependencyCalculator @Inject constructor(objects: ObjectFactory) : De
                 // Corda artifacts should not be included, either directly or transitively.
                 warnAboutCordaArtifacts("net.corda", artifacts)
                 warnAboutCordaArtifacts("com.r3.corda", artifacts)
-            }
-    }
-
-    // Resolve transitive dependencies for each CorDapp individually.
-    private fun getCordappArtifacts(configurations: ConfigurationContainer): Set<ResolvedArtifact> {
-        return configurations.getByName(CORDAPP_CONFIGURATION_NAME)
-            .allDependencies
-            .flatMapTo(LinkedHashSet()) {
-                configurations.detachedConfiguration(it).resolvedConfiguration.resolvedArtifacts
             }
     }
 

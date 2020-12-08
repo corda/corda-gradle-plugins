@@ -22,6 +22,7 @@ import java.util.jar.JarFile
 
 class WithEmbeddedJarTest {
     companion object {
+        const val cordappVersion = "1.0.2-SNAPSHOT"
         const val guavaVersion = "29.0-jre"
         private lateinit var testProject: GradleProject
 
@@ -33,6 +34,7 @@ class WithEmbeddedJarTest {
                 .withTestName("with-embedded-jar")
                 .withSubResource("library/build.gradle")
                 .build(
+                    "-Pcordapp_version=$cordappVersion",
                     "-Pcordapp_contract_version=$expectedCordappContractVersion",
                     "-Pguava_version=$guavaVersion"
                 )
@@ -41,8 +43,8 @@ class WithEmbeddedJarTest {
 
     @Test
     fun hasEmbeddedJar() {
-        assertThat(testProject.dependencyConstraints)
-            .isEmpty()
+        assertThat(testProject.dependencyConstraints).isEmpty()
+        assertThat(testProject.cpkDependencies).isEmpty()
 
         val artifacts = testProject.artifacts
         assertThat(artifacts).hasSize(2)
@@ -69,7 +71,7 @@ class WithEmbeddedJarTest {
         with(jarManifest.mainAttributes) {
             assertEquals("With Embedded Jar", getValue(BUNDLE_NAME))
             assertEquals("com.example.with-embedded-jar", getValue(BUNDLE_SYMBOLICNAME))
-            assertEquals("1.0.2.SNAPSHOT", getValue(BUNDLE_VERSION))
+            assertEquals(toOSGi(cordappVersion), getValue(BUNDLE_VERSION))
             assertEquals("osgi.ee;filter:=\"(&(osgi.ee=JavaSE)(version=1.8))\"", getValue(REQUIRE_CAPABILITY))
             assertEquals("Test-Licence", getValue(BUNDLE_LICENSE))
             assertEquals("R3", getValue(BUNDLE_VENDOR))
