@@ -1,6 +1,7 @@
 @file:JvmName("ProjectConstants")
 package net.corda.plugins.cpk
 
+import aQute.bnd.version.MavenVersion.parseMavenString
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.api.plugins.BasePlugin.ASSEMBLE_TASK_NAME
 import org.gradle.testkit.runner.BuildResult
@@ -22,13 +23,19 @@ const val expectedCordappWorkflowVersion = 3
 const val cordaReleaseVersion = "4.6"
 const val annotationsVersion = "1.0.1"
 const val commonsCollectionsVersion = "3.2.2"
+const val commonsCodecVersion = "1.15"
 const val commonsIoVersion = "2.8.0"
 const val slf4jVersion = "1.7.30"
+
+fun toOSGi(version: String): String {
+    return parseMavenString(version).osGiVersion.toString()
+}
 
 @Suppress("unused", "MemberVisibilityCanBePrivate")
 class GradleProject(private val projectDir: Path, private val reporter: TestReporter) {
     private companion object {
         private const val DEFAULT_TASK_NAME = ASSEMBLE_TASK_NAME
+        private const val META_INF_DIR = "META-INF"
         private val testGradleUserHome = systemProperty("test.gradle.user.home")
 
         fun systemProperty(name: String): String = System.getProperty(name) ?: fail("System property '$name' not set.")
@@ -91,8 +98,12 @@ class GradleProject(private val projectDir: Path, private val reporter: TestRepo
     val artifacts: List<Path> get() = Files.list(artifactDir).collect(toList())
 
     val dependencyConstraintsFile: Path = buildDir.resolve("generated-constraints")
-        .resolve("META-INF").resolve("DependencyConstraints")
+        .resolve(META_INF_DIR).resolve("DependencyConstraints")
     val dependencyConstraints: List<String> get() = dependencyConstraintsFile.toFile().bufferedReader().readLines()
+
+    val cpkDependenciesFile: Path = buildDir.resolve("cpk-dependencies")
+        .resolve(META_INF_DIR).resolve("CPKDependencies")
+    val cpkDependencies: List<String> get() = cpkDependenciesFile.toFile().bufferedReader().readLines()
 
     var output: String = ""
         private set

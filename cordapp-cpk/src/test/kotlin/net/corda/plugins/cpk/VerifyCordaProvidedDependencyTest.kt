@@ -46,6 +46,7 @@ class VerifyCordaProvidedDependencyTest {
     @Test
     fun verifyCordaProvidedDependency() {
         assertThat(testProject.dependencyConstraints).isEmpty()
+        assertThat(testProject.cpkDependencies).isEmpty()
         assertThat(testProject.outcomeOf("verifyBundle")).isEqualTo(SUCCESS)
 
         val artifacts = testProject.artifacts
@@ -63,7 +64,7 @@ class VerifyCordaProvidedDependencyTest {
         with(jarManifest.mainAttributes) {
             assertEquals("Verify Corda Provided", getValue(BUNDLE_NAME))
             assertEquals("com.example.verify-corda-provided", getValue(BUNDLE_SYMBOLICNAME))
-            assertEquals("1.0.9.SNAPSHOT", getValue(BUNDLE_VERSION))
+            assertEquals(toOSGi(cordappVersion), getValue(BUNDLE_VERSION))
             assertEquals("com.example.annotations;$annotationsOsgiVersion", getValue(IMPORT_PACKAGE))
             assertEquals("com.example.provided;uses:=\"com.example.annotations\";$cordappOsgiVersion", getValue(EXPORT_PACKAGE))
             assertEquals("osgi.ee;filter:=\"(&(osgi.ee=JavaSE)(version=1.8))\"", getValue(REQUIRE_CAPABILITY))

@@ -57,7 +57,7 @@ open class VerifyBundle @Inject constructor(objects: ObjectFactory) : DefaultTas
      * someone eagerly configures this [VerifyBundle] by accident.
      */
     internal fun setDependenciesFrom(task: TaskProvider<DependencyCalculator>) {
-        _classpath.setFrom(task.flatMap(DependencyCalculator::externalJars), task.flatMap(DependencyCalculator::dependencies))
+        _classpath.setFrom(task.flatMap(DependencyCalculator::externalJars), task.flatMap(DependencyCalculator::libraries))
         _classpath.disallowChanges()
         dependsOn(task)
     }

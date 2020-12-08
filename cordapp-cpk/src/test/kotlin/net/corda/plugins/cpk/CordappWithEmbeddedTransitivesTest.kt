@@ -43,6 +43,7 @@ class CordappWithEmbeddedTransitivesTest {
                 .withSubResource("cordapp/src/main/kotlin/com/example/cordapp/CordappContract.kt")
                 .build(
                     "-Pcordapp_contract_version=$expectedCordappContractVersion",
+                    "-Pcommons_collections_version=$commonsCollectionsVersion",
                     "-Pcommons_io_version=$commonsIoVersion",
                     "-Pslf4j_version=$slf4jVersion",
                     "-Pcordapp_version=$cordappVersion",
@@ -54,9 +55,12 @@ class CordappWithEmbeddedTransitivesTest {
     @Test
     fun testCordappWithEmbeddedTransitiveDependencies() {
         assertThat(testProject.dependencyConstraints)
-            .anyMatch { it.startsWith("cordapp-$cordappVersion.jar") }
+            .noneMatch { it.startsWith("cordapp-$cordappVersion.jar") }
             .anyMatch { it.startsWith("commons-io-$commonsIoVersion.jar") }
-            .hasSize(2)
+            .hasSize(1)
+        assertThat(testProject.cpkDependencies)
+            .contains("com.example.cordapp,${toOSGi(cordappVersion)}")
+            .hasSize(1)
 
         val artifacts = testProject.artifacts
         assertThat(artifacts).hasSize(2)
@@ -75,7 +79,8 @@ class CordappWithEmbeddedTransitivesTest {
         }
         assertThat(libs)
             .contains("lib/embeddable-library.jar")
-            .hasSize(1)
+            .contains("lib/commons-collections-$commonsCollectionsVersion.jar")
+            .hasSize(2)
 
         val jarManifest = JarFile(cordapp.toFile()).use(JarFile::getManifest)
         println(jarManifest.mainAttributes.entries)
@@ -83,12 +88,14 @@ class CordappWithEmbeddedTransitivesTest {
         with(jarManifest.mainAttributes) {
             assertEquals("CorDapp Embedded Transitives", getValue(BUNDLE_NAME))
             assertEquals("com.example.cordapp-embedded-transitives", getValue(BUNDLE_SYMBOLICNAME))
-            assertEquals("1.2.3.SNAPSHOT", getValue(BUNDLE_VERSION))
+            assertEquals(toOSGi(hostVersion), getValue(BUNDLE_VERSION))
             assertEquals("osgi.ee;filter:=\"(&(osgi.ee=JavaSE)(version=1.8))\"", getValue(REQUIRE_CAPABILITY))
-            assertEquals("lib,com.example.embeddable", getValue(PRIVATE_PACKAGE))
             assertEquals("com.example.host;uses:=\"com.example.cordapp,kotlin,net.corda.core.transactions\";$hostOsgiVersion", getValue(EXPORT_PACKAGE))
             assertEquals("true", getValue("Sealed"))
 
+            assertThat(getValue(PRIVATE_PACKAGE)?.split(","))
+                .contains("lib", "com.example.embeddable", "org.apache.commons.collections")
+                .hasSizeGreaterThanOrEqualTo(3)
             assertThat(getValue(BUNDLE_CLASSPATH))
                 .startsWith(".,")
                 .contains(libs.map { ",$it" })

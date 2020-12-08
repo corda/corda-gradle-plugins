@@ -8,7 +8,19 @@ plugins {
 
 apply from: 'repositories.gradle'
 
-group = 'com.example'
+allprojects {
+    group = 'com.example'
+
+    tasks.withType(KotlinCompile).configureEach {
+        kotlinOptions {
+            jvmTarget = VERSION_1_8
+            apiVersion = '1.3'
+            languageVersion = '1.3'
+            freeCompilerArgs = ['-Xjvm-default=enable']
+        }
+    }
+}
+
 version = host_version
 
 cordapp {
@@ -23,19 +35,9 @@ cordapp {
     }
 }
 
-allprojects {
-    tasks.withType(KotlinCompile).configureEach {
-        kotlinOptions {
-            jvmTarget = VERSION_1_8
-            apiVersion = '1.3'
-            languageVersion = '1.3'
-            freeCompilerArgs = ['-Xjvm-default=enable']
-        }
-    }
-}
-
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-osgi-bundle:$kotlin_version"
+    implementation "commons-codec:commons-codec:$commons_codec_version"
     cordaProvided project(':corda-core')
     cordapp project(':cordapp')
 }

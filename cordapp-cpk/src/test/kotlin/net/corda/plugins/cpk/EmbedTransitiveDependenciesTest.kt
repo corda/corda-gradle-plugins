@@ -46,6 +46,7 @@ class EmbedTransitiveDependenciesTest {
             .anyMatch { it.startsWith("library.jar") }
             .anyMatch { it.startsWith("commons-io-$commonsIoVersion.jar") }
             .hasSize(2)
+        assertThat(testProject.cpkDependencies).isEmpty()
 
         val artifacts = testProject.artifacts
         assertThat(artifacts).hasSize(2)
@@ -72,7 +73,7 @@ class EmbedTransitiveDependenciesTest {
         with(jarManifest.mainAttributes) {
             assertEquals("Embed Transitive Dependencies", getValue(BUNDLE_NAME))
             assertEquals("com.example.embed-transitive-deps", getValue(BUNDLE_SYMBOLICNAME))
-            assertEquals("2.3.4.SNAPSHOT", getValue(BUNDLE_VERSION))
+            assertEquals(toOSGi(cordappVersion), getValue(BUNDLE_VERSION))
             assertEquals("osgi.ee;filter:=\"(&(osgi.ee=JavaSE)(version=1.8))\"", getValue(REQUIRE_CAPABILITY))
             assertEquals("com.example.annotations;$annotationsOsgiVersion", getValue(EXPORT_PACKAGE))
             assertEquals("lib", getValue(PRIVATE_PACKAGE))

@@ -20,6 +20,7 @@ import java.util.jar.JarFile
 
 class CordappWithSameGuavaVersionAsCordaTest {
     companion object {
+        const val cordappVersion = "1.0.1-SNAPSHOT"
         const val cordaGuavaVersion = "20.0"
 
         const val guavaOsgiVersion = "version=\"[20.0,21)\""
@@ -38,7 +39,8 @@ class CordappWithSameGuavaVersionAsCordaTest {
                 .build(
                     "-Pcordapp_contract_version=$expectedCordappContractVersion",
                     "-Pcorda_guava_version=$cordaGuavaVersion",
-                    "-Pguava_version=$cordaGuavaVersion"
+                    "-Pguava_version=$cordaGuavaVersion",
+                    "-Pcordapp_version=$cordappVersion"
                 )
         }
     }
@@ -48,6 +50,7 @@ class CordappWithSameGuavaVersionAsCordaTest {
         assertThat(testProject.dependencyConstraints)
             .anyMatch { it.startsWith("guava-$cordaGuavaVersion.jar") }
             .hasSizeGreaterThanOrEqualTo(1)
+        assertThat(testProject.cpkDependencies).isEmpty()
 
         val artifacts = testProject.artifacts
         assertThat(artifacts).hasSize(2)
@@ -64,7 +67,7 @@ class CordappWithSameGuavaVersionAsCordaTest {
         with(jarManifest.mainAttributes) {
             assertEquals("CorDapp With Guava", getValue(BUNDLE_NAME))
             assertEquals("com.example.cordapp-with-guava", getValue(BUNDLE_SYMBOLICNAME))
-            assertEquals("1.0.1.SNAPSHOT", getValue(BUNDLE_VERSION))
+            assertEquals(toOSGi(cordappVersion), getValue(BUNDLE_VERSION))
             assertEquals("com.google.common.collect;$guavaOsgiVersion,net.corda.core.contracts;$cordaOsgiVersion,net.corda.core.transactions;$cordaOsgiVersion", getValue(IMPORT_PACKAGE))
             assertEquals("com.example.contract;uses:=\"net.corda.core.contracts,net.corda.core.transactions\";$cordappOsgiVersion", getValue(EXPORT_PACKAGE))
             assertEquals("osgi.ee;filter:=\"(&(osgi.ee=JavaSE)(version=1.8))\"", getValue(REQUIRE_CAPABILITY))
