@@ -21,6 +21,8 @@ open class PackagingTask @Inject constructor(objects: ObjectFactory) : Jar() {
     private companion object {
         private const val CORDAPP_CLASSIFIER = "cordapp"
         private const val CORDAPP_EXTENSION = "cpk"
+        private const val CPK_FORMAT_TAG = "Corda-CPK-Format"
+        private const val CPK_FORMAT = "1.0"
     }
 
     private val _libraries: ConfigurableFileCollection = objects.fileCollection()
@@ -65,6 +67,10 @@ open class PackagingTask @Inject constructor(objects: ObjectFactory) : Jar() {
     init {
         description = "Builds the CorDapp CPK package."
         group = GROUP_NAME
+
+        manifest {
+            it.attributes(mapOf(CPK_FORMAT_TAG to CPK_FORMAT))
+        }
 
         mainSpec.from(cordapp) { spec ->
             spec.from(libraries) { libs ->
