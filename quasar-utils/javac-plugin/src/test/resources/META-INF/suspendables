@@ -1,0 +1,3 @@
+net.corda.plugins.javac.quasar.test.TestCase6.foo(ILjava/lang/String;Z[Lnet/corda/plugins/javac/quasar/test/TestCase6;[B)
+net.corda.plugins.javac.quasar.test.TestCase7.foo(ILjava/lang/String;Z[Lnet/corda/plugins/javac/quasar/test/TestCase7;[B)
+net.corda.plugins.javac.quasar.test.TestCase8.foo(Ljava/lang/Void;)

@@ -4,7 +4,7 @@ import java.util.function.Consumer;
 import co.paralleluniverse.fibers.Suspendable;
 import co.paralleluniverse.fibers.SuspendExecution;
 
-public class TestCase3 {
+public class TestCase4 {
     @Suspendable
     public void foo() {}
     public void bar() throws SuspendExecution {

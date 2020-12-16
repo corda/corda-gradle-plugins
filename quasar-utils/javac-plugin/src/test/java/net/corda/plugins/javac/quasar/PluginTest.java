@@ -87,19 +87,13 @@ public class PluginTest {
                 new FileManager(compiler.getStandardFileManager(null, null, null));
         List<JavaFileObject> compilationUnits = StreamSupport.stream(sources.spliterator(), false)
                 .map(SourceFile::new).collect(Collectors.toList());
-        List<String> arguments = Arrays.asList("-classpath", System.getProperty("java.class.path"),
+        List<String> arguments = Arrays.asList("-classpath", System.getProperty("test.compilation.classpath"),
                 "-Xplugin:" + SuspendableChecker.class.getName());
         final ArrayList<Diagnostic<? extends JavaFileObject>> compilerMessages = new ArrayList<>();
-        DiagnosticListener<JavaFileObject> diagnosticListener = new DiagnosticListener<JavaFileObject>() {
-            @Override
-            public void report(Diagnostic<? extends JavaFileObject> diagnostic) {
-                compilerMessages.add(diagnostic);
-            }
-        };
         JavaCompiler.CompilationTask task = compiler.getTask(
                 output,
                 fileManager,
-                diagnosticListener,
+                compilerMessages::add,
                 arguments,
                 null,
                 compilationUnits);
@@ -118,7 +112,12 @@ public class PluginTest {
             return Stream.of(
                 Arguments.of(prefix + "TestCase1.java", CompilationResult.SUCCESS),
                 Arguments.of(prefix + "TestCase2.java", CompilationResult.FAILURE),
-                Arguments.of(prefix + "TestCase3.java", CompilationResult.SUCCESS)
+                Arguments.of(prefix + "TestCase3.java", CompilationResult.SUCCESS),
+                Arguments.of(prefix + "TestCase4.java", CompilationResult.FAILURE),
+                Arguments.of(prefix + "TestCase5.java", CompilationResult.FAILURE),
+                Arguments.of(prefix + "TestCase6.java", CompilationResult.FAILURE),
+                Arguments.of(prefix + "TestCase7.java", CompilationResult.SUCCESS),
+                Arguments.of(prefix + "TestCase8.java", CompilationResult.FAILURE)
             );
         }
     }

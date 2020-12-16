@@ -20,7 +20,7 @@ dependencies {
 publishing {
     publications {
         maven(MavenPublication) {
-            groupId = groupId
+            groupId = project.group
             artifactId = 'javac-plugin'
             version = project.version
             from components.java
@@ -31,4 +31,9 @@ publishing {
 
 test {
     useJUnitPlatform()
+    def testCompilationClassPath = sourceSets["main"].output.classesDirs.files +
+            sourceSets["main"].runtimeClasspath.files +
+            sourceSets["test"].resources.srcDirs
+    systemProperty("test.compilation.classpath",
+            String.join(File.pathSeparator, testCompilationClassPath.collect {it.toString() }))
 }
