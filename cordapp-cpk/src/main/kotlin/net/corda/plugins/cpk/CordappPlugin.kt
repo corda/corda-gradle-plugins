@@ -89,7 +89,7 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
 
         project.configurations.apply {
             // Strip unwanted transitive dependencies from incoming CorDapps.
-            createCompileOnlyConfiguration(CORDAPP_CONFIGURATION_NAME).withDependencies { dependencies ->
+            createCompileConfiguration(CORDAPP_CONFIGURATION_NAME).withDependencies { dependencies ->
                 val excludeRules = HARDCODED_EXCLUDES.map { exclude ->
                     mapOf("group" to exclude.first, "module" to exclude.second)
                 }
@@ -97,7 +97,7 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
                     excludeRules.forEach { rule -> dep.exclude(rule) }
                 }
             }
-            createCompileOnlyConfiguration(CORDA_PROVIDED_CONFIGURATION_NAME)
+            createCompileConfiguration(CORDA_PROVIDED_CONFIGURATION_NAME)
             createRuntimeOnlyConfiguration(CORDA_RUNTIME_ONLY_CONFIGURATION_NAME)
             maybeCreate(CORDA_CPK_CONFIGURATION_NAME)
 
@@ -106,7 +106,8 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
                 dependencies.add(bndDependency)
             }
 
-            val cordaEmbedded = createCompileOnlyConfiguration(CORDA_EMBEDDED_CONFIGURATION_NAME)
+            // Embedded dependencies should not appear in the CorDapp's published POM.
+            val cordaEmbedded = createCompileConfiguration(CORDA_EMBEDDED_CONFIGURATION_NAME)
 
             // We need to resolve the contents of our CPK file based on
             // both the runtimeClasspath and cordaEmbedded configurations.

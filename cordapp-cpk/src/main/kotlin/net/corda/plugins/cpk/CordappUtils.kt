@@ -37,11 +37,20 @@ private fun ConfigurationContainer.createChildConfiguration(name: String, parent
     }
 }
 
-fun ConfigurationContainer.createCompileOnlyConfiguration(name: String): Configuration {
+/**
+ * This configuration will contribute to the CorDapp's compile classpath
+ * but not to its runtime classpath. However, it will still contribute
+ * to all TESTING classpaths.
+ */
+fun ConfigurationContainer.createCompileConfiguration(name: String): Configuration {
+    return createCompileConfiguration(name, "Implementation")
+}
+
+private fun ConfigurationContainer.createCompileConfiguration(name: String, testSuffix: String): Configuration {
     return findByName(name) ?: run {
         val configuration = create(name)
         getByName(COMPILE_ONLY_CONFIGURATION_NAME).extendsFrom(configuration)
-        matching { it.name.endsWith("CompileOnly") }.configureEach { cfg ->
+        matching { it.name.endsWith(testSuffix) }.configureEach { cfg ->
             cfg.extendsFrom(configuration)
         }
         configuration
