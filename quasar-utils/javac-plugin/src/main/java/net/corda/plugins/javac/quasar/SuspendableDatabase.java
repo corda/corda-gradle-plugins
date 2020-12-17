@@ -21,7 +21,6 @@ public class SuspendableDatabase {
 
     public SuspendableDatabase(ClassLoader classLoader) {
         readFiles(classLoader, SUSPENDABLES_FILE, suspendableMethods, suspendableClasses);
-        readFiles(classLoader, SUSPENDABLE_SUPERS_FILE, suspendableMethods, suspendableClasses);
     }
 
     private void readFiles(ClassLoader classLoader, String fileName, Set<String> set, Set<String> classSet) {

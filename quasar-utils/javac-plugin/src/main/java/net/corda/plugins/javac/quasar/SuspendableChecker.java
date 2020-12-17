@@ -6,12 +6,18 @@ import com.sun.source.tree.*;
 import com.sun.source.util.*;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Type;
+import com.sun.tools.javac.code.Types;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.TreeInfo;
 
 import javax.tools.Diagnostic;
 import java.lang.annotation.Annotation;
+import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 class MethodSignature {
     public final String className;
@@ -25,7 +31,7 @@ class MethodSignature {
     }
 
     private static String getSignature(Type type) {
-        if (type.isPrimitive()) {
+        if (type.isPrimitiveOrVoid()) {
             switch(type.getTag()) {
                 case INT:
                     return "I";
@@ -66,10 +72,12 @@ class MethodSignature {
         String methodName = sym.getQualifiedName().toString();
         StringBuilder sb = new StringBuilder();
         sb.append('(');
-        for (Type type : sym.asType().asMethodType().getParameterTypes()) {
+        Type.MethodType methodType = sym.asType().asMethodType();
+        for (Type type : methodType.getParameterTypes()) {
             sb.append(getSignature(type));
         }
         sb.append(')');
+        sb.append(getSignature(methodType.getReturnType()));
         return new MethodSignature(className.replace('.', '/'), methodName, sb.toString());
     }
 }
@@ -143,6 +151,34 @@ public class SuspendableChecker implements Plugin {
             return isSuspendable(sym);
         }
 
+        private static Optional<Symbol> findOverridden(Symbol.TypeSymbol typeSymbol, Symbol methodSymbol) {
+            return StreamSupport.stream(typeSymbol.members().getElementsByName(methodSymbol.name, s ->
+                        Optional.ofNullable(s.type.asMethodType())
+                                .map(mt -> Objects.equals(methodSymbol.asType().getParameterTypes(), mt.getParameterTypes()))
+                                .orElse(false)
+                ).spliterator(), false).findFirst();
+        }
+
+        private boolean superSuspendable(Symbol symbol) {
+            Symbol.ClassSymbol ownerClass = ((Symbol.ClassSymbol) symbol.owner);
+            Stream<Type> supers = Stream.concat(
+                    Optional.ofNullable(ownerClass.getSuperclass())
+                            .filter(t -> t != Type.noType)
+                            .map(Stream::of)
+                            .orElse(Stream.empty()),
+                    ownerClass.getInterfaces().stream());
+            List<Type> supList = supers.collect(Collectors.toList());
+            return supList.stream().map(type -> findOverridden(type.asElement(), symbol))
+                    .filter(Optional::isPresent)
+                    .map(Optional::get)
+                    .anyMatch(s -> inSuspendablesFile(s) || superSuspendable(s));
+        }
+
+        private boolean inSuspendablesFile(Symbol sym) {
+            MethodSignature signature = MethodSignature.from(sym);
+            return suspendableDatabase.isSuspendable(signature.className, signature.methodName, signature.desc);
+        }
+
         private boolean isSuspendable(Symbol sym) {
             Annotation annotation = sym.getAnnotation(Suspendable.class);
             if(annotation != null) return true;
@@ -150,8 +186,7 @@ public class SuspendableChecker implements Plugin {
                     Objects.equals(SuspendExecution.class.getName(), type.tsym.getQualifiedName().toString())
             );
             if(throwsSuspendExecution) return true;
-            MethodSignature signature = MethodSignature.from(sym);
-            return suspendableDatabase.isSuspendable(signature.className, signature.methodName, signature.desc);
+            return inSuspendablesFile(sym) || superSuspendable(sym);
         }
 
         @Override

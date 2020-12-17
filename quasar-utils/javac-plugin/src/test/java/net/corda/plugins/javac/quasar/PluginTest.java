@@ -117,7 +117,14 @@ public class PluginTest {
                 Arguments.of(prefix + "TestCase5.java", CompilationResult.FAILURE),
                 Arguments.of(prefix + "TestCase6.java", CompilationResult.FAILURE),
                 Arguments.of(prefix + "TestCase7.java", CompilationResult.SUCCESS),
-                Arguments.of(prefix + "TestCase8.java", CompilationResult.FAILURE)
+                Arguments.of(prefix + "TestCase8.java", CompilationResult.FAILURE),
+                Arguments.of(prefix + "TestCase9.java", CompilationResult.FAILURE),
+                Arguments.of(prefix + "TestCase10.java", CompilationResult.FAILURE),
+                Arguments.of(prefix + "TestCase11.java", CompilationResult.FAILURE),
+                Arguments.of(prefix + "TestCase12.java", CompilationResult.FAILURE),
+                Arguments.of(prefix + "TestCase13.java", CompilationResult.SUCCESS),
+                Arguments.of(prefix + "TestCase14.java", CompilationResult.SUCCESS),
+                Arguments.of(prefix + "TestCase15.java", CompilationResult.FAILURE)
             );
         }
     }
@@ -143,10 +150,10 @@ public class PluginTest {
         });
         switch (expectedCompilationResult) {
             case SUCCESS:
-                Assertions.assertFalse(result.isPresent());
+                Assertions.assertFalse(result.isPresent(), "Compilation was expected to succeed but it has failed");
                 break;
             case FAILURE:
-                Assertions.assertTrue(result.isPresent());
+                Assertions.assertTrue(result.isPresent(), "Compilation was expected to fail but it succeeded");
                 Optional<Diagnostic<? extends JavaFileObject>> illegalSuspendableInvocationMessage = StreamSupport.stream(
                         result.get().spliterator(), false)
                 .filter( diagnostic ->

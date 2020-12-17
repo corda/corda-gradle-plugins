@@ -1,3 +1,8 @@
-net.corda.plugins.javac.quasar.test.TestCase6.foo(ILjava/lang/String;Z[Lnet/corda/plugins/javac/quasar/test/TestCase6;[B)
-net.corda.plugins.javac.quasar.test.TestCase7.foo(ILjava/lang/String;Z[Lnet/corda/plugins/javac/quasar/test/TestCase7;[B)
-net.corda.plugins.javac.quasar.test.TestCase8.foo(Ljava/lang/Void;)
+net.corda.plugins.javac.quasar.test.TestCase6.foo(ILjava/lang/String;Z[Lnet/corda/plugins/javac/quasar/test/TestCase6;[B)V
+net.corda.plugins.javac.quasar.test.TestCase7.foo(ILjava/lang/String;Z[Lnet/corda/plugins/javac/quasar/test/TestCase7;[B)V
+net.corda.plugins.javac.quasar.test.TestCase8.foo(Ljava/lang/Void;)V
+net.corda.plugins.javac.quasar.test.TestCase9.Foo.foo()V
+net.corda.plugins.javac.quasar.test.TestCase10.Foo.foo()V
+net.corda.plugins.javac.quasar.test.TestCase11.Foo.foo()V
+net.corda.plugins.javac.quasar.test.TestCase12.Foo.foo()V
+net.corda.plugins.javac.quasar.test.TestCase15.Foo.*

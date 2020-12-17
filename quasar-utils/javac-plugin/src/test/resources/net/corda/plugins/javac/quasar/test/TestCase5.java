@@ -7,6 +7,7 @@ public class TestCase5 {
 
     public void bar() {
         try {
+            //This should fail since net.corda.plugins.javac.quasar.test.TestCase5#bar is not suspendable
             foo();
         } catch (SuspendExecution se) {}
     }
