@@ -193,7 +193,7 @@ public class SuspendableChecker implements Plugin {
             if (!suspendable) {
                 ExpressionTree methodSelect = methodInvocationTree.getMethodSelect();
                 Symbol symbol = TreeInfo.symbol((JCTree) methodSelect);
-                if (isSuspendable(symbol)) {
+                if (symbol != null && isSuspendable(symbol)) {
                     trees.printMessage(Diagnostic.Kind.ERROR,
                             "Invocation of suspendable method from non suspendable method",
                             methodSelect,

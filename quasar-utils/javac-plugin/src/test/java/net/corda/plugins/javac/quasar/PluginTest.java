@@ -124,7 +124,8 @@ public class PluginTest {
                 Arguments.of(prefix + "TestCase12.java", CompilationResult.FAILURE),
                 Arguments.of(prefix + "TestCase13.java", CompilationResult.SUCCESS),
                 Arguments.of(prefix + "TestCase14.java", CompilationResult.SUCCESS),
-                Arguments.of(prefix + "TestCase15.java", CompilationResult.FAILURE)
+                Arguments.of(prefix + "TestCase15.java", CompilationResult.FAILURE),
+                Arguments.of(prefix + "TestCase16.java", CompilationResult.FAILURE)
             );
         }
     }
