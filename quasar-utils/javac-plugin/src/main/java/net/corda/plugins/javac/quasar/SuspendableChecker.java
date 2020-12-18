@@ -6,7 +6,6 @@ import com.sun.source.tree.*;
 import com.sun.source.util.*;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Type;
-import com.sun.tools.javac.code.Types;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.TreeInfo;
 
@@ -152,7 +151,7 @@ public class SuspendableChecker implements Plugin {
         }
 
         private static Optional<Symbol> findOverridden(Symbol.TypeSymbol typeSymbol, Symbol methodSymbol) {
-            return StreamSupport.stream(typeSymbol.members().getElementsByName(methodSymbol.name, s ->
+            return StreamSupport.stream(ASTUtils.memberByName(typeSymbol, methodSymbol.name, s ->
                         Optional.ofNullable(s.type.asMethodType())
                                 .map(mt -> Objects.equals(methodSymbol.asType().getParameterTypes(), mt.getParameterTypes()))
                                 .orElse(false)

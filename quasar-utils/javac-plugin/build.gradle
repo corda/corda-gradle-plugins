@@ -8,13 +8,22 @@ repositories {
 }
 
 dependencies {
-    compileOnly files("${System.properties['java.home']}/../lib/tools.jar")
 
     testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: junit_jupiter_version
     testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-params', version: junit_jupiter_version
     testRuntimeOnly group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: junit_jupiter_version
-    testRuntimeOnly files("${System.properties['java.home']}/../lib/tools.jar")
 
+    if(JavaVersion.current() <= JavaVersion.VERSION_1_8) {
+        compileOnly files("${System.properties['java.home']}/../lib/tools.jar")
+        testRuntimeOnly files("${System.properties['java.home']}/../lib/tools.jar")
+    }
+}
+
+if(JavaVersion.current() > JavaVersion.VERSION_1_8) {
+    tasks.named("compileJava", JavaCompile.class) {
+        sourceCompatibility(JavaVersion.VERSION_1_8.toString())
+        targetCompatibility(JavaVersion.VERSION_1_8.toString())
+    }
 }
 
 publishing {
@@ -27,7 +36,6 @@ publishing {
         }
     }
 }
-
 
 test {
     useJUnitPlatform()
