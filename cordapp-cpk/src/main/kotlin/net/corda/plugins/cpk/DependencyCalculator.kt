@@ -5,7 +5,6 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ModuleVersionIdentifier
-import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.artifacts.ResolvedConfiguration
 import org.gradle.api.artifacts.ResolvedDependency
@@ -20,6 +19,7 @@ import org.gradle.api.tasks.OutputFiles
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.TaskDependency
 import java.io.File
+import java.util.Collections.unmodifiableList
 import javax.inject.Inject
 
 @Suppress("UnstableApiUsage")
@@ -27,6 +27,16 @@ open class DependencyCalculator @Inject constructor(objects: ObjectFactory) : De
     private companion object {
         const val NON_CORDA = false
         const val CORDA = true
+
+        val CORDAPP_BUILD_CONFIGURATIONS: List<String> = unmodifiableList(listOf(
+            /**
+             * Every CorDapp configuration is a super-configuration of at least one of these
+             * configurations. Hence every [org.gradle.api.artifacts.ProjectDependency] needed
+             * to build this CorDapp should exist somewhere beneath their umbrella.
+             */
+            RUNTIME_CLASSPATH_CONFIGURATION_NAME,
+            COMPILE_CLASSPATH_CONFIGURATION_NAME
+        ))
     }
 
     init {
@@ -72,18 +82,9 @@ open class DependencyCalculator @Inject constructor(objects: ObjectFactory) : De
     }
 
     private fun calculateTaskDependencies(): Set<TaskDependency> {
-        val runtimeClasspath = project.configurations.getByName(RUNTIME_CLASSPATH_CONFIGURATION_NAME)
-        val cordapps = project.configurations.getByName(CORDAPP_CONFIGURATION_NAME)
-        return (runtimeClasspath.allDependencies.filterIsInstance<ProjectDependency>()
-                + cordapps.allDependencies.filterIsInstance<ProjectDependency>()
-                - calculateExcludedDependencies().filterIsInstance<ProjectDependency>())
-            .mapTo(LinkedHashSet(), ProjectDependency::getBuildDependencies)
-    }
-
-    private fun calculateExcludedDependencies(): Set<Dependency> {
         return with(project.configurations) {
-            getByName(CORDA_PROVIDED_CONFIGURATION_NAME).allDependencies +
-                getByName(CORDA_RUNTIME_ONLY_CONFIGURATION_NAME).allDependencies
+            CORDAPP_BUILD_CONFIGURATIONS.map(::getByName)
+                .mapTo(LinkedHashSet(), Configuration::getBuildDependencies)
         }
     }
 
