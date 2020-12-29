@@ -15,7 +15,9 @@ Simply apply the `quasar-utils` gradle plugin to your project and activate the j
 
 ```groovy
 quasar {
-    enableJavacPlugin = true
+    javacPlugin {
+        enable = true
+    }
 }
 ```
 
@@ -42,6 +44,22 @@ will fail with
         bar.bar();
            ^
 ```
+
+### Configuration
+Custom annotations or exception types can be specified to be used as markers for suspendable methods using
+```groovy
+quasar {
+    javacPlugin {
+        enable = true
+        suspendableAnnotationMarkers "my.own.custom.SuspendableAnnotation", "my.own.custom.SuspendableAnnotation2"
+        suspendableThrowableMarkers "my.own.custom.SuspendableException", "my.own.custom.SuspendableException2"
+    }
+    version = "0.8.4_r3"
+}
+```
+
+Note that `co.paralleluniverse.fibers.Suspendable` and `co.paralleluniverse.fibers.SuspendExecution` are always 
+considered as suspendable markers, regardless of the plugin configuration.
 
 ### Build
 

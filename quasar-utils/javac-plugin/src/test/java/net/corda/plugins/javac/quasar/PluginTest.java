@@ -80,7 +80,8 @@ public class PluginTest {
         }
     }
 
-    private Optional<Iterable<Diagnostic<? extends JavaFileObject>>> compile(Iterable<URI> sources) {
+    private Optional<Iterable<Diagnostic<? extends JavaFileObject>>> compile(Iterable<URI> sources,
+                                                                             List<String> cliArgs) {
         StringWriter output = new StringWriter();
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
         FileManager fileManager =
@@ -88,7 +89,7 @@ public class PluginTest {
         List<JavaFileObject> compilationUnits = StreamSupport.stream(sources.spliterator(), false)
                 .map(SourceFile::new).collect(Collectors.toList());
         List<String> arguments = Arrays.asList("-classpath", System.getProperty("test.compilation.classpath"),
-                "-Xplugin:" + SuspendableChecker.class.getName());
+                "-Xplugin:" + SuspendableChecker.class.getName() + " " + cliArgs.stream().collect(Collectors.joining(" ")));
         final ArrayList<Diagnostic<? extends JavaFileObject>> compilerMessages = new ArrayList<>();
         JavaCompiler.CompilationTask task = compiler.getTask(
                 output,
@@ -110,22 +111,24 @@ public class PluginTest {
         public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
             String prefix = "net/corda/plugins/javac/quasar/test/";
             return Stream.of(
-                Arguments.of(prefix + "TestCase1.java", CompilationResult.SUCCESS),
-                Arguments.of(prefix + "TestCase2.java", CompilationResult.FAILURE),
-                Arguments.of(prefix + "TestCase3.java", CompilationResult.SUCCESS),
-                Arguments.of(prefix + "TestCase4.java", CompilationResult.FAILURE),
-                Arguments.of(prefix + "TestCase5.java", CompilationResult.FAILURE),
-                Arguments.of(prefix + "TestCase6.java", CompilationResult.FAILURE),
-                Arguments.of(prefix + "TestCase7.java", CompilationResult.SUCCESS),
-                Arguments.of(prefix + "TestCase8.java", CompilationResult.FAILURE),
-                Arguments.of(prefix + "TestCase9.java", CompilationResult.FAILURE),
-                Arguments.of(prefix + "TestCase10.java", CompilationResult.FAILURE),
-                Arguments.of(prefix + "TestCase11.java", CompilationResult.FAILURE),
-                Arguments.of(prefix + "TestCase12.java", CompilationResult.FAILURE),
-                Arguments.of(prefix + "TestCase13.java", CompilationResult.SUCCESS),
-                Arguments.of(prefix + "TestCase14.java", CompilationResult.SUCCESS),
-                Arguments.of(prefix + "TestCase15.java", CompilationResult.FAILURE),
-                Arguments.of(prefix + "TestCase16.java", CompilationResult.FAILURE)
+                Arguments.of(prefix + "TestCase1.java", CompilationResult.SUCCESS, Collections.emptyList()),
+                Arguments.of(prefix + "TestCase2.java", CompilationResult.FAILURE, Collections.emptyList()),
+                Arguments.of(prefix + "TestCase3.java", CompilationResult.SUCCESS, Collections.emptyList()),
+                Arguments.of(prefix + "TestCase4.java", CompilationResult.FAILURE, Collections.emptyList()),
+                Arguments.of(prefix + "TestCase5.java", CompilationResult.FAILURE, Collections.emptyList()),
+                Arguments.of(prefix + "TestCase6.java", CompilationResult.FAILURE, Collections.emptyList()),
+                Arguments.of(prefix + "TestCase7.java", CompilationResult.SUCCESS, Collections.emptyList()),
+                Arguments.of(prefix + "TestCase8.java", CompilationResult.FAILURE, Collections.emptyList()),
+                Arguments.of(prefix + "TestCase9.java", CompilationResult.FAILURE, Collections.emptyList()),
+                Arguments.of(prefix + "TestCase10.java", CompilationResult.FAILURE, Collections.emptyList()),
+                Arguments.of(prefix + "TestCase11.java", CompilationResult.FAILURE, Collections.emptyList()),
+                Arguments.of(prefix + "TestCase12.java", CompilationResult.FAILURE, Collections.emptyList()),
+                Arguments.of(prefix + "TestCase13.java", CompilationResult.SUCCESS, Collections.emptyList()),
+                Arguments.of(prefix + "TestCase14.java", CompilationResult.SUCCESS, Collections.emptyList()),
+                Arguments.of(prefix + "TestCase15.java", CompilationResult.FAILURE, Collections.emptyList()),
+                Arguments.of(prefix + "TestCase16.java", CompilationResult.FAILURE, Collections.emptyList()),
+                Arguments.of(prefix + "TestCase17.java", CompilationResult.FAILURE, Arrays.asList("annotations:TestCase17.CustomSuspendableMarker")),
+                Arguments.of(prefix + "TestCase18.java", CompilationResult.FAILURE, Arrays.asList("throwables:TestCase18.CustomSuspendableThrowable"))
             );
         }
     }
@@ -133,11 +136,11 @@ public class PluginTest {
     @DisplayName("Display name of container")
     @ParameterizedTest(name="{0}")
     @ArgumentsSource(TestCaseProvider.class)
-    public void test(String sourceFilePath, CompilationResult expectedCompilationResult) {
+    public void test(String sourceFilePath, CompilationResult expectedCompilationResult, List<String> suspendableMarkers) {
         Optional<Iterable<Diagnostic<? extends JavaFileObject>>> result;
         try {
             ClassLoader cl = getClass().getClassLoader();
-            result = compile(Collections.singletonList(cl.getResource(sourceFilePath).toURI()));
+            result = compile(Collections.singletonList(cl.getResource(sourceFilePath).toURI()), suspendableMarkers);
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);
         }

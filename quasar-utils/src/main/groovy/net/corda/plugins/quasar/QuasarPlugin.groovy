@@ -98,7 +98,7 @@ class QuasarPlugin implements Plugin<Project> {
 
         def javacPluginConfiguration = project.configurations.create(JAVAC_PLUGIN)
         javacPluginConfiguration.withDependencies { dependencies ->
-            if(extension.enableJavacPlugin.get()) {
+            if(extension.javacPluginExtension.enable.get()) {
                 def cls = getClass()
                 def resourceName = cls.name.replace('.', '/') + ".class"
                 def classUrl = cls.classLoader.getResource(resourceName)
@@ -132,9 +132,20 @@ class QuasarPlugin implements Plugin<Project> {
         }
         project.tasks.withType(JavaCompile).configureEach {
             doFirst {
-                if(extension.enableJavacPlugin.get()) {
+                if(extension.javacPluginExtension.enable.get()) {
+                    List<String> compilerArgs = ["-Xplugin:net.corda.plugins.javac.quasar.SuspendableChecker"]
+                    extension.javacPluginExtension.suspendableAnnotationMarkers.get().with { classNames ->
+                        if(classNames) {
+                            compilerArgs += "annotations:${classNames.join(',')}"
+                        }
+                    }
+                    extension.javacPluginExtension.suspendableThrowableMarkers.get().with { classNames ->
+                        if(classNames) {
+                            compilerArgs += "throwables:${classNames.join(',')}"
+                        }
+                    }
                     options.annotationProcessorPath += project.configurations[JAVAC_PLUGIN]
-                    options.compilerArgs += "-Xplugin:net.corda.plugins.javac.quasar.SuspendableChecker"
+                    options.compilerArgs += compilerArgs.join(" ")
                 }
             }
         }

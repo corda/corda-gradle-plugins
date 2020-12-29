@@ -1,19 +1,29 @@
+/*
+ * Quasar: lightweight threads and actors for the JVM.
+ * Copyright (c) 2013-2015, Parallel Universe Software Co. All rights reserved.
+ *
+ * This program and the accompanying materials are dual-licensed under
+ * either the terms of the Eclipse Public License v1.0 as published by
+ * the Eclipse Foundation
+ *
+ *   or (per the licensee's choosing)
+ *
+ * under the terms of the GNU Lesser General Public License version 3.0
+ * as published by the Free Software Foundation.
+ */
 package net.corda.plugins.javac.quasar;
 
-import co.paralleluniverse.fibers.SuspendExecution;
-import co.paralleluniverse.fibers.Suspendable;
 import com.sun.source.tree.*;
 import com.sun.source.util.*;
+import com.sun.tools.javac.code.Attribute;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.TreeInfo;
 
 import javax.tools.Diagnostic;
-import java.lang.annotation.Annotation;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -83,17 +93,76 @@ class MethodSignature {
 
 public class SuspendableChecker implements Plugin {
 
-    private final SuspendableDatabase suspendableDatabase = new SuspendableDatabase(ClassLoader.getSystemClassLoader());
+    private enum Parameter {
+        SuspendableAnnotationMarkers("annotations"),
+        SuspendableThrowableMarkers("throwables");
+
+        private static Map<String, Parameter> map;
+        static {
+            map = EnumSet.allOf(Parameter.class).stream().collect(Collectors.toMap(it -> it.key, Function.identity()));
+        }
+
+        public static Parameter from(String key) {
+            Parameter result = map.get(key);
+            if(result == null) throw new IllegalArgumentException(String.format("Unknown parameter '%s'", key));
+            return result;
+        }
+
+        private final String key;
+
+        Parameter(String key) {
+            this.key = key;
+        }
+    }
 
     @Override
     public String getName() {
         return SuspendableChecker.class.getName();
     }
 
+    private List<String> splitClassNames(String classNames) {
+        return Arrays.stream(classNames.split(",")).map(String::trim).collect(Collectors.toList());
+    }
+
+    private SuspendableDatabase createSuspendableDatabase(String[] args) {
+        String defaultSuspendableAnnotation = "co.paralleluniverse.fibers.Suspendable";
+        String defaultSuspendableThrowable = "co.paralleluniverse.fibers.SuspendExecution";
+        List<String> suspendableAnnotationMarkers = Collections.emptyList();
+        List<String> suspendableThrowableMarkers = Collections.emptyList();
+        for (String arg : args) {
+            int columnIndex = arg.indexOf(':');
+            if(columnIndex < 0) continue;
+            String key = arg.substring(0, columnIndex);
+            Parameter param = Parameter.from(key);
+            switch (param) {
+                case SuspendableAnnotationMarkers:
+                    suspendableAnnotationMarkers = splitClassNames(arg.substring(columnIndex + 1));
+                    break;
+                case SuspendableThrowableMarkers:
+                    suspendableThrowableMarkers = splitClassNames(arg.substring(columnIndex + 1));
+                    break;
+                default:
+                    throw new IllegalArgumentException(String.format("Unknown compiler plugin argument '%s'", arg));
+            }
+        }
+        return new SuspendableDatabase(ClassLoader.getSystemClassLoader(),
+                Collections.unmodifiableList(
+                    Stream.concat(
+                        suspendableAnnotationMarkers.stream(),
+                        Stream.of(defaultSuspendableAnnotation)
+                    ).distinct().collect(Collectors.toList())),
+                Collections.unmodifiableList(
+                    Stream.concat(
+                        suspendableThrowableMarkers.stream(),
+                        Stream.of(defaultSuspendableThrowable)
+                    ).distinct().collect(Collectors.toList()))
+                );
+    }
+
     @Override
-    public void init(JavacTask javacTask, String... strings) {
+    public void init(JavacTask javacTask, String... args) {
         Trees trees = Trees.instance(javacTask);
-        javacTask.addTaskListener(new SuspendableCheckerTaskListener(trees, suspendableDatabase));
+        javacTask.addTaskListener(new SuspendableCheckerTaskListener(trees, createSuspendableDatabase(args)));
     }
 
     private static class SuspendableCheckerTaskListener implements TaskListener {
@@ -113,7 +182,9 @@ public class SuspendableChecker implements Plugin {
         public void finished(TaskEvent taskEvent) {
             if (taskEvent.getKind() != TaskEvent.Kind.ANALYZE) return;
             taskEvent.getCompilationUnit()
-                .accept(new SuspendableChecker.Scanner(trees, taskEvent.getCompilationUnit(), suspendableDatabase), null);
+                .accept(new SuspendableChecker.Scanner(trees,
+                        taskEvent.getCompilationUnit(),
+                        suspendableDatabase), null);
         }
     }
 
@@ -126,7 +197,9 @@ public class SuspendableChecker implements Plugin {
         private MethodTree methodTree = null;
         private boolean suspendable = false;
 
-        Scanner(Trees trees, CompilationUnitTree compilationUnit, SuspendableDatabase suspendableDatabase) {
+        Scanner(Trees trees,
+                CompilationUnitTree compilationUnit,
+                SuspendableDatabase suspendableDatabase) {
             this.trees = trees;
             this.compilationUnit = compilationUnit;
             this.suspendableDatabase = suspendableDatabase;
@@ -179,12 +252,19 @@ public class SuspendableChecker implements Plugin {
         }
 
         private boolean isSuspendable(Symbol sym) {
-            Annotation annotation = sym.getAnnotation(Suspendable.class);
-            if(annotation != null) return true;
-            boolean throwsSuspendExecution = sym.asType().getThrownTypes().stream().anyMatch(type ->
-                    Objects.equals(SuspendExecution.class.getName(), type.tsym.getQualifiedName().toString())
-            );
-            if(throwsSuspendExecution) return true;
+            for(String annotationMarkerClassName : suspendableDatabase.suspendableAnnotationMarkers) {
+                boolean isAnnotatedWithSuspendableMarker = sym.getAnnotationMirrors()
+                        .stream()
+                        .anyMatch(it -> Objects.equals(annotationMarkerClassName, it.getAnnotationType().toString()));
+                if(isAnnotatedWithSuspendableMarker) return true;
+            }
+
+            for(String throwableMarkerClassName : suspendableDatabase.suspendableExceptionMarkers) {
+                boolean throwsSuspendableMarker = sym.asType().getThrownTypes().stream().anyMatch(type ->
+                        Objects.equals(throwableMarkerClassName, type.tsym.getQualifiedName().toString())
+                );
+                if(throwsSuspendableMarker) return true;
+            }
             return inSuspendablesFile(sym) || superSuspendable(sym);
         }
 

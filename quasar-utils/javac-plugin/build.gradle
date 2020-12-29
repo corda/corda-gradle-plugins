@@ -7,11 +7,17 @@ repositories {
     mavenCentral()
 }
 
-dependencies {
+configurations {
+    quasar {
+        transitive false
+    }
+}
 
+dependencies {
     testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: junit_jupiter_version
     testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-params', version: junit_jupiter_version
     testRuntimeOnly group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: junit_jupiter_version
+    quasar group: 'co.paralleluniverse', name: 'quasar-core', version: '0.7.10'
 
     if(JavaVersion.current() <= JavaVersion.VERSION_1_8) {
         compileOnly files("${System.properties['java.home']}/../lib/tools.jar")
@@ -41,7 +47,7 @@ test {
     useJUnitPlatform()
     def testCompilationClassPath = sourceSets["main"].output.classesDirs.files +
             sourceSets["main"].runtimeClasspath.files +
-            sourceSets["test"].resources.srcDirs
+            sourceSets["test"].resources.srcDirs + configurations.quasar.files
     systemProperty("test.compilation.classpath",
             String.join(File.pathSeparator, testCompilationClassPath.collect {it.toString() }))
 }

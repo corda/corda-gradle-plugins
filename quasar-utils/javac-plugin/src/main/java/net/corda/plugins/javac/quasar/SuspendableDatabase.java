@@ -8,6 +8,7 @@ import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.Enumeration;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class SuspendableDatabase {
@@ -19,7 +20,14 @@ public class SuspendableDatabase {
     private final Set<String> suspendableClasses = new HashSet<>();
 
 
-    public SuspendableDatabase(ClassLoader classLoader) {
+    public final List<String> suspendableAnnotationMarkers;
+    public final List<String> suspendableExceptionMarkers;
+
+    public SuspendableDatabase(ClassLoader classLoader,
+                               List<String> suspendableAnnotationMarkers,
+                               List<String> suspendableExceptionMarkers) {
+        this.suspendableAnnotationMarkers = suspendableAnnotationMarkers;
+        this.suspendableExceptionMarkers = suspendableExceptionMarkers;
         readFiles(classLoader, SUSPENDABLES_FILE, suspendableMethods, suspendableClasses);
     }
 
