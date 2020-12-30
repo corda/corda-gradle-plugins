@@ -49,11 +49,10 @@ publishing {
 
 test {
     useJUnitPlatform()
-    def testCompilationClassPath = sourceSets["main"].output.classesDirs.files +
-            sourceSets["main"].runtimeClasspath.files +
-            sourceSets["test"].resources.srcDirs + configurations.quasar.files
-    systemProperty("test.compilation.classpath",
-            String.join(File.pathSeparator, testCompilationClassPath.collect {it.toString() }))
+    def testCompilationClassPath = sourceSets["main"].output.classesDirs +
+            sourceSets["main"].runtimeClasspath +
+            sourceSets["test"].resources.sourceDirectories + configurations.quasar
+    systemProperty("test.compilation.classpath", testCompilationClassPath.asPath)
 }
 
 tasks.register("tar", Tar) {
