@@ -3,6 +3,8 @@ plugins {
     id 'java-gradle-plugin'
 }
 
+evaluationDependsOn("javac-plugin")
+
 description 'A small gradle plugin for adding some basic Quasar tasks and configurations to reduce build.gradle bloat.'
 
 repositories {
@@ -39,8 +41,16 @@ dependencies {
     testImplementation "org.assertj:assertj-core:$assertj_version"
 }
 
+FileCollection javacPluginTar = project("javac-plugin").tasks.named("tar").get().outputs.files
+
 jar {
     manifest {
         attributes "version" : archiveVersion.get()
+    }
+    inputs.files(javacPluginTar)
+
+    from(javacPluginTar) {
+        into("META-INF")
+        rename 'javac-plugin-.*\\.tar', 'javac-plugin.tar'
     }
 }

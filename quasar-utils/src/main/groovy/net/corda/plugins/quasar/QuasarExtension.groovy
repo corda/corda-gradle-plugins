@@ -10,7 +10,7 @@ import org.gradle.api.provider.Provider
 
 import javax.inject.Inject
 
-class JavacPlugin {
+class JavacPluginExtension {
 
     /**
      * Activates the javac compiler plugin to detect missing @Suspendable annotations
@@ -40,7 +40,7 @@ class JavacPlugin {
     }
 
     @Inject
-    JavacPlugin(ObjectFactory objects) {
+    JavacPluginExtension(ObjectFactory objects) {
         enable = objects.property(Boolean.class).convention(false)
         suspendableAnnotationMarkers = objects.listProperty(String)
         suspendableThrowableMarkers = objects.listProperty(String)
@@ -72,9 +72,9 @@ class QuasarExtension {
     /**
      * Activates the javac compiler plugin to detect missing @Suspendable annotations
      */
-    private final JavacPlugin javacPluginExtension
+    private final JavacPluginExtension javacPluginExtension
 
-    JavacPlugin getJavacPluginExtension() {
+    JavacPluginExtension getJavacPluginExtension() {
         return javacPluginExtension
     }
 
@@ -96,7 +96,7 @@ class QuasarExtension {
     @PackageScope
     final Provider<String> options
 
-    def javacPlugin(Action<JavacPlugin> action) {
+    def javacPlugin(Action<JavacPluginExtension> action) {
         action.execute(javacPluginExtension)
     }
 
@@ -119,7 +119,7 @@ class QuasarExtension {
                 }
             }
         }
-        javacPluginExtension = objects.newInstance(JavacPlugin.class)
+        javacPluginExtension = objects.newInstance(JavacPluginExtension.class)
 
         debug = objects.property(Boolean).convention(false)
         verbose = objects.property(Boolean).convention(false)

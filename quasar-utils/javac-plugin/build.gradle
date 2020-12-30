@@ -1,3 +1,7 @@
+import java.nio.file.Files
+import java.util.zip.ZipEntry
+import java.util.zip.ZipFile
+
 plugins {
     id 'java-library'
     id 'maven-publish'
@@ -50,4 +54,8 @@ test {
             sourceSets["test"].resources.srcDirs + configurations.quasar.files
     systemProperty("test.compilation.classpath",
             String.join(File.pathSeparator, testCompilationClassPath.collect {it.toString() }))
+}
+
+tasks.register("tar", Tar) {
+    from(sourceSets.main.output)
 }
