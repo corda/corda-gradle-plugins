@@ -1,0 +1,12 @@
+pluginManagement {
+    repositories {
+        mavenLocal()
+        gradlePluginPortal()
+    }
+
+    plugins {
+        id 'net.corda.plugins.flask' version '5.0.13-SNAPSHOT'
+    }
+}
+
+include(':testAgent')

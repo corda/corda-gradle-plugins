@@ -1,0 +1,9 @@
+plugins {
+    id 'java-library'
+}
+
+jar {
+    manifest {
+        attributes 'Premain-Class' : 'net.corda.gradle.flask.test.agent.JavaAgent'
+    }
+}

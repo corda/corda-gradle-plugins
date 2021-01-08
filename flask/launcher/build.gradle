@@ -1,0 +1,55 @@
+plugins {
+    id 'java-library'
+}
+
+evaluationDependsOn(":flask:common")
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    ['compileOnly', 'annotationProcessor', 'testCompileOnly', 'testAnnotationProcessor'].each { conf ->
+        add(conf, [group: "org.projectlombok", name: "lombok", version: lombok_version])
+    }
+    implementation group: "org.slf4j", name: "slf4j-api", version: slf4j_version
+    implementation group: "org.slf4j", name: "slf4j-simple", version: slf4j_version
+    implementation project(":flask:common")
+
+    testImplementation "org.junit.jupiter:junit-jupiter-api:$junit_jupiter_version"
+    testImplementation "org.junit.jupiter:junit-jupiter-params:$junit_jupiter_version"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junit_jupiter_version"
+}
+
+test {
+    useJUnitPlatform()
+}
+
+tasks.register("tar", Tar) {
+    from(sourceSets.main.output)
+    from {
+        configurations['default'].collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}
+
+def sourceJar = tasks.register('sourceJar', Jar) {
+    dependsOn(project.classes)
+    archiveClassifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+tasks.named('build') {
+    inputs.file(sourceJar.get().outputs.files)
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            artifact(sourceJar.get())
+            groupId = project.group
+            artifactId = 'flask-launcher'
+            version = project.version
+            from components.java
+        }
+    }
+}

@@ -26,6 +26,9 @@ include 'api-scanner:annotations'
 include 'cordapp'
 include 'jar-filter'
 include 'jar-filter:unwanteds'
+include 'flask'
+include 'flask:common'
+include 'flask:launcher'
 
 gradleEnterprise {
     buildScan {

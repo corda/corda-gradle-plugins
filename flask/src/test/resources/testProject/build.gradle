@@ -1,0 +1,25 @@
+plugins {
+    id 'net.corda.plugins.flask'
+}
+
+import net.corda.gradle.flask.FlaskJarTask.JavaAgent
+
+evaluationDependsOn('testAgent')
+
+configurations {
+    agent {
+        transitive = false
+    }
+}
+
+dependencies {
+    implementation project('testAgent')
+}
+
+File agentFile = project('testAgent').tasks.named('jar').get().outputs.files.singleFile
+flaskJar {
+    archiveBaseName = "flask"
+    mainClassName = "net.corda.gradle.flask.test.Main"
+    jvmArgs = ["-Xmx64M", "-Dsome.property=\"some nasty\nvalue\t\"", "-Danother.property=another nasty\nvalue\t"]
+    javaAgent(agentFile, "testArgument")
+}
