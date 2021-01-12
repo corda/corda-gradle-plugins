@@ -1,0 +1,27 @@
+plugins {
+    id 'net.corda.plugins.cordapp-cpk'
+}
+
+apply from: '../repositories.gradle'
+
+version = cpk1_version
+
+cordapp {
+    targetPlatformVersion = platform_version.toInteger()
+    minimumPlatformVersion = platform_version.toInteger()
+
+    contract {
+        name = 'CPK-1'
+        versionId = cordapp_contract_version.toInteger()
+        licence = 'Test-Licence'
+        vendor = 'R3'
+    }
+}
+
+dependencies {
+    cordaProvided project(':corda-core')
+}
+
+jar {
+    archiveBaseName = 'cpk-one'
+}
