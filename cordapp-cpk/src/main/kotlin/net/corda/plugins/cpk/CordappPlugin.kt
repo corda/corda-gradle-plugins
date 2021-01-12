@@ -89,7 +89,7 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
 
         project.configurations.apply {
             // Strip unwanted transitive dependencies from incoming CorDapps.
-            createCompileConfiguration(CORDAPP_CONFIGURATION_NAME).withDependencies { dependencies ->
+            val cordappCfg = createCompileConfiguration(CORDAPP_CONFIGURATION_NAME).withDependencies { dependencies ->
                 val excludeRules = HARDCODED_EXCLUDES.map { exclude ->
                     mapOf("group" to exclude.first, "module" to exclude.second)
                 }
@@ -97,7 +97,7 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
                     excludeRules.forEach { rule -> dep.exclude(rule) }
                 }
             }
-            createCompileConfiguration(CORDA_PROVIDED_CONFIGURATION_NAME)
+            val cordaProvided = createCompileConfiguration(CORDA_PROVIDED_CONFIGURATION_NAME)
             createRuntimeOnlyConfiguration(CORDA_RUNTIME_ONLY_CONFIGURATION_NAME)
             maybeCreate(CORDA_CPK_CONFIGURATION_NAME)
 
@@ -109,15 +109,39 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
             // Embedded dependencies should not appear in the CorDapp's published POM.
             val cordaEmbedded = createCompileConfiguration(CORDA_EMBEDDED_CONFIGURATION_NAME)
 
+            // The "cordapp" and "cordaProvided" configurations are "compile only",
+            // which causes their dependencies to be excluded from the published
+            // POM. This also means that CPK dependencies will not be transitive
+            // by default, and so we must implement a way of fixing this ourselves.
+            val collector = CordappDependencyCollector(this, project.dependencies)
+            createCompileConfiguration(ALL_CORDAPPS_CONFIGURATION_NAME)
+                .setVisible(false)
+                .extendsFrom(cordappCfg)
+                .withDependencies { dependencies ->
+                    collector.collect()
+                    dependencies.addAll(collector.cordappDependencies)
+                }
+            createCompileConfiguration(CORDA_ALL_PROVIDED_CONFIGURATION_NAME)
+                .setVisible(false)
+                .extendsFrom(cordaProvided)
+                .withDependencies { dependencies ->
+                    collector.collect()
+                    dependencies.addAll(collector.providedDependencies)
+                }
+
             // We need to resolve the contents of our CPK file based on
             // both the runtimeClasspath and cordaEmbedded configurations.
             // This won't happen by default because cordaEmbedded is a
             // "compile only" configuration.
-            @Suppress("UsePropertyAccessSyntax")
-            create(CORDAPP_PACKAGING_CONFIGURATION_NAME)
+            create(CORDAPP_PACKAGING_CONFIGURATION_NAME).setVisible(false)
                 .extendsFrom(getByName(RUNTIME_CLASSPATH_CONFIGURATION_NAME))
                 .extendsFrom(cordaEmbedded)
-                .setVisible(false)
+        }
+
+        project.pluginManager.withPlugin("maven-publish") {
+            // Always apply this plugin to the root project, to
+            // ensure that Gradle only executes its action once.
+            project.rootProject.pluginManager.apply(CordappPublishing::class.java)
         }
 
         configureCordappTasks(project)
@@ -319,12 +343,24 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
     }
 
     private fun checkCorDappVersionId(versionId: Property<Int>): Int {
-        if (!versionId.isPresent)
+        if (!versionId.isPresent) {
             throw InvalidUserDataException("CorDapp `versionId` was not specified in the associated `contract` or `workflow` metadata section. Please specify a whole number starting from 1.")
+        }
         val value = versionId.get()
         if (value < 1) {
             throw InvalidUserDataException("CorDapp `versionId` must not be smaller than 1.")
         }
         return value
+    }
+}
+
+/**
+ * Internal Gradle plugin which installs [PublishAfterEvaluationHandler].
+ * Gradle only applies each plugin once, which ensures that this handler
+ * cannot be installed multiple times.
+ */
+private class CordappPublishing : Plugin<Project> {
+    override fun apply(rootProject: Project) {
+        rootProject.gradle.projectsEvaluated(PublishAfterEvaluationHandler(rootProject))
     }
 }

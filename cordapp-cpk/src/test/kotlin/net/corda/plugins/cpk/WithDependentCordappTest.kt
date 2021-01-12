@@ -14,7 +14,7 @@ class WithDependentCordappTest {
         private fun buildProject(
             guavaVersion: String,
             libraryGuavaVersion: String,
-            @TempDir testProjectDir: Path,
+            testProjectDir: Path,
             reporter: TestReporter
         ): GradleProject {
             return GradleProject(testProjectDir, reporter)

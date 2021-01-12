@@ -7,7 +7,6 @@ import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.artifacts.ResolvedConfiguration
-import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.artifacts.SelfResolvingDependency
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.FileSystemLocation
@@ -15,6 +14,7 @@ import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME
 import org.gradle.api.plugins.JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME
 import org.gradle.api.provider.Provider
+import org.gradle.api.specs.Specs.satisfyNone
 import org.gradle.api.tasks.OutputFiles
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.TaskDependency
@@ -44,7 +44,7 @@ open class DependencyCalculator @Inject constructor(objects: ObjectFactory) : De
         group = GROUP_NAME
 
         // Force this task to execute!
-        outputs.upToDateWhen { false }
+        outputs.upToDateWhen(satisfyNone())
     }
 
     private val _libraries: ConfigurableFileCollection = objects.fileCollection()
@@ -114,17 +114,17 @@ open class DependencyCalculator @Inject constructor(objects: ObjectFactory) : De
         // Compute the set of resolved artifacts that will define this CorDapp.
         val packagingConfiguration = runtimeConfiguration.resolvedConfiguration
         val packageFiles = (
-            nonCordaDeps.resolveWithoutCorda(packagingConfiguration)
-            - cordaDeps.resolveAllFor(packagingConfiguration)
+            packagingConfiguration.resolveWithoutCorda(nonCordaDeps)
+            - packagingConfiguration.resolveAll(cordaDeps)
         ).toFiles() + nonCordaDeps.toSelfResolvingFiles()
 
         // Separate out any jars which we want to embed instead.
         // Avoid embedding anything which another CorDapp depends on.
         val embeddedDeps = configurations.getByName(CORDA_EMBEDDED_CONFIGURATION_NAME).allDependencies - runtimeDeps
-        val embeddedFiles = embeddedDeps.resolveWithoutCorda(packagingConfiguration).toFiles() + embeddedDeps.toSelfResolvingFiles()
+        val embeddedFiles = packagingConfiguration.resolveWithoutCorda(embeddedDeps).toFiles() + embeddedDeps.toSelfResolvingFiles()
 
         // The user has explicitly asked to embed these artifacts.
-        val mustEmbedFiles = embeddedDeps.resolveFirstLevelFilesFor(packagingConfiguration)
+        val mustEmbedFiles = packagingConfiguration.resolveFirstLevelFilesFor(embeddedDeps)
 
         val bundledFiles = embeddedFiles - packageFiles + mustEmbedFiles
         _embeddedJars.apply {
@@ -144,11 +144,11 @@ open class DependencyCalculator @Inject constructor(objects: ObjectFactory) : De
         // We still ignore anything that was for "compile only", because we only want to validate packages
         // that will be available at runtime.
         val compileConfiguration = configurations.getByName(COMPILE_CLASSPATH_CONFIGURATION_NAME).resolvedConfiguration
-        val cordaFiles = cordaDeps.resolveAllFor(compileConfiguration).toFiles()
-        val providedDeps = configurations.getByName(CORDA_PROVIDED_CONFIGURATION_NAME).allDependencies
-        val providedFiles = providedDeps.resolveAllFilesFor(compileConfiguration)
-        val cordappDeps = configurations.getByName(CORDAPP_CONFIGURATION_NAME).allDependencies
-        val cordappFiles = cordappDeps.resolveFirstLevelFilesFor(compileConfiguration)
+        val cordaFiles = compileConfiguration.resolveAll(cordaDeps).toFiles()
+        val providedDeps = configurations.getByName(CORDA_ALL_PROVIDED_CONFIGURATION_NAME).allDependencies
+        val providedFiles = compileConfiguration.resolveAllFilesFor(providedDeps)
+        val cordappDeps = configurations.getByName(ALL_CORDAPPS_CONFIGURATION_NAME).allDependencies
+        val cordappFiles = compileConfiguration.resolveFirstLevelFilesFor(cordappDeps)
         _externalJars.apply {
             setFrom(providedFiles, cordaFiles, cordappFiles)
             disallowChanges()
@@ -160,12 +160,12 @@ open class DependencyCalculator @Inject constructor(objects: ObjectFactory) : De
         }
     }
 
-    private fun Collection<Dependency>.resolveAllFilesFor(configuration: ResolvedConfiguration): Set<File> {
-        return resolveAllFor(configuration).toFiles() + toSelfResolvingFiles()
+    private fun ResolvedConfiguration.resolveAllFilesFor(dependencies: Collection<Dependency>): Set<File> {
+        return resolveAll(dependencies).toFiles() + dependencies.toSelfResolvingFiles()
     }
 
-    private fun Collection<Dependency>.resolveFirstLevelFilesFor(configuration: ResolvedConfiguration): Set<File> {
-        return resolveFirstLevelFor(configuration).toFiles() + toSelfResolvingFiles()
+    private fun ResolvedConfiguration.resolveFirstLevelFilesFor(dependencies: Collection<Dependency>): Set<File> {
+        return resolveFirstLevel(dependencies).toFiles() + dependencies.toSelfResolvingFiles()
     }
 
     private fun Collection<ResolvedArtifact>.toFiles(): Set<File> = mapTo(LinkedHashSet(), ResolvedArtifact::getFile)
@@ -174,21 +174,8 @@ open class DependencyCalculator @Inject constructor(objects: ObjectFactory) : De
         = filterIsInstance(SelfResolvingDependency::class.java)
             .flatMapTo(LinkedHashSet(), SelfResolvingDependency::resolve)
 
-    private fun Collection<Dependency>.resolveAllFor(configuration: ResolvedConfiguration): Set<ResolvedArtifact> {
-        return resolveFor(configuration, ResolvedDependency::getAllModuleArtifacts)
-    }
-
-    private fun Collection<Dependency>.resolveFirstLevelFor(configuration: ResolvedConfiguration): Set<ResolvedArtifact> {
-        return resolveFor(configuration, ResolvedDependency::getModuleArtifacts)
-    }
-
-    private fun Collection<Dependency>.resolveFor(configuration: ResolvedConfiguration, fetchArtifacts: (ResolvedDependency) -> Iterable<ResolvedArtifact>): Set<ResolvedArtifact> {
-        return configuration.getFirstLevelModuleDependencies { contains(it) }
-            .flatMapTo(LinkedHashSet(), fetchArtifacts)
-    }
-
-    private fun Collection<Dependency>.resolveWithoutCorda(configuration: ResolvedConfiguration): List<ResolvedArtifact> {
-        return resolveAllFor(configuration)
+    private fun ResolvedConfiguration.resolveWithoutCorda(dependencies: Collection<Dependency>): List<ResolvedArtifact> {
+        return resolveAll(dependencies)
             .filterNot { artifact -> isCordaProvided(artifact.moduleVersion.id) }
             .also { artifacts ->
                 // Corda artifacts should not be included, either directly or transitively.
