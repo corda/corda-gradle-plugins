@@ -1,14 +1,14 @@
 package net.corda.flask.launcher;
 
+import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
+
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileLock;
 import java.nio.file.Files;
 import java.nio.file.Path;
-
-import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 
 @RequiredArgsConstructor
 class LockFile implements Closeable {

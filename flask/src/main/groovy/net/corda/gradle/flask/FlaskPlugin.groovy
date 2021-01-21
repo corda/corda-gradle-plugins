@@ -1,16 +1,14 @@
 package net.corda.gradle.flask
 
-import groovy.transform.Canonical
 import groovy.transform.CompileStatic
-import net.corda.flask.common.ManifestEscape
 import net.corda.flask.common.Flask
+import net.corda.flask.common.ManifestEscape
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.FileCollection
-import org.gradle.api.file.RegularFile
 import org.gradle.api.java.archives.Manifest
 import org.gradle.api.plugins.JavaApplication
 import org.gradle.api.plugins.JavaPlugin
@@ -27,8 +25,6 @@ import org.gradle.jvm.tasks.Jar
 import java.nio.file.Paths
 import java.security.DigestInputStream
 import java.security.MessageDigest
-import java.text.CharacterIterator
-import java.text.StringCharacterIterator
 
 class LauncherResource implements ReadableResource {
     private URL url = getClass().getResource("/META-INF/${getBaseName()}.tar")
@@ -135,46 +131,6 @@ class FlaskJarTask extends Jar {
                 }
             }
         }
-    }
-
-    @CompileStatic
-    private static String escapeStringList(List<String> strings){
-        StringBuilder sb = new StringBuilder()
-        int i = 0
-        while(true) {
-            CharacterIterator it = new StringCharacterIterator(strings[i])
-            for (char c = it.first(); c != CharacterIterator.DONE; c = it.next()) {
-                switch (c) {
-                    case '"':
-                        sb.append("\\\"")
-                        break
-                    case '\r':
-                        sb.append("\\r")
-                        break
-                    case '\n':
-                        sb.append("\\n")
-                        break
-                    case '\t':
-                        sb.append("\\t")
-                        break
-                    case ' ':
-                        sb.append("\\ ")
-                        break
-                    case '\\':
-                        sb.append("\\\\")
-                        break
-                    default:
-                        sb.append(c)
-                        break
-                }
-            }
-            if(++i < strings.size()) {
-                sb.append(' ')
-            } else {
-                break
-            }
-        }
-        return sb.toString()
     }
 
     def configureManifest(Manifest m) {

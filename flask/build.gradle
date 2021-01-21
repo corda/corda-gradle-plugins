@@ -28,17 +28,11 @@ jar {
         attributes "version" : archiveVersion.get()
     }
     from(zipTree(commonJar.singleFile))
-//    inputs.files(launcherTar)
-//
-//    from(launcherTar) {
-//        into("META-INF")
-//        rename 'launcher-.*\\.tar', 'flask-launcher.tar'
-//    }
 }
 
 gradlePlugin {
     plugins {
-        jarFilterPlugin {
+        flaskPlugin {
             id = 'net.corda.plugins.flask'
             implementationClass = 'net.corda.gradle.flask.FlaskPlugin'
         }
@@ -58,20 +52,3 @@ dependencies {
 tasks.named("pluginUnderTestMetadata", PluginUnderTestMetadata) {
     pluginClasspath.from(project.configurations.named("compileOnly").get())
 }
-
-//Provider<Copy> copyLauncherForTests = tasks.register("copyLauncherForTests", Copy) {
-//    from(launcherTar)
-//    into(new File(project.tasks.named("processTestResources").get().outputs.files.singleFile, "META-INF"))
-//    rename 'launcher-.*\\.tar', 'flask-launcher.tar'
-//}
-//
-//tasks.named("processTestResources") {
-//    inputs.files(copyLauncherForTests.get().outputs)
-//}
-
-//tasks.named("test", Test) {
-//    println(it.classpath.files)
-//}
-//
-//test {
-//}
