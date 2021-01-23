@@ -2,7 +2,7 @@ package net.corda.flask.launcher;
 
 import lombok.SneakyThrows;
 import net.corda.flask.common.Flask;
-import net.corda.flask.common.StringParseException;
+import net.corda.flask.common.ManifestEscape;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,8 +13,6 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.text.CharacterIterator;
-import java.text.StringCharacterIterator;
 import java.util.*;
 import java.util.jar.JarInputStream;
 import java.util.jar.Manifest;
@@ -24,49 +22,6 @@ public class Launcher {
 
     private static String CACHE_FOLDER_DEFAULT_NAME = "flask_cache";
     private static Logger log = LoggerFactory.getLogger(JarCache.class);
-
-    static List<String> splitManifestArgumentString(String s) {
-        List<String> result = new ArrayList<>();
-        StringBuilder sb = new StringBuilder();
-        boolean escape = false;
-        CharacterIterator it = new StringCharacterIterator(s);
-        for (char c = it.first(); c != CharacterIterator.DONE; c = it.next()) {
-             if (escape) {
-                escape = false;
-                switch (c) {
-                    case '"':
-                        sb.append('"');
-                        break;
-                    case 'r':
-                        sb.append('\r');
-                        break;
-                    case 'n':
-                        sb.append('\n');
-                        break;
-                    case 't':
-                        sb.append('\t');
-                        break;
-                    case '\\':
-                        sb.append('\\');
-                        break;
-                    case ' ':
-                        sb.append(' ');
-                        break;
-                    default:
-                        throw new StringParseException(String.format("Unrecognized escape sequence '\\%c'", c));
-                }
-            } else if(c == ' ') {
-                 result.add(sb.toString());
-                 sb = new StringBuilder();
-            } else if (c == '\\') {
-                escape = true;
-            } else {
-                sb.append(c);
-            }
-        }
-        if(sb.length() > 0) result.add(sb.toString());
-        return result;
-    }
 
     @SneakyThrows
     private static Path getCurrentJar() {
@@ -109,7 +64,7 @@ public class Launcher {
                 builder.getJvmArgs().addAll(info.getInputArguments());
             }
             Optional.ofNullable(System.getProperty(Flask.JvmProperties.JVM_ARGS)).ifPresent(prop -> {
-                List<String> jvmArgs = splitManifestArgumentString(prop);
+                List<String> jvmArgs = ManifestEscape.splitManifestStringList(prop);
                 log.trace("Adding jvm arguments from {}: [{}]", Flask.JvmProperties.JVM_ARGS,
                         jvmArgs.stream()
                                 .map(s -> "\"" + s + "\"")
@@ -118,7 +73,7 @@ public class Launcher {
             });
             String jvmArgsManifestString = manifest.getMainAttributes().getValue(Flask.ManifestAttributes.JVM_ARGS);
             if(jvmArgsManifestString != null) {
-                List<String> jvmArgs = splitManifestArgumentString(jvmArgsManifestString);
+                List<String> jvmArgs = ManifestEscape.splitManifestStringList(jvmArgsManifestString);
                 log.trace("Adding jvm arguments from jar manifest '{}' attribute: [{}]", Flask.ManifestAttributes.JVM_ARGS,
                         jvmArgs.stream()
                                 .map(s -> "\"" + s + "\"")
@@ -127,7 +82,7 @@ public class Launcher {
             }
             String javaAgentsManifestString = manifest.getMainAttributes().getValue(Flask.ManifestAttributes.JAVA_AGENTS);
             if(javaAgentsManifestString != null) {
-                for(String javaAgentString : splitManifestArgumentString(javaAgentsManifestString)) {
+                for(String javaAgentString : ManifestEscape.splitManifestStringList(javaAgentsManifestString)) {
                     int equalCharPosition = javaAgentString.indexOf('=');
                     String hash;
                     if(equalCharPosition < 0) {

@@ -31,25 +31,3 @@ tasks.register("tar", Tar) {
         configurations['default'].collect { it.isDirectory() ? it : zipTree(it) }
     }
 }
-
-def sourceJar = tasks.register('sourceJar', Jar) {
-    dependsOn(project.classes)
-    archiveClassifier = 'sources'
-    from sourceSets.main.allSource
-}
-
-tasks.named('build') {
-    inputs.file(sourceJar.get().outputs.files)
-}
-
-publishing {
-    publications {
-        maven(MavenPublication) {
-            artifact(sourceJar.get())
-            groupId = project.group
-            artifactId = 'flask-launcher'
-            version = project.version
-            from components.java
-        }
-    }
-}

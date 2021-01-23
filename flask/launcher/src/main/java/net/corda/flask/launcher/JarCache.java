@@ -132,17 +132,18 @@ class JarCache {
     @SneakyThrows
     public Map<String, Path> extract(Manifest manifest) {
         byte[] buffer = new byte[0x10000];
+        ClassLoader cl = Launcher.class.getClassLoader();
         for (Map.Entry<String, Attributes> entry : manifest.getEntries().entrySet()) {
             String jarEntryName = entry.getKey();
             Attributes attributes = entry.getValue();
-            if (jarEntryName.startsWith("/LIB-INF/") && attributes.getValue(Flask.ManifestAttributes.MD5_DIGEST) != null) {
+            if (jarEntryName.startsWith(Flask.Constants.LIBRARIES_FOLDER + '/') && attributes.getValue(Flask.ManifestAttributes.ENTRY_HASH) != null) {
                 String jarName = jarEntryName.substring(jarEntryName.lastIndexOf('/') + 1);
-                String hash = attributes.getValue(Flask.ManifestAttributes.MD5_DIGEST);
+                String hash = attributes.getValue(Flask.ManifestAttributes.ENTRY_HASH);
                 Path destination = libDir.resolve(hash).resolve(jarName);
                 extractedLibraries.put(hash, destination);
                 if (!Files.exists(destination)) {
                     Files.createDirectories(destination.getParent());
-                    InputStream is = Launcher.class.getResourceAsStream(jarEntryName);
+                    InputStream is = cl.getResourceAsStream(jarEntryName);
                     log.debug("Extracting '{}' to '{}'", jarEntryName, destination);
                     if (is != null) {
                         try {
