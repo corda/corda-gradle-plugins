@@ -1,5 +1,6 @@
 package net.corda.flask.launcher;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.SneakyThrows;
@@ -23,6 +24,12 @@ public class JavaProcessBuilder {
 
     private static final String PROCESS_BUILDER_PREFIX = "javaProcessBuilder";
 
+    @AllArgsConstructor
+    public static class JavaAgent {
+        Path jar;
+        String args;
+    }
+
     private String mainClassName;
 
     private String javaHome = System.getProperty("java.home");
@@ -34,6 +41,8 @@ public class JavaProcessBuilder {
     private Properties properties = new Properties();
 
     private List<String> cliArgs = new ArrayList<>();
+
+    private List<JavaAgent> javaAgents = new ArrayList<>();
 
     /**
      * Generate the argument file string according to the grammar specified
@@ -91,6 +100,15 @@ public class JavaProcessBuilder {
         }
         for(Map.Entry<Object, Object> entry : properties.entrySet()) {
             cmd.add(String.format("-D%s=%s", entry.getKey(), entry.getValue()));
+        }
+        for(JavaAgent javaAgent : javaAgents) {
+            StringBuilder sb = new StringBuilder("-javaagent:" + javaAgent.jar.toString());
+            String agentArguments = javaAgent.args;
+            if(agentArguments != null) {
+                sb.append('=');
+                sb.append(agentArguments);
+            }
+            cmd.add(sb.toString());
         }
         cmd.add(mainClassName);
         cmd.addAll(cliArgs);

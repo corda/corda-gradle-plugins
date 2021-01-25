@@ -6,6 +6,7 @@ import net.corda.flask.common.ManifestEscape;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.InputStream;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 import java.net.URI;
@@ -14,9 +15,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.jar.JarInputStream;
+import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 public class Launcher {
 
@@ -40,10 +43,13 @@ public class Launcher {
 
     @SneakyThrows
     private int launch(String[] args) {
-        Manifest manifest;
         Path currentJar = getCurrentJar();
-        try (JarInputStream jarInputStream = new JarInputStream(Files.newInputStream(currentJar))) {
-            manifest = jarInputStream.getManifest();
+        ZipFile jar = new ZipFile(currentJar.toFile());
+        ZipEntry manifestEntry = jar.getEntry(JarFile.MANIFEST_NAME);
+        jar.getInputStream(manifestEntry);
+        Manifest manifest = new Manifest();
+        try (InputStream inputStream = jar.getInputStream(manifestEntry)) {
+            manifest.read(inputStream);
         }
         JarCache cache = new JarCache(CACHE_FOLDER_DEFAULT_NAME);
         if(Boolean.parseBoolean(System.getProperty(Flask.JvmProperties.WIPE_CACHE))) {
@@ -93,14 +99,14 @@ public class Launcher {
                     Path agentJar = Optional.ofNullable(extractedLibraries.get(hash))
                         .orElseThrow(() -> new IllegalStateException(String.format(
                             "Java agent jar with hash '%s' not found Flask cache", hash)));
-                    StringBuilder sb = new StringBuilder("-javaagent:" + agentJar.toString());
+                    String agentArguments = null;
                     if(equalCharPosition > 0) {
-                        String agentArguments = javaAgentString.substring(equalCharPosition + 1);
+                        agentArguments = javaAgentString.substring(equalCharPosition + 1);
                         log.trace("Adding Java agent '{}' with arguments '{}'", agentJar.getFileName().toString(), agentArguments);
-                        sb.append('=');
-                        sb.append(agentArguments);
+                    } else {
+                        log.trace("Adding Java agent '{}'", agentJar.getFileName().toString());
                     }
-                    builder.getJvmArgs().add(sb.toString());
+                    builder.getJavaAgents().add(new JavaProcessBuilder.JavaAgent(agentJar, agentArguments));
                 }
             }
             for(Path jarPath : extractedLibraries.values()) {
