@@ -1,11 +1,12 @@
 package net.corda.gradle.flask;
 
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.SneakyThrows;
 import net.corda.flask.common.Flask;
 import net.corda.flask.common.ManifestEscape;
+import org.gradle.api.Action;
+import org.gradle.api.GradleException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.internal.file.CopyActionProcessingStreamAction;
@@ -16,9 +17,6 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.BasePluginConvention;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
-import org.gradle.api.resources.MissingResourceException;
-import org.gradle.api.resources.ReadableResource;
-import org.gradle.api.resources.ResourceException;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.WorkResult;
@@ -29,8 +27,6 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.math.BigInteger;
-import java.net.URI;
-import java.net.URL;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.util.ArrayList;
@@ -75,10 +71,9 @@ public class FlaskJarTask extends AbstractArchiveTask {
         into(Flask.Constants.LIBRARIES_FOLDER, (copySpec) -> copySpec.from(fileCollection));
     }
 
-    @RequiredArgsConstructor
     private static class JavaAgent {
-        final File jar;
-        final String args;
+        File jar;
+        String args;
     }
 
     private final List<JavaAgent> javaAgents;
@@ -94,8 +89,11 @@ public class FlaskJarTask extends AbstractArchiveTask {
         return javaAgents.stream().map(it -> it.args).collect(Collectors.toList());
     }
 
-    public void javaAgent(File jar, String agentArgs) {
-        javaAgents.add(new JavaAgent(jar, agentArgs));
+    public void javaAgent(Action<JavaAgent> action) {
+        JavaAgent agent = new JavaAgent();
+        action.execute(agent);
+        if(agent.jar == null) throw new GradleException("No jar file specified for Java agent");
+        javaAgents.add(agent);
     }
 
     public FlaskJarTask() {

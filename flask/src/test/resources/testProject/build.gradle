@@ -21,5 +21,8 @@ flaskJar {
     archiveBaseName = "flask"
     mainClassName = "net.corda.gradle.flask.test.Main"
     jvmArgs = ["-Xmx64M", "-Dsome.property=\"some nasty\nvalue\t\"", "-Danother.property=another nasty\nvalue\t"]
-    javaAgent(agentFile, "testArgument")
+    javaAgent {
+        jar = agentFile
+        args = "testArgument"
+    }
 }
