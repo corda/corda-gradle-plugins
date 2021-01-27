@@ -20,9 +20,15 @@ File agentFile = project('testAgent').tasks.named('jar').get().outputs.files.sin
 flaskJar {
     archiveBaseName = "flask"
     mainClassName = "net.corda.gradle.flask.test.Main"
+    launcherClassName = "net.corda.gradle.flask.test.TestLauncher"
     jvmArgs = ["-Xmx64M", "-Dsome.property=\"some nasty\nvalue\t\"", "-Danother.property=another nasty\nvalue\t"]
     javaAgent {
         jar = agentFile
         args = "testArgument"
     }
+}
+
+flaskRun {
+    workingDir = project.buildDir
+    args = ["arg1", "arg2", "arg3"]
 }

@@ -34,7 +34,16 @@ class FlaskPlugin implements Plugin<Project> {
             archiveBaseName = "${project.name}-flask"
             Configuration defaultConfiguration = project.configurations["default"]
             TaskOutputs jarTaskOutput = project.tasks.named("jar", Jar).get().outputs
-            from(flaskSourceSetProvider.get().runtimeClasspath)
+            inputs.files(flaskSourceSetProvider.get().output)
+            from {
+                flaskSourceSetProvider.get().runtimeClasspath.collect {
+                    if(it.exists()) {
+                        it.isDirectory() ? it : project.zipTree(it)
+                    } else {
+                        null
+                    }
+                }
+            }
             includeLibraries(jarTaskOutput.files + defaultConfiguration)
 
             mainClassName = project.provider {
@@ -45,9 +54,10 @@ class FlaskPlugin implements Plugin<Project> {
         }
         project.extensions.add("flaskJar", flaskJarTask.get())
 
-        project.tasks.create(name: 'flaskRun', type : JavaExec) {
+        Provider<JavaExec> flaskRunTask = project.tasks.register('flaskRun', JavaExec) {
             inputs.files(flaskJarTask.get().outputs)
             classpath(flaskJarTask.get().outputs)
         }
+        project.extensions.add("flaskRun", flaskRunTask.get())
     }
 }

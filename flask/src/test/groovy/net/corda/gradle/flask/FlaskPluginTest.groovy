@@ -3,12 +3,14 @@ package net.corda.gradle.flask
 import groovy.transform.CompileStatic
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 
 import java.nio.file.Path
 import java.nio.file.Files
+import java.nio.file.Paths
 import java.nio.file.StandardCopyOption
 
 @CompileStatic
@@ -59,6 +61,7 @@ class FlaskPluginTest {
         installResource("testProject", "build.gradle", testProjectDir)
         installResource("testProject", "settings.gradle", testProjectDir)
         installResource("testProject","src/main/java/net/corda/gradle/flask/test/Main.java", testProjectDir)
+        installResource("testProject","src/flask/java/net/corda/gradle/flask/test/TestLauncher.java", testProjectDir)
         installResource("testProject", "testAgent/build.gradle", testProjectDir)
         installResource("testProject", "testAgent/src/main/java/net/corda/gradle/flask/test/agent/JavaAgent.java", testProjectDir)
     }
@@ -81,5 +84,13 @@ class FlaskPluginTest {
     void runFlaskJar() {
         GradleRunner runner = getStandardGradleRunnerFor("flaskRun")
         BuildResult result = runner.build()
+        Path propertiesFile = testProjectDir.resolve("build/testLauncher.properties")
+        Properties prop = Files.newBufferedReader(propertiesFile).withCloseable { reader ->
+            new Properties().tap {
+                load(reader)
+            }
+        }
+        Assertions.assertEquals("net.corda.gradle.flask.test.Main", prop.mainClassName)
+        Assertions.assertEquals("arg1 arg2 arg3", prop.args)
     }
 }

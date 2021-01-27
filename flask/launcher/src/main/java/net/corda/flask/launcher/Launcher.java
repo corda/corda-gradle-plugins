@@ -9,12 +9,14 @@ import org.slf4j.LoggerFactory;
 import java.io.InputStream;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
+import java.lang.reflect.Constructor;
 import java.net.URI;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 import java.util.stream.Collectors;
@@ -37,12 +39,8 @@ public class Launcher {
         return Paths.get(jarUri);
     }
 
-    public static void main(String[] args) {
-        System.exit(new Launcher().launch(args));
-    }
-
     @SneakyThrows
-    private int launch(String[] args) {
+    public static void main(String[] args) {
         Path currentJar = getCurrentJar();
         ZipFile jar = new ZipFile(currentJar.toFile());
         ZipEntry manifestEntry = jar.getEntry(JarFile.MANIFEST_NAME);
@@ -51,6 +49,14 @@ public class Launcher {
         try (InputStream inputStream = jar.getInputStream(manifestEntry)) {
             manifest.read(inputStream);
         }
+        String mainClassName = manifest.getMainAttributes().getValue(Attributes.Name.MAIN_CLASS);
+        Class<? extends Launcher> launcherClass = (Class<? extends Launcher>) Class.forName(mainClassName);
+        Constructor<? extends Launcher> ctor = launcherClass.getConstructor();
+        System.exit(ctor.newInstance().launch(manifest, args));
+    }
+
+    @SneakyThrows
+    int launch(Manifest manifest, String[] args) {
         JarCache cache = new JarCache(CACHE_FOLDER_DEFAULT_NAME);
         if(Boolean.parseBoolean(System.getProperty(Flask.JvmProperties.WIPE_CACHE))) {
             cache.wipeLibDir();
