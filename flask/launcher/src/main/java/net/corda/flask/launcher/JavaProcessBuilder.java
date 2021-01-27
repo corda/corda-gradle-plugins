@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 @Setter
 public class JavaProcessBuilder {
 
-    private static Logger log = LoggerFactory.getLogger(JarCache.class);
+    private static Logger log = LoggerFactory.getLogger(JavaProcessBuilder.class);
 
     private static final String PROCESS_BUILDER_PREFIX = "javaProcessBuilder";
 
@@ -31,6 +31,8 @@ public class JavaProcessBuilder {
     }
 
     private String mainClassName;
+
+    private Path executableJar;
 
     private String javaHome = System.getProperty("java.home");
 
@@ -53,7 +55,7 @@ public class JavaProcessBuilder {
     static String generateArgumentFileString(List<String> strings) {
         StringBuilder sb = new StringBuilder();
         int i = 0;
-        while(true) {
+        while(i < strings.size()) {
             CharacterIterator it = new StringCharacterIterator(strings.get(i));
             sb.append('"');
             for (char c = it.first(); c != CharacterIterator.DONE; c = it.next()) {
@@ -81,8 +83,6 @@ public class JavaProcessBuilder {
             sb.append('"');
             if(++i < strings.size()) {
                 sb.append(' ');
-            } else {
-                break;
             }
         }
         return sb.toString();
@@ -90,6 +90,22 @@ public class JavaProcessBuilder {
 
     @SneakyThrows
     public int exec() {
+        Process process = build().inheritIO().start();
+        try {
+            return process.waitFor();
+        } finally {
+            if(process.isAlive()) {
+                process.destroy();
+            }
+            if (process.isAlive()) {
+                process.destroyForcibly();
+            }
+        }
+
+    }
+
+    @SneakyThrows
+    public ProcessBuilder build() {
         ArrayList<String> cmd = new ArrayList<>();
         Path javaBin = Paths.get(javaHome, "bin", "java");
         cmd.add(javaBin.toString());
@@ -110,7 +126,15 @@ public class JavaProcessBuilder {
             }
             cmd.add(sb.toString());
         }
-        cmd.add(mainClassName);
+        if(executableJar != null) {
+            cmd.add("-jar");
+            cmd.add(executableJar.toString());
+        } else if(mainClassName != null) {
+            cmd.add(mainClassName);
+        } else {
+            throw new IllegalArgumentException(
+                    "Either a main class or the path to an executable jar file have to be specified");
+        }
         cmd.addAll(cliArgs);
 
         int cmdLength = 0;
@@ -123,35 +147,21 @@ public class JavaProcessBuilder {
         log.debug("Spawning new process with command line: [{}]",
                 cmd.stream().map(s -> "\"" + s + "\"").collect(Collectors.joining(", ")));
         if(cmdLength < 1024 || cmd.size() == 1) {
-            Process process = new ProcessBuilder(cmd).inheritIO().start();
-            try {
-                return process.waitFor();
-            } finally {
-                if(process.isAlive()) {
-                    process.destroy();
-                }
-                if (process.isAlive()) {
-                    process.destroyForcibly();
-                }
-            }
+            return new ProcessBuilder(cmd);
         } else {
-            Path argumentFile = Files.createTempFile(PROCESS_BUILDER_PREFIX, null);
-            log.trace("Spawning Java process using argument file '{}'", argumentFile);
+            Path argumentFile = Files.createTempFile(PROCESS_BUILDER_PREFIX, ".arg");
+            Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+                @Override
+                @SneakyThrows
+                public void run() {
+                    Files.delete(argumentFile);
+                }
+            }));
+            log.trace("Using Java argument file '{}'", argumentFile);
             try(Writer writer = Files.newBufferedWriter(argumentFile)) {
                 writer.write(generateArgumentFileString(cmd.subList(1, cmd.size())));
             }
-            Process process = new ProcessBuilder(Arrays.asList(cmd.get(0), "@" + argumentFile.toString())).inheritIO().start();
-            try {
-                return process.waitFor();
-            } finally {
-                if(process.isAlive()) {
-                    process.destroy();
-                }
-                if (process.isAlive()) {
-                    process.destroyForcibly();
-                }
-                Files.delete(argumentFile);
-            }
+            return new ProcessBuilder(Arrays.asList(cmd.get(0), "@" + argumentFile.toString()));
         }
     }
 }
