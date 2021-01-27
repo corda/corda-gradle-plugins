@@ -61,14 +61,6 @@ public class Launcher {
             Map<String, Path> extractedLibraries = cache.extract(manifest);
             JavaProcessBuilder builder = new JavaProcessBuilder();
             builder.setMainClassName(manifest.getMainAttributes().getValue(Flask.ManifestAttributes.APPLICATION_CLASS));
-            RuntimeMXBean info = ManagementFactory.getRuntimeMXBean();
-            if(!info.getInputArguments().isEmpty()) {
-                log.trace("Forwarding jvm arguments from Flask JVM: [{}]",
-                        info.getInputArguments().stream()
-                                .map(s -> "\"" + s + "\"")
-                                .collect(Collectors.joining(", ")));
-                builder.getJvmArgs().addAll(info.getInputArguments());
-            }
             Optional.ofNullable(System.getProperty(Flask.JvmProperties.JVM_ARGS)).ifPresent(prop -> {
                 List<String> jvmArgs = ManifestEscape.splitManifestStringList(prop);
                 log.trace("Adding jvm arguments from {}: [{}]", Flask.JvmProperties.JVM_ARGS,
