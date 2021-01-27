@@ -108,7 +108,7 @@ public class Launcher {
             beforeChildJvmStart(builder);
             int returnCode = builder.exec();
             afterChildJvmExit(returnCode);
-            cache.updateLibraries();
+            cache.touchLibraries();
             return returnCode;
         }
     }

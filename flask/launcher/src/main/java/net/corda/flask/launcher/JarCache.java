@@ -167,7 +167,7 @@ class JarCache {
     }
 
     @SneakyThrows
-    void updateLibraries() {
+    void touchLibraries() {
         FileTime now = FileTime.from(Instant.now());
         for(Path jarPath : extractedLibraries.values()) {
             Files.setLastModifiedTime(jarPath, now);
