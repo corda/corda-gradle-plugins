@@ -4,13 +4,21 @@ plugins {
 
 evaluationDependsOn(":flask:common")
 
+sourceSets {
+    lockFileTest {
+    }
+}
+
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    ['compileOnly', 'annotationProcessor', 'testCompileOnly', 'testAnnotationProcessor'].each { conf ->
-        add(conf, [group: "org.projectlombok", name: "lombok", version: lombok_version])
+    ['', 'test', 'lockFileTest'].each {sourceSetName ->
+        ['compileOnly', 'annotationProcessor'].each { confBaseName ->
+            String configurationName = sourceSetName ? (sourceSetName + confBaseName.capitalize()) : confBaseName
+            add(configurationName, [group: "org.projectlombok", name: "lombok", version: lombok_version])
+        }
     }
     implementation group: "org.slf4j", name: "slf4j-api", version: slf4j_version
     implementation group: "org.slf4j", name: "slf4j-simple", version: slf4j_version
@@ -19,10 +27,8 @@ dependencies {
     testImplementation "org.junit.jupiter:junit-jupiter-api:$junit_jupiter_version"
     testImplementation "org.junit.jupiter:junit-jupiter-params:$junit_jupiter_version"
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junit_jupiter_version"
-}
 
-test {
-    useJUnitPlatform()
+    lockFileTestImplementation sourceSets.main.runtimeClasspath
 }
 
 tasks.register("tar", Tar) {
@@ -31,3 +37,27 @@ tasks.register("tar", Tar) {
         configurations['default'].collect { it.isDirectory() ? it : zipTree(it) }
     }
 }
+
+Provider<Jar> lockFileTestExecutableJar = tasks.register("lockFileTestExecutableJar", Jar) {
+    manifest {
+        attributes "Main-Class": "net.corda.flask.launcher.LockFileTestMain"
+    }
+    from(sourceSets.lockFileTest.output)
+    from {
+        configurations['lockFileTestRuntimeClasspath'].collect {
+            if(it.exists()) {
+                it.isDirectory() ? it : zipTree(it)
+            } else {
+                null
+            }
+        }
+    }
+}
+
+test {
+    inputs.files(lockFileTestExecutableJar)
+    useJUnitPlatform()
+    systemProperty("lockFileTest.executable.jar", lockFileTestExecutableJar.get().outputs.files.singleFile.toString())
+    systemProperty("org.slf4j.simpleLogger.defaultLogLevel","trace")
+}
+
