@@ -24,6 +24,13 @@ public class JavaProcessBuilder {
 
     private static final String PROCESS_BUILDER_PREFIX = "javaProcessBuilder";
 
+    /**
+     * Maximum number of characters to be used to create a command line
+     * (beyond which a Java argument file will be created instead), the actual limit is OS-specific,
+     * the current value is extremely conservative so that it is safe to use on most operating systems
+     */
+    private static final int COMMAND_LINE_MAX_SIZE = 1024;
+
     @AllArgsConstructor
     public static class JavaAgent {
         Path jar;
@@ -146,7 +153,7 @@ public class JavaProcessBuilder {
 
         log.debug("Spawning new process with command line: [{}]",
                 cmd.stream().map(s -> "\"" + s + "\"").collect(Collectors.joining(", ")));
-        if(cmdLength < 1024 || cmd.size() == 1) {
+        if(cmdLength < COMMAND_LINE_MAX_SIZE || cmd.size() == 1) {
             return new ProcessBuilder(cmd);
         } else {
             Path argumentFile = Files.createTempFile(PROCESS_BUILDER_PREFIX, ".arg");
