@@ -17,8 +17,7 @@ class QuasarPluginTest {
 
     private static final String QUASAR_R3 = """\
 if (org.gradle.api.JavaVersion.current().java9Compatible) {
-    version = '0.8.2_r3'
-    classifier = ''
+    version = '0.8.4_r3'
 } else {
     version = '0.7.14_r3'
 }

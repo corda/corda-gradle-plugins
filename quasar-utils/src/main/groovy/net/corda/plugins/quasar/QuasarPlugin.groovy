@@ -32,7 +32,7 @@ class QuasarPlugin implements Plugin<Project> {
     private static final String CORDA_PROVIDED_CONFIGURATION_NAME = "cordaProvided"
     private static final String CORDA_RUNTIME_ONLY_CONFIGURATION_NAME = "cordaRuntimeOnly"
     @PackageScope static final String defaultGroup = "co.paralleluniverse"
-    @PackageScope static final String defaultVersion = "0.8.4_r3"
+    @PackageScope static final String defaultVersion = "0.8.5_r3"
 
     private final ObjectFactory objects
 
