@@ -24,7 +24,7 @@ jar {
     manifest {
         attributes "version" : archiveVersion.get()
     }
-    from(project("common").tasks.named("jar").map {zipTree(it.outputs) })
+    from(zipTree(project("common").tasks.named("jar").get().outputs.files.singleFile))
 }
 
 gradlePlugin {

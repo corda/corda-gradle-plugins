@@ -33,8 +33,7 @@ class FlaskPlugin implements Plugin<Project> {
         Provider<FlaskJarTask> flaskJarTask = project.tasks.register("flaskJar", FlaskJarTask.class) {
             archiveBaseName = "${project.name}-flask"
             Configuration defaultConfiguration = project.configurations["default"]
-            TaskOutputs jarTaskOutput = project.tasks.named("jar", Jar).get().outputs
-            inputs.files(flaskSourceSetProvider.get().output)
+            inputs.files(flaskSourceSetProvider.map {it.output })
             from {
                 flaskSourceSetProvider.get().runtimeClasspath.collect {
                     if(it.exists()) {
@@ -44,12 +43,13 @@ class FlaskPlugin implements Plugin<Project> {
                     }
                 }
             }
+            TaskOutputs jarTaskOutput = project.tasks.named("jar", Jar).get().outputs
             includeLibraries(jarTaskOutput.files + defaultConfiguration)
 
-            mainClassName = project.provider {
+            project.pluginManager.withPlugin('application') {
                 String result = project.extensions.findByType(JavaApplication.class)?.mainClassName
                 if(!result) throw new GradleException("mainClassName property from \"${JavaApplication.class.name}\" extension is not set")
-                return result
+                mainClassName = result
             }
         }
         project.extensions.add("flaskJar", flaskJarTask.get())
