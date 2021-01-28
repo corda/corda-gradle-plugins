@@ -22,6 +22,7 @@ import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -91,12 +92,12 @@ public class FlaskJarTask extends AbstractArchiveTask {
         javaAgents.add(agent);
     }
 
-    public FlaskJarTask() {
+    @Inject
+    public FlaskJarTask(ObjectFactory objects) {
         BasePluginConvention basePluginConvention = getProject().getConvention().getPlugin(BasePluginConvention.class);
         getDestinationDirectory().set(basePluginConvention.getLibsDir());
         getArchiveBaseName().convention(getProject().getName());
         getArchiveExtension().convention("jar");
-        ObjectFactory objects = getProject().getObjects();
         launcherClassName = objects.property(String.class).convention(Flask.Constants.DEFAULT_LAUNCHER_NAME);
         mainClassName = objects.property(String.class);
         jvmArgs = objects.listProperty(String.class).convention(new ArrayList<>());
