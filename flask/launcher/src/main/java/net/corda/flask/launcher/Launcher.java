@@ -42,12 +42,13 @@ public class Launcher {
     @SneakyThrows
     public static void main(String[] args) {
         Path currentJar = getCurrentJar();
-        ZipFile jar = new ZipFile(currentJar.toFile());
-        ZipEntry manifestEntry = jar.getEntry(JarFile.MANIFEST_NAME);
-        jar.getInputStream(manifestEntry);
         Manifest manifest = new Manifest();
-        try (InputStream inputStream = jar.getInputStream(manifestEntry)) {
-            manifest.read(inputStream);
+        try(ZipFile jar = new ZipFile(currentJar.toFile())) {
+            ZipEntry manifestEntry = jar.getEntry(JarFile.MANIFEST_NAME);
+            jar.getInputStream(manifestEntry);
+            try (InputStream inputStream = jar.getInputStream(manifestEntry)) {
+                manifest.read(inputStream);
+            }
         }
         String mainClassName = manifest.getMainAttributes().getValue(Attributes.Name.MAIN_CLASS);
         Class<? extends Launcher> launcherClass = (Class<? extends Launcher>) Class.forName(mainClassName);

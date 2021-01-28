@@ -4,9 +4,13 @@ import lombok.SneakyThrows;
 
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.math.BigInteger;
+import java.security.DigestInputStream;
+import java.security.MessageDigest;
 import java.util.AbstractMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Supplier;
 import java.util.zip.CRC32;
 import java.util.zip.ZipEntry;
 
@@ -16,6 +20,7 @@ public class Flask {
         public static final String DEFAULT_LAUNCHER_NAME = "net.corda.flask.launcher.Launcher";
         public static final String LIBRARIES_FOLDER = "LIB-INF";
         public static final String METADATA_FOLDER = "META-INF";
+        public static final int BUFFER_SIZE = 0x10000;
     }
 
     public static class ManifestAttributes {
@@ -62,8 +67,7 @@ public class Flask {
     }
 
     @SneakyThrows
-    public static void write2Stream(OutputStream os,
-                                    InputStream inputStream,
+    public static void write2Stream(InputStream inputStream, OutputStream os,
                                     byte[] buffer) {
         while (true) {
             int read = inputStream.read(buffer);
@@ -72,9 +76,8 @@ public class Flask {
         }
     }
 
-    public static void write2Stream(OutputStream os,
-                                    InputStream inputStream) {
-        write2Stream(os, inputStream, new byte[0x10000]);
+    public static void write2Stream(InputStream inputStream, OutputStream os) {
+        write2Stream(inputStream, os, new byte[Constants.BUFFER_SIZE]);
     }
 
     public static Optional<Map.Entry<String, String>> splitExtension(String fileName) {
@@ -85,5 +88,24 @@ public class Flask {
             return Optional.of(
                     new AbstractMap.SimpleEntry<>(fileName.substring(0, index), fileName.substring(index)));
         }
+    }
+
+    @SneakyThrows
+    public static String computeMd5DigestString(Supplier<InputStream> streamSupplier) {
+        MessageDigest md = MessageDigest.getInstance("MD5");
+        return computeDigestString(streamSupplier, md);
+    }
+
+    @SneakyThrows
+    public static String computeDigestString(Supplier<InputStream> streamSupplier, MessageDigest md) {
+        try(InputStream stream = new DigestInputStream(streamSupplier.get(), md)) {
+            byte[] buffer = new byte[Flask.Constants.BUFFER_SIZE];
+            while(stream.read(buffer) >= 0) {}
+        }
+        return Flask.bytes2Hex(md.digest());
+    }
+
+    public static String bytes2Hex(byte[] bytes) {
+        return String.format("%032x", new BigInteger(1, bytes));
     }
 }

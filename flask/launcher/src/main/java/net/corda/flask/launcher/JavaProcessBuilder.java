@@ -31,6 +31,8 @@ public class JavaProcessBuilder {
      */
     private static final int COMMAND_LINE_MAX_SIZE = 1024;
 
+    private static final String PATH_SEPARATOR = System.getProperty("path.separator");
+
     @AllArgsConstructor
     public static class JavaAgent {
         Path jar;
@@ -119,7 +121,7 @@ public class JavaProcessBuilder {
         cmd.addAll(jvmArgs);
         if(!classpath.isEmpty()) {
             cmd.add("-cp");
-            cmd.add(classpath.stream().collect(Collectors.joining(System.getProperty("path.separator"))));
+            cmd.add(classpath.stream().collect(Collectors.joining(PATH_SEPARATOR)));
         }
         for(Map.Entry<Object, Object> entry : properties.entrySet()) {
             cmd.add(String.format("-D%s=%s", entry.getKey(), entry.getValue()));

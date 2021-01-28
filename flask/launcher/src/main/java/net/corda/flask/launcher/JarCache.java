@@ -148,11 +148,7 @@ class JarCache {
                     if (is != null) {
                         try {
                             try (OutputStream os = new BufferedOutputStream(Files.newOutputStream(destination))) {
-                                while (true) {
-                                    int read = is.read(buffer);
-                                    if (read < 0) break;
-                                    os.write(buffer, 0, read);
-                                }
+                                Flask.write2Stream(is, os, buffer);
                             }
                         } finally {
                             is.close();

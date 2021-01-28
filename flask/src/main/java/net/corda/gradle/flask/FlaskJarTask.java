@@ -26,7 +26,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
-import java.math.BigInteger;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.util.ArrayList;
@@ -34,6 +33,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
@@ -112,12 +112,7 @@ public class FlaskJarTask extends AbstractArchiveTask {
     @Input
     @SneakyThrows
     public String getLauncherArchiveHash() {
-        MessageDigest md5 = MessageDigest.getInstance("MD5");
-        try(InputStream stream = new DigestInputStream(LauncherResource.instance.read(), md5)) {
-            byte[] buffer = new byte[0x10000];
-            while(stream.read(buffer) >= 0) {}
-        }
-        return String.format("%032x", new BigInteger(1, md5.digest()));
+        return Flask.computeMd5DigestString(LauncherResource.instance::read);
     }
 
     @RequiredArgsConstructor
@@ -128,6 +123,14 @@ public class FlaskJarTask extends AbstractArchiveTask {
         private final MessageDigest md;
         private final byte[] buffer;
 
+        /**
+         * This is required since the manifest has to be the first zip entry in a jar archive, as an example,
+         * {@link java.util.jar.JarInputStream} assumes the manifest is the first (or second at most)
+         * entry in the jar and simply returns a null manifest if that is not the case.
+         * In this case the manifest has to contain the hash of all the jar entries, so it cannot
+         * be computed in advance, all entries have to be read to compute the manifest, then the manifest can
+         * be written to the zip file as the first entries, then all the other entries can be added.
+         */
         private final List<FileCopyDetailsInternal> fileCopyDetailsInternals = new ArrayList<>();
 
         @SneakyThrows
@@ -138,7 +141,6 @@ public class FlaskJarTask extends AbstractArchiveTask {
             zipEntry.setMethod(ZipEntry.DEFLATED);
             zoos.putNextEntry(zipEntry);
             manifest.write(zoos);
-            zoos.closeEntry();
             for(FileCopyDetails fileCopyDetails : fileCopyDetailsInternals) {
                 String entryName = fileCopyDetails.getRelativePath().toString();
                 if(Objects.equals(Flask.Constants.METADATA_FOLDER, entryName)) continue;
@@ -160,25 +162,26 @@ public class FlaskJarTask extends AbstractArchiveTask {
                     }
                     try(InputStream is = new FileInputStream(fileCopyDetails.getFile())) {
                         zoos.putNextEntry(zipEntry);
-                        Flask.write2Stream(zoos, is, buffer);
-                        zoos.closeEntry();
+                        Flask.write2Stream(is, zoos, buffer);
                     }
                 }
             }
         }
 
         @Override
-        @SneakyThrows
         public void processFile(FileCopyDetailsInternal fileCopyDetailsInternal) {
             String entryName = fileCopyDetailsInternal.getRelativePath().toString();
             if(!fileCopyDetailsInternal.isDirectory() && entryName.startsWith(Flask.Constants.LIBRARIES_FOLDER)) {
-                md.reset();
-                try(InputStream is = new DigestInputStream(new FileInputStream(fileCopyDetailsInternal.getFile()), md)) {
-                    while(is.read(buffer) >= 0) {}
-                }
+                Supplier<InputStream> streamSupplier = new Supplier<InputStream>() {
+                    @Override
+                    @SneakyThrows
+                    public InputStream get() {
+                        return new FileInputStream(fileCopyDetailsInternal.getFile());
+                    }
+                };
                 Attributes attr = manifest.getEntries().computeIfAbsent(entryName, it -> new Attributes());
-                attr.putValue(Flask.ManifestAttributes.ENTRY_HASH,
-                        String.format("%032x", new BigInteger(1, md.digest())));
+                md.reset();
+                attr.putValue(Flask.ManifestAttributes.ENTRY_HASH, Flask.computeDigestString(streamSupplier, md));
             }
             fileCopyDetailsInternals.add(fileCopyDetailsInternal);
         }
@@ -202,25 +205,24 @@ public class FlaskJarTask extends AbstractArchiveTask {
                             .ifPresent(it -> manifest.getMainAttributes().putValue(Flask.ManifestAttributes.JVM_ARGS,
                                     ManifestEscape.escapeStringList(it)));
                     MessageDigest md5 = MessageDigest.getInstance("MD5");
-                    byte[] buffer = new byte[0x10000];
+                    byte[] buffer = new byte[Flask.Constants.BUFFER_SIZE];
                     if(!javaAgents.isEmpty()) {
-                        List<String> agentsStrings = javaAgents.stream().map(new Function<JavaAgent, String>() {
-                            @Override
-                            @SneakyThrows
-                            public String apply(JavaAgent javaAgent) {
-                                md5.reset();
-                                try (InputStream stream = new DigestInputStream(new FileInputStream(javaAgent.jar), md5)) {
-                                    while (stream.read(buffer) >= 0) {
-                                    }
+                        List<String> agentsStrings = javaAgents.stream().map(javaAgent -> {
+                            md5.reset();
+                            Supplier<InputStream> streamSupplier = new Supplier<InputStream>() {
+                                @Override
+                                @SneakyThrows
+                                public InputStream get() {
+                                    return new FileInputStream(javaAgent.jar);
                                 }
-                                StringBuilder sb = new StringBuilder();
-                                sb.append(String.format("%032x", new BigInteger(1, md5.digest())));
-                                if (!javaAgent.args.isEmpty()) {
-                                    sb.append('=');
-                                    sb.append(javaAgent.args);
-                                }
-                                return sb.toString();
+                            };
+                            StringBuilder sb = new StringBuilder();
+                            sb.append(Flask.computeDigestString(streamSupplier, md5));
+                            if (!javaAgent.args.isEmpty()) {
+                                sb.append('=');
+                                sb.append(javaAgent.args);
                             }
+                            return sb.toString();
                         }).collect(Collectors.toList());
                         manifest.getMainAttributes().putValue(Flask.ManifestAttributes.JAVA_AGENTS, ManifestEscape.escapeStringList(agentsStrings));
                     }

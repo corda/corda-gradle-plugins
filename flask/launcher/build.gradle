@@ -22,7 +22,7 @@ dependencies {
     }
     implementation group: "org.slf4j", name: "slf4j-api", version: slf4j_version
     implementation group: "org.slf4j", name: "slf4j-simple", version: slf4j_version
-    implementation project(":flask:common")
+    implementation project(path: ":flask:common", configuration: 'archives')
 
     testImplementation "org.junit.jupiter:junit-jupiter-api:$junit_jupiter_version"
     testImplementation "org.junit.jupiter:junit-jupiter-params:$junit_jupiter_version"
@@ -34,7 +34,9 @@ dependencies {
 tasks.register("tar", Tar) {
     from(sourceSets.main.output)
     from {
-        configurations['default'].collect { it.isDirectory() ? it : zipTree(it) }
+        configurations.named('runtimeClasspath').map {
+            it.collect { it.isDirectory() ? it : zipTree(it) }
+        }
     }
 }
 
@@ -56,8 +58,9 @@ Provider<Jar> lockFileTestExecutableJar = tasks.register("lockFileTestExecutable
 
 test {
     inputs.files(lockFileTestExecutableJar)
-    useJUnitPlatform()
-    systemProperty("lockFileTest.executable.jar", lockFileTestExecutableJar.get().outputs.files.singleFile.toString())
-    systemProperty("org.slf4j.simpleLogger.defaultLogLevel","trace")
+    systemProperty("org.slf4j.simpleLogger.defaultLogLevel", "trace")
+    doFirst {
+        systemProperty("lockFileTest.executable.jar", lockFileTestExecutableJar.get().outputs.files.singleFile.toString())
+    }
 }
 

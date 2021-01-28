@@ -10,24 +10,21 @@ dependencies {
     compileOnly project("common")
 }
 
-FileCollection launcherTar = project("launcher").tasks.named("tar").get().outputs.files
-FileCollection commonJar = project("common").tasks.named("jar").get().outputs.files
-
 Provider<Copy> copyLauncher = tasks.register("copyLauncher", Copy) {
-    from(launcherTar)
+    from(project("launcher").tasks.named("tar").map {it.outputs })
     into(new File(project.buildDir, "resources/main/META-INF"))
     rename 'launcher-.*\\.tar', 'flask-launcher.tar'
 }
 
 tasks.named("processResources") {
-    inputs.files(copyLauncher.get().outputs)
+    inputs.files(copyLauncher)
 }
 
 jar {
     manifest {
         attributes "version" : archiveVersion.get()
     }
-    from(zipTree(commonJar.singleFile))
+    from(project("common").tasks.named("jar").map {zipTree(it.outputs) })
 }
 
 gradlePlugin {
@@ -53,5 +50,5 @@ dependencies {
 }
 
 tasks.named("pluginUnderTestMetadata", PluginUnderTestMetadata) {
-    pluginClasspath.from(project.configurations.named("compileOnly").get())
+    pluginClasspath.from(project.configurations.named("compileOnly"))
 }
