@@ -7,8 +7,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
-import java.lang.management.ManagementFactory;
-import java.lang.management.RuntimeMXBean;
 import java.lang.reflect.Constructor;
 import java.net.URI;
 import java.net.URL;
@@ -25,8 +23,8 @@ import java.util.zip.ZipFile;
 
 public class Launcher {
 
-    private static String CACHE_FOLDER_DEFAULT_NAME = "flask_cache";
-    private static Logger log = LoggerFactory.getLogger(JarCache.class);
+    private static final String CACHE_FOLDER_DEFAULT_NAME = "flask_cache";
+    private static final Logger log = LoggerFactory.getLogger(JarCache.class);
 
     @SneakyThrows
     private static Path getCurrentJar() {
@@ -70,19 +68,23 @@ public class Launcher {
             builder.setMainClassName(manifest.getMainAttributes().getValue(Flask.ManifestAttributes.APPLICATION_CLASS));
             Optional.ofNullable(System.getProperty(Flask.JvmProperties.JVM_ARGS)).ifPresent(prop -> {
                 List<String> jvmArgs = ManifestEscape.splitManifestStringList(prop);
-                log.trace("Adding jvm arguments from {}: [{}]", Flask.JvmProperties.JVM_ARGS,
-                        jvmArgs.stream()
-                                .map(s -> "\"" + s + "\"")
-                                .collect(Collectors.joining(", ")));
+                if(log.isTraceEnabled()) {
+                    log.trace("Adding jvm arguments from {}: [{}]", Flask.JvmProperties.JVM_ARGS,
+                            jvmArgs.stream()
+                                    .map(s -> "\"" + s + "\"")
+                                    .collect(Collectors.joining(", ")));
+                }
                 builder.getJvmArgs().addAll(jvmArgs);
             });
             String jvmArgsManifestString = manifest.getMainAttributes().getValue(Flask.ManifestAttributes.JVM_ARGS);
             if(jvmArgsManifestString != null) {
                 List<String> jvmArgs = ManifestEscape.splitManifestStringList(jvmArgsManifestString);
-                log.trace("Adding jvm arguments from jar manifest '{}' attribute: [{}]", Flask.ManifestAttributes.JVM_ARGS,
-                        jvmArgs.stream()
-                                .map(s -> "\"" + s + "\"")
-                                .collect(Collectors.joining(", ")));
+                if(log.isTraceEnabled()) {
+                    log.trace("Adding jvm arguments from jar manifest '{}' attribute: [{}]", Flask.ManifestAttributes.JVM_ARGS,
+                            jvmArgs.stream()
+                                    .map(s -> "\"" + s + "\"")
+                                    .collect(Collectors.joining(", ")));
+                }
                 builder.getJvmArgs().addAll(jvmArgs);
             }
             String javaAgentsManifestString = manifest.getMainAttributes().getValue(Flask.ManifestAttributes.JAVA_AGENTS);

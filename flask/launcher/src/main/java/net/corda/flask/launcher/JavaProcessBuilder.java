@@ -153,8 +153,10 @@ public class JavaProcessBuilder {
         //Add space between arguments
         cmdLength += cmd.size() - 1;
 
-        log.debug("Spawning new process with command line: [{}]",
-                cmd.stream().map(s -> "\"" + s + "\"").collect(Collectors.joining(", ")));
+        if(log.isDebugEnabled()) {
+            log.debug("Spawning new process with command line: [{}]",
+                    cmd.stream().map(s -> "\"" + s + "\"").collect(Collectors.joining(", ")));
+        }
         if(cmdLength < COMMAND_LINE_MAX_SIZE || cmd.size() == 1) {
             return new ProcessBuilder(cmd);
         } else {
