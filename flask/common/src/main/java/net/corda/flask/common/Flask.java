@@ -8,6 +8,7 @@ import java.math.BigInteger;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.util.AbstractMap;
+import java.util.Base64;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -27,7 +28,7 @@ public class Flask {
         public static final String APPLICATION_CLASS = "Application-Class";
         public static final String JVM_ARGS = "JVM-Args";
         public static final String JAVA_AGENTS = "Java-Agents";
-        public static final String ENTRY_HASH = "MD5-Digest";
+        public static final String ENTRY_HASH = "SHA-256-Digest";
     }
 
     public static class JvmProperties {
@@ -91,18 +92,18 @@ public class Flask {
     }
 
     @SneakyThrows
-    public static String computeMd5DigestString(Supplier<InputStream> streamSupplier) {
-        MessageDigest md = MessageDigest.getInstance("MD5");
-        return computeDigestString(streamSupplier, md);
+    public static byte[] computeSHA256Digest(Supplier<InputStream> streamSupplier) {
+        MessageDigest md = MessageDigest.getInstance("SHA-256");
+        return computeDigest(streamSupplier, md);
     }
 
     @SneakyThrows
-    public static String computeDigestString(Supplier<InputStream> streamSupplier, MessageDigest md) {
+    public static byte[] computeDigest(Supplier<InputStream> streamSupplier, MessageDigest md) {
         try(InputStream stream = new DigestInputStream(streamSupplier.get(), md)) {
             byte[] buffer = new byte[Flask.Constants.BUFFER_SIZE];
             while(stream.read(buffer) >= 0) {}
         }
-        return Flask.bytes2Hex(md.digest());
+        return md.digest();
     }
 
     public static String bytes2Hex(byte[] bytes) {

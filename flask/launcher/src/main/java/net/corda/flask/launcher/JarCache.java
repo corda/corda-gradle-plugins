@@ -138,7 +138,7 @@ class JarCache {
             Attributes attributes = entry.getValue();
             if (jarEntryName.startsWith(Flask.Constants.LIBRARIES_FOLDER + '/') && attributes.getValue(Flask.ManifestAttributes.ENTRY_HASH) != null) {
                 String jarName = jarEntryName.substring(jarEntryName.lastIndexOf('/') + 1);
-                String hash = attributes.getValue(Flask.ManifestAttributes.ENTRY_HASH);
+                String hash = Flask.bytes2Hex(Base64.getDecoder().decode(attributes.getValue(Flask.ManifestAttributes.ENTRY_HASH)));
                 Path destination = libDir.resolve(hash).resolve(jarName);
                 extractedLibraries.put(hash, destination);
                 if (!Files.exists(destination)) {

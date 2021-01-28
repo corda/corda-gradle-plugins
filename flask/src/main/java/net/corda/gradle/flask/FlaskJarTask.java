@@ -27,10 +27,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.security.MessageDigest;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Supplier;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
@@ -110,7 +107,7 @@ public class FlaskJarTask extends AbstractArchiveTask {
     @Input
     @SneakyThrows
     public String getLauncherArchiveHash() {
-        return Flask.computeMd5DigestString(LauncherResource.instance::read);
+        return Flask.bytes2Hex(Flask.computeSHA256Digest(LauncherResource.instance::read));
     }
 
     @RequiredArgsConstructor
@@ -179,7 +176,8 @@ public class FlaskJarTask extends AbstractArchiveTask {
                 };
                 Attributes attr = manifest.getEntries().computeIfAbsent(entryName, it -> new Attributes());
                 md.reset();
-                attr.putValue(Flask.ManifestAttributes.ENTRY_HASH, Flask.computeDigestString(streamSupplier, md));
+                attr.putValue(Flask.ManifestAttributes.ENTRY_HASH,
+                        Base64.getEncoder().encodeToString(Flask.computeDigest(streamSupplier, md)));
             }
             fileCopyDetailsInternals.add(fileCopyDetailsInternal);
         }
@@ -202,11 +200,11 @@ public class FlaskJarTask extends AbstractArchiveTask {
                             .filter(it -> !it.isEmpty())
                             .ifPresent(it -> manifest.getMainAttributes().putValue(Flask.ManifestAttributes.JVM_ARGS,
                                     ManifestEscape.escapeStringList(it)));
-                    MessageDigest md5 = MessageDigest.getInstance("MD5");
+                    MessageDigest md = MessageDigest.getInstance("SHA-256");
                     byte[] buffer = new byte[Flask.Constants.BUFFER_SIZE];
                     if(!javaAgents.isEmpty()) {
                         List<String> agentsStrings = javaAgents.stream().map(javaAgent -> {
-                            md5.reset();
+                            md.reset();
                             Supplier<InputStream> streamSupplier = new Supplier<InputStream>() {
                                 @Override
                                 @SneakyThrows
@@ -215,7 +213,7 @@ public class FlaskJarTask extends AbstractArchiveTask {
                                 }
                             };
                             StringBuilder sb = new StringBuilder();
-                            sb.append(Flask.computeDigestString(streamSupplier, md5));
+                            sb.append(Flask.bytes2Hex(Flask.computeDigest(streamSupplier, md)));
                             if (!javaAgent.args.isEmpty()) {
                                 sb.append('=');
                                 sb.append(javaAgent.args);
@@ -224,7 +222,7 @@ public class FlaskJarTask extends AbstractArchiveTask {
                         }).collect(Collectors.toList());
                         manifest.getMainAttributes().putValue(Flask.ManifestAttributes.JAVA_AGENTS, ManifestEscape.escapeStringList(agentsStrings));
                     }
-                    StreamAction streamAction = new StreamAction(zipOutputStream, manifest, md5, buffer);
+                    StreamAction streamAction = new StreamAction(zipOutputStream, manifest, md, buffer);
                     copyActionProcessingStream.process(streamAction);
                     streamAction.write();
                     return () -> true;
