@@ -100,7 +100,7 @@ public class FlaskJarTask extends AbstractArchiveTask {
         getArchiveExtension().convention("jar");
         launcherClassName = objects.property(String.class).convention(Flask.Constants.DEFAULT_LAUNCHER_NAME);
         mainClassName = objects.property(String.class);
-        jvmArgs = objects.listProperty(String.class).convention(new ArrayList<>());
+        jvmArgs = objects.listProperty(String.class);
         javaAgents = new ArrayList<>();
         from(getProject().tarTree(LauncherResource.instance), copySpec -> exclude(JarFile.MANIFEST_NAME));
     }
