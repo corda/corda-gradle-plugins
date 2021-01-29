@@ -99,16 +99,19 @@ public class JavaProcessBuilder {
 
     @SneakyThrows
     public int exec() {
-        Process process = build().inheritIO().start();
+        Process[] process = new Process[1];
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            if(process.isAlive()) {
-                process.destroy();
-            }
-            if (process.isAlive()) {
-                process.destroyForcibly();
+            if(process[0] != null) {
+                if (process[0].isAlive()) {
+                    process[0].destroy();
+                }
+                if (process[0].isAlive()) {
+                    process[0].destroyForcibly();
+                }
             }
         }));
-        return process.waitFor();
+        process[0] = build().inheritIO().start();
+        return process[0].waitFor();
     }
 
     @SneakyThrows
