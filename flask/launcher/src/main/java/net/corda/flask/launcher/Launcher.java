@@ -65,7 +65,8 @@ public class Launcher {
         try(LockFile lf = LockFile.acquire(cache.getLockFile(), true)) {
             Map<String, Path> extractedLibraries = cache.extract(manifest);
             JavaProcessBuilder builder = new JavaProcessBuilder();
-            builder.setMainClassName(ChildLauncher.class.getName());
+            builder.setMainClassName(manifest.getMainAttributes().getValue(Flask.ManifestAttributes.APPLICATION_CLASS));
+
             Optional.ofNullable(System.getProperty(Flask.JvmProperties.JVM_ARGS)).ifPresent(prop -> {
                 List<String> jvmArgs = ManifestEscape.splitManifestStringList(prop);
                 if(log.isTraceEnabled()) {
@@ -117,15 +118,30 @@ public class Launcher {
             beforeChildJvmStart(builder);
             try(LockFile processLock = LockFile.acquire(cache.getPidFile(), false)) {
                 builder.getProperties().put(Flask.JvmProperties.PID_FILE, cache.getPidFile());
-                builder.getProperties().put(Flask.JvmProperties.MAIN_CLASS,
-                        manifest.getMainAttributes().getValue(Flask.ManifestAttributes.APPLICATION_CLASS));
-                builder.getClasspath().add(currentJar.toString());
+                builder.getJvmArgs().add("-javaagent:" + currentJar);
                 int returnCode = builder.exec();
                 afterChildJvmExit(returnCode);
                 cache.touchLibraries();
                 return returnCode;
             }
         }
+    }
+
+    public static void premain(String agentArgs) {
+        Path pidFile = Paths.get(System.getProperty(Flask.JvmProperties.PID_FILE));
+        Thread t = new Thread(() -> {
+            LockFile.acquire(pidFile, true);
+            try {
+                Files.delete(pidFile);
+            } catch(Exception ex) {
+                //Should deletion fail, we only log the stacktrace because killing the current process, which
+                // is the most important action here, must not be avoided
+                log.error(ex.getMessage(), ex);
+            }
+            System.exit(-1);
+        });
+        t.setDaemon(true);
+        t.start();
     }
 
     protected void beforeChildJvmStart(JavaProcessBuilder builder) {}

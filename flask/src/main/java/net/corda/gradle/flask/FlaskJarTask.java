@@ -195,6 +195,8 @@ public class FlaskJarTask extends AbstractArchiveTask {
                     Manifest manifest = new Manifest();
                     manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
                     manifest.getMainAttributes().put(Attributes.Name.MAIN_CLASS, launcherClassName.get());
+                    manifest.getMainAttributes().putValue(
+                            Flask.ManifestAttributes.PREMAIN_CLASS, Flask.Constants.DEFAULT_LAUNCHER_NAME);
                     Optional.ofNullable(mainClassName.getOrNull()).ifPresent(it ->
                         manifest.getMainAttributes().putValue(Flask.ManifestAttributes.APPLICATION_CLASS, it));
                     Optional.ofNullable(jvmArgs.getOrNull())

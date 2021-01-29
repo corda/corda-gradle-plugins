@@ -27,6 +27,7 @@ public class Flask {
         public static final String APPLICATION_CLASS = "Application-Class";
         public static final String JVM_ARGS = "JVM-Args";
         public static final String JAVA_AGENTS = "Java-Agents";
+        public static final String PREMAIN_CLASS = "Premain-Class";
         public static final String ENTRY_HASH = "SHA-256-Digest";
     }
 
