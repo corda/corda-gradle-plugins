@@ -8,7 +8,6 @@ import java.math.BigInteger;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.util.AbstractMap;
-import java.util.Base64;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -33,6 +32,13 @@ public class Flask {
 
     public static class JvmProperties {
         /**
+         * This property will contain the location in the file system of the pid file
+         * of the parent process that will be used by the child as heartbeat
+         * (the parent holds en exclusive lock on that file, the child dies as soon as it manages to
+         * acquire a shared lock on it)
+         */
+        public static final String PID_FILE = "net.corda.flask.pid.file";
+        /**
          * If this property is set, its value will be appended to the jvm arguments
          * list of the spawned Java process
          */
@@ -47,6 +53,11 @@ public class Flask {
          * This JVM property can be used to always wipe the library cache directory before program startup
          */
         public static final String WIPE_CACHE = "net.corda.flask.cache.wipe";
+
+        /**
+         * This property will contain the name of the main class the child process Launcher will start
+         */
+        public static final String MAIN_CLASS = "net.corda.flask.main.class";
     }
 
     @SneakyThrows

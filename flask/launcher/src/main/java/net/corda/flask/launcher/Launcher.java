@@ -25,9 +25,10 @@ public class Launcher {
 
     private static final String CACHE_FOLDER_DEFAULT_NAME = "flask_cache";
     private static final Logger log = LoggerFactory.getLogger(JarCache.class);
+    private static final Path currentJar = findCurrentJar();
 
     @SneakyThrows
-    private static Path getCurrentJar() {
+    private static Path findCurrentJar() {
         String launcherClassName = Launcher.class.getName();
         URL url = Launcher.class.getClassLoader().getResource(launcherClassName.replace('.', '/') + ".class");
         if (url == null || !Objects.equals("jar", url.getProtocol()))
@@ -39,7 +40,6 @@ public class Launcher {
 
     @SneakyThrows
     public static void main(String[] args) {
-        Path currentJar = getCurrentJar();
         Manifest manifest = new Manifest();
         try(ZipFile jar = new ZipFile(currentJar.toFile())) {
             ZipEntry manifestEntry = jar.getEntry(JarFile.MANIFEST_NAME);
@@ -65,7 +65,7 @@ public class Launcher {
         try(LockFile lf = LockFile.acquire(cache.getLockFile(), true)) {
             Map<String, Path> extractedLibraries = cache.extract(manifest);
             JavaProcessBuilder builder = new JavaProcessBuilder();
-            builder.setMainClassName(manifest.getMainAttributes().getValue(Flask.ManifestAttributes.APPLICATION_CLASS));
+            builder.setMainClassName(ChildLauncher.class.getName());
             Optional.ofNullable(System.getProperty(Flask.JvmProperties.JVM_ARGS)).ifPresent(prop -> {
                 List<String> jvmArgs = ManifestEscape.splitManifestStringList(prop);
                 if(log.isTraceEnabled()) {
@@ -115,10 +115,16 @@ public class Launcher {
             }
             builder.getCliArgs().addAll(Arrays.asList(args));
             beforeChildJvmStart(builder);
-            int returnCode = builder.exec();
-            afterChildJvmExit(returnCode);
-            cache.touchLibraries();
-            return returnCode;
+            try(LockFile processLock = LockFile.acquire(cache.getPidFile(), false)) {
+                builder.getProperties().put(Flask.JvmProperties.PID_FILE, cache.getPidFile());
+                builder.getProperties().put(Flask.JvmProperties.MAIN_CLASS,
+                        manifest.getMainAttributes().getValue(Flask.ManifestAttributes.APPLICATION_CLASS));
+                builder.getClasspath().add(currentJar.toString());
+                int returnCode = builder.exec();
+                afterChildJvmExit(returnCode);
+                cache.touchLibraries();
+                return returnCode;
+            }
         }
     }
 

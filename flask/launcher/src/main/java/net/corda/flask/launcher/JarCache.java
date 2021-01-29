@@ -117,16 +117,26 @@ class JarCache {
     private final Path libDir;
 
     @Getter
+    private final Path pidDir;
+
+    @Getter
+    private final Path pidFile;
+
+    @Getter
     private final Path lockFile;
 
     private final Map<String, Path> extractedLibraries;
 
 
+    @SneakyThrows
     public JarCache(String appName) {
         path = computeCacheDirectory(appName);
         libDir = path.resolve("lib");
+        pidDir = path.resolve("pid");
         lockFile = path.resolve("flask.lock");
         extractedLibraries = new TreeMap<>();
+        Files.createDirectories(pidDir);
+        pidFile = Files.createTempFile(pidDir, null, ".pid");
     }
 
     @SneakyThrows
