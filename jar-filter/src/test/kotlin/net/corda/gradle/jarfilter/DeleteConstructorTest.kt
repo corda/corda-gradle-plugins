@@ -1,6 +1,7 @@
 package net.corda.gradle.jarfilter
 
-import net.corda.gradle.jarfilter.matcher.*
+import net.corda.gradle.jarfilter.matcher.isConstructor
+import net.corda.gradle.jarfilter.matcher.matches
 import net.corda.gradle.unwanted.HasAll
 import net.corda.gradle.unwanted.HasInt
 import net.corda.gradle.unwanted.HasLong
@@ -9,7 +10,9 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.core.IsEqual.equalTo
 import org.hamcrest.core.IsIterableContaining.hasItem
 import org.hamcrest.core.IsNot.not
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir

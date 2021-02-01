@@ -7,8 +7,9 @@ import net.corda.gradle.unwanted.HasAll
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.api.logging.Logger
 import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.core.IsIterableContaining.*
-import org.junit.jupiter.api.Assertions.*
+import org.hamcrest.core.IsIterableContaining.hasItem
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import kotlin.reflect.full.primaryConstructor
@@ -30,7 +31,7 @@ class MetaFixConstructorDefaultParameterTest {
             val bytecode = recodeMetadataFor<WithConstructorParameters, MetadataTemplate>()
             sourceClass = bytecode.toClass<WithConstructorParameters, HasAll>()
             fixedClass = bytecode.fixMetadata(logger, pathsOf(WithConstructorParameters::class))
-                    .toClass<WithConstructorParameters, HasAll>()
+                .toClass<WithConstructorParameters, HasAll>()
         }
     }
 

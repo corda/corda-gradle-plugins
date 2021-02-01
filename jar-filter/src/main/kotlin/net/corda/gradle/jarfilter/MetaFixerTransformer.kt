@@ -1,6 +1,12 @@
 package net.corda.gradle.jarfilter
 
-import kotlinx.metadata.*
+import kotlinx.metadata.ClassName
+import kotlinx.metadata.Flag
+import kotlinx.metadata.KmClass
+import kotlinx.metadata.KmDeclarationContainer
+import kotlinx.metadata.KmFunction
+import kotlinx.metadata.KmPackage
+import kotlinx.metadata.KmProperty
 import kotlinx.metadata.jvm.fieldSignature
 import kotlinx.metadata.jvm.getterSignature
 import kotlinx.metadata.jvm.signature

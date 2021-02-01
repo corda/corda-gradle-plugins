@@ -1,13 +1,14 @@
 package net.corda.gradle.jarfilter
 
-import net.corda.gradle.unwanted.*
-import net.corda.gradle.jarfilter.asm.*
-import net.corda.gradle.jarfilter.matcher.*
+import net.corda.gradle.jarfilter.asm.recodeMetadataFor
+import net.corda.gradle.jarfilter.asm.toClass
+import net.corda.gradle.jarfilter.matcher.isConstructor
+import net.corda.gradle.unwanted.HasLong
 import org.gradle.api.logging.Logger
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.core.IsIterableContaining.hasItem
 import org.hamcrest.core.IsNot.not
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import kotlin.jvm.kotlin
 

@@ -1,15 +1,16 @@
 package net.corda.gradle.jarfilter
 
 import net.corda.gradle.jarfilter.matcher.isMethod
-import org.assertj.core.api.Assertions.*
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.core.IsIterableContaining.hasItem
+import org.junit.jupiter.api.Assertions.assertEquals
 import java.lang.reflect.InvocationTargetException
 import java.nio.file.Path
-import kotlin.test.*
+import kotlin.test.assertFailsWith
 
 class StubStaticFunctionTest {
     companion object {

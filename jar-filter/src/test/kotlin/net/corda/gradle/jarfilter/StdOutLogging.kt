@@ -1,6 +1,11 @@
 package net.corda.gradle.jarfilter
 
-import org.gradle.api.logging.LogLevel.*
+import org.gradle.api.logging.LogLevel.DEBUG
+import org.gradle.api.logging.LogLevel.ERROR
+import org.gradle.api.logging.LogLevel.INFO
+import org.gradle.api.logging.LogLevel.LIFECYCLE
+import org.gradle.api.logging.LogLevel.QUIET
+import org.gradle.api.logging.LogLevel.WARN
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.Logger
 import org.slf4j.Marker

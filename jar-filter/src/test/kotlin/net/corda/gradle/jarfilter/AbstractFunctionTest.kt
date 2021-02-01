@@ -1,14 +1,14 @@
 package net.corda.gradle.jarfilter
 
-import net.corda.gradle.jarfilter.matcher.*
+import net.corda.gradle.jarfilter.matcher.isFunction
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.core.IsIterableContaining.hasItem
 import org.hamcrest.core.IsNot.not
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
-import java.lang.reflect.Modifier.*
+import java.lang.reflect.Modifier.ABSTRACT
 import java.nio.file.Path
 import kotlin.reflect.full.declaredFunctions
 import kotlin.test.assertFailsWith

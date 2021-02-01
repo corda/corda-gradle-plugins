@@ -3,7 +3,8 @@ package net.corda.gradle.jarfilter
 import net.corda.gradle.unwanted.HasUnwantedFun
 import net.corda.gradle.unwanted.HasUnwantedVal
 import net.corda.gradle.unwanted.HasUnwantedVar
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir

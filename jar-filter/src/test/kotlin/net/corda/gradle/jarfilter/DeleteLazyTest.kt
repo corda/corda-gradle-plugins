@@ -1,12 +1,14 @@
 package net.corda.gradle.jarfilter
 
-import net.corda.gradle.jarfilter.matcher.*
+import net.corda.gradle.jarfilter.matcher.isMethod
+import net.corda.gradle.jarfilter.matcher.isProperty
+import net.corda.gradle.jarfilter.matcher.javaDeclaredMethods
 import net.corda.gradle.unwanted.HasUnwantedVal
-import org.assertj.core.api.Assertions.*
+import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.core.IsIterableContaining.*
-import org.hamcrest.core.IsNot.*
-import org.junit.jupiter.api.Assertions.*
+import org.hamcrest.core.IsIterableContaining.hasItem
+import org.hamcrest.core.IsNot.not
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir

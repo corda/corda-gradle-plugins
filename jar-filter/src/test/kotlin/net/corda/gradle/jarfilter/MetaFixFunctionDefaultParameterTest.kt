@@ -6,8 +6,9 @@ import net.corda.gradle.jarfilter.matcher.isFunction
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.api.logging.Logger
 import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.core.IsIterableContaining.*
-import org.junit.jupiter.api.Assertions.*
+import org.hamcrest.core.IsIterableContaining.hasItem
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import kotlin.reflect.KFunction

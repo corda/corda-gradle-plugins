@@ -2,8 +2,9 @@ package net.corda.gradle.jarfilter
 
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.testkit.runner.GradleRunner
-import org.gradle.testkit.runner.TaskOutcome.*
-import org.junit.jupiter.api.Assertions.*
+import org.gradle.testkit.runner.TaskOutcome.SUCCESS
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.fail
 import java.io.FileNotFoundException
 import java.nio.file.Path
 

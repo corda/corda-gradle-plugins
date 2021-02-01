@@ -1,6 +1,8 @@
 package net.corda.gradle.jarfilter
 
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.objectweb.asm.Opcodes.ACC_PUBLIC
 

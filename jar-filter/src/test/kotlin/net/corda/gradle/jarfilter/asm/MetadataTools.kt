@@ -4,8 +4,11 @@ package net.corda.gradle.jarfilter.asm
 import kotlinx.metadata.InconsistentKotlinMetadataException
 import kotlinx.metadata.jvm.KotlinClassHeader
 import kotlinx.metadata.jvm.KotlinClassMetadata
-import net.corda.gradle.jarfilter.*
-import org.objectweb.asm.*
+import net.corda.gradle.jarfilter.KOTLIN_METADATA_DATA_FIELD_NAME
+import net.corda.gradle.jarfilter.KOTLIN_METADATA_DESC
+import net.corda.gradle.jarfilter.KOTLIN_METADATA_STRINGS_FIELD_NAME
+import org.objectweb.asm.AnnotationVisitor
+import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.Opcodes.ASM8
 
 /**

@@ -6,7 +6,7 @@ import net.corda.gradle.jarfilter.annotations.Deletable
 import net.corda.gradle.jarfilter.asm.bytecode
 import net.corda.gradle.jarfilter.asm.toClass
 import org.gradle.api.logging.Logger
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.objectweb.asm.ClassWriter.COMPUTE_MAXS

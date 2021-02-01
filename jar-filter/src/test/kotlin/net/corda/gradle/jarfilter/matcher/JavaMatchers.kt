@@ -4,7 +4,7 @@ package net.corda.gradle.jarfilter.matcher
 import org.hamcrest.Description
 import org.hamcrest.DiagnosingMatcher
 import org.hamcrest.Matcher
-import org.hamcrest.core.IsEqual.*
+import org.hamcrest.core.IsEqual.equalTo
 import java.lang.reflect.Constructor
 import java.lang.reflect.Method
 import kotlin.reflect.KClass

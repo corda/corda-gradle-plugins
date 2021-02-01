@@ -1,13 +1,14 @@
 package net.corda.gradle.jarfilter
 
-import net.corda.gradle.jarfilter.matcher.*
+import net.corda.gradle.jarfilter.matcher.isConstructor
 import net.corda.gradle.unwanted.HasInt
 import net.corda.gradle.unwanted.HasLong
 import net.corda.gradle.unwanted.HasString
 import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.core.IsIterableContaining.hasItem
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir

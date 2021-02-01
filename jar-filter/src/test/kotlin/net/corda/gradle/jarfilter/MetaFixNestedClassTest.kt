@@ -1,7 +1,9 @@
 package net.corda.gradle.jarfilter
 
-import net.corda.gradle.jarfilter.asm.*
-import org.assertj.core.api.Assertions.*
+import net.corda.gradle.jarfilter.asm.classMetadata
+import net.corda.gradle.jarfilter.asm.recodeMetadataFor
+import net.corda.gradle.jarfilter.asm.toClass
+import org.assertj.core.api.Assertions.assertThat
 import org.gradle.api.logging.Logger
 import org.junit.jupiter.api.Test
 import kotlin.reflect.jvm.jvmName

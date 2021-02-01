@@ -2,11 +2,11 @@ package net.corda.gradle.jarfilter
 
 import net.corda.gradle.jarfilter.asm.recodeMetadataFor
 import net.corda.gradle.jarfilter.asm.toClass
-import net.corda.gradle.jarfilter.matcher.*
+import net.corda.gradle.jarfilter.matcher.isProperty
 import org.gradle.api.logging.Logger
-import org.hamcrest.MatcherAssert.*
-import org.hamcrest.core.IsIterableContaining.*
-import org.hamcrest.core.IsNot.*
+import org.hamcrest.MatcherAssert.assertThat
+import org.hamcrest.core.IsIterableContaining.hasItem
+import org.hamcrest.core.IsNot.not
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import kotlin.reflect.full.declaredMemberProperties

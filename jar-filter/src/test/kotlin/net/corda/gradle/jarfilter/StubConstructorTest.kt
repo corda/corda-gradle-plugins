@@ -7,7 +7,8 @@ import net.corda.gradle.unwanted.HasLong
 import net.corda.gradle.unwanted.HasString
 import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.MatcherAssert.assertThat
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir

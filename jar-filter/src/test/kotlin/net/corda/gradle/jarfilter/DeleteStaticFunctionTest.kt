@@ -1,7 +1,7 @@
 package net.corda.gradle.jarfilter
 
 import net.corda.gradle.jarfilter.matcher.isMethod
-import org.assertj.core.api.Assertions.*
+import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.core.IsIterableContaining.hasItem
 import org.hamcrest.core.IsNot.not

@@ -1,8 +1,10 @@
 package net.corda.gradle.jarfilter
 
 import net.corda.gradle.unwanted.HasUnwantedFun
-import org.assertj.core.api.Assertions.*
-import org.junit.jupiter.api.Assertions.*
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir

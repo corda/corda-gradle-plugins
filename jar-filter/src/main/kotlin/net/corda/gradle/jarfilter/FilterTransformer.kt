@@ -5,8 +5,29 @@ import kotlinx.metadata.KmClass
 import kotlinx.metadata.KmPackage
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.logging.Logger
-import org.objectweb.asm.*
-import org.objectweb.asm.Opcodes.*
+import org.objectweb.asm.AnnotationVisitor
+import org.objectweb.asm.ClassVisitor
+import org.objectweb.asm.FieldVisitor
+import org.objectweb.asm.Label
+import org.objectweb.asm.MethodVisitor
+import org.objectweb.asm.Opcodes.ACC_ABSTRACT
+import org.objectweb.asm.Opcodes.ACONST_NULL
+import org.objectweb.asm.Opcodes.ASM8
+import org.objectweb.asm.Opcodes.ATHROW
+import org.objectweb.asm.Opcodes.BIPUSH
+import org.objectweb.asm.Opcodes.DCONST_0
+import org.objectweb.asm.Opcodes.DUP
+import org.objectweb.asm.Opcodes.FCONST_0
+import org.objectweb.asm.Opcodes.GETFIELD
+import org.objectweb.asm.Opcodes.GETSTATIC
+import org.objectweb.asm.Opcodes.INVOKESPECIAL
+import org.objectweb.asm.Opcodes.LCONST_0
+import org.objectweb.asm.Opcodes.NEW
+import org.objectweb.asm.Opcodes.POP
+import org.objectweb.asm.Opcodes.POP2
+import org.objectweb.asm.Opcodes.PUTFIELD
+import org.objectweb.asm.Opcodes.PUTSTATIC
+import org.objectweb.asm.Opcodes.RETURN
 
 /**
  * ASM [ClassVisitor] for the JarFilter task that deletes unwanted class elements.

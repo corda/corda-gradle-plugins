@@ -1,20 +1,21 @@
 package net.corda.gradle.jarfilter
 
-import org.assertj.core.api.Assertions.*
+import org.assertj.core.api.Assertions.assertThat
 import org.gradle.testkit.runner.GradleRunner
-import org.gradle.testkit.runner.TaskOutcome.*
-import org.junit.jupiter.api.Assertions.*
+import org.gradle.testkit.runner.TaskOutcome.SUCCESS
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import java.net.URI
 import java.nio.file.Path
 import java.nio.file.attribute.FileTime
-import java.util.*
 import java.util.Calendar.FEBRUARY
+import java.util.GregorianCalendar
+import java.util.TimeZone
 import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
-import kotlin.test.fail
 
 class JarFilterTimestampTest {
     companion object {

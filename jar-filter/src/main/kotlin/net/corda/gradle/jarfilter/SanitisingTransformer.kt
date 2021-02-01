@@ -1,14 +1,16 @@
 package net.corda.gradle.jarfilter
 
-import kotlinx.metadata.*
+import kotlinx.metadata.ClassName
 import kotlinx.metadata.Flag.Constructor.IS_PRIMARY
+import kotlinx.metadata.KmClass
+import kotlinx.metadata.KmPackage
 import kotlinx.metadata.jvm.signature
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.Logger
 import org.objectweb.asm.AnnotationVisitor
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.MethodVisitor
-import org.objectweb.asm.Opcodes.*
+import org.objectweb.asm.Opcodes.ASM8
 
 /**
  * This is (hopefully?!) a temporary solution for classes with [JvmOverloads] constructors.

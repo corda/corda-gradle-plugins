@@ -66,7 +66,7 @@ class DummyJar(
             }
         }
         _path = projectDir.pathOf("$name.jar")
-        JarOutputStream(Files.newOutputStream(_path), manifest).use { jar ->
+        JarOutputStream(Files.newOutputStream(_path).buffered(), manifest).use { jar ->
             jar.setComment(testClass.name)
             jar.setLevel(NO_COMPRESSION)
 
@@ -82,9 +82,10 @@ class DummyJar(
             jar.write(arrayOfJunk(DATA_SIZE))
 
             // One uncompressed text file
-            val text = """Jar: ${_path.toAbsolutePath()}
-                         |Class: ${testClass.name}
-                         |""".trimMargin().toByteArray()
+            val text = """\
+                |Jar: ${_path.toAbsolutePath()}
+                |Class: ${testClass.name}
+                |""".trimMargin().toByteArray()
             jar.putNextEntry(uncompressed("comment.txt", text))
             jar.write(text)
         }

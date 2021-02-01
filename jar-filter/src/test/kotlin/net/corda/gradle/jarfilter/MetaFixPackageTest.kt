@@ -2,8 +2,10 @@
 @file:Suppress("UNUSED")
 package net.corda.gradle.jarfilter
 
-import net.corda.gradle.jarfilter.asm.*
-import net.corda.gradle.jarfilter.matcher.*
+import net.corda.gradle.jarfilter.asm.metadataAs
+import net.corda.gradle.jarfilter.asm.toClass
+import net.corda.gradle.jarfilter.matcher.isFunction
+import net.corda.gradle.jarfilter.matcher.isProperty
 import org.gradle.api.logging.Logger
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test

@@ -3,8 +3,10 @@ package net.corda.gradle.jarfilter
 import kotlinx.metadata.KmClass
 import kotlinx.metadata.KmPackage
 import org.gradle.api.logging.Logger
-import org.objectweb.asm.*
-import org.objectweb.asm.Opcodes.*
+import org.objectweb.asm.ClassVisitor
+import org.objectweb.asm.FieldVisitor
+import org.objectweb.asm.MethodVisitor
+import org.objectweb.asm.Opcodes.ASM8
 
 /**
  * ASM [ClassVisitor] for the MetaFixer task. This visitor inventories every function,
