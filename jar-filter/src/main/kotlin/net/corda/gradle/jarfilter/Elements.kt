@@ -7,8 +7,11 @@ import kotlinx.metadata.KmValueParameter
 import kotlinx.metadata.flagsOf
 import kotlinx.metadata.jvm.JvmFieldSignature
 import kotlinx.metadata.jvm.JvmMethodSignature
-import org.objectweb.asm.Opcodes.*
-import java.util.*
+import org.objectweb.asm.Opcodes.ACC_PRIVATE
+import org.objectweb.asm.Opcodes.ACC_PROTECTED
+import org.objectweb.asm.Opcodes.ACC_PUBLIC
+import org.objectweb.asm.Opcodes.ACC_SYNTHETIC
+import java.util.Objects
 
 private const val DEFAULT_CONSTRUCTOR_MARKER = "ILkotlin/jvm/internal/DefaultConstructorMarker;"
 private const val DEFAULT_FUNCTION_MARKER = "ILjava/lang/Object;"

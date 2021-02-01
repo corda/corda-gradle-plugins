@@ -4,9 +4,9 @@ import net.corda.gradle.jarfilter.matcher.isConstructor
 import net.corda.gradle.unwanted.HasInt
 import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.core.IsIterableContaining.*
-import org.hamcrest.core.IsNot.*
-import org.junit.jupiter.api.Assertions.*
+import org.hamcrest.core.IsIterableContaining.hasItem
+import org.hamcrest.core.IsNot.not
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir

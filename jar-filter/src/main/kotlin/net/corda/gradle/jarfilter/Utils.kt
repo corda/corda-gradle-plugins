@@ -9,13 +9,14 @@ import org.objectweb.asm.ClassReader.SKIP_FRAMES
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.ClassWriter
 import java.nio.file.attribute.FileTime
-import java.util.*
 import java.util.Calendar.FEBRUARY
+import java.util.GregorianCalendar
+import java.util.TimeZone
 import java.util.zip.ZipEntry
 import java.util.zip.ZipEntry.DEFLATED
 import java.util.zip.ZipEntry.STORED
 import kotlin.math.max
-import kotlin.text.RegexOption.*
+import kotlin.text.RegexOption.IGNORE_CASE
 
 const val GROUP_NAME = "JarFilter"
 const val MINIMUM_GRADLE_VERSION = "5.6"
@@ -48,9 +49,9 @@ fun <T : Element> MutableCollection<T>.expire(element: T) {
  */
 fun ZipEntry.asCompressed(): ZipEntry {
     return ZipEntry(name).also { entry ->
-        entry.lastModifiedTime = lastModifiedTime
         lastAccessTime?.also { at -> entry.lastAccessTime = at }
         creationTime?.also { ct -> entry.creationTime = ct }
+        entry.time = time
         entry.comment = comment
         entry.method = DEFLATED
         entry.extra = extra

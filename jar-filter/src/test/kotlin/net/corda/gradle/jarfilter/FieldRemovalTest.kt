@@ -9,14 +9,14 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.core.IsIterableContaining.hasItem
 import org.hamcrest.core.IsEqual.equalTo
 import org.hamcrest.core.IsNot.not
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertArrayEquals
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.objectweb.asm.ClassWriter.COMPUTE_MAXS
 import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.jvm.jvmName
-import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
-import kotlin.test.assertTrue
 
 /**
  * Demonstrate that we can still instantiate objects, even after we've deleted

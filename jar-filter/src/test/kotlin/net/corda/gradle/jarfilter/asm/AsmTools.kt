@@ -37,7 +37,7 @@ private class BytecodeClassLoader(
     private val className: String,
     parent: ClassLoader
 ) : ClassLoader(parent) {
-    internal fun createClass(): Class<*> {
+    fun createClass(): Class<*> {
         return defineClass(className, bytecode, 0, bytecode.size).apply(::resolveClass)
     }
 

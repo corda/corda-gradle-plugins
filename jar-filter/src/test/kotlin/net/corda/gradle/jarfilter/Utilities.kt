@@ -60,7 +60,7 @@ fun Path.pathOf(vararg elements: String): Path = Paths.get(toAbsolutePath().toSt
 
 fun arrayOfJunk(size: Int) = ByteArray(size).apply {
     for (i in 0 until size) {
-        this[i] = (i and 0xFF).toByte()
+        this[i] = i.toByte()
     }
 }
 

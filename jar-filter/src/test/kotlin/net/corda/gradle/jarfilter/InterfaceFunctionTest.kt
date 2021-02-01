@@ -1,10 +1,10 @@
 package net.corda.gradle.jarfilter
 
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
-import java.lang.reflect.Modifier.*
+import java.lang.reflect.Modifier.ABSTRACT
 import java.nio.file.Path
 import kotlin.test.assertFailsWith
 

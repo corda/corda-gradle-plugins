@@ -7,8 +7,8 @@ import net.corda.gradle.jarfilter.matcher.javaDeclaredMethods
 import net.corda.gradle.jarfilter.matcher.typeOfList
 import net.corda.gradle.unwanted.HasUnwantedVal
 import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.core.IsIterableContaining.*
-import org.hamcrest.core.IsNot.*
+import org.hamcrest.core.IsIterableContaining.hasItem
+import org.hamcrest.core.IsNot.not
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
