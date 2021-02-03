@@ -33,7 +33,7 @@ class JarCache {
             @SneakyThrows
             public void accept(Path path) {
                 Files.delete(path);
-                log.trace("Deleted {}", path);
+                log.trace("Deleted '{}'", path);
             }
         });
     }
