@@ -1,6 +1,5 @@
 package net.corda.gradle.flask
 
-
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -12,7 +11,6 @@ import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.SourceSet
-import org.gradle.api.tasks.TaskOutputs
 import org.gradle.jvm.tasks.Jar
 
 class FlaskPlugin implements Plugin<Project> {
@@ -35,16 +33,18 @@ class FlaskPlugin implements Plugin<Project> {
             Configuration defaultConfiguration = project.configurations["default"]
             inputs.files(flaskSourceSetProvider.map {it.output })
             from {
-                flaskSourceSetProvider.get().runtimeClasspath.collect {
-                    if(it.exists()) {
-                        it.isDirectory() ? it : project.zipTree(it)
-                    } else {
-                        null
+                flaskSourceSetProvider.map { sourceSet ->
+                    sourceSet.runtimeClasspath.collect {
+                        if(it.exists()) {
+                            it.isDirectory() ? it : project.zipTree(it)
+                        } else {
+                            null
+                        }
                     }
                 }
             }
-            TaskOutputs jarTaskOutput = project.tasks.named("jar", Jar).get().outputs
-            includeLibraries(jarTaskOutput.files + defaultConfiguration)
+            includeLibraries(project.tasks.named("jar", Jar).map {it.outputs })
+            includeLibraries(defaultConfiguration)
 
             project.pluginManager.withPlugin('application') {
                 String result = project.extensions.findByType(JavaApplication.class)?.mainClassName

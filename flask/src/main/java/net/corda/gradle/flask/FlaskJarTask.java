@@ -63,8 +63,8 @@ public class FlaskJarTask extends AbstractArchiveTask {
         return jvmArgs;
     }
 
-    public void includeLibraries(FileCollection fileCollection) {
-        into(Flask.Constants.LIBRARIES_FOLDER, (copySpec) -> copySpec.from(fileCollection));
+    public void includeLibraries(Object files) {
+        into(Flask.Constants.LIBRARIES_FOLDER, (copySpec) -> copySpec.from(files));
     }
 
     private static class JavaAgent {
