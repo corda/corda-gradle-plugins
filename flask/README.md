@@ -163,5 +163,12 @@ lock on the heartbeat lock and calls `System.exit(-1)` while holding it.
 
 This ensures the child process suicides as soon as the parent process releases the heartbeat lock 
 (that only happens if the parent crashes or is forcefully terminated while waiting for the child to exit, 
-otherwise the parent process only releases the heartbeat lock after the child has terminated).  
+otherwise the parent process only releases the heartbeat lock after the child has terminated).
+
+## Logging
+The injected launcher code internally uses `slf4j-simple`, which means that debug logging can be enabled with
+
+```bash
+java -Dorg.slf4j.simpleLogger.defaultLogLevel=trace -jar flask.jar
+```
 
