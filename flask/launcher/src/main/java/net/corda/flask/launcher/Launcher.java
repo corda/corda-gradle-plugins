@@ -48,8 +48,7 @@ public class Launcher {
                 manifest.read(inputStream);
             }
         }
-        String mainClassName = Optional.ofNullable(System.getProperty(Flask.JvmProperties.MAIN_CLASS))
-                .orElse(manifest.getMainAttributes().getValue(Attributes.Name.MAIN_CLASS));
+        String mainClassName = manifest.getMainAttributes().getValue(Attributes.Name.MAIN_CLASS);
         Class<? extends Launcher> launcherClass = (Class<? extends Launcher>) Class.forName(mainClassName);
         Constructor<? extends Launcher> ctor = launcherClass.getConstructor();
         System.exit(ctor.newInstance().launch(manifest, args));
@@ -66,18 +65,8 @@ public class Launcher {
         try(LockFile lf = LockFile.acquire(cache.getLockFile(), true)) {
             Map<String, Path> extractedLibraries = cache.extract(manifest);
             JavaProcessBuilder builder = new JavaProcessBuilder();
-            builder.setMainClassName(manifest.getMainAttributes().getValue(Flask.ManifestAttributes.APPLICATION_CLASS));
-
-            Optional.ofNullable(System.getProperty(Flask.JvmProperties.JVM_ARGS)).ifPresent(prop -> {
-                List<String> jvmArgs = ManifestEscape.splitManifestStringList(prop);
-                if(log.isTraceEnabled()) {
-                    log.trace("Adding jvm arguments from {}: [{}]", Flask.JvmProperties.JVM_ARGS,
-                            jvmArgs.stream()
-                                    .map(s -> "\"" + s + "\"")
-                                    .collect(Collectors.joining(", ")));
-                }
-                builder.getJvmArgs().addAll(jvmArgs);
-            });
+            builder.setMainClassName(Optional.ofNullable(System.getProperty(Flask.JvmProperties.MAIN_CLASS))
+                    .orElse(manifest.getMainAttributes().getValue(Flask.ManifestAttributes.APPLICATION_CLASS)));
             String jvmArgsManifestString = manifest.getMainAttributes().getValue(Flask.ManifestAttributes.JVM_ARGS);
             if(jvmArgsManifestString != null) {
                 List<String> jvmArgs = ManifestEscape.splitManifestStringList(jvmArgsManifestString);
@@ -112,6 +101,16 @@ public class Launcher {
                     builder.getJavaAgents().add(new JavaProcessBuilder.JavaAgent(agentJar, agentArguments));
                 }
             }
+            Optional.ofNullable(System.getProperty(Flask.JvmProperties.JVM_ARGS)).ifPresent(prop -> {
+                List<String> jvmArgs = ManifestEscape.splitManifestStringList(prop);
+                if(log.isTraceEnabled()) {
+                    log.trace("Adding jvm arguments from {}: [{}]", Flask.JvmProperties.JVM_ARGS,
+                            jvmArgs.stream()
+                                    .map(s -> "\"" + s + "\"")
+                                    .collect(Collectors.joining(", ")));
+                }
+                builder.getJvmArgs().addAll(jvmArgs);
+            });
             for(Path jarPath : extractedLibraries.values()) {
                 builder.getClasspath().add(jarPath.toString());
             }

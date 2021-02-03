@@ -36,6 +36,18 @@ class Main {
             throw new AssertionError(String.format("Expected '%s', got '%s'", expectedPropertyValue, prop));
         }
 
+        prop = System.getProperty("some.property.from.cli");
+        expectedPropertyValue = "some value from cli";
+        if(!Objects.equals(expectedPropertyValue, prop)) {
+            throw new AssertionError(String.format("Expected '%s', got '%s'", expectedPropertyValue, prop));
+        }
+
+        prop = System.getProperty("property.to.be.overridden");
+        expectedPropertyValue = "value from cli";
+        if(!Objects.equals(expectedPropertyValue, prop)) {
+            throw new AssertionError(String.format("Expected '%s', got '%s'", expectedPropertyValue, prop));
+        }
+
         if(!JavaAgent.running) throw new AssertionError("Java Agent is not running");
 
         String expectedAgentArgument = "testArgument";

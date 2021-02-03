@@ -55,8 +55,8 @@ class FlaskPlugin implements Plugin<Project> {
         project.extensions.add("flaskJar", flaskJarTask.get())
 
         Provider<JavaExec> flaskRunTask = project.tasks.register('flaskRun', JavaExec) {
-            inputs.files(flaskJarTask.get().outputs)
-            classpath(flaskJarTask.get().outputs)
+            inputs.files(flaskJarTask)
+            classpath(flaskJarTask)
         }
         project.extensions.add("flaskRun", flaskRunTask.get())
     }

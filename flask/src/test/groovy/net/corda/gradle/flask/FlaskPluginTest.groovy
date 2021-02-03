@@ -60,6 +60,7 @@ class FlaskPluginTest {
         installResource("testProject", "build.gradle", testProjectDir)
         installResource("testProject", "settings.gradle", testProjectDir)
         installResource("testProject","src/main/java/net/corda/gradle/flask/test/Main.java", testProjectDir)
+        installResource("testProject","src/main/java/net/corda/gradle/flask/test/AlternativeMain.java", testProjectDir)
         installResource("testProject","src/flask/java/net/corda/gradle/flask/test/TestLauncher.java", testProjectDir)
         installResource("testProject", "testAgent/build.gradle", testProjectDir)
         installResource("testProject", "testAgent/src/main/java/net/corda/gradle/flask/test/agent/JavaAgent.java", testProjectDir)
@@ -91,5 +92,18 @@ class FlaskPluginTest {
         }
         Assertions.assertEquals("net.corda.gradle.flask.test.Main", prop.mainClassName)
         Assertions.assertEquals("arg1 arg2 arg3", prop.args)
+    }
+
+    @Test
+    void runFlaskJarMainClassOverride() {
+        GradleRunner runner = getStandardGradleRunnerFor("flaskRunMainClassOverride")
+        BuildResult result = runner.build()
+        Path propertiesFile = testProjectDir.resolve("build/testLauncher.properties")
+        Properties prop = Files.newBufferedReader(propertiesFile).withCloseable { reader ->
+            new Properties().tap {
+                load(reader)
+            }
+        }
+        Assertions.assertEquals("net.corda.gradle.flask.test.AlternativeMain", prop.mainClassName)
     }
 }
