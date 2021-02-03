@@ -48,7 +48,8 @@ public class Launcher {
                 manifest.read(inputStream);
             }
         }
-        String mainClassName = manifest.getMainAttributes().getValue(Attributes.Name.MAIN_CLASS);
+        String mainClassName = Optional.ofNullable(System.getProperty(Flask.JvmProperties.MAIN_CLASS))
+                .orElse(manifest.getMainAttributes().getValue(Attributes.Name.MAIN_CLASS));
         Class<? extends Launcher> launcherClass = (Class<? extends Launcher>) Class.forName(mainClassName);
         Constructor<? extends Launcher> ctor = launcherClass.getConstructor();
         System.exit(ctor.newInstance().launch(manifest, args));
@@ -122,6 +123,7 @@ public class Launcher {
                 int returnCode = builder.exec();
                 afterChildJvmExit(returnCode);
                 cache.touchLibraries();
+                Files.delete(cache.getPidFile());
                 return returnCode;
             }
         }
