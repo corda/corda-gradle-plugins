@@ -3,7 +3,6 @@ package net.corda.gradle.flask
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.artifacts.Configuration
 import org.gradle.api.plugins.JavaApplication
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.JavaPluginConvention
@@ -30,7 +29,6 @@ class FlaskPlugin implements Plugin<Project> {
         }
         Provider<FlaskJarTask> flaskJarTask = project.tasks.register("flaskJar", FlaskJarTask.class) {
             archiveBaseName = "${project.name}-flask"
-            Configuration defaultConfiguration = project.configurations["default"]
             inputs.files(flaskSourceSetProvider.map {it.output })
             from {
                 flaskSourceSetProvider.map { sourceSet ->
@@ -44,7 +42,7 @@ class FlaskPlugin implements Plugin<Project> {
                 }
             }
             includeLibraries(project.tasks.named("jar", Jar).map {it.outputs })
-            includeLibraries(defaultConfiguration)
+            includeLibraries(project.configurations.named("runtimeClasspath"))
 
             project.pluginManager.withPlugin('application') {
                 String result = project.extensions.findByType(JavaApplication.class)?.mainClassName

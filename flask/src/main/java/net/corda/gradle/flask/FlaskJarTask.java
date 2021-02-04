@@ -8,7 +8,6 @@ import net.corda.flask.common.ManifestEscape;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.internal.file.CopyActionProcessingStreamAction;
 import org.gradle.api.internal.file.copy.CopyAction;
 import org.gradle.api.internal.file.copy.CopyActionProcessingStream;
@@ -35,6 +34,7 @@ import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 public class FlaskJarTask extends AbstractArchiveTask {
@@ -119,60 +119,16 @@ public class FlaskJarTask extends AbstractArchiveTask {
         private final MessageDigest md;
         private final byte[] buffer;
 
-        /**
-         * This is required since the manifest has to be the first zip entry in a jar archive, as an example,
-         * {@link java.util.jar.JarInputStream} assumes the manifest is the first (or second at most)
-         * entry in the jar and simply returns a null manifest if that is not the case.
-         * In this case the manifest has to contain the hash of all the jar entries, so it cannot
-         * be computed in advance, all entries have to be read to compute the manifest, then the manifest can
-         * be written to the zip file as the first entries, then all the other entries can be added.
-         */
-        private final List<FileCopyDetailsInternal> fileCopyDetailsInternals = new ArrayList<>();
-
-        @SneakyThrows
-        public void write() {
-            ZipEntry zipEntry = new ZipEntry(Flask.Constants.METADATA_FOLDER + '/');
-            zoos.putNextEntry(zipEntry);
-            zipEntry = new ZipEntry(JarFile.MANIFEST_NAME);
-            zipEntry.setMethod(ZipEntry.DEFLATED);
-            zoos.putNextEntry(zipEntry);
-            manifest.write(zoos);
-            for(FileCopyDetails fileCopyDetails : fileCopyDetailsInternals) {
-                String entryName = fileCopyDetails.getRelativePath().toString();
-                if(Objects.equals(Flask.Constants.METADATA_FOLDER, entryName)) continue;
-                zipEntry = new ZipEntry(entryName);
-                if(fileCopyDetails.isDirectory()) {
-                    zipEntry = new ZipEntry(entryName + '/');
-                    zoos.putNextEntry(zipEntry);
-                } else {
-                    boolean compressed = Flask.splitExtension(fileCopyDetails.getSourceName())
-                            .map(entry -> Objects.equals(".jar", entry.getValue()))
-                            .orElse(false);
-                    if (!compressed) {
-                        zipEntry.setMethod(ZipEntry.DEFLATED);
-                    } else {
-                        try (InputStream is = new FileInputStream(fileCopyDetails.getFile())) {
-                            Flask.computeSizeAndCrc32(zipEntry, is, buffer);
-                        }
-                        zipEntry.setMethod(ZipEntry.STORED);
-                    }
-                    try(InputStream is = new FileInputStream(fileCopyDetails.getFile())) {
-                        zoos.putNextEntry(zipEntry);
-                        Flask.write2Stream(is, zoos, buffer);
-                    }
-                }
-            }
-        }
-
         @Override
-        public void processFile(FileCopyDetailsInternal fileCopyDetailsInternal) {
-            String entryName = fileCopyDetailsInternal.getRelativePath().toString();
-            if(!fileCopyDetailsInternal.isDirectory() && entryName.startsWith(Flask.Constants.LIBRARIES_FOLDER)) {
+        @SneakyThrows
+        public void processFile(FileCopyDetailsInternal fileCopyDetails) {
+            String entryName = fileCopyDetails.getRelativePath().toString();
+            if(!fileCopyDetails.isDirectory() && entryName.startsWith(Flask.Constants.LIBRARIES_FOLDER)) {
                 Supplier<InputStream> streamSupplier = new Supplier<InputStream>() {
                     @Override
                     @SneakyThrows
                     public InputStream get() {
-                        return new FileInputStream(fileCopyDetailsInternal.getFile());
+                        return new FileInputStream(fileCopyDetails.getFile());
                     }
                 };
                 Attributes attr = manifest.getEntries().computeIfAbsent(entryName, it -> new Attributes());
@@ -180,7 +136,28 @@ public class FlaskJarTask extends AbstractArchiveTask {
                 attr.putValue(Flask.ManifestAttributes.ENTRY_HASH,
                         Base64.getEncoder().encodeToString(Flask.computeDigest(streamSupplier, md)));
             }
-            fileCopyDetailsInternals.add(fileCopyDetailsInternal);
+            if(Objects.equals(Flask.Constants.METADATA_FOLDER, entryName)) return;
+            ZipEntry zipEntry = new ZipEntry(entryName);
+            if(fileCopyDetails.isDirectory()) {
+                zipEntry = new ZipEntry(entryName + '/');
+                zoos.putNextEntry(zipEntry);
+            } else {
+                boolean compressed = Flask.splitExtension(fileCopyDetails.getSourceName())
+                        .map(entry -> Objects.equals(".jar", entry.getValue()))
+                        .orElse(false);
+                if (!compressed) {
+                    zipEntry.setMethod(ZipEntry.DEFLATED);
+                } else {
+                    try (InputStream is = new FileInputStream(fileCopyDetails.getFile())) {
+                        Flask.computeSizeAndCrc32(zipEntry, is, buffer);
+                    }
+                    zipEntry.setMethod(ZipEntry.STORED);
+                }
+                try(InputStream is = new FileInputStream(fileCopyDetails.getFile())) {
+                    zoos.putNextEntry(zipEntry);
+                    Flask.write2Stream(is, zoos, buffer);
+                }
+            }
         }
     }
 
@@ -191,43 +168,69 @@ public class FlaskJarTask extends AbstractArchiveTask {
             @Override
             @SneakyThrows
             public WorkResult execute(CopyActionProcessingStream copyActionProcessingStream) {
-                try (ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(destination))) {
-                    Manifest manifest = new Manifest();
-                    manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
-                    manifest.getMainAttributes().put(Attributes.Name.MAIN_CLASS, launcherClassName.get());
-                    manifest.getMainAttributes().putValue(
-                            Flask.ManifestAttributes.PREMAIN_CLASS, Flask.Constants.DEFAULT_LAUNCHER_NAME);
-                    Optional.ofNullable(mainClassName.getOrNull()).ifPresent(it ->
-                        manifest.getMainAttributes().putValue(Flask.ManifestAttributes.APPLICATION_CLASS, it));
-                    Optional.ofNullable(jvmArgs.getOrNull())
-                            .filter(it -> !it.isEmpty())
-                            .ifPresent(it -> manifest.getMainAttributes().putValue(Flask.ManifestAttributes.JVM_ARGS,
-                                    ManifestEscape.escapeStringList(it)));
-                    MessageDigest md = MessageDigest.getInstance("SHA-256");
-                    byte[] buffer = new byte[Flask.Constants.BUFFER_SIZE];
-                    if(!javaAgents.isEmpty()) {
-                        List<String> agentsStrings = javaAgents.stream().map(javaAgent -> {
-                            md.reset();
-                            Supplier<InputStream> streamSupplier = new Supplier<InputStream>() {
-                                @Override
-                                @SneakyThrows
-                                public InputStream get() {
-                                    return new FileInputStream(javaAgent.jar);
-                                }
-                            };
-                            StringBuilder sb = new StringBuilder();
-                            sb.append(Flask.bytes2Hex(Flask.computeDigest(streamSupplier, md)));
-                            if (!javaAgent.args.isEmpty()) {
-                                sb.append('=');
-                                sb.append(javaAgent.args);
+                Manifest manifest = new Manifest();
+                manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
+                manifest.getMainAttributes().put(Attributes.Name.MAIN_CLASS, launcherClassName.get());
+                manifest.getMainAttributes().putValue(
+                        Flask.ManifestAttributes.PREMAIN_CLASS, Flask.Constants.DEFAULT_LAUNCHER_NAME);
+                Optional.ofNullable(mainClassName.getOrNull()).ifPresent(it ->
+                    manifest.getMainAttributes().putValue(Flask.ManifestAttributes.APPLICATION_CLASS, it));
+                Optional.ofNullable(jvmArgs.getOrNull())
+                        .filter(it -> !it.isEmpty())
+                        .ifPresent(it -> manifest.getMainAttributes().putValue(Flask.ManifestAttributes.JVM_ARGS,
+                                ManifestEscape.escapeStringList(it)));
+                MessageDigest md = MessageDigest.getInstance("SHA-256");
+                byte[] buffer = new byte[Flask.Constants.BUFFER_SIZE];
+                if(!javaAgents.isEmpty()) {
+                    List<String> agentsStrings = javaAgents.stream().map(javaAgent -> {
+                        md.reset();
+                        Supplier<InputStream> streamSupplier = new Supplier<InputStream>() {
+                            @Override
+                            @SneakyThrows
+                            public InputStream get() {
+                                return new FileInputStream(javaAgent.jar);
                             }
-                            return sb.toString();
-                        }).collect(Collectors.toList());
-                        manifest.getMainAttributes().putValue(Flask.ManifestAttributes.JAVA_AGENTS, ManifestEscape.escapeStringList(agentsStrings));
-                    }
+                        };
+                        StringBuilder sb = new StringBuilder();
+                        sb.append(Flask.bytes2Hex(Flask.computeDigest(streamSupplier, md)));
+                        if (!javaAgent.args.isEmpty()) {
+                            sb.append('=');
+                            sb.append(javaAgent.args);
+                        }
+                        return sb.toString();
+                    }).collect(Collectors.toList());
+                    manifest.getMainAttributes().putValue(Flask.ManifestAttributes.JAVA_AGENTS, ManifestEscape.escapeStringList(agentsStrings));
+                }
+
+                /**
+                 * The manifest has to be the first zip entry in a jar archive, as an example,
+                 * {@link java.util.jar.JarInputStream} assumes the manifest is the first (or second at most)
+                 * entry in the jar and simply returns a null manifest if that is not the case.
+                 * In this case the manifest has to contain the hash of all the jar entries, so it cannot
+                 * be computed in advance, we write all the entries to a temporary zip archive while computing the manifest,
+                 * then we write the manifest to the final zip file as the first entry and, finally,
+                 * we copy all the other entries from the temporary archive.
+                 */
+                File temporaryJar = new File(getTemporaryDir(), "premature.zip");
+                try(ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(temporaryJar))) {
                     StreamAction streamAction = new StreamAction(zipOutputStream, manifest, md, buffer);
                     copyActionProcessingStream.process(streamAction);
-                    streamAction.write();
+                }
+
+                try (ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(destination));
+                        ZipInputStream zipInputStream = new ZipInputStream(new FileInputStream(temporaryJar))) {
+                    ZipEntry zipEntry = new ZipEntry(Flask.Constants.METADATA_FOLDER + '/');
+                    zipOutputStream.putNextEntry(zipEntry);
+                    zipEntry = new ZipEntry(JarFile.MANIFEST_NAME);
+                    zipEntry.setMethod(ZipEntry.DEFLATED);
+                    zipOutputStream.putNextEntry(zipEntry);
+                    manifest.write(zipOutputStream);
+                    while(true) {
+                        zipEntry = zipInputStream.getNextEntry();
+                        if(zipEntry == null) break;
+                        zipOutputStream.putNextEntry(zipEntry);
+                        Flask.write2Stream(zipInputStream, zipOutputStream, buffer);
+                    }
                     return () -> true;
                 }
             }
