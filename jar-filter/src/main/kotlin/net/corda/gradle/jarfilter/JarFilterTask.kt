@@ -223,11 +223,11 @@ open class JarFilterTask @Inject constructor(objects: ObjectFactory, layouts: Pr
 
         private abstract inner class Pass(input: Path): Closeable {
             /**
-             * Use [ZipFile] instead of [java.util.jar.JarInputStream] because
+             * Use [ZipFile] instead of [JarInputStream][java.util.jar.JarInputStream] because
              * JarInputStream consumes MANIFEST.MF when it's the first or second entry.
              */
             @JvmField protected val inJar = ZipFile(input.toFile())
-            @JvmField protected val outJar = ZipOutputStream(Files.newOutputStream(target))
+            @JvmField protected val outJar = ZipOutputStream(Files.newOutputStream(target).buffered())
             @JvmField protected var isModified = false
 
             @Throws(IOException::class)
@@ -258,7 +258,7 @@ open class JarFilterTask @Inject constructor(objects: ObjectFactory, layouts: Pr
                                 outJar.putNextEntry(entry.asCompressed().withFileTimestamps(preserveTimestamps.get()))
                                 outJar.write(classData)
                             }
-                            Unit
+                            return@use
                         }
                     }
                 }
@@ -284,7 +284,7 @@ open class JarFilterTask @Inject constructor(objects: ObjectFactory, layouts: Pr
                 var transformer = FilterTransformer(
                     visitor = writer,
                     logger = logger,
-                    importExtra = { className -> initialUnwanted.remove(className) },
+                    importExtra = initialUnwanted::remove,
                     removeAnnotations = descriptorsForRemove,
                     deleteAnnotations = descriptorsForDelete,
                     stubAnnotations = descriptorsForStub,

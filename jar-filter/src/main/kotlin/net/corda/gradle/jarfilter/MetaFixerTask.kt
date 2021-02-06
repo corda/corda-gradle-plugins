@@ -108,14 +108,8 @@ open class MetaFixerTask @Inject constructor(objects: ObjectFactory, layouts: Pr
          */
         private val target: Path = outputDir.flatMap { dir -> toMetaFixed(dir, inFile) }.get().asFile.toPath()
         private val inJar = ZipFile(inFile)
-        private val outJar: ZipOutputStream
-
-        init {
-            // Default options for newOutputStream() are CREATE, TRUNCATE_EXISTING.
-            outJar = ZipOutputStream(Files.newOutputStream(target)).apply {
-                setLevel(BEST_COMPRESSION)
-            }
-        }
+        // Default options for newOutputStream() are CREATE, TRUNCATE_EXISTING.
+        private val outJar = ZipOutputStream(Files.newOutputStream(target).buffered())
 
         @Throws(IOException::class)
         override fun close() {
@@ -126,6 +120,7 @@ open class MetaFixerTask @Inject constructor(objects: ObjectFactory, layouts: Pr
 
         fun run() {
             logger.info("Writing to {}", target)
+            outJar.setLevel(BEST_COMPRESSION)
             outJar.setComment(inJar.comment)
 
             val classNames = inJar.entries().asSequence().namesEndingWith(".class")
