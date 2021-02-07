@@ -1,0 +1,41 @@
+package net.corda.gradle.jarfilter
+
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.condition.EnabledForJreRange
+import org.junit.jupiter.api.condition.JRE.JAVA_15
+import org.junit.jupiter.api.io.TempDir
+import java.nio.file.Path
+import kotlin.test.assertFailsWith
+
+@EnabledForJreRange(min = JAVA_15)
+class DeleteJava15PermittedSubclassTest {
+    companion object {
+        private const val SEALED_CLASS = "net.corda.gradle.WantedSealedClass"
+        private const val WANTED_SUBCLASS = "net.corda.gradle.WantedSubclass"
+        private const val UNWANTED_SUBCLASS = "net.corda.gradle.UnwantedSubclass"
+
+        private lateinit var testProject: JarFilterProject
+
+        @BeforeAll
+        @JvmStatic
+        fun setup(@TempDir testProjectDir: Path) {
+            testProject = JarFilterProject(testProjectDir, "delete-java15-permitted-subclass").build()
+        }
+    }
+
+    @Test
+    fun deletePermittedSubclass() {
+        classLoaderFor(testProject.sourceJar).use { cl ->
+            cl.load<Any>(SEALED_CLASS)
+            cl.load<Any>(WANTED_SUBCLASS)
+            cl.load<Any>(UNWANTED_SUBCLASS)
+        }
+
+        classLoaderFor(testProject.filteredJar).use { cl ->
+            cl.load<Any>(SEALED_CLASS)
+            cl.load<Any>(WANTED_SUBCLASS)
+            assertFailsWith<ClassNotFoundException> { cl.load<Any>(UNWANTED_SUBCLASS) }
+        }
+    }
+}
