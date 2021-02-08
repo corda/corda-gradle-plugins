@@ -10,7 +10,6 @@ import org.gradle.api.logging.Logger
 import org.objectweb.asm.AnnotationVisitor
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.MethodVisitor
-import org.objectweb.asm.Opcodes.ASM8
 
 /**
  * This is (hopefully?!) a temporary solution for classes with [JvmOverloads] constructors.
@@ -28,7 +27,7 @@ class SanitisingTransformer(
     logger: Logger,
     private val unwantedAnnotations: Set<String>,
     private val syntheticMethods: UnwantedMap
-) : KotlinBeforeProcessor(ASM8, visitor, logger, mutableMapOf()) {
+) : KotlinBeforeProcessor(ASM_API, visitor, logger, mutableMapOf()) {
 
     var isModified: Boolean = false
         private set

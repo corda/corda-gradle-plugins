@@ -51,7 +51,7 @@ abstract class MetadataTransformer<out T : KmDeclarationContainer>(
                 val method = function.signature?.toMethodElement() ?: continue
                 val synthetic = method.asKotlinDefaultFunction(classDescriptor) ?: continue
 
-                // The synthetic "$default" method may not have been annotated,
+                // The synthetic `$default` method may not have been annotated,
                 // so ensure we handle it in the same way as its "host" method.
                 synthetic.handleSameAs(method)
             }

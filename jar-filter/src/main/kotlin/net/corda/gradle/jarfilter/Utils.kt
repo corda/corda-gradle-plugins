@@ -8,6 +8,7 @@ import org.objectweb.asm.ClassReader.SKIP_DEBUG
 import org.objectweb.asm.ClassReader.SKIP_FRAMES
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.ClassWriter
+import org.objectweb.asm.Opcodes.ASM9
 import java.nio.file.attribute.FileTime
 import java.util.Calendar.FEBRUARY
 import java.util.GregorianCalendar
@@ -21,6 +22,8 @@ import kotlin.text.RegexOption.IGNORE_CASE
 const val GROUP_NAME = "JarFilter"
 const val MINIMUM_GRADLE_VERSION = "5.6"
 const val FILTER_FLAGS = SKIP_DEBUG and SKIP_FRAMES
+
+const val ASM_API = ASM9
 
 @JvmField
 val JAR_PATTERN = "(\\.jar)\$".toRegex(IGNORE_CASE)

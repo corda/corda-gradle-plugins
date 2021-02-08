@@ -4,12 +4,12 @@ package net.corda.gradle.jarfilter.asm
 import kotlinx.metadata.InconsistentKotlinMetadataException
 import kotlinx.metadata.jvm.KotlinClassHeader
 import kotlinx.metadata.jvm.KotlinClassMetadata
+import net.corda.gradle.jarfilter.ASM_API
 import net.corda.gradle.jarfilter.KOTLIN_METADATA_DATA_FIELD_NAME
 import net.corda.gradle.jarfilter.KOTLIN_METADATA_DESC
 import net.corda.gradle.jarfilter.KOTLIN_METADATA_STRINGS_FIELD_NAME
 import org.objectweb.asm.AnnotationVisitor
 import org.objectweb.asm.ClassVisitor
-import org.objectweb.asm.Opcodes.ASM8
 
 /**
  * Rewrite the bytecode for this class with the Kotlin @Metadata of another class.
@@ -75,7 +75,7 @@ private fun Class<*>.readMetadata(): KotlinClassHeader {
     )
 }
 
-private class MetadataWriter(metadata: KotlinClassHeader, visitor: ClassVisitor) : ClassVisitor(ASM8, visitor) {
+private class MetadataWriter(metadata: KotlinClassHeader, visitor: ClassVisitor) : ClassVisitor(ASM_API, visitor) {
     private val kotlinMetadata: MutableMap<String, Array<String>> = mutableMapOf(
         KOTLIN_METADATA_DATA_FIELD_NAME to metadata.data1,
         KOTLIN_METADATA_STRINGS_FIELD_NAME to metadata.data2

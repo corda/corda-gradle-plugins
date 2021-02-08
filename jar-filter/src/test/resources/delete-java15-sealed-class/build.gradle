@@ -1,0 +1,40 @@
+import net.corda.gradle.jarfilter.JarFilterTask
+import static org.gradle.api.JavaVersion.VERSION_15
+
+plugins {
+    id 'net.corda.plugins.jar-filter' apply false
+    id 'java-library'
+}
+apply from: 'repositories.gradle'
+
+java {
+    sourceCompatibility = VERSION_15
+    targetCompatibility = VERSION_15
+}
+
+sourceSets {
+    main {
+        java {
+            srcDir files(
+                '../resources/test/delete-java15-sealed-class/java',
+                '../resources/test/annotations/java'
+            )
+        }
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs += "--enable-preview"
+    options.encoding = 'UTF-8'
+}
+
+jar {
+    archiveBaseName = 'delete-java15-sealed-class'
+}
+
+task jarFilter(type: JarFilterTask) {
+    jars jar
+    annotations {
+        forDelete = ["net.corda.gradle.jarfilter.DeleteJava"]
+    }
+}

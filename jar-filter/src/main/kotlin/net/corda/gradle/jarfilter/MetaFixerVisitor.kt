@@ -6,10 +6,9 @@ import org.gradle.api.logging.Logger
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.FieldVisitor
 import org.objectweb.asm.MethodVisitor
-import org.objectweb.asm.Opcodes.ASM8
 
 /**
- * ASM [ClassVisitor] for the MetaFixer task. This visitor inventories every function,
+ * ASM [ClassVisitor] for the [MetaFixerTask]. This visitor inventories every function,
  * property and inner class within the byte-code and then passes this information to
  * the [MetaFixerTransformer].
  */
@@ -21,7 +20,7 @@ class MetaFixerVisitor private constructor(
     private val fields: MutableSet<FieldElement>,
     private val methods: MutableSet<String>,
     private val nestedClasses: MutableSet<String>
-) : KotlinAfterProcessor(ASM8, visitor, logger, kotlinMetadata), Repeatable<MetaFixerVisitor> {
+) : KotlinAfterProcessor(ASM_API, visitor, logger, kotlinMetadata), Repeatable<MetaFixerVisitor> {
     constructor(visitor: ClassVisitor, logger: Logger, classNames: Set<String>)
         : this(visitor, logger, mutableMapOf(), classNames, mutableSetOf(), mutableSetOf(), mutableSetOf())
 
@@ -53,7 +52,7 @@ class MetaFixerVisitor private constructor(
         if (outerName == className && innerName != null && nestedClasses.add(innerName)) {
             logger.info("- inner class {}", clsName)
         }
-        return super.visitInnerClass(clsName, outerName, innerName, access)
+        super.visitInnerClass(clsName, outerName, innerName, access)
     }
 
     override fun processClassMetadata(kmClass: KmClass): KmClass? {

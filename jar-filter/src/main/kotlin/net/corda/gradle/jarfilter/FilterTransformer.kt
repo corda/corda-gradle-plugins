@@ -12,7 +12,6 @@ import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes.ACC_ABSTRACT
 import org.objectweb.asm.Opcodes.ACONST_NULL
-import org.objectweb.asm.Opcodes.ASM8
 import org.objectweb.asm.Opcodes.ATHROW
 import org.objectweb.asm.Opcodes.BIPUSH
 import org.objectweb.asm.Opcodes.DCONST_0
@@ -51,7 +50,7 @@ class FilterTransformer private constructor (
     private val unwantedFields: MutableSet<FieldElement>,
     private val deletedMethods: MutableSet<MethodElement>,
     private val stubbedMethods: MutableSet<MethodElement>
-) : KotlinAfterProcessor(ASM8, visitor, logger, kotlinMetadata), Repeatable<FilterTransformer> {
+) : KotlinAfterProcessor(ASM_API, visitor, logger, kotlinMetadata), Repeatable<FilterTransformer> {
     constructor(
         visitor: ClassVisitor,
         logger: Logger,
@@ -143,7 +142,7 @@ class FilterTransformer private constructor (
             return null
         }
 
-        /*
+        /**
          * Write the byte-code for the method's prototype, then check whether
          * we need to replace the method's body with our "stub" code.
          */
@@ -193,9 +192,22 @@ class FilterTransformer private constructor (
     override fun visitNestMember(nestMember: String) {
         logger.debug("--- nest member: {}", nestMember)
         if (isUnwantedClass(nestMember)) {
-            logger.info("- Delete unwanted nest member: {}", nestMember)
+            logger.info("- Deleted reference to unwanted nest member: {}", nestMember)
         } else {
             super.visitNestMember(nestMember)
+        }
+    }
+
+    override fun visitPermittedSubclass(permittedSubclass: String) {
+        logger.debug("--- permitted subclass: {}", permittedSubclass)
+        if (isUnwantedClass || hasDeletedAnnotationsMethod(permittedSubclass)) {
+            if (unwantedElements.addClass(permittedSubclass)) {
+                logger.info("- Identified permitted subclass {} of {} as unwanted", permittedSubclass, className)
+            }
+        } else if (isUnwantedClass(permittedSubclass)) {
+            logger.info("- Deleted reference to unwanted permitted subclass: {}", permittedSubclass)
+        } else {
+            super.visitPermittedSubclass(permittedSubclass)
         }
     }
 
@@ -451,7 +463,7 @@ class FilterTransformer private constructor (
     }
 
     /**
-     * Write an empty method. Can only be applied to methods that return void.
+     * Write an empty method. Can only be applied to methods that return `void`.
      */
     private inner class VoidStubMethodAdapter(mv: MethodVisitor) : StubbingMethodAdapter(mv) {
         override fun writeStubCode() {
