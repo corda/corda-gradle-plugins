@@ -65,43 +65,13 @@ class JarCache {
 
     @SneakyThrows
     private static Path computeCacheDirectory(String appName) {
-        Stream<Optional<Path>> candidates;
-        if (OS.isUnix) {
-            candidates = Stream.of(
-                    Optional.ofNullable(System.getProperty(Flask.JvmProperties.CACHE_DIR)).map(Paths::get),
-                    Optional.ofNullable(System.getenv("XDG_CACHE_HOME")).map(prefix -> Paths.get(prefix, appName)),
-                    Optional.ofNullable(System.getProperty("user.home")).map(prefix -> Paths.get(prefix, ".cache", appName)),
-                    Optional.ofNullable(System.getProperty("java.io.tmpdir")).map(path -> Paths.get(path).resolve(appName)),
-                    Optional.of(Paths.get("/tmp", appName))
-            );
-        } else if (OS.isMac) {
-            candidates = Stream.of(
-                    Optional.ofNullable(System.getProperty(Flask.JvmProperties.CACHE_DIR)).map(Paths::get),
-                    Optional.ofNullable(System.getProperty("user.home"))
-                            .map(prefix -> Paths.get(prefix, "Library", "Saved Application State", appName)),
-                    Optional.of(Paths.get("/Library/Caches", appName)),
-                    Optional.ofNullable(System.getProperty("java.io.tmpdir"))
-                            .map(prefix -> Paths.get(prefix).resolve(appName)));
-        } else if (OS.isWindows) {
-            candidates = Stream.of(
-                    Optional.ofNullable(System.getProperty(Flask.JvmProperties.CACHE_DIR)).map(Paths::get),
-                    Optional.ofNullable(System.getenv())
-                            .map(it -> it.get("LOCALAPPDATA"))
-                            .map(prefix -> Paths.get(prefix, appName)),
-                    Optional.ofNullable(System.getProperty("user.home"))
-                            .map(prefix -> Paths.get(prefix, "AppData", "Local", appName)),
-                    Optional.ofNullable(System.getProperty("user.home"))
-                            .map(prefix -> Paths.get(prefix, "Local Settings", "Application Data", appName)),
-                    Optional.ofNullable(System.getProperty("java.io.tmpdir"))
-                            .map(prefix -> Paths.get(prefix).resolve(appName))
-            );
-
-        } else {
-            candidates = Stream.of(
-                    Optional.ofNullable(System.getProperty(Flask.JvmProperties.CACHE_DIR)).map(Paths::get),
-                    Optional.ofNullable(System.getProperty("java.io.tmpdir")).map(path -> Paths.get(path).resolve(appName))
-            );
-        }
+        Stream<Optional<Path>> candidates = Stream.of(
+            Optional.ofNullable(System.getProperty(Flask.JvmProperties.CACHE_DIR)).map(Paths::get),
+            Optional.ofNullable(System.getenv("XDG_CACHE_HOME")).map(prefix -> Paths.get(prefix, appName)),
+            Optional.ofNullable(System.getProperty("user.home")).map(prefix -> Paths.get(prefix, ".cache", appName)),
+            Optional.ofNullable(System.getProperty("java.io.tmpdir")).map(path -> Paths.get(path).resolve(appName)),
+            Optional.of(Paths.get("/tmp", appName))
+        );
         return candidates
                 .filter(Optional::isPresent)
                 .map(Optional::get)
