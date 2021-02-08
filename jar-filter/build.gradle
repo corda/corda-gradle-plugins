@@ -1,3 +1,5 @@
+import static org.gradle.jvm.toolchain.JavaLanguageVersion.of
+
 plugins {
     id 'org.jetbrains.kotlin.jvm'
     id 'java-gradle-plugin'
@@ -75,6 +77,10 @@ processTestResources {
 }
 
 tasks.withType(Test).configureEach {
+    javaLauncher = javaToolchains.launcherFor {
+        languageVersion = of(11)
+    }
+
     // Configures the @RequiresKotlin14 annotation.
     systemProperty 'test.kotlin.api', test_kotlin_api_version
 }
