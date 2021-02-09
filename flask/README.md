@@ -47,26 +47,10 @@ Additionally, it is possible to specify jvm arguments and Java agents that will 
 
 Additional JVM properties can be added to the child process launching the generated jar with
 ```bash
-java -Dnet.corda.flask.jvm.args="-Xmx4G -Dsome.property=\"some\ value\"" -jar flask.jar
-```
-Note that if those aren't embedded within the `net.corda.flask.jvm.args` system property they will only be provided to the boostrap JVM.
-Also note that newlines, tabs and whitespaces need to be escaped (with `\n`, `\t`, `\ ` respectively) in the value of
-the string provided to `net.corda.flask.jvm.args`, otherwise they will split the command line parameters.
-
-e.g.
-
-```bash
-java -Dnet.corda.flask.jvm.args="-Dsome.property=\"some\ value\nwith\ newlines\"" -jar flask.jar
-```
-adds `-Dsome.property="some value\nwith newlines"` to the subprocess command line while
-
-```bash
-java -Dnet.corda.flask.jvm.args="-Dsome.property=\"some value\nwith newlines\"" -jar flask.jar
+java -jar flask.jar -flaskJvmArg="-Xmx4G" -flaskJvmArg="-Dsome.property=\"some value\""
 ```
 
-appends `-Dsome.property="some`,  `value\nwith` and `newlines"` as 3 separate command line arguments.
-
-It is similarly possible to override the name of the child process main class with
+It is also possible to override the name of the child process main class with
 
 ```bash
 java -Dnet.corda.flask.main.class="new.main.class.Name" -jar flask.jar
@@ -143,8 +127,11 @@ embedded as stored zip entries in the `/LIB-INF` folder, additionally it contain
 in the jar manifest main attribute:
 
 - `Application-Class` contains the name of the main class of the child process
-- `JVM-Args` contains the jvm argument list it is supposed to use to spawn the child process
-- `Java-Agents` contains the list of hashes of the java agents jars and their arguments
+  
+And 2 properties files in the `META-INF` folder:
+
+- `jvmArgs.properties` contains the jvm argument list it is supposed to use to spawn the child process
+- `javaAgents.properties` contains the list of hashes of the java agents jars and their arguments
 
 When the executable jar is started, the method `net.corda.flask.launcher.Launcher.main` is invoked. 
 It uses a cache directory, whose location is platform dependent and that is shared between all **Flask** processes, 
@@ -156,7 +143,7 @@ it deletes all the files whose last modification date is older than a predetermi
 it reads all the manifest entries in the `LIB-INF` folder and extracts them in the cache directory 
 with the path `lib/$fileHash/$fileName` only if they don't already exist (this way the cache can never
 contain two identical jar files). At this point the bootstrap process creates another empty lockfile in the cache 
-directory `pid` subfolder (the heartbeat lock) and acquires an exclusive lock on it, then it extracts from its own jar manifest the application metadata 
+directory `pid` subfolder (the heartbeat lock) and acquires an exclusive lock on it, then it extracts from its own jar the application metadata 
 (main class name, JVM argument list and Java agents), builds the command line and spawns a subprocess adding its own jar 
 as a Java agent of its child; this java agent in the child process simply starts a thread that acquires a shared
 lock on the heartbeat lock and calls `System.exit(-1)` while holding it.

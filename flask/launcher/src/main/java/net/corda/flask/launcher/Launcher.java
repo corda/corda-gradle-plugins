@@ -2,7 +2,6 @@ package net.corda.flask.launcher;
 
 import lombok.SneakyThrows;
 import net.corda.flask.common.Flask;
-import net.corda.flask.common.ManifestEscape;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,23 +38,79 @@ public class Launcher {
     }
 
     @SneakyThrows
+    private static List<String> listOfStringFromPropertyFile(InputStream is) {
+        Properties p = new Properties();
+        p.load(is);
+        return p.entrySet()
+                .stream()
+                .sorted(Comparator.comparing(entry -> Integer.parseInt(entry.getKey().toString())))
+                .map(it -> it.getValue().toString())
+                .collect(Collectors.toList());
+    }
+
+    private static List<String> extractJvmArgsFromCliArgs(String args[], List<String> passThroughJvmArguments) {
+        List<String> result = new ArrayList<>();
+        int originalLength = passThroughJvmArguments.size();
+        for(String arg : args) {
+            if(arg.startsWith(Flask.Constants.CLI_JVM_PARAMETERS_PREFIX)) {
+                passThroughJvmArguments.add(arg.substring(Flask.Constants.CLI_JVM_PARAMETERS_PREFIX.length()));
+            } else {
+                result.add(arg);
+            }
+        }
+        if(log.isTraceEnabled()) {
+            log.trace("Adding jvm arguments from command line: [{}]",
+                    passThroughJvmArguments.stream()
+                            .skip(originalLength)
+                            .map(s -> "\"" + s + "\"")
+                            .collect(Collectors.joining(", ")));
+        }
+        return result;
+    }
+
+    @SneakyThrows
     public static void main(String[] args) {
         Manifest manifest = new Manifest();
+        List<String> cliArgs;
+        List<String> jvmArgs = new ArrayList<>();
+        List<String> javaAgents = null;
         try(ZipFile jar = new ZipFile(currentJar.toFile())) {
             ZipEntry manifestEntry = jar.getEntry(JarFile.MANIFEST_NAME);
             jar.getInputStream(manifestEntry);
             try (InputStream inputStream = jar.getInputStream(manifestEntry)) {
                 manifest.read(inputStream);
             }
+            ZipEntry jvmArgsEntry = jar.getEntry(Flask.Constants.JVM_ARGUMENT_FILE);
+            if(jvmArgsEntry != null) {
+                List<String> jvmArgumentsFromPropertyFile;
+                try (InputStream inputStream = jar.getInputStream(jvmArgsEntry)) {
+                    jvmArgumentsFromPropertyFile = listOfStringFromPropertyFile(inputStream);
+                }
+                if(log.isTraceEnabled()) {
+                    log.trace("Adding jvm arguments from {} property file: [{}]", Flask.Constants.JVM_ARGUMENT_FILE,
+                            jvmArgumentsFromPropertyFile.stream()
+                                    .map(s -> "\"" + s + "\"")
+                                    .collect(Collectors.joining(", ")));
+                }
+                jvmArgs.addAll(jvmArgumentsFromPropertyFile);
+            }
+            ZipEntry javaAgentsEntry = jar.getEntry(Flask.Constants.JAVA_AGENTS_FILE);
+            if(javaAgentsEntry != null) {
+                try (InputStream inputStream = jar.getInputStream(jar.getEntry(Flask.Constants.JAVA_AGENTS_FILE))) {
+                    javaAgents = listOfStringFromPropertyFile(inputStream);
+                }
+            }
         }
+        cliArgs = extractJvmArgsFromCliArgs(args, jvmArgs);
         String mainClassName = manifest.getMainAttributes().getValue(Attributes.Name.MAIN_CLASS);
-        Class<? extends Launcher> launcherClass = (Class<? extends Launcher>) Class.forName(mainClassName);
+        Class<? extends Launcher> launcherClass = (Class<? extends Launcher>)
+                Class.forName(mainClassName, true, ClassLoader.getSystemClassLoader());
         Constructor<? extends Launcher> ctor = launcherClass.getConstructor();
-        System.exit(ctor.newInstance().launch(manifest, args));
+        System.exit(ctor.newInstance().launch(manifest, jvmArgs, javaAgents, cliArgs));
     }
 
     @SneakyThrows
-    int launch(Manifest manifest, String[] args) {
+    int launch(Manifest manifest, List<String> jvmArgs, List<String> javaAgents, List<String> args) {
         JarCache cache = new JarCache(CACHE_FOLDER_DEFAULT_NAME);
         if(Boolean.parseBoolean(System.getProperty(Flask.JvmProperties.WIPE_CACHE))) {
             cache.wipeLibDir();
@@ -67,26 +122,17 @@ public class Launcher {
             JavaProcessBuilder builder = new JavaProcessBuilder();
             builder.setMainClassName(Optional.ofNullable(System.getProperty(Flask.JvmProperties.MAIN_CLASS))
                     .orElse(manifest.getMainAttributes().getValue(Flask.ManifestAttributes.APPLICATION_CLASS)));
-            String jvmArgsManifestString = manifest.getMainAttributes().getValue(Flask.ManifestAttributes.JVM_ARGS);
-            if(jvmArgsManifestString != null) {
-                List<String> jvmArgs = ManifestEscape.splitManifestStringList(jvmArgsManifestString);
-                if(log.isTraceEnabled()) {
-                    log.trace("Adding jvm arguments from jar manifest '{}' attribute: [{}]", Flask.ManifestAttributes.JVM_ARGS,
-                            jvmArgs.stream()
-                                    .map(s -> "\"" + s + "\"")
-                                    .collect(Collectors.joining(", ")));
-                }
+            if(jvmArgs != null) {
                 builder.getJvmArgs().addAll(jvmArgs);
             }
-            String javaAgentsManifestString = manifest.getMainAttributes().getValue(Flask.ManifestAttributes.JAVA_AGENTS);
-            if(javaAgentsManifestString != null) {
-                for(String javaAgentString : ManifestEscape.splitManifestStringList(javaAgentsManifestString)) {
+            if(javaAgents != null) {
+                for(String javaAgentString : javaAgents) {
                     int equalCharPosition = javaAgentString.indexOf('=');
                     String hash;
                     if(equalCharPosition < 0) {
-                        hash = javaAgentsManifestString;
+                        hash = javaAgentString;
                     } else {
-                        hash = javaAgentsManifestString.substring(0, equalCharPosition);
+                        hash = javaAgentString.substring(0, equalCharPosition);
                     }
                     Path agentJar = Optional.ofNullable(extractedLibraries.get(hash))
                         .orElseThrow(() -> new IllegalStateException(String.format(
@@ -101,20 +147,10 @@ public class Launcher {
                     builder.getJavaAgents().add(new JavaProcessBuilder.JavaAgent(agentJar, agentArguments));
                 }
             }
-            Optional.ofNullable(System.getProperty(Flask.JvmProperties.JVM_ARGS)).ifPresent(prop -> {
-                List<String> jvmArgs = ManifestEscape.splitManifestStringList(prop);
-                if(log.isTraceEnabled()) {
-                    log.trace("Adding jvm arguments from {}: [{}]", Flask.JvmProperties.JVM_ARGS,
-                            jvmArgs.stream()
-                                    .map(s -> "\"" + s + "\"")
-                                    .collect(Collectors.joining(", ")));
-                }
-                builder.getJvmArgs().addAll(jvmArgs);
-            });
             for(Path jarPath : extractedLibraries.values()) {
                 builder.getClasspath().add(jarPath.toString());
             }
-            builder.getCliArgs().addAll(Arrays.asList(args));
+            builder.getCliArgs().addAll(args);
             beforeChildJvmStart(builder);
             try(LockFile processLock = LockFile.acquire(cache.getPidFile(), false)) {
                 builder.getProperties().put(Flask.JvmProperties.PID_FILE, cache.getPidFile());

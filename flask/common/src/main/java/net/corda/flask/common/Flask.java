@@ -20,13 +20,14 @@ public class Flask {
         public static final String DEFAULT_LAUNCHER_NAME = "net.corda.flask.launcher.Launcher";
         public static final String LIBRARIES_FOLDER = "LIB-INF";
         public static final String METADATA_FOLDER = "META-INF";
+        public static final String JVM_ARGUMENT_FILE = METADATA_FOLDER + "/jvmArgs.properties";
+        public static final String JAVA_AGENTS_FILE = METADATA_FOLDER + "/javaAgents.properties";
+        public static final String CLI_JVM_PARAMETERS_PREFIX = "-flaskJvmArg=";
         public static final int BUFFER_SIZE = 0x10000;
     }
 
     public static class ManifestAttributes {
         public static final String APPLICATION_CLASS = "Application-Class";
-        public static final String JVM_ARGS = "JVM-Args";
-        public static final String JAVA_AGENTS = "Java-Agents";
         public static final String PREMAIN_CLASS = "Premain-Class";
         public static final String ENTRY_HASH = "SHA-256-Digest";
     }
@@ -39,11 +40,6 @@ public class Flask {
          * acquire a shared lock on it)
          */
         public static final String PID_FILE = "net.corda.flask.pid.file";
-        /**
-         * If this property is set, its value will be appended to the jvm arguments
-         * list of the spawned Java process
-         */
-        public static final String JVM_ARGS = "net.corda.flask.jvm.args";
 
         /**
          * This JVM property can be used to override the path to the flask cache folder

@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.SneakyThrows;
 import net.corda.flask.common.Flask;
-import net.corda.flask.common.ManifestEscape;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.FileCollection;
@@ -175,32 +174,8 @@ public class FlaskJarTask extends AbstractArchiveTask {
                         Flask.ManifestAttributes.PREMAIN_CLASS, Flask.Constants.DEFAULT_LAUNCHER_NAME);
                 Optional.ofNullable(mainClassName.getOrNull()).ifPresent(it ->
                     manifest.getMainAttributes().putValue(Flask.ManifestAttributes.APPLICATION_CLASS, it));
-                Optional.ofNullable(jvmArgs.getOrNull())
-                        .filter(it -> !it.isEmpty())
-                        .ifPresent(it -> manifest.getMainAttributes().putValue(Flask.ManifestAttributes.JVM_ARGS,
-                                ManifestEscape.escapeStringList(it)));
                 MessageDigest md = MessageDigest.getInstance("SHA-256");
                 byte[] buffer = new byte[Flask.Constants.BUFFER_SIZE];
-                if(!javaAgents.isEmpty()) {
-                    List<String> agentsStrings = javaAgents.stream().map(javaAgent -> {
-                        md.reset();
-                        Supplier<InputStream> streamSupplier = new Supplier<InputStream>() {
-                            @Override
-                            @SneakyThrows
-                            public InputStream get() {
-                                return new FileInputStream(javaAgent.jar);
-                            }
-                        };
-                        StringBuilder sb = new StringBuilder();
-                        sb.append(Flask.bytes2Hex(Flask.computeDigest(streamSupplier, md)));
-                        if (!javaAgent.args.isEmpty()) {
-                            sb.append('=');
-                            sb.append(javaAgent.args);
-                        }
-                        return sb.toString();
-                    }).collect(Collectors.toList());
-                    manifest.getMainAttributes().putValue(Flask.ManifestAttributes.JAVA_AGENTS, ManifestEscape.escapeStringList(agentsStrings));
-                }
 
                 /**
                  * The manifest has to be the first zip entry in a jar archive, as an example,
@@ -225,6 +200,48 @@ public class FlaskJarTask extends AbstractArchiveTask {
                     zipEntry.setMethod(ZipEntry.DEFLATED);
                     zipOutputStream.putNextEntry(zipEntry);
                     manifest.write(zipOutputStream);
+
+
+                    List<String> df = Optional.ofNullable(jvmArgs.getOrNull())
+                            .filter(it -> !it.isEmpty()).orElse(null);
+                    if(df != null) {
+                        Properties jvmArgsPropertyFile = new Properties();
+                        for(int i = 0; i< df.size(); i++) {
+                            String jvmArg = df.get(i);
+                            jvmArgsPropertyFile.setProperty(Integer.toString(i), jvmArg);
+                        }
+                        zipEntry = new ZipEntry(Flask.Constants.JVM_ARGUMENT_FILE);
+                        zipEntry.setMethod(ZipEntry.DEFLATED);
+                        zipOutputStream.putNextEntry(zipEntry);
+                        jvmArgsPropertyFile.store(zipOutputStream, null);
+                    }
+
+                    if(!javaAgents.isEmpty()) {
+                        Properties javaAgentPropertyFile = new Properties();
+                        for(int i=0; i<javaAgents.size(); i++) {
+                            md.reset();
+                            JavaAgent javaAgent = javaAgents.get(i);
+                            Supplier<InputStream> streamSupplier = new Supplier<InputStream>() {
+                                @Override
+                                @SneakyThrows
+                                public InputStream get() {
+                                    return new FileInputStream(javaAgent.jar);
+                                }
+                            };
+                            StringBuilder sb = new StringBuilder();
+                            sb.append(Flask.bytes2Hex(Flask.computeDigest(streamSupplier, md)));
+                            if (!javaAgent.args.isEmpty()) {
+                                sb.append('=');
+                                sb.append(javaAgent.args);
+                            }
+                            javaAgentPropertyFile.setProperty(Integer.toString(i), sb.toString());
+                        }
+                        zipEntry = new ZipEntry(Flask.Constants.JAVA_AGENTS_FILE);
+                        zipEntry.setMethod(ZipEntry.DEFLATED);
+                        zipOutputStream.putNextEntry(zipEntry);
+                        javaAgentPropertyFile.store(zipOutputStream, null);
+                    }
+
                     while(true) {
                         zipEntry = zipInputStream.getNextEntry();
                         if(zipEntry == null) break;

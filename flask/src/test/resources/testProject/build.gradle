@@ -35,10 +35,11 @@ flaskJar {
 
 flaskRun {
     workingDir = project.buildDir
-    args = ["arg1", "arg2", "arg3"]
-    systemProperties(['net.corda.flask.jvm.args' :
-        "-Dsome.property.from.cli=some\\ value\\ from\\ cli -Dproperty.to.be.overridden=value\\ from\\ cli"
-    ])
+    args = [
+        "-flaskJvmArg=-Dproperty.to.be.overridden=value from cli",
+        "arg1", "arg2", "arg3",
+        "-flaskJvmArg=-Dsome.property.from.cli=some value from cli"
+    ]
 }
 
 tasks.register("flaskRunMainClassOverride", JavaExec) {
