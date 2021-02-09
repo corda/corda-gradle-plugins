@@ -7,6 +7,7 @@ import lombok.SneakyThrows;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -164,9 +165,12 @@ public class JavaProcessBuilder {
             Path argumentFile = Files.createTempFile(PROCESS_BUILDER_PREFIX, ".arg");
             Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
                 @Override
-                @SneakyThrows
                 public void run() {
-                    Files.delete(argumentFile);
+                    try {
+                        Files.delete(argumentFile);
+                    } catch (IOException ioe) {
+                        ioe.printStackTrace();
+                    }
                 }
             }));
             log.trace("Using Java argument file '{}'", argumentFile);
