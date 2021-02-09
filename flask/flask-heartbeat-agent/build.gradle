@@ -1,0 +1,29 @@
+plugins {
+    id  'java-library'
+}
+
+import java.util.jar.Attributes
+
+evaluationDependsOn(":flask:flask-common")
+
+dependencies {
+    implementation project(":flask:flask-common")
+}
+
+jar {
+    manifest {
+        attributes([
+            (Attributes.Name.IMPLEMENTATION_TITLE.toString()) : (project.name),
+            (Attributes.Name.SPECIFICATION_TITLE.toString()) : (project.name),
+            (Attributes.Name.IMPLEMENTATION_VERSION.toString()) : (project.version),
+            (Attributes.Name.SPECIFICATION_VERSION.toString()) : (project.version),
+            "Premain-Class": "net.corda.flask.HeartbeatAgent",
+        ])
+    }
+    archiveFileName = "${project.name}.jar"
+    from {
+        configurations.named('compileClasspath').map {
+            it.collect { it.isDirectory() ? it : zipTree(it) }
+        }
+    }
+}

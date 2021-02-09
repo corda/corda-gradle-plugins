@@ -8,7 +8,7 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URL;
 
-class LauncherResource implements ReadableResource {
+class HeartbeatAgentResource implements ReadableResource {
     private URL url = getClass().getResource(String.format("/META-INF/%s", getDisplayName()));
 
     @Override
@@ -19,7 +19,7 @@ class LauncherResource implements ReadableResource {
 
     @Override
     public String getDisplayName() {
-        return getBaseName() + ".tar";
+        return getBaseName() + ".jar";
     }
 
     @Override
@@ -30,8 +30,8 @@ class LauncherResource implements ReadableResource {
 
     @Override
     public String getBaseName() {
-        return "flask-launcher";
+        return "flask-heartbeat-agent";
     }
 
-    static final ReadableResource instance = new LauncherResource();
+    static final ReadableResource instance = new HeartbeatAgentResource();
 }

@@ -15,16 +15,14 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.BasePluginConvention;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 
 import javax.inject.Inject;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.InputStream;
+import java.io.*;
 import java.security.MessageDigest;
 import java.util.*;
 import java.util.function.Supplier;
@@ -87,7 +85,7 @@ public class FlaskJarTask extends AbstractArchiveTask {
     public void javaAgent(Action<JavaAgent> action) {
         JavaAgent agent = new JavaAgent();
         action.execute(agent);
-        if(agent.jar == null) throw new GradleException("No jar file specified for Java agent");
+        if (agent.jar == null) throw new GradleException("No jar file specified for Java agent");
         javaAgents.add(agent);
     }
 
@@ -102,12 +100,27 @@ public class FlaskJarTask extends AbstractArchiveTask {
         jvmArgs = objects.listProperty(String.class);
         javaAgents = new ArrayList<>();
         from(getProject().tarTree(LauncherResource.instance), copySpec -> exclude(JarFile.MANIFEST_NAME));
+
+        Provider<File> heartbeatJarProvider = getProject().provider(() -> {
+            File dest = new File(FlaskJarTask.this.getTemporaryDir(), HeartbeatAgentResource.instance.getDisplayName());
+            try (OutputStream os = new FileOutputStream(dest); InputStream is = HeartbeatAgentResource.instance.read()) {
+                Flask.write2Stream(is, os);
+            }
+            return dest;
+        });
+        includeLibraries(heartbeatJarProvider);
     }
 
     @Input
     @SneakyThrows
     public String getLauncherArchiveHash() {
         return Flask.bytes2Hex(Flask.computeSHA256Digest(LauncherResource.instance::read));
+    }
+
+    @Input
+    @SneakyThrows
+    public String getHeartbeatAgentHash() {
+        return Flask.bytes2Hex(Flask.computeSHA256Digest(HeartbeatAgentResource.instance::read));
     }
 
     @RequiredArgsConstructor
@@ -122,7 +135,7 @@ public class FlaskJarTask extends AbstractArchiveTask {
         @SneakyThrows
         public void processFile(FileCopyDetailsInternal fileCopyDetails) {
             String entryName = fileCopyDetails.getRelativePath().toString();
-            if(!fileCopyDetails.isDirectory() && entryName.startsWith(Flask.Constants.LIBRARIES_FOLDER)) {
+            if (!fileCopyDetails.isDirectory() && entryName.startsWith(Flask.Constants.LIBRARIES_FOLDER)) {
                 Supplier<InputStream> streamSupplier = new Supplier<InputStream>() {
                     @Override
                     @SneakyThrows
@@ -135,9 +148,9 @@ public class FlaskJarTask extends AbstractArchiveTask {
                 attr.putValue(Flask.ManifestAttributes.ENTRY_HASH,
                         Base64.getEncoder().encodeToString(Flask.computeDigest(streamSupplier, md)));
             }
-            if(Objects.equals(Flask.Constants.METADATA_FOLDER, entryName)) return;
+            if (Objects.equals(Flask.Constants.METADATA_FOLDER, entryName)) return;
             ZipEntry zipEntry = new ZipEntry(entryName);
-            if(fileCopyDetails.isDirectory()) {
+            if (fileCopyDetails.isDirectory()) {
                 zipEntry = new ZipEntry(entryName + '/');
                 zoos.putNextEntry(zipEntry);
             } else {
@@ -152,7 +165,7 @@ public class FlaskJarTask extends AbstractArchiveTask {
                     }
                     zipEntry.setMethod(ZipEntry.STORED);
                 }
-                try(InputStream is = new FileInputStream(fileCopyDetails.getFile())) {
+                try (InputStream is = new FileInputStream(fileCopyDetails.getFile())) {
                     zoos.putNextEntry(zipEntry);
                     Flask.write2Stream(is, zoos, buffer);
                 }
@@ -168,13 +181,15 @@ public class FlaskJarTask extends AbstractArchiveTask {
             @SneakyThrows
             public WorkResult execute(CopyActionProcessingStream copyActionProcessingStream) {
                 Manifest manifest = new Manifest();
-                manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
-                manifest.getMainAttributes().put(Attributes.Name.MAIN_CLASS, launcherClassName.get());
-                manifest.getMainAttributes().putValue(
-                        Flask.ManifestAttributes.PREMAIN_CLASS, Flask.Constants.DEFAULT_LAUNCHER_NAME);
+                Attributes mainAttributes = manifest.getMainAttributes();
+                mainAttributes.put(Attributes.Name.MANIFEST_VERSION, "1.0");
+                mainAttributes.put(Attributes.Name.MAIN_CLASS, launcherClassName.get());
+                mainAttributes.putValue(Flask.ManifestAttributes.PREMAIN_CLASS, Flask.Constants.DEFAULT_LAUNCHER_NAME);
                 Optional.ofNullable(mainClassName.getOrNull()).ifPresent(it ->
-                    manifest.getMainAttributes().putValue(Flask.ManifestAttributes.APPLICATION_CLASS, it));
+                        mainAttributes.putValue(Flask.ManifestAttributes.APPLICATION_CLASS, it));
                 MessageDigest md = MessageDigest.getInstance("SHA-256");
+                mainAttributes.putValue(Flask.ManifestAttributes.HEARTBEAT_AGENT_HASH,
+                Flask.bytes2Hex(Flask.computeDigest(HeartbeatAgentResource.instance::read, md)));
                 byte[] buffer = new byte[Flask.Constants.BUFFER_SIZE];
 
                 /**
@@ -187,13 +202,13 @@ public class FlaskJarTask extends AbstractArchiveTask {
                  * we copy all the other entries from the temporary archive.
                  */
                 File temporaryJar = new File(getTemporaryDir(), "premature.zip");
-                try(ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(temporaryJar))) {
+                try (ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(temporaryJar))) {
                     StreamAction streamAction = new StreamAction(zipOutputStream, manifest, md, buffer);
                     copyActionProcessingStream.process(streamAction);
                 }
 
                 try (ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(destination));
-                        ZipInputStream zipInputStream = new ZipInputStream(new FileInputStream(temporaryJar))) {
+                     ZipInputStream zipInputStream = new ZipInputStream(new FileInputStream(temporaryJar))) {
                     ZipEntry zipEntry = new ZipEntry(Flask.Constants.METADATA_FOLDER + '/');
                     zipOutputStream.putNextEntry(zipEntry);
                     zipEntry = new ZipEntry(JarFile.MANIFEST_NAME);
@@ -204,9 +219,9 @@ public class FlaskJarTask extends AbstractArchiveTask {
 
                     List<String> df = Optional.ofNullable(jvmArgs.getOrNull())
                             .filter(it -> !it.isEmpty()).orElse(null);
-                    if(df != null) {
+                    if (df != null) {
                         Properties jvmArgsPropertyFile = new Properties();
-                        for(int i = 0; i< df.size(); i++) {
+                        for (int i = 0; i < df.size(); i++) {
                             String jvmArg = df.get(i);
                             jvmArgsPropertyFile.setProperty(Integer.toString(i), jvmArg);
                         }
@@ -216,9 +231,9 @@ public class FlaskJarTask extends AbstractArchiveTask {
                         jvmArgsPropertyFile.store(zipOutputStream, null);
                     }
 
-                    if(!javaAgents.isEmpty()) {
+                    if (!javaAgents.isEmpty()) {
                         Properties javaAgentPropertyFile = new Properties();
-                        for(int i=0; i<javaAgents.size(); i++) {
+                        for (int i = 0; i < javaAgents.size(); i++) {
                             md.reset();
                             JavaAgent javaAgent = javaAgents.get(i);
                             Supplier<InputStream> streamSupplier = new Supplier<InputStream>() {
@@ -242,9 +257,9 @@ public class FlaskJarTask extends AbstractArchiveTask {
                         javaAgentPropertyFile.store(zipOutputStream, null);
                     }
 
-                    while(true) {
+                    while (true) {
                         zipEntry = zipInputStream.getNextEntry();
-                        if(zipEntry == null) break;
+                        if (zipEntry == null) break;
                         zipOutputStream.putNextEntry(zipEntry);
                         Flask.write2Stream(zipInputStream, zipOutputStream, buffer);
                     }

@@ -3,28 +3,33 @@ plugins {
     id "java-gradle-plugin"
 }
 
-evaluationDependsOn("common")
-evaluationDependsOn("launcher")
+evaluationDependsOn("flask-common")
+evaluationDependsOn("flask-launcher")
 
 dependencies {
-    compileOnly project("common")
+    compileOnly project("flask-common")
 }
 
 Provider<Copy> copyLauncher = tasks.register("copyLauncher", Copy) {
-    from(project("launcher").tasks.named("tar").map {it.outputs })
+    from(project("flask-launcher").tasks.named("tar").map {it.outputs })
     into(new File(project.buildDir, "resources/main/META-INF"))
-    rename 'launcher-.*\\.tar', 'flask-launcher.tar'
+}
+
+Provider<Copy> copyHeartbeatAgent = tasks.register("copyHeartbeatAgent", Copy) {
+    from(project("flask-heartbeat-agent").tasks.named("jar").map {it.outputs })
+    into(new File(project.buildDir, "resources/main/META-INF"))
 }
 
 tasks.named("processResources") {
     inputs.files(copyLauncher)
+    inputs.files(copyHeartbeatAgent)
 }
 
 jar {
     manifest {
         attributes "version" : archiveVersion.get()
     }
-    from(project("common").tasks.named("jar").map { zipTree(it.outputs.files.singleFile) })
+    from(project("flask-common").tasks.named("jar").map { zipTree(it.outputs.files.singleFile) })
 }
 
 gradlePlugin {
