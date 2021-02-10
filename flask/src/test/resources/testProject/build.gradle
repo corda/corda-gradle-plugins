@@ -3,7 +3,7 @@ plugins {
 }
 
 import net.corda.gradle.flask.FlaskJarTask
-import net.corda.gradle.flask.FlaskJarTask.JavaAgent
+import net.corda.gradle.flask.JavaAgent
 
 evaluationDependsOn('testAgent')
 
@@ -27,9 +27,11 @@ flaskJar {
                "-Danother.property=another nasty\nvalue\t",
                "-Dproperty.to.be.overridden=value from flask jar",
     ]
-    javaAgent {
-        jar = agentFile
-        args = "testArgument"
+    javaAgents {
+        testAgent {
+            jar = project('testAgent').tasks.named('jar', Jar).flatMap { it.archiveFile }
+            args = "testArgument"
+        }
     }
 }
 

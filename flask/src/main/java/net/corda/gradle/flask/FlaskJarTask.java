@@ -4,8 +4,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import net.corda.flask.common.Flask;
 import org.gradle.api.Action;
-import org.gradle.api.GradleException;
-import org.gradle.api.file.FileCollection;
+import org.gradle.api.NamedDomainObjectCollection;
+import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.internal.file.CopyActionProcessingStreamAction;
 import org.gradle.api.internal.file.copy.CopyAction;
 import org.gradle.api.internal.file.copy.CopyActionProcessingStream;
@@ -15,19 +15,19 @@ import org.gradle.api.plugins.BasePluginConvention;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.tasks.*;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 
 import javax.inject.Inject;
 import java.io.*;
 import java.security.MessageDigest;
-import java.util.Optional;
 import java.util.*;
 import java.util.function.Supplier;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
-import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
@@ -59,30 +59,15 @@ public class FlaskJarTask extends AbstractArchiveTask {
         into(Flask.Constants.LIBRARIES_FOLDER, (copySpec) -> copySpec.from(files));
     }
 
-    private static class JavaAgent {
-        File jar;
-        String args;
+    private final NamedDomainObjectContainer<JavaAgent> javaAgents;
+
+    @Nested
+    public NamedDomainObjectCollection<JavaAgent> getJavaAgents() {
+        return javaAgents;
     }
 
-    private final List<JavaAgent> javaAgents;
-
-    @InputFiles
-    @PathSensitive(PathSensitivity.RELATIVE)
-    FileCollection getAgentJars() {
-        File[] jars = javaAgents.stream().map(it -> it.jar).toArray(File[]::new);
-        return getProject().files((Object[]) jars);
-    }
-
-    @Input
-    List<String> getAgentArgs() {
-        return javaAgents.stream().map(it -> it.args).collect(Collectors.toList());
-    }
-
-    public void javaAgent(Action<JavaAgent> action) {
-        JavaAgent agent = new JavaAgent();
-        action.execute(agent);
-        if (agent.jar == null) throw new GradleException("No jar file specified for Java agent");
-        javaAgents.add(agent);
+    public void javaAgents(Action<NamedDomainObjectCollection<JavaAgent>> action) {
+        action.execute(javaAgents);
     }
 
     @Inject
@@ -94,7 +79,7 @@ public class FlaskJarTask extends AbstractArchiveTask {
         launcherClassName = objects.property(String.class).convention(Flask.Constants.DEFAULT_LAUNCHER_NAME);
         mainClassName = objects.property(String.class);
         jvmArgs = objects.listProperty(String.class);
-        javaAgents = new ArrayList<>();
+        javaAgents = objects.domainObjectContainer(JavaAgent.class);
         from(getProject().tarTree(LauncherResource.instance), copySpec -> exclude(JarFile.MANIFEST_NAME));
 
         Provider<File> heartbeatJarProvider = getProject().provider(() -> {
@@ -230,23 +215,25 @@ public class FlaskJarTask extends AbstractArchiveTask {
 
                     if (!javaAgents.isEmpty()) {
                         Properties javaAgentPropertyFile = new Properties();
-                        for (int i = 0; i < javaAgents.size(); i++) {
+                        Iterator<JavaAgent> it = javaAgents.iterator();
+                        int index = 0;
+                        while(it.hasNext()) {
+                            JavaAgent javaAgent = it.next();
                             md.reset();
-                            JavaAgent javaAgent = javaAgents.get(i);
                             Supplier<InputStream> streamSupplier = new Supplier<InputStream>() {
                                 @Override
                                 @SneakyThrows
                                 public InputStream get() {
-                                    return new FileInputStream(javaAgent.jar);
+                                    return new FileInputStream(javaAgent.getJar().get().getAsFile());
                                 }
                             };
                             StringBuilder sb = new StringBuilder();
                             sb.append(Flask.bytes2Hex(Flask.computeDigest(streamSupplier, md)));
-                            if (!javaAgent.args.isEmpty()) {
+                            if (!javaAgent.getArgs().get().isEmpty()) {
                                 sb.append('=');
-                                sb.append(javaAgent.args);
+                                sb.append(javaAgent.getArgs().get());
                             }
-                            javaAgentPropertyFile.setProperty(Integer.toString(i), sb.toString());
+                            javaAgentPropertyFile.setProperty(Integer.toString(index++), sb.toString());
                         }
                         zipEntry = new ZipEntry(Flask.Constants.JAVA_AGENTS_FILE);
                         zipEntry.setMethod(ZipEntry.DEFLATED);
