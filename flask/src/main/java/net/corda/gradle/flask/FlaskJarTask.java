@@ -20,6 +20,7 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 
+import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import java.io.*;
 import java.security.MessageDigest;
@@ -66,12 +67,12 @@ public class FlaskJarTask extends AbstractArchiveTask {
         return javaAgents;
     }
 
-    public void javaAgents(Action<NamedDomainObjectCollection<JavaAgent>> action) {
+    public void javaAgents(@Nonnull Action<NamedDomainObjectCollection<JavaAgent>> action) {
         action.execute(javaAgents);
     }
 
     @Inject
-    public FlaskJarTask(ObjectFactory objects) {
+    public FlaskJarTask(@Nonnull ObjectFactory objects) {
         BasePluginConvention basePluginConvention = getProject().getConvention().getPlugin(BasePluginConvention.class);
         getDestinationDirectory().set(basePluginConvention.getLibsDir());
         getArchiveBaseName().convention(getProject().getName());
@@ -121,14 +122,14 @@ public class FlaskJarTask extends AbstractArchiveTask {
                 attr.putValue(Flask.ManifestAttributes.ENTRY_HASH,
                         Base64.getEncoder().encodeToString(Flask.computeDigest(streamSupplier, md)));
             }
-            if (Objects.equals(Flask.Constants.METADATA_FOLDER, entryName)) return;
+            if (Flask.Constants.METADATA_FOLDER.equals(entryName)) return;
             ZipEntry zipEntry = new ZipEntry(entryName);
             if (fileCopyDetails.isDirectory()) {
                 zipEntry = new ZipEntry(entryName + '/');
                 zoos.putNextEntry(zipEntry);
             } else {
                 boolean compressed = Flask.splitExtension(fileCopyDetails.getSourceName())
-                        .map(entry -> Objects.equals(".jar", entry.getValue()))
+                        .map(entry -> ".jar".equals(entry.getValue()))
                         .orElse(false);
                 if (!compressed) {
                     zipEntry.setMethod(ZipEntry.DEFLATED);
@@ -207,15 +208,13 @@ public class FlaskJarTask extends AbstractArchiveTask {
 
                     if (!javaAgents.isEmpty()) {
                         Properties javaAgentPropertyFile = new Properties();
-                        Iterator<JavaAgent> it = javaAgents.iterator();
                         int index = 0;
-                        while(it.hasNext()) {
-                            JavaAgent javaAgent = it.next();
+                        for(JavaAgent javaAgent : javaAgents) {
                             md.reset();
                             Supplier<InputStream> streamSupplier = () -> Flask.read(javaAgent.getJar().get().getAsFile(), true);
                             StringBuilder sb = new StringBuilder();
                             sb.append(Flask.bytes2Hex(Flask.computeDigest(streamSupplier, md)));
-                            if (!javaAgent.getArgs().get().isEmpty()) {
+                            if (javaAgent.getArgs().isPresent()) {
                                 sb.append('=');
                                 sb.append(javaAgent.getArgs().get());
                             }

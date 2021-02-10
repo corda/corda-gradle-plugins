@@ -163,21 +163,18 @@ public class JavaProcessBuilder {
             return new ProcessBuilder(cmd);
         } else {
             Path argumentFile = Files.createTempFile(PROCESS_BUILDER_PREFIX, ".arg");
-            Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        Files.delete(argumentFile);
-                    } catch (IOException ioe) {
-                        ioe.printStackTrace();
-                    }
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                try {
+                    Files.delete(argumentFile);
+                } catch (IOException ioe) {
+                    ioe.printStackTrace();
                 }
             }));
             log.trace("Using Java argument file '{}'", argumentFile);
             try(Writer writer = Files.newBufferedWriter(argumentFile)) {
                 writer.write(generateArgumentFileString(cmd.subList(1, cmd.size())));
             }
-            return new ProcessBuilder(Arrays.asList(cmd.get(0), "@" + argumentFile.toString()));
+            return new ProcessBuilder(cmd.get(0), "@" + argumentFile.toString());
         }
     }
 }

@@ -15,6 +15,11 @@ class Main {
         return Arrays.stream(array).map(s -> "\"" + s + "\"").collect(Collectors.joining(", "));
     }
 
+    private static void assertEquals(Object expectedObject, Object actualObject) {
+        if(!Objects.equals(expectedObject, actualObject))
+            throw new AssertionError(String.format("Expected '%s', got '%s'", expectedObject, actualObject));
+    }
+
     public static void main(String[] args) {
         String[] expectedCliArgs = new String [] {"arg1", "arg2", "arg3"};
         if(!Arrays.equals(expectedCliArgs, args)) {
@@ -26,33 +31,23 @@ class Main {
         if(index < 0) throw new IllegalArgumentException("'-Xmx64M' JVM argument not found");
         String prop = System.getProperty("some.property");
         String expectedPropertyValue = "\"some nasty\nvalue\t\"";
-        if(!Objects.equals(expectedPropertyValue, prop)) {
-            throw new AssertionError(String.format("Expected '%s', got '%s'", expectedPropertyValue, prop));
-        }
+        assertEquals(expectedPropertyValue, prop);
 
         prop = System.getProperty("another.property");
         expectedPropertyValue = "another nasty\nvalue\t";
-        if(!Objects.equals(expectedPropertyValue, prop)) {
-            throw new AssertionError(String.format("Expected '%s', got '%s'", expectedPropertyValue, prop));
-        }
+        assertEquals(expectedPropertyValue, prop);
 
         prop = System.getProperty("some.property.from.cli");
         expectedPropertyValue = "some value from cli";
-        if(!Objects.equals(expectedPropertyValue, prop)) {
-            throw new AssertionError(String.format("Expected '%s', got '%s'", expectedPropertyValue, prop));
-        }
+        assertEquals(expectedPropertyValue, prop);
 
         prop = System.getProperty("property.to.be.overridden");
         expectedPropertyValue = "value from cli";
-        if(!Objects.equals(expectedPropertyValue, prop)) {
-            throw new AssertionError(String.format("Expected '%s', got '%s'", expectedPropertyValue, prop));
-        }
+        assertEquals(expectedPropertyValue, prop);
 
         if(!JavaAgent.running) throw new AssertionError("Java Agent is not running");
 
         String expectedAgentArgument = "testArgument";
-        if(!Objects.equals(expectedAgentArgument, JavaAgent.agentArgs)) {
-            throw new AssertionError(String.format("Expected '%s', got '%s'", expectedAgentArgument, JavaAgent.agentArgs));
-        }
+        assertEquals(expectedAgentArgument, JavaAgent.agentArgs);
     }
 }

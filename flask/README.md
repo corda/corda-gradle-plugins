@@ -70,8 +70,10 @@ flaskJar {
     mainClassName = 'main.class.Name'
     jvmArgs = ["-Xmx8G", "-Dsome.property=\"some value\""]
     javaAgent {
-        jar = project.file("agent.jar")
-        args = "agentArguments"
+        testAgent {
+            jar = project.file("agent.jar")
+            args = "agentArguments"
+        }
     }
 }
 ```
@@ -88,7 +90,7 @@ This task, which is of type `org.gradle.api.tasks.JavaExec`, runs the executable
 it can be configured with the *flaskRun* extension object
 
 ```groovy
-flakRun {
+flaskRun {
     workingDir = project.buildDir
 }
 ```

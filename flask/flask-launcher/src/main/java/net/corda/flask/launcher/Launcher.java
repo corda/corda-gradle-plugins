@@ -30,7 +30,7 @@ public class Launcher {
     private static Path findCurrentJar() {
         String launcherClassName = Launcher.class.getName();
         URL url = Launcher.class.getClassLoader().getResource(launcherClassName.replace('.', '/') + ".class");
-        if (url == null || !Objects.equals("jar", url.getProtocol()))
+        if (url == null || !"jar".equals(url.getProtocol()))
             throw new IllegalStateException(String.format("The class %s must be used inside a JAR file", launcherClassName));
         String path = url.getPath();
         URI jarUri = new URI(path.substring(0, path.indexOf('!')));
