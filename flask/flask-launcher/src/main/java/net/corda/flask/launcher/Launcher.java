@@ -14,7 +14,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 import java.util.stream.Collectors;
@@ -102,7 +101,7 @@ public class Launcher {
             }
         }
         cliArgs = extractJvmArgsFromCliArgs(args, jvmArgs);
-        String mainClassName = manifest.getMainAttributes().getValue(Attributes.Name.MAIN_CLASS);
+        String mainClassName = manifest.getMainAttributes().getValue(Flask.ManifestAttributes.LAUNCHER_CLASS);
         Class<? extends Launcher> launcherClass = (Class<? extends Launcher>)
                 Class.forName(mainClassName, true, ClassLoader.getSystemClassLoader());
         Constructor<? extends Launcher> ctor = launcherClass.getConstructor();

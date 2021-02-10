@@ -27,6 +27,7 @@ public class Flask {
     }
 
     public static class ManifestAttributes {
+        public static final String LAUNCHER_CLASS = "Launcher-Class";
         public static final String APPLICATION_CLASS = "Application-Class";
         public static final String PREMAIN_CLASS = "Premain-Class";
         public static final String ENTRY_HASH = "SHA-256-Digest";
