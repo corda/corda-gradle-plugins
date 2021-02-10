@@ -2,8 +2,7 @@ package net.corda.flask.common;
 
 import lombok.SneakyThrows;
 
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.math.BigInteger;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
@@ -118,5 +117,23 @@ public class Flask {
 
     public static String bytes2Hex(byte[] bytes) {
         return String.format("%032x", new BigInteger(1, bytes));
+    }
+
+    /**
+     * Helper method to create an input stream from a file without having to catch the possibly
+     * thrown {@link IOException}, use {@link FileInputStream#FileInputStream(File)} if you need to catch it.
+     * @param file the {@link File} to be opened
+     * @return an open {@link InputStream} instance reading from the file
+     */
+    @SneakyThrows
+    public static InputStream read(File file, boolean buffered) {
+        InputStream result = new FileInputStream(file);
+        return buffered ? new BufferedInputStream(result) : result;
+    }
+
+    @SneakyThrows
+    public static OutputStream write(File file, boolean buffered) {
+        OutputStream result = new FileOutputStream(file);
+        return buffered ? new BufferedOutputStream(result) : result;
     }
 }
