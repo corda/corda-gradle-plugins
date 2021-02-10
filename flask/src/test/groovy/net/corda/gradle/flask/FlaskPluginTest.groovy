@@ -6,6 +6,8 @@ import org.gradle.testkit.runner.GradleRunner
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.condition.EnabledForJreRange
+import org.junit.jupiter.api.condition.JRE
 import org.junit.jupiter.api.io.TempDir
 
 import java.nio.file.Files
@@ -81,6 +83,7 @@ class FlaskPluginTest {
     }
 
     @Test
+    @EnabledForJreRange(min = JRE.JAVA_11)
     void runFlaskJar() {
         GradleRunner runner = getStandardGradleRunnerFor("flaskRun")
         BuildResult result = runner.build()
@@ -96,6 +99,7 @@ class FlaskPluginTest {
     }
 
     @Test
+    @EnabledForJreRange(min = JRE.JAVA_11)
     void runFlaskJarMainClassOverride() {
         GradleRunner runner = getStandardGradleRunnerFor("flaskRunMainClassOverride")
         BuildResult result = runner.build()
