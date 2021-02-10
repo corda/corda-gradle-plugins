@@ -120,7 +120,7 @@ public class Flask {
     }
 
     /**
-     * Helper method to create an input stream from a file without having to catch the possibly
+     * Helper method to create an {@link InputStream} from a file without having to catch the possibly
      * thrown {@link IOException}, use {@link FileInputStream#FileInputStream(File)} if you need to catch it.
      * @param file the {@link File} to be opened
      * @return an open {@link InputStream} instance reading from the file
@@ -131,6 +131,12 @@ public class Flask {
         return buffered ? new BufferedInputStream(result) : result;
     }
 
+    /**
+     * Helper method to create an {@link OutputStream} from a file without having to catch the possibly
+     * thrown {@link IOException}, use {@link FileOutputStream#FileOutputStream(File)} if you need to catch it.
+     * @param file the {@link File} to be opened
+     * @return an open {@link OutputStream} instance writing to the file
+     */
     @SneakyThrows
     public static OutputStream write(File file, boolean buffered) {
         OutputStream result = new FileOutputStream(file);

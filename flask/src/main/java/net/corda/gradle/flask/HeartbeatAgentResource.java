@@ -9,7 +9,7 @@ import java.net.URI;
 import java.net.URL;
 
 class HeartbeatAgentResource implements ReadableResource {
-    private URL url = getClass().getResource(String.format("/META-INF/%s", getDisplayName()));
+    private final URL url = getClass().getResource(String.format("/META-INF/%s", getDisplayName()));
 
     @Override
     @SneakyThrows

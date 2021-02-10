@@ -85,7 +85,7 @@ public class FlaskJarTask extends AbstractArchiveTask {
 
         Provider<File> heartbeatJarProvider = getProject().provider(() -> {
             File dest = new File(FlaskJarTask.this.getTemporaryDir(), HeartbeatAgentResource.instance.getDisplayName());
-            try (OutputStream os = Flask.write(dest, true); InputStream is = HeartbeatAgentResource.instance.read()) {
+            try (OutputStream os = Flask.write(dest, false); InputStream is = HeartbeatAgentResource.instance.read()) {
                 Flask.write2Stream(is, os);
             }
             return dest;
@@ -116,7 +116,7 @@ public class FlaskJarTask extends AbstractArchiveTask {
         public void processFile(FileCopyDetailsInternal fileCopyDetails) {
             String entryName = fileCopyDetails.getRelativePath().toString();
             if (!fileCopyDetails.isDirectory() && entryName.startsWith(Flask.Constants.LIBRARIES_FOLDER)) {
-                Supplier<InputStream> streamSupplier = () -> Flask.read(fileCopyDetails.getFile(), true);
+                Supplier<InputStream> streamSupplier = () -> Flask.read(fileCopyDetails.getFile(), false);
                 Attributes attr = manifest.getEntries().computeIfAbsent(entryName, it -> new Attributes());
                 md.reset();
                 attr.putValue(Flask.ManifestAttributes.ENTRY_HASH,
@@ -134,12 +134,12 @@ public class FlaskJarTask extends AbstractArchiveTask {
                 if (!compressed) {
                     zipEntry.setMethod(ZipEntry.DEFLATED);
                 } else {
-                    try (InputStream is = Flask.read(fileCopyDetails.getFile(), true)) {
+                    try (InputStream is = Flask.read(fileCopyDetails.getFile(), false)) {
                         Flask.computeSizeAndCrc32(zipEntry, is, buffer);
                     }
                     zipEntry.setMethod(ZipEntry.STORED);
                 }
-                try (InputStream is = Flask.read(fileCopyDetails.getFile(), true)) {
+                try (InputStream is = Flask.read(fileCopyDetails.getFile(), false)) {
                     zoos.putNextEntry(zipEntry);
                     Flask.write2Stream(is, zoos, buffer);
                 }
@@ -183,7 +183,7 @@ public class FlaskJarTask extends AbstractArchiveTask {
                 }
 
                 try (ZipOutputStream zipOutputStream = new ZipOutputStream(Flask.write(destination, true));
-                     ZipInputStream zipInputStream = new ZipInputStream(Flask.read(temporaryJar, true))) {
+                     ZipInputStream zipInputStream = new ZipInputStream(Flask.read(temporaryJar, false))) {
                     ZipEntry zipEntry = new ZipEntry(Flask.Constants.METADATA_FOLDER + '/');
                     zipOutputStream.putNextEntry(zipEntry);
                     zipEntry = new ZipEntry(JarFile.MANIFEST_NAME);
@@ -211,7 +211,7 @@ public class FlaskJarTask extends AbstractArchiveTask {
                         int index = 0;
                         for(JavaAgent javaAgent : javaAgents) {
                             md.reset();
-                            Supplier<InputStream> streamSupplier = () -> Flask.read(javaAgent.getJar().get().getAsFile(), true);
+                            Supplier<InputStream> streamSupplier = () -> Flask.read(javaAgent.getJar().get().getAsFile(), false);
                             StringBuilder sb = new StringBuilder();
                             sb.append(Flask.bytes2Hex(Flask.computeDigest(streamSupplier, md)));
                             if (javaAgent.getArgs().isPresent()) {

@@ -123,13 +123,13 @@ public class JavaProcessBuilder {
         cmd.addAll(jvmArgs);
         if(!classpath.isEmpty()) {
             cmd.add("-cp");
-            cmd.add(classpath.stream().collect(Collectors.joining(PATH_SEPARATOR)));
+            cmd.add(String.join(PATH_SEPARATOR, classpath));
         }
         for(Map.Entry<Object, Object> entry : properties.entrySet()) {
             cmd.add(String.format("-D%s=%s", entry.getKey(), entry.getValue()));
         }
         for(JavaAgent javaAgent : javaAgents) {
-            StringBuilder sb = new StringBuilder("-javaagent:" + javaAgent.jar.toString());
+            StringBuilder sb = new StringBuilder("-javaagent:").append(javaAgent.jar.toString());
             String agentArguments = javaAgent.args;
             if(agentArguments != null) {
                 sb.append('=');

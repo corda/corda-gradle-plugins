@@ -20,7 +20,7 @@ class FlaskPlugin implements Plugin<Project> {
         JavaPluginConvention javaPluginConvention = project.convention.getPlugin(JavaPluginConvention.class)
         Provider<SourceSet> flaskSourceSetProvider = javaPluginConvention.sourceSets.register("flask")
         Provider<Copy> extractLauncherTarProvider = project.tasks.register("extractLauncherTar", Copy) {
-            destinationDir = project.file('build/classes/flask-launcher')
+            into(project.layout.buildDirectory.dir("classes/flask-launcher"))
             from(project.tarTree(LauncherResource.instance))
         }
 

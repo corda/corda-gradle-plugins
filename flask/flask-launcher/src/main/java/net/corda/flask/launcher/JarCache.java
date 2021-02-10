@@ -112,7 +112,7 @@ class JarCache {
 
     @SneakyThrows
     public Map<String, Path> extract(Manifest manifest) {
-        byte[] buffer = new byte[0x10000];
+        byte[] buffer = new byte[Flask.Constants.BUFFER_SIZE];
         ClassLoader cl = Launcher.class.getClassLoader();
         for (Map.Entry<String, Attributes> entry : manifest.getEntries().entrySet()) {
             String jarEntryName = entry.getKey();
