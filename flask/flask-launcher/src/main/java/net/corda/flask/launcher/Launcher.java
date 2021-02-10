@@ -24,7 +24,7 @@ import java.util.zip.ZipFile;
 public class Launcher {
 
     private static final String CACHE_FOLDER_DEFAULT_NAME = "flask_cache";
-    private static final Logger log = LoggerFactory.getLogger(JarCache.class);
+    private static final Logger log = LoggerFactory.getLogger(Launcher.class);
     private static final Path currentJar = findCurrentJar();
 
     @SneakyThrows
@@ -77,7 +77,6 @@ public class Launcher {
         List<String> javaAgents = null;
         try(ZipFile jar = new ZipFile(currentJar.toFile())) {
             ZipEntry manifestEntry = jar.getEntry(JarFile.MANIFEST_NAME);
-            jar.getInputStream(manifestEntry);
             try (InputStream inputStream = jar.getInputStream(manifestEntry)) {
                 manifest.read(inputStream);
             }

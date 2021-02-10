@@ -1,7 +1,6 @@
 package net.corda.gradle.flask;
 
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import lombok.SneakyThrows;
 import net.corda.flask.common.Flask;
 import org.gradle.api.Action;
@@ -16,14 +15,13 @@ import org.gradle.api.plugins.BasePluginConvention;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.InputFiles;
-import org.gradle.api.tasks.WorkResult;
+import org.gradle.api.tasks.*;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 
 import javax.inject.Inject;
 import java.io.*;
 import java.security.MessageDigest;
+import java.util.Optional;
 import java.util.*;
 import java.util.function.Supplier;
 import java.util.jar.Attributes;
@@ -36,24 +34,21 @@ import java.util.zip.ZipOutputStream;
 
 public class FlaskJarTask extends AbstractArchiveTask {
 
-    @Setter
-    private Property<String> launcherClassName;
+    private final Property<String> launcherClassName;
 
     @Input
     public Property<String> getLauncherClassName() {
         return launcherClassName;
     }
 
-    @Setter
-    private Property<String> mainClassName;
+    private final Property<String> mainClassName;
 
     @Input
     public Property<String> getMainClassName() {
         return mainClassName;
     }
 
-    @Setter
-    private ListProperty<String> jvmArgs;
+    private final ListProperty<String> jvmArgs;
 
     @Input
     public ListProperty<String> getJvmArgs() {
@@ -72,6 +67,7 @@ public class FlaskJarTask extends AbstractArchiveTask {
     private final List<JavaAgent> javaAgents;
 
     @InputFiles
+    @PathSensitive(PathSensitivity.RELATIVE)
     FileCollection getAgentJars() {
         File[] jars = javaAgents.stream().map(it -> it.jar).toArray(File[]::new);
         return getProject().files((Object[]) jars);

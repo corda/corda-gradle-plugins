@@ -84,6 +84,7 @@ class FlaskPluginTest {
     void runFlaskJar() {
         GradleRunner runner = getStandardGradleRunnerFor("flaskRun")
         BuildResult result = runner.build()
+        println(result.getOutput())
         Path propertiesFile = testProjectDir.resolve("build/testLauncher.properties")
         Properties prop = Files.newBufferedReader(propertiesFile).withCloseable { reader ->
             new Properties().tap {
@@ -98,6 +99,7 @@ class FlaskPluginTest {
     void runFlaskJarMainClassOverride() {
         GradleRunner runner = getStandardGradleRunnerFor("flaskRunMainClassOverride")
         BuildResult result = runner.build()
+        println(result.getOutput())
         Path propertiesFile = testProjectDir.resolve("build/testLauncher.properties")
         Properties prop = Files.newBufferedReader(propertiesFile).withCloseable { reader ->
             new Properties().tap {

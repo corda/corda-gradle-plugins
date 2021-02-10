@@ -25,7 +25,7 @@ import java.util.jar.Manifest;
 import java.util.stream.Stream;
 
 class JarCache {
-    private static Logger log = LoggerFactory.getLogger(JarCache.class);
+    private static final Logger log = LoggerFactory.getLogger(JarCache.class);
 
     @SneakyThrows
     static void deletePath(Path path) {

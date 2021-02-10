@@ -2,8 +2,6 @@ plugins {
     id 'java-library'
 }
 
-evaluationDependsOn(":flask:flask-common")
-
 sourceSets {
     lockFileTest {
     }
@@ -22,7 +20,7 @@ dependencies {
     }
     implementation group: "org.slf4j", name: "slf4j-api", version: slf4j_version
     implementation group: "org.slf4j", name: "slf4j-simple", version: slf4j_version
-    implementation project(path: ":flask:flask-common", configuration: 'archives')
+    implementation project(":flask:flask-common")
 
     testImplementation "org.junit.jupiter:junit-jupiter-api:$junit_jupiter_version"
     testImplementation "org.junit.jupiter:junit-jupiter-params:$junit_jupiter_version"

@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 @Setter
 public class JavaProcessBuilder {
 
-    private static Logger log = LoggerFactory.getLogger(JavaProcessBuilder.class);
+    private static final Logger log = LoggerFactory.getLogger(JavaProcessBuilder.class);
 
     private static final String PROCESS_BUILDER_PREFIX = "javaProcessBuilder";
 

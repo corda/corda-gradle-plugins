@@ -4,8 +4,6 @@ plugins {
 
 import java.util.jar.Attributes
 
-evaluationDependsOn(":flask:flask-common")
-
 dependencies {
     implementation project(":flask:flask-common")
 }
