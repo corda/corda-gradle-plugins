@@ -3,6 +3,8 @@ plugins {
 }
 
 jar {
+    preserveFileTimestamps = false
+    reproducibleFileOrder = true
     manifest {
         attributes 'Premain-Class' : 'net.corda.gradle.flask.test.agent.JavaAgent'
     }

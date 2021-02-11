@@ -1,6 +1,7 @@
 package net.corda.gradle.flask
 
 import groovy.transform.CompileStatic
+import net.corda.flask.common.Flask
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 import org.junit.jupiter.api.Assertions
@@ -13,6 +14,8 @@ import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardCopyOption
+import java.util.zip.ZipEntry
+import java.util.zip.ZipInputStream
 
 @CompileStatic
 class FlaskPluginTest {
@@ -68,11 +71,11 @@ class FlaskPluginTest {
         installResource("testProject", "testAgent/src/main/java/net/corda/gradle/flask/test/agent/JavaAgent.java", testProjectDir)
     }
 
-    GradleRunner getStandardGradleRunnerFor(String taskName) {
+    GradleRunner getStandardGradleRunnerFor(String... taskName) {
         return GradleRunner.create()
                 .withDebug(true)
                 .withProjectDir(testProjectDir.toFile())
-                .withArguments(taskName, "-s", "--info", "-g", testGradleHomeDir.toString())
+                .withArguments(taskName + ["-s", "--info", "-g", testGradleHomeDir.toString()])
                 .withPluginClasspath()
     }
 
@@ -81,6 +84,15 @@ class FlaskPluginTest {
         GradleRunner runner = getStandardGradleRunnerFor("flaskJar")
         BuildResult result = runner.build()
         println(result.getOutput())
+
+        //Check that all zip entries have timestamp equal to Flask.Constants.ZIP_ENTRIES_DEFAULT_TIMESTAMP
+        Path flaskJar = testProjectDir.resolve("build/flask.jar")
+        new ZipInputStream(Files.newInputStream(flaskJar)).withStream { zipInputStream ->
+            ZipEntry zipEntry
+            while((zipEntry = zipInputStream.nextEntry) != null) {
+                Assertions.assertEquals(Flask.Constants.ZIP_ENTRIES_DEFAULT_TIMESTAMP, zipEntry.time)
+            }
+        }
     }
 
     @Test

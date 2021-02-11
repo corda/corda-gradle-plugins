@@ -4,18 +4,18 @@ plugins {
 
 evaluationDependsOn('testAgent')
 
-configurations {
-    agent {
-        transitive = false
-    }
-}
-
 dependencies {
     implementation project('testAgent')
 }
 
+jar {
+    preserveFileTimestamps = false
+    reproducibleFileOrder = true
+}
+
 flaskJar {
-    archiveBaseName = "flask"
+    destinationDir = project.buildDir
+    archiveFileName = "flask.jar"
     mainClassName = "net.corda.gradle.flask.test.Main"
     launcherClassName = "net.corda.gradle.flask.test.TestLauncher"
     jvmArgs = ["-Xmx64M",
@@ -23,6 +23,7 @@ flaskJar {
                "-Danother.property=another nasty\nvalue\t",
                "-Dproperty.to.be.overridden=value from flask jar",
     ]
+    preserveFileTimestamps = false
     javaAgents {
         testAgent {
             jar = project('testAgent').tasks.named('jar', Jar).flatMap { it.archiveFile }

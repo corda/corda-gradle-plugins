@@ -7,6 +7,7 @@ import java.math.BigInteger;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.util.AbstractMap;
+import java.util.GregorianCalendar;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -22,6 +23,8 @@ public class Flask {
         public static final String JVM_ARGUMENT_FILE = METADATA_FOLDER + "/jvmArgs.properties";
         public static final String JAVA_AGENTS_FILE = METADATA_FOLDER + "/javaAgents.properties";
         public static final String CLI_JVM_PARAMETERS_PREFIX = "-flaskJvmArg=";
+        public static final long ZIP_ENTRIES_DEFAULT_TIMESTAMP =
+                new GregorianCalendar(1980, 1, 1, 0, 0, 0).getTimeInMillis();
         public static final int BUFFER_SIZE = 0x10000;
     }
 
@@ -102,14 +105,14 @@ public class Flask {
 
     @SneakyThrows
     public static byte[] computeSHA256Digest(Supplier<InputStream> streamSupplier) {
+        byte buffer[] = new byte[Constants.BUFFER_SIZE];
         MessageDigest md = MessageDigest.getInstance("SHA-256");
-        return computeDigest(streamSupplier, md);
+        return computeDigest(streamSupplier, md, buffer);
     }
 
     @SneakyThrows
-    public static byte[] computeDigest(Supplier<InputStream> streamSupplier, MessageDigest md) {
+    public static byte[] computeDigest(Supplier<InputStream> streamSupplier, MessageDigest md, byte[] buffer) {
         try(InputStream stream = new DigestInputStream(streamSupplier.get(), md)) {
-            byte[] buffer = new byte[Flask.Constants.BUFFER_SIZE];
             while(stream.read(buffer) >= 0) {}
         }
         return md.digest();

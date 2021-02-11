@@ -26,7 +26,10 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.MessageDigest;
-import java.util.*;
+import java.util.Base64;
+import java.util.List;
+import java.util.Optional;
+import java.util.Properties;
 import java.util.function.Supplier;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
@@ -124,7 +127,7 @@ public class FlaskJarTask extends AbstractArchiveTask {
                 Attributes attr = manifest.getEntries().computeIfAbsent(entryName, it -> new Attributes());
                 md.reset();
                 attr.putValue(Flask.ManifestAttributes.ENTRY_HASH,
-                        Base64.getEncoder().encodeToString(Flask.computeDigest(streamSupplier, md)));
+                        Base64.getEncoder().encodeToString(Flask.computeDigest(streamSupplier, md, buffer)));
             }
             if (Flask.Constants.METADATA_FOLDER.equals(entryName)) return;
             ZipEntry zipEntry = zipEntryFactory.createZipEntry(entryName + (fileCopyDetails.isDirectory() ? "/" : ""));
@@ -155,14 +158,13 @@ public class FlaskJarTask extends AbstractArchiveTask {
 
     @RequiredArgsConstructor
     private static class ZipEntryFactory {
-        private final long CONSTANT_TIME_FOR_ZIP_ENTRIES = (new GregorianCalendar(1980, 1, 1, 0, 0, 0)).getTimeInMillis();
 
         public final boolean isPreserveFileTimestamps;
 
         ZipEntry createZipEntry(String entryName) {
             ZipEntry zipEntry = new ZipEntry(entryName);
             if(!isPreserveFileTimestamps) {
-                zipEntry.setTime(CONSTANT_TIME_FOR_ZIP_ENTRIES);
+                zipEntry.setTime(Flask.Constants.ZIP_ENTRIES_DEFAULT_TIMESTAMP);
             }
             return zipEntry;
         }
@@ -187,9 +189,9 @@ public class FlaskJarTask extends AbstractArchiveTask {
                 Optional.ofNullable(mainClassName.getOrNull()).ifPresent(it ->
                         mainAttributes.putValue(Flask.ManifestAttributes.APPLICATION_CLASS, it));
                 MessageDigest md = MessageDigest.getInstance("SHA-256");
-                mainAttributes.putValue(Flask.ManifestAttributes.HEARTBEAT_AGENT_HASH,
-                Flask.bytes2Hex(Flask.computeDigest(HeartbeatAgentResource.instance::read, md)));
                 byte[] buffer = new byte[Flask.Constants.BUFFER_SIZE];
+                mainAttributes.putValue(Flask.ManifestAttributes.HEARTBEAT_AGENT_HASH,
+                    Flask.bytes2Hex(Flask.computeDigest(HeartbeatAgentResource.instance::read, md, buffer)));
 
                 /**
                  * The manifest has to be the first zip entry in a jar archive, as an example,
@@ -236,7 +238,7 @@ public class FlaskJarTask extends AbstractArchiveTask {
                             md.reset();
                             Supplier<InputStream> streamSupplier = () -> Flask.read(javaAgent.getJar().get().getAsFile(), false);
                             StringBuilder sb = new StringBuilder();
-                            sb.append(Flask.bytes2Hex(Flask.computeDigest(streamSupplier, md)));
+                            sb.append(Flask.bytes2Hex(Flask.computeDigest(streamSupplier, md, buffer)));
                             if (javaAgent.getArgs().isPresent()) {
                                 sb.append('=');
                                 sb.append(javaAgent.getArgs().get());
