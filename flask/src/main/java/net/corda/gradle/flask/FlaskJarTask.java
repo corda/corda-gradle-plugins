@@ -22,7 +22,9 @@ import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
-import java.io.*;
+import java.io.File;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.security.MessageDigest;
 import java.util.*;
 import java.util.function.Supplier;
@@ -32,6 +34,7 @@ import java.util.jar.Manifest;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
+
 
 public class FlaskJarTask extends AbstractArchiveTask {
 
@@ -109,6 +112,7 @@ public class FlaskJarTask extends AbstractArchiveTask {
         private final ZipOutputStream zoos;
         private final Manifest manifest;
         private final MessageDigest md;
+        private final ZipEntryFactory zipEntryFactory;
         private final byte[] buffer;
 
         @Override
@@ -123,9 +127,11 @@ public class FlaskJarTask extends AbstractArchiveTask {
                         Base64.getEncoder().encodeToString(Flask.computeDigest(streamSupplier, md)));
             }
             if (Flask.Constants.METADATA_FOLDER.equals(entryName)) return;
-            ZipEntry zipEntry = new ZipEntry(entryName);
+            ZipEntry zipEntry = zipEntryFactory.createZipEntry(entryName + (fileCopyDetails.isDirectory() ? "/" : ""));
+            if(zipEntryFactory.isPreserveFileTimestamps) {
+                zipEntry.setTime(fileCopyDetails.getLastModified());
+            }
             if (fileCopyDetails.isDirectory()) {
-                zipEntry = new ZipEntry(entryName + '/');
                 zoos.putNextEntry(zipEntry);
             } else {
                 boolean compressed = Flask.splitExtension(fileCopyDetails.getSourceName())
@@ -147,10 +153,28 @@ public class FlaskJarTask extends AbstractArchiveTask {
         }
     }
 
+    @RequiredArgsConstructor
+    private static class ZipEntryFactory {
+        private final long CONSTANT_TIME_FOR_ZIP_ENTRIES = (new GregorianCalendar(1980, 1, 1, 0, 0, 0)).getTimeInMillis();
+
+        public final boolean isPreserveFileTimestamps;
+
+        ZipEntry createZipEntry(String entryName) {
+            ZipEntry zipEntry = new ZipEntry(entryName);
+            if(!isPreserveFileTimestamps) {
+                zipEntry.setTime(CONSTANT_TIME_FOR_ZIP_ENTRIES);
+            }
+            return zipEntry;
+        }
+    }
+
     @Override
     protected CopyAction createCopyAction() {
         File destination = getArchiveFile().get().getAsFile();
         return new CopyAction() {
+
+            private final ZipEntryFactory zipEntryFactory = new ZipEntryFactory(isPreserveFileTimestamps());
+
             @Override
             @SneakyThrows
             public WorkResult execute(CopyActionProcessingStream copyActionProcessingStream) {
@@ -178,19 +202,18 @@ public class FlaskJarTask extends AbstractArchiveTask {
                  */
                 File temporaryJar = new File(getTemporaryDir(), "premature.zip");
                 try (ZipOutputStream zipOutputStream = new ZipOutputStream(Flask.write(temporaryJar, true))) {
-                    StreamAction streamAction = new StreamAction(zipOutputStream, manifest, md, buffer);
+                    StreamAction streamAction = new StreamAction(zipOutputStream, manifest, md, zipEntryFactory, buffer);
                     copyActionProcessingStream.process(streamAction);
                 }
 
                 try (ZipOutputStream zipOutputStream = new ZipOutputStream(Flask.write(destination, true));
                      ZipInputStream zipInputStream = new ZipInputStream(Flask.read(temporaryJar, false))) {
-                    ZipEntry zipEntry = new ZipEntry(Flask.Constants.METADATA_FOLDER + '/');
+                    ZipEntry zipEntry = zipEntryFactory.createZipEntry(Flask.Constants.METADATA_FOLDER + '/');
                     zipOutputStream.putNextEntry(zipEntry);
-                    zipEntry = new ZipEntry(JarFile.MANIFEST_NAME);
+                    zipEntry = zipEntryFactory.createZipEntry(JarFile.MANIFEST_NAME);
                     zipEntry.setMethod(ZipEntry.DEFLATED);
                     zipOutputStream.putNextEntry(zipEntry);
                     manifest.write(zipOutputStream);
-
 
                     List<String> df = Optional.ofNullable(jvmArgs.getOrNull())
                             .filter(it -> !it.isEmpty()).orElse(null);
@@ -200,7 +223,7 @@ public class FlaskJarTask extends AbstractArchiveTask {
                             String jvmArg = df.get(i);
                             jvmArgsPropertyFile.setProperty(Integer.toString(i), jvmArg);
                         }
-                        zipEntry = new ZipEntry(Flask.Constants.JVM_ARGUMENT_FILE);
+                        zipEntry = zipEntryFactory.createZipEntry(Flask.Constants.JVM_ARGUMENT_FILE);
                         zipEntry.setMethod(ZipEntry.DEFLATED);
                         zipOutputStream.putNextEntry(zipEntry);
                         jvmArgsPropertyFile.store(zipOutputStream, null);
@@ -220,7 +243,7 @@ public class FlaskJarTask extends AbstractArchiveTask {
                             }
                             javaAgentPropertyFile.setProperty(Integer.toString(index++), sb.toString());
                         }
-                        zipEntry = new ZipEntry(Flask.Constants.JAVA_AGENTS_FILE);
+                        zipEntry = zipEntryFactory.createZipEntry(Flask.Constants.JAVA_AGENTS_FILE);
                         zipEntry.setMethod(ZipEntry.DEFLATED);
                         zipOutputStream.putNextEntry(zipEntry);
                         javaAgentPropertyFile.store(zipOutputStream, null);
