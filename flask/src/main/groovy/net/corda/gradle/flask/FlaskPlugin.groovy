@@ -3,6 +3,7 @@ package net.corda.gradle.flask
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.file.Directory
 import org.gradle.api.plugins.JavaApplication
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.JavaPluginConvention
@@ -19,31 +20,33 @@ class FlaskPlugin implements Plugin<Project> {
     @Override
     void apply(Project project) {
         project.getPluginManager().apply(JavaPlugin.class)
-        JavaPluginConvention javaPluginConvention = project.convention.getPlugin(JavaPluginConvention.class)
-        Provider<SourceSet> flaskSourceSetProvider = javaPluginConvention.sourceSets.register("flask")
+        Provider<Directory> flaskDir = project.layout.buildDirectory.dir("classes/flask-launcher")
         Provider<Copy> extractLauncherTarProvider = project.tasks.register("extractLauncherTar", Copy) {
             setGroup(GROUP)
             setDescription("Extract the Flask Launcher classes to be used to build a custom launcher")
-            into(project.layout.buildDirectory.dir("classes/flask-launcher"))
+            into(flaskDir)
             from(project.tarTree(LauncherResource.instance))
         }
 
-        project.dependencies {
-            add(flaskSourceSetProvider.get().compileOnlyConfigurationName, extractLauncherTarProvider.get().outputs.files)
+        JavaPluginConvention javaPluginConvention = project.convention.getPlugin(JavaPluginConvention.class)
+        SourceSet flaskSourceSet = javaPluginConvention.sourceSets.create("flask")
+        flaskSourceSet.compiledBy(extractLauncherTarProvider)
+        project.configurations.getByName(flaskSourceSet.compileOnlyConfigurationName).withDependencies { dependencies ->
+            def launcherDependency = project.dependencies.create(extractLauncherTarProvider.get().outputs.files)
+            dependencies.add(launcherDependency)
         }
+
         Provider<FlaskJarTask> flaskJarTask = project.tasks.register("flaskJar", FlaskJarTask.class) {
             setGroup(GROUP)
             setDescription("Package the current project code in an executable jar file")
             archiveBaseName = "${project.name}-flask"
-            inputs.files(flaskSourceSetProvider.map {it.output })
+            inputs.files(flaskSourceSet.output)
             from {
-                flaskSourceSetProvider.map { sourceSet ->
-                    sourceSet.runtimeClasspath.collect {
-                        if(it.exists()) {
-                            it.isDirectory() ? it : project.zipTree(it)
-                        } else {
-                            null
-                        }
+                flaskSourceSet.runtimeClasspath.collect {
+                    if(it.exists()) {
+                        it.isDirectory() ? it : project.zipTree(it)
+                    } else {
+                        null
                     }
                 }
             }

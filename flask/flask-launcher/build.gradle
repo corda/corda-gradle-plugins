@@ -1,3 +1,5 @@
+import java.util.jar.JarFile
+
 plugins {
     id 'java-library'
 }
@@ -34,6 +36,7 @@ tasks.register("tar", Tar) {
     archiveFileName = "${project.name}.tar"
     from(sourceSets.main.output)
     from {
+        exclude(JarFile.MANIFEST_NAME)
         configurations.named('runtimeClasspath').map {
             it.collect { it.isDirectory() ? it : zipTree(it) }
         }
