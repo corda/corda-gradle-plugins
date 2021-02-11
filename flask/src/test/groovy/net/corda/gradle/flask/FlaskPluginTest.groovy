@@ -80,6 +80,7 @@ class FlaskPluginTest {
     void buildFlaskJar() {
         GradleRunner runner = getStandardGradleRunnerFor("flaskJar")
         BuildResult result = runner.build()
+        println(result.getOutput())
     }
 
     @Test

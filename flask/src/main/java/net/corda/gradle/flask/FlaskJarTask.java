@@ -59,7 +59,7 @@ public class FlaskJarTask extends AbstractArchiveTask {
         return jvmArgs;
     }
 
-    public void includeLibraries(Object files) {
+    public void includeLibraries(Object... files) {
         into(Flask.Constants.LIBRARIES_FOLDER, (copySpec) -> copySpec.from(files));
     }
 
@@ -87,7 +87,7 @@ public class FlaskJarTask extends AbstractArchiveTask {
         from(getProject().tarTree(LauncherResource.instance), copySpec -> exclude(JarFile.MANIFEST_NAME));
 
         Provider<File> heartbeatJarProvider = getProject().provider(() -> {
-            File dest = new File(FlaskJarTask.this.getTemporaryDir(), HeartbeatAgentResource.instance.getDisplayName());
+            File dest = new File(getTemporaryDir(), HeartbeatAgentResource.instance.getDisplayName());
             try (OutputStream os = Flask.write(dest, false); InputStream is = HeartbeatAgentResource.instance.read()) {
                 Flask.write2Stream(is, os);
             }

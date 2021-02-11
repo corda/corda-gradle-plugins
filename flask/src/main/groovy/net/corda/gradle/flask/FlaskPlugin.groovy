@@ -14,12 +14,16 @@ import org.gradle.jvm.tasks.Jar
 
 class FlaskPlugin implements Plugin<Project> {
 
+    private static final String GROUP = "Flask"
+
     @Override
     void apply(Project project) {
-        project.getPluginManager().apply(JavaPlugin.class);
+        project.getPluginManager().apply(JavaPlugin.class)
         JavaPluginConvention javaPluginConvention = project.convention.getPlugin(JavaPluginConvention.class)
         Provider<SourceSet> flaskSourceSetProvider = javaPluginConvention.sourceSets.register("flask")
         Provider<Copy> extractLauncherTarProvider = project.tasks.register("extractLauncherTar", Copy) {
+            setGroup(GROUP)
+            setDescription("Extract the Flask Launcher classes to be used to build a custom launcher")
             into(project.layout.buildDirectory.dir("classes/flask-launcher"))
             from(project.tarTree(LauncherResource.instance))
         }
@@ -28,6 +32,8 @@ class FlaskPlugin implements Plugin<Project> {
             add(flaskSourceSetProvider.get().compileOnlyConfigurationName, extractLauncherTarProvider.get().outputs.files)
         }
         Provider<FlaskJarTask> flaskJarTask = project.tasks.register("flaskJar", FlaskJarTask.class) {
+            setGroup(GROUP)
+            setDescription("Package the current project code in an executable jar file")
             archiveBaseName = "${project.name}-flask"
             inputs.files(flaskSourceSetProvider.map {it.output })
             from {
@@ -50,7 +56,9 @@ class FlaskPlugin implements Plugin<Project> {
                 mainClassName = result
             }
         }
-        Provider<JavaExec> flaskRunTask = project.tasks.register('flaskRun', JavaExec) {
+        project.tasks.register('flaskRun', JavaExec) {
+            setGroup(GROUP)
+            setDescription("Run the jar file created by the 'flaskJar' task")
             inputs.files(flaskJarTask)
             classpath(flaskJarTask)
         }
