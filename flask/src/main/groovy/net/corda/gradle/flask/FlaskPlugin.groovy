@@ -1,5 +1,6 @@
 package net.corda.gradle.flask
 
+import net.corda.flask.common.Flask
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -15,14 +16,12 @@ import org.gradle.jvm.tasks.Jar
 
 class FlaskPlugin implements Plugin<Project> {
 
-    private static final String GROUP = "Flask"
-
     @Override
     void apply(Project project) {
         project.getPluginManager().apply(JavaPlugin.class)
         Provider<Directory> flaskDir = project.layout.buildDirectory.dir("classes/flask-launcher")
         Provider<Copy> extractLauncherTarProvider = project.tasks.register("extractLauncherTar", Copy) {
-            setGroup(GROUP)
+            setGroup(Flask.Constants.GRADLE_TASK_GROUP)
             setDescription("Extract the Flask Launcher classes to be used to build a custom launcher")
             into(flaskDir)
             from(project.tarTree(LauncherResource.instance))
@@ -37,7 +36,6 @@ class FlaskPlugin implements Plugin<Project> {
         }
 
         Provider<FlaskJarTask> flaskJarTask = project.tasks.register("flaskJar", FlaskJarTask.class) {
-            setGroup(GROUP)
             setDescription("Package the current project code in an executable jar file")
             archiveBaseName = "${project.name}-flask"
             inputs.files(flaskSourceSet.output)
@@ -50,8 +48,8 @@ class FlaskPlugin implements Plugin<Project> {
                     }
                 }
             }
-            includeLibraries(project.tasks.named("jar", Jar).map {it.outputs })
-            includeLibraries(project.configurations.named("runtimeClasspath"))
+            includeLibraries(project.tasks.named(JavaPlugin.JAR_TASK_NAME, Jar).map {it.outputs })
+            includeLibraries(project.configurations.named(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME))
 
             project.pluginManager.withPlugin('application') {
                 String result = project.extensions.findByType(JavaApplication.class)?.mainClassName
@@ -60,7 +58,7 @@ class FlaskPlugin implements Plugin<Project> {
             }
         }
         project.tasks.register('flaskRun', JavaExec) {
-            setGroup(GROUP)
+            setGroup(Flask.Constants.GRADLE_TASK_GROUP)
             setDescription("Run the jar file created by the 'flaskJar' task")
             inputs.files(flaskJarTask)
             classpath(flaskJarTask)

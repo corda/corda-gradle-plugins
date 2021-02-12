@@ -6,10 +6,7 @@ import java.io.*;
 import java.math.BigInteger;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
-import java.util.AbstractMap;
-import java.util.GregorianCalendar;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Supplier;
 import java.util.zip.CRC32;
 import java.util.zip.ZipEntry;
@@ -23,9 +20,17 @@ public class Flask {
         public static final String JVM_ARGUMENT_FILE = METADATA_FOLDER + "/jvmArgs.properties";
         public static final String JAVA_AGENTS_FILE = METADATA_FOLDER + "/javaAgents.properties";
         public static final String CLI_JVM_PARAMETERS_PREFIX = "-flaskJvmArg=";
-        public static final long ZIP_ENTRIES_DEFAULT_TIMESTAMP =
-                new GregorianCalendar(1980, 1, 1, 0, 0, 0).getTimeInMillis();
         public static final int BUFFER_SIZE = 0x10000;
+        public static final String GRADLE_TASK_GROUP = "Flask";
+
+        /**
+         * This value is used as a default file timestamp for all the zip entries when
+         * <a href="https://docs.gradle.org/current/javadoc/org/gradle/api/tasks/bundling/AbstractArchiveTask.html#isPreserveFileTimestamps--">AbstractArchiveTask.isPreserveFileTimestamps</a>
+         * is true; its value is taken from Gradle's <a href="https://github.com/gradle/gradle/blob/master/subprojects/core/src/main/java/org/gradle/api/internal/file/archive/ZipCopyAction.java#L42-L57">ZipCopyAction<a/>
+         * for the reasons outlined there.
+         */
+        public static final long ZIP_ENTRIES_DEFAULT_TIMESTAMP =
+                new GregorianCalendar(1980, Calendar.FEBRUARY, 1, 0, 0, 0).getTimeInMillis();
     }
 
     public static class ManifestAttributes {

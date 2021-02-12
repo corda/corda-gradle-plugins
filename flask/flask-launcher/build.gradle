@@ -47,7 +47,7 @@ Provider<Jar> lockFileTestExecutableJar = tasks.register("lockFileTestExecutable
     manifest {
         attributes "Main-Class": "net.corda.flask.launcher.LockFileTestMain"
     }
-    archiveName = "LockFileTest"
+    archiveBaseName = "LockFileTest"
     from(sourceSets.lockFileTest.output)
     from {
         configurations['lockFileTestRuntimeClasspath'].collect {

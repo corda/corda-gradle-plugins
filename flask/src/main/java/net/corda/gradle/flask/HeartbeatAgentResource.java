@@ -8,8 +8,14 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URL;
 
-class HeartbeatAgentResource implements ReadableResource {
-    private final URL url = getClass().getResource(String.format("/META-INF/%s", getDisplayName()));
+final class HeartbeatAgentResource implements ReadableResource {
+    static final ReadableResource instance = new HeartbeatAgentResource();
+
+    private final URL url;
+
+    private HeartbeatAgentResource() {
+        url = getClass().getResource(String.format("/META-INF/%s", getDisplayName()));
+    }
 
     @Override
     @SneakyThrows
@@ -32,6 +38,4 @@ class HeartbeatAgentResource implements ReadableResource {
     public String getBaseName() {
         return "flask-heartbeat-agent";
     }
-
-    static final ReadableResource instance = new HeartbeatAgentResource();
 }

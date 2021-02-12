@@ -8,8 +8,14 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URL;
 
-class LauncherResource implements ReadableResource {
-    private final URL url = getClass().getResource(String.format("/META-INF/%s", getDisplayName()));
+final class LauncherResource implements ReadableResource {
+    static final ReadableResource instance = new LauncherResource();
+
+    private final URL url;
+
+    private LauncherResource() {
+        url = getClass().getResource(String.format("/META-INF/%s", getDisplayName()));
+    }
 
     @Override
     @SneakyThrows
@@ -32,6 +38,4 @@ class LauncherResource implements ReadableResource {
     public String getBaseName() {
         return "flask-launcher";
     }
-
-    static final ReadableResource instance = new LauncherResource();
 }
