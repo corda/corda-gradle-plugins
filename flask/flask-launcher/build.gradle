@@ -22,7 +22,11 @@ dependencies {
     }
     implementation group: "org.slf4j", name: "slf4j-api", version: slf4j_version
     implementation group: "org.slf4j", name: "slf4j-simple", version: slf4j_version
-    implementation project(":flask:flask-common")
+
+    //this is needed to tell Gradle it needs to assemble the archives of ":flask:flask-common" project first, in order
+    //to build the current project, otherwise Gradle only compiles the code of ":flask:flask-common" and includes the
+    // class directory in the classpath (not the project main artifact)
+    implementation project(path: ":flask:flask-common", configuration: 'archives')
 
     testImplementation "org.junit.jupiter:junit-jupiter-api:$junit_jupiter_version"
     testImplementation "org.junit.jupiter:junit-jupiter-params:$junit_jupiter_version"
