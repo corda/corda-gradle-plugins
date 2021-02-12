@@ -22,6 +22,8 @@ import java.nio.file.StandardCopyOption
 @Suppress("UnstableApiUsage")
 open class SignJar : DefaultTask() {
     companion object {
+        private const val DUMMY_VALUE = "****"
+
         fun sign(project: Project, signing: Signing, file: File) {
             val options = signing.options.toSignJarOptionsMap()
             if (signing.options.hasDefaultOptions()) {
@@ -34,7 +36,7 @@ open class SignJar : DefaultTask() {
             options[SigningOptions.Key.JAR] = path.toString()
 
             try {
-                project.logger.info("Jar signing with following options: $options")
+                project.logger.info("Jar signing with following options: ${options.toSanitized()}")
                 project.ant.invokeMethod("signjar", options)
             } catch (e: Exception) {
                 // Not adding error message as it's always meaningless, logs with --INFO level contain more insights
@@ -45,8 +47,17 @@ open class SignJar : DefaultTask() {
                         else "Run with --info or --debug option and search for 'ant:signjar' in log output. ", e)
             } finally {
                 if (signing.options.hasDefaultOptions()) {
-                    Paths.get(options[SigningOptions.Key.KEYSTORE]).toFile().delete()
+                    options[SigningOptions.Key.KEYSTORE]?.apply {
+                        Paths.get(this).toFile().delete()
+                    }
                 }
+            }
+        }
+
+        private fun MutableMap<String, String>.toSanitized(): Map<String, String> {
+            return toMap(LinkedHashMap()).also {
+                it.computeIfPresent(SigningOptions.Key.KEYPASS) { _, _ -> DUMMY_VALUE }
+                it.computeIfPresent(SigningOptions.Key.STOREPASS) { _, _ -> DUMMY_VALUE }
             }
         }
     }
@@ -63,10 +74,10 @@ open class SignJar : DefaultTask() {
 
     private val _inputJars: ConfigurableFileCollection = project.files()
 
-    @get:PathSensitive(RELATIVE)
-    @get:InputFiles
-    @get:SkipWhenEmpty
     val inputJars: FileCollection
+        @PathSensitive(RELATIVE)
+        @InputFiles
+        @SkipWhenEmpty
         get() = _inputJars
 
     fun setInputJars(jars: Any?) {
@@ -75,8 +86,8 @@ open class SignJar : DefaultTask() {
 
     fun inputJars(jars: Any?) = setInputJars(jars)
 
-    @get:OutputFiles
     val outputJars: FileCollection
+        @OutputFiles
         get() = project.files(inputJars.map(::toSigned))
 
     private fun toSigned(file: File): File {

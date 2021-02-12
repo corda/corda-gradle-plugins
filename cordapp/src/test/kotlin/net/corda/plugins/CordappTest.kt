@@ -10,7 +10,8 @@ import java.nio.file.Files
 import java.nio.file.NoSuchFileException
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.util.jar.JarInputStream
+import java.util.jar.JarFile
+import java.util.jar.Manifest
 
 class CordappTest {
     @TempDir
@@ -18,6 +19,7 @@ class CordappTest {
     private lateinit var buildFile: Path
 
     private companion object {
+        private const val SIGNING_TAG = "Jar signing with following options:"
         const val cordappJarName = "test-cordapp"
 
         private val testGradleUserHome = systemProperty("test.gradle.user.home")
@@ -56,15 +58,13 @@ class CordappTest {
         val jarFile = getCordappJar(cordappJarName)
         assertThat(jarFile).isRegularFile()
 
-        JarInputStream(jarFile.toFile().inputStream()).use { jar ->
-            val attributes = jar.manifest.mainAttributes
+        val attributes = jarFile.manifest.mainAttributes
 
-            assertThat(attributes.getValue("Name")).isEqualTo(expectedName)
-            assertThat(attributes.getValue("Implementation-Version")).isEqualTo(expectedVersion)
-            assertThat(attributes.getValue("Implementation-Vendor")).isEqualTo(expectedVendor)
-            assertThat(attributes.getValue("Target-Platform-Version")).isEqualTo(expectedtargetPlatformVersion)
-            assertThat(attributes.getValue("Min-Platform-Version")).isEqualTo(expectedminimumPlatformVersion)
-        }
+        assertThat(attributes.getValue("Name")).isEqualTo(expectedName)
+        assertThat(attributes.getValue("Implementation-Version")).isEqualTo(expectedVersion)
+        assertThat(attributes.getValue("Implementation-Vendor")).isEqualTo(expectedVendor)
+        assertThat(attributes.getValue("Target-Platform-Version")).isEqualTo(expectedtargetPlatformVersion)
+        assertThat(attributes.getValue("Min-Platform-Version")).isEqualTo(expectedminimumPlatformVersion)
     }
 
     @Test
@@ -93,15 +93,13 @@ class CordappTest {
         val jarFile = getCordappJar(cordappJarName)
         assertThat(jarFile).isRegularFile()
 
-        JarInputStream(jarFile.toFile().inputStream()).use { jar ->
-            val attributes = jar.manifest.mainAttributes
+        val attributes = jarFile.manifest.mainAttributes
 
-            assertThat(attributes.getValue("Cordapp-Contract-Name")).isEqualTo(expectedContractCordappName)
-            assertThat(attributes.getValue("Cordapp-Contract-Version")).isEqualTo(expectedContractCordappVersion)
-            assertThat(attributes.getValue("Cordapp-Contract-Vendor")).isEqualTo(expectedContractCordappVendor)
-            assertThat(attributes.getValue("Cordapp-Contract-Licence")).isEqualTo(expectedContractCordappLicence)
-            assertThat(attributes.getValue("Target-Platform-Version")).isEqualTo(expectedtargetPlatformVersion)
-        }
+        assertThat(attributes.getValue("Cordapp-Contract-Name")).isEqualTo(expectedContractCordappName)
+        assertThat(attributes.getValue("Cordapp-Contract-Version")).isEqualTo(expectedContractCordappVersion)
+        assertThat(attributes.getValue("Cordapp-Contract-Vendor")).isEqualTo(expectedContractCordappVendor)
+        assertThat(attributes.getValue("Cordapp-Contract-Licence")).isEqualTo(expectedContractCordappLicence)
+        assertThat(attributes.getValue("Target-Platform-Version")).isEqualTo(expectedtargetPlatformVersion)
     }
 
     @Test
@@ -130,15 +128,13 @@ class CordappTest {
         val jarFile = getCordappJar(cordappJarName)
         assertThat(jarFile).isRegularFile()
 
-        JarInputStream(jarFile.toFile().inputStream()).use { jar ->
-            val attributes = jar.manifest.mainAttributes
+        val attributes = jarFile.manifest.mainAttributes
 
-            assertThat(attributes.getValue("Cordapp-Workflow-Name")).isEqualTo(expectedWorkflowCordappName)
-            assertThat(attributes.getValue("Cordapp-Workflow-Version")).isEqualTo(expectedWorkflowCordappVersion)
-            assertThat(attributes.getValue("Cordapp-Workflow-Vendor")).isEqualTo(expectedWorkflowCordappVendor)
-            assertThat(attributes.getValue("Cordapp-Workflow-Licence")).isEqualTo(expectedWorkflowCordappLicence)
-            assertThat(attributes.getValue("Target-Platform-Version")).isEqualTo(expectedtargetPlatformVersion)
-        }
+        assertThat(attributes.getValue("Cordapp-Workflow-Name")).isEqualTo(expectedWorkflowCordappName)
+        assertThat(attributes.getValue("Cordapp-Workflow-Version")).isEqualTo(expectedWorkflowCordappVersion)
+        assertThat(attributes.getValue("Cordapp-Workflow-Vendor")).isEqualTo(expectedWorkflowCordappVendor)
+        assertThat(attributes.getValue("Cordapp-Workflow-Licence")).isEqualTo(expectedWorkflowCordappLicence)
+        assertThat(attributes.getValue("Target-Platform-Version")).isEqualTo(expectedtargetPlatformVersion)
     }
 
     @Test
@@ -175,23 +171,21 @@ class CordappTest {
         val jarFile = getCordappJar(cordappJarName)
         assertThat(jarFile).isRegularFile()
 
-        JarInputStream(jarFile.toFile().inputStream()).use { jar ->
-            val attributes = jar.manifest.mainAttributes
+        val attributes = jarFile.manifest.mainAttributes
 
-            assertThat(attributes.getValue("Cordapp-Contract-Name")).isEqualTo(expectedContractCordappName)
-            assertThat(attributes.getValue("Cordapp-Contract-Version")).isEqualTo(expectedContractCordappVersion)
-            assertThat(attributes.getValue("Cordapp-Contract-Vendor")).isEqualTo(expectedContractCordappVendor)
-            assertThat(attributes.getValue("Cordapp-Contract-Licence")).isEqualTo(expectedContractCordappLicence)
-            assertThat(attributes.getValue("Cordapp-Workflow-Name")).isEqualTo(expectedWorkflowCordappName)
-            assertThat(attributes.getValue("Cordapp-Workflow-Version")).isEqualTo(expectedWorkflowCordappVersion)
-            assertThat(attributes.getValue("Cordapp-Workflow-Vendor")).isEqualTo(expectedWorkflowCordappVendor)
-            assertThat(attributes.getValue("Cordapp-Workflow-Licence")).isEqualTo(expectedWorkflowCordappLicence)
-            assertThat(attributes.getValue("Target-Platform-Version")).isEqualTo(expectedtargetPlatformVersion)
-        }
+        assertThat(attributes.getValue("Cordapp-Contract-Name")).isEqualTo(expectedContractCordappName)
+        assertThat(attributes.getValue("Cordapp-Contract-Version")).isEqualTo(expectedContractCordappVersion)
+        assertThat(attributes.getValue("Cordapp-Contract-Vendor")).isEqualTo(expectedContractCordappVendor)
+        assertThat(attributes.getValue("Cordapp-Contract-Licence")).isEqualTo(expectedContractCordappLicence)
+        assertThat(attributes.getValue("Cordapp-Workflow-Name")).isEqualTo(expectedWorkflowCordappName)
+        assertThat(attributes.getValue("Cordapp-Workflow-Version")).isEqualTo(expectedWorkflowCordappVersion)
+        assertThat(attributes.getValue("Cordapp-Workflow-Vendor")).isEqualTo(expectedWorkflowCordappVendor)
+        assertThat(attributes.getValue("Cordapp-Workflow-Licence")).isEqualTo(expectedWorkflowCordappLicence)
+        assertThat(attributes.getValue("Target-Platform-Version")).isEqualTo(expectedtargetPlatformVersion)
     }
 
     @Test
-    fun `a cordapp with a all cordapp info blocks`() {
+    fun `a cordapp with all cordapp info blocks`() {
         val expectedName = "test cordapp"
         val expectedVersion = "3.2.1"
         val expectedVendor = "test vendor"
@@ -225,27 +219,25 @@ class CordappTest {
         val jarFile = getCordappJar(cordappJarName)
         assertThat(jarFile).isRegularFile()
 
-        JarInputStream(jarFile.toFile().inputStream()).use { jar ->
-            val attributes = jar.manifest.mainAttributes
+        val attributes = jarFile.manifest.mainAttributes
 
-            assertThat(attributes.getValue("Cordapp-Contract-Name")).isEqualTo(expectedContractCordappName)
-            assertThat(attributes.getValue("Cordapp-Contract-Version")).isEqualTo(expectedContractCordappVersion)
-            assertThat(attributes.getValue("Cordapp-Contract-Vendor")).isEqualTo(expectedContractCordappVendor)
-            assertThat(attributes.getValue("Cordapp-Contract-Licence")).isEqualTo(expectedContractCordappLicence)
+        assertThat(attributes.getValue("Cordapp-Contract-Name")).isEqualTo(expectedContractCordappName)
+        assertThat(attributes.getValue("Cordapp-Contract-Version")).isEqualTo(expectedContractCordappVersion)
+        assertThat(attributes.getValue("Cordapp-Contract-Vendor")).isEqualTo(expectedContractCordappVendor)
+        assertThat(attributes.getValue("Cordapp-Contract-Licence")).isEqualTo(expectedContractCordappLicence)
 
-            assertThat(attributes.getValue("Cordapp-Workflow-Name")).isEqualTo(expectedWorkflowCordappName)
-            assertThat(attributes.getValue("Cordapp-Workflow-Version")).isEqualTo(expectedWorkflowCordappVersion)
-            assertThat(attributes.getValue("Cordapp-Workflow-Vendor")).isEqualTo(expectedWorkflowCordappVendor)
-            assertThat(attributes.getValue("Cordapp-Workflow-Licence")).isEqualTo(expectedWorkflowCordappLicence)
+        assertThat(attributes.getValue("Cordapp-Workflow-Name")).isEqualTo(expectedWorkflowCordappName)
+        assertThat(attributes.getValue("Cordapp-Workflow-Version")).isEqualTo(expectedWorkflowCordappVersion)
+        assertThat(attributes.getValue("Cordapp-Workflow-Vendor")).isEqualTo(expectedWorkflowCordappVendor)
+        assertThat(attributes.getValue("Cordapp-Workflow-Licence")).isEqualTo(expectedWorkflowCordappLicence)
 
-            assertThat(attributes.getValue("Name")).isNull()
-            assertThat(attributes.getValue("Implementation-Version")).isNull()
-            assertThat(attributes.getValue("Implementation-Vendor")).isNull()
+        assertThat(attributes.getValue("Name")).isNull()
+        assertThat(attributes.getValue("Implementation-Version")).isNull()
+        assertThat(attributes.getValue("Implementation-Vendor")).isNull()
 
-            assertThat(attributes.getValue("Target-Platform-Version")).isEqualTo(expectedtargetPlatformVersion)
-            assertThat(attributes.getValue("Min-Platform-Version")).isEqualTo(expectedminimumPlatformVersion)
-            assertThat(attributes.getValue("Sealed")).isEqualTo(expectedSealed)
-        }
+        assertThat(attributes.getValue("Target-Platform-Version")).isEqualTo(expectedtargetPlatformVersion)
+        assertThat(attributes.getValue("Min-Platform-Version")).isEqualTo(expectedminimumPlatformVersion)
+        assertThat(attributes.getValue("Sealed")).isEqualTo(expectedSealed)
     }
 
     @Test
@@ -261,12 +253,30 @@ class CordappTest {
         assertThat(jarFile).exists()
     }
 
+    @Test
+    fun `test signing passwords are not logged`() {
+        val jarTaskRunner = jarTaskRunner("CorDappWithoutMetadata.gradle")
+        val result = jarTaskRunner.build()
+        println(result.output)
+        assertThat(result.output.split("\n")).anyMatch { line ->
+            line.startsWith(SIGNING_TAG)
+        }.noneMatch { line ->
+            line.startsWith(SIGNING_TAG)
+                && (line.matches("^.* keypass=[^*,]+,.*\$".toRegex()) || line.matches("^.* storepass=[^*,]+,.*\$".toRegex()))
+        }
+    }
+
+    private val Path.manifest: Manifest get() {
+        return JarFile(toFile()).use(JarFile::getManifest)
+    }
+
     private fun jarTaskRunner(buildFileResourceName: String, extraArgs: List<String> = emptyList()): GradleRunner {
         createBuildFile(buildFileResourceName)
         return GradleRunner.create()
                 .withProjectDir(testProjectDir.toFile())
                 .withArguments(listOf("jar", "-s", "--info", "-g", testGradleUserHome) + extraArgs)
                 .withPluginClasspath()
+                .withDebug(true)
     }
 
     private fun createBuildFile(buildFileResourceName: String): Long = javaClass.getResourceAsStream(buildFileResourceName)?.use { s ->

@@ -8,6 +8,7 @@
 * `jar-filter`: Upgrade to ASM 9.0.
 * `quasar-utils`: Resolve warning about deprecated Gradle API usage.
 * `publish-utils`: Make the developers information optional.
+* `cordapp`: Do not log passwords when signing jars.
 
 ### Version 5.0.12
 
