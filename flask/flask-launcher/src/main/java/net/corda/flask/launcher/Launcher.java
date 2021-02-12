@@ -7,9 +7,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.lang.reflect.Constructor;
 import java.net.URI;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -40,7 +43,7 @@ public class Launcher {
     @SneakyThrows
     private static List<String> listOfStringFromPropertyFile(InputStream is) {
         Properties p = new Properties();
-        p.load(is);
+        Flask.loadProperties(p, is);
         return p.entrySet()
                 .stream()
                 .sorted(Comparator.comparing(entry -> Integer.parseInt(entry.getKey().toString())))

@@ -4,6 +4,7 @@ import lombok.SneakyThrows;
 
 import java.io.*;
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.util.*;
@@ -17,8 +18,8 @@ public class Flask {
         public static final String DEFAULT_LAUNCHER_NAME = "net.corda.flask.launcher.Launcher";
         public static final String LIBRARIES_FOLDER = "LIB-INF";
         public static final String METADATA_FOLDER = "META-INF";
-        public static final String JVM_ARGUMENT_FILE = METADATA_FOLDER + "/jvmArgs.properties";
-        public static final String JAVA_AGENTS_FILE = METADATA_FOLDER + "/javaAgents.properties";
+        public static final String JVM_ARGUMENT_FILE = METADATA_FOLDER + "/jvmArgs.xml";
+        public static final String JAVA_AGENTS_FILE = METADATA_FOLDER + "/javaAgents.xml";
         public static final String CLI_JVM_PARAMETERS_PREFIX = "-flaskJvmArg=";
         public static final int BUFFER_SIZE = 0x10000;
         public static final String GRADLE_TASK_GROUP = "Flask";
@@ -149,5 +150,15 @@ public class Flask {
     public static OutputStream write(File file, boolean buffered) {
         OutputStream result = new FileOutputStream(file);
         return buffered ? new BufferedOutputStream(result) : result;
+    }
+
+    @SneakyThrows
+    public static void storeProperties(Properties properties, OutputStream outputStream) {
+        properties.storeToXML(outputStream, null, StandardCharsets.UTF_8.name());
+    }
+
+    @SneakyThrows
+    public static void loadProperties(Properties properties, InputStream inputStream) {
+        properties.loadFromXML(inputStream);
     }
 }

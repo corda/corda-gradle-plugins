@@ -11,9 +11,12 @@ import org.junit.jupiter.api.condition.EnabledForJreRange
 import org.junit.jupiter.api.condition.JRE
 import org.junit.jupiter.api.io.TempDir
 
+import java.nio.file.CopyOption
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.Paths
 import java.nio.file.StandardCopyOption
+import java.security.MessageDigest
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 
@@ -71,19 +74,18 @@ class FlaskPluginTest {
         installResource("testProject", "testAgent/src/main/java/net/corda/gradle/flask/test/agent/JavaAgent.java", testProjectDir)
     }
 
-    GradleRunner getStandardGradleRunnerFor(String... taskName) {
-        return GradleRunner.create()
+    void invokeGradle(String... taskName) {
+        GradleRunner runner = GradleRunner.create()
                 .withDebug(true)
                 .withProjectDir(testProjectDir.toFile())
                 .withArguments(taskName + ["-s", "--info", "-g", testGradleHomeDir.toString()])
                 .withPluginClasspath()
+        println(runner.build().getOutput())
     }
 
     @Test
     void buildFlaskJar() {
-        GradleRunner runner = getStandardGradleRunnerFor("flaskJar")
-        BuildResult result = runner.build()
-        println(result.getOutput())
+        invokeGradle("flaskJar")
 
         //Check that all zip entries have timestamp equal to Flask.Constants.ZIP_ENTRIES_DEFAULT_TIMESTAMP
         Path flaskJar = testProjectDir.resolve("build/flask.jar")
@@ -96,11 +98,25 @@ class FlaskPluginTest {
     }
 
     @Test
+    void compareFlaskJars() {
+        invokeGradle("flaskJar")
+        Path flaskJar = testProjectDir.resolve("build/flask.jar")
+        byte[] buffer = new byte[Flask.Constants.BUFFER_SIZE]
+        MessageDigest md = MessageDigest.getInstance("SHA-256")
+        byte[] digest1 = Flask.computeDigest( { Files.newInputStream(flaskJar) }, md, buffer)
+
+        invokeGradle("clean", "flaskJar")
+        md.reset()
+        byte[] digest2 = Flask.computeDigest( { Files.newInputStream(flaskJar) }, md, buffer)
+        //Recreating the flask jar archive from the same project setting "preserveFileTimestamps = false"
+        // and "reproducibleFileOrder = true" on all included artifacts should always result in the same byte sequence
+        Assertions.assertArrayEquals(digest1, digest2)
+    }
+
+    @Test
     @EnabledForJreRange(min = JRE.JAVA_11)
     void runFlaskJar() {
-        GradleRunner runner = getStandardGradleRunnerFor("flaskRun")
-        BuildResult result = runner.build()
-        println(result.getOutput())
+        invokeGradle("flaskRun")
         Path propertiesFile = testProjectDir.resolve("build/testLauncher.properties")
         Properties prop = Files.newBufferedReader(propertiesFile).withCloseable { reader ->
             new Properties().tap {
@@ -114,9 +130,7 @@ class FlaskPluginTest {
     @Test
     @EnabledForJreRange(min = JRE.JAVA_11)
     void runFlaskJarMainClassOverride() {
-        GradleRunner runner = getStandardGradleRunnerFor("flaskRunMainClassOverride")
-        BuildResult result = runner.build()
-        println(result.getOutput())
+        invokeGradle("flaskRunMainClassOverride")
         Path propertiesFile = testProjectDir.resolve("build/testLauncher.properties")
         Properties prop = Files.newBufferedReader(propertiesFile).withCloseable { reader ->
             new Properties().tap {

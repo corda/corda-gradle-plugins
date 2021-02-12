@@ -22,9 +22,9 @@ import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
-import java.io.File;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.Base64;
 import java.util.List;
@@ -230,7 +230,7 @@ public class FlaskJarTask extends AbstractArchiveTask {
                         zipEntry = zipEntryFactory.createZipEntry(Flask.Constants.JVM_ARGUMENT_FILE);
                         zipEntry.setMethod(ZipEntry.DEFLATED);
                         zipOutputStream.putNextEntry(zipEntry);
-                        jvmArgsPropertyFile.store(zipOutputStream, null);
+                        Flask.storeProperties(jvmArgsPropertyFile, zipOutputStream);
                     }
 
                     if (!javaAgents.isEmpty()) {
@@ -250,7 +250,7 @@ public class FlaskJarTask extends AbstractArchiveTask {
                         zipEntry = zipEntryFactory.createZipEntry(Flask.Constants.JAVA_AGENTS_FILE);
                         zipEntry.setMethod(ZipEntry.DEFLATED);
                         zipOutputStream.putNextEntry(zipEntry);
-                        javaAgentPropertyFile.store(zipOutputStream, null);
+                        Flask.storeProperties(javaAgentPropertyFile, zipOutputStream);
                     }
 
                     while (true) {
