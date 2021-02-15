@@ -4,10 +4,10 @@
 
 ### Version 6.0.0
 
-* Requires Gradle 6.6+.
+* Compatible with Gradle 6.x.
 * `quasar-utils`: Upgrade to use Quasar 0.8.5_r3 OSGi bundles.
 * `quasar-utils`: Support configurable `@Suspendable` annotation.
-* `cordapp`: Generate CPK format CorDapps.
+* `cordapp-cpk`: Generate CPK format CorDapps. Requires Gradle 6.6+.
 
 ## Version 5
 
