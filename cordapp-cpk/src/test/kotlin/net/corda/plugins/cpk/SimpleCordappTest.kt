@@ -22,10 +22,11 @@ class SimpleCordappTest {
     companion object {
         private lateinit var testProject: GradleProject
 
-        const val cordappVersion = "1.0.1-SNAPSHOT"
-        const val ioOsgiVersion = "version=\"[1.4,2)\""
-        const val cordaOsgiVersion = "version=\"[5.0,6)\""
-        const val cordappOsgiVersion = "version=\"1.0.1\""
+        private const val SIGNING_TAG = "Jar signing with following options:"
+        private const val cordappVersion = "1.0.1-SNAPSHOT"
+        private const val ioOsgiVersion = "version=\"[1.4,2)\""
+        private const val cordaOsgiVersion = "version=\"[5.0,6)\""
+        private const val cordappOsgiVersion = "version=\"1.0.1\""
 
         @Suppress("unused")
         @BeforeAll
@@ -71,6 +72,16 @@ class SimpleCordappTest {
             assertEquals("R3", getValue(BUNDLE_VENDOR))
             assertEquals("true", getValue("Sealed"))
             assertNull(getValue("Private-Package"))
+        }
+    }
+
+    @Test
+    fun `test signing passwords are not logged`() {
+        assertThat(testProject.output.split(System.lineSeparator())).anyMatch { line ->
+            line.startsWith(SIGNING_TAG)
+        }.noneMatch { line ->
+            line.startsWith(SIGNING_TAG)
+                && (line.matches("^.* keypass=[^*,]+,.*\$".toRegex()) || line.matches("^.* storepass=[^*,]+,.*\$".toRegex()))
         }
     }
 }
