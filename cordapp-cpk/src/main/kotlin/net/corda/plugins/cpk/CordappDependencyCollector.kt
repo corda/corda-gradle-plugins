@@ -8,11 +8,13 @@ import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.artifacts.dsl.DependencyHandler
+import org.gradle.api.logging.Logger
 import java.util.Collections.unmodifiableSet
 
 class CordappDependencyCollector(
     private val configurations: ConfigurationContainer,
-    private val dependencyHandler: DependencyHandler
+    private val dependencyHandler: DependencyHandler,
+    private val logger: Logger
 ) {
     private val cordappProjects = mutableSetOf<ProjectDependency>()
     private val cordappModules = mutableSetOf<Dependency>()
@@ -35,11 +37,15 @@ class CordappDependencyCollector(
         for (dependency in dependencies) {
             if (dependency is ProjectDependency) {
                 if (cordappProjects.add(dependency)) {
+                    // Resolve a CorDapp dependency from another
+                    // module in a multi-module build.
                     collectFrom(dependency)
                 }
             } else if (dependency is ModuleDependency) {
                 if (cordappModules.add(dependency)) {
                     val cordapp = dependencyHandler.create(dependency.asMap.toCPK())
+                    // Try to resolve the CorDapp's "companion" dependency.
+                    // This may not exist, although it's better if it does.
                     collectFrom(cordapp)
                 }
             }
@@ -58,7 +64,12 @@ class CordappDependencyCollector(
 
     private fun collectFrom(cordapp: Dependency) {
         val resolved = configurations.detachedConfiguration(cordapp).resolvedConfiguration
-        collectFrom(resolved.firstLevelModuleDependencies, mutableSetOf())
+        if (resolved.hasError()) {
+            logger.warn("Cannot resolve {} - SKIPPED", cordapp)
+        } else {
+            // This should never now throw ResolveException.
+            collectFrom(resolved.firstLevelModuleDependencies, mutableSetOf())
+        }
     }
 
     private fun collectFrom(resolvedDeps: Set<ResolvedDependency>, result: MutableSet<ResolvedDependency>) {

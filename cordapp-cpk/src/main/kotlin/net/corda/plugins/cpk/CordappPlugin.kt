@@ -113,7 +113,7 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
             // which causes their dependencies to be excluded from the published
             // POM. This also means that CPK dependencies will not be transitive
             // by default, and so we must implement a way of fixing this ourselves.
-            val collector = CordappDependencyCollector(this, project.dependencies)
+            val collector = CordappDependencyCollector(this, project.dependencies, project.logger)
             createCompileConfiguration(ALL_CORDAPPS_CONFIGURATION_NAME)
                 .setVisible(false)
                 .extendsFrom(cordappCfg)
