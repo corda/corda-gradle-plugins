@@ -9,7 +9,7 @@
 * `quasar-utils`: Support configurable `@Suspendable` annotation.
 * `cordformation`: Replace `Closure` with `Action` in the DSL.
 * `cordformation`: Annotate `Baseform.signing` as `@Nested` instead of `@Input`.
-* `cordapp-cpk`: Generate CPK format CorDapps.
+* `cordapp-cpk`: Generate CPK format CorDapps. Requires Gradle 6.6+.
 
 ## Version 5
 
