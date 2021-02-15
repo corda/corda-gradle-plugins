@@ -22,24 +22,26 @@ import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.nio.file.StandardCopyOption
+import java.nio.file.StandardCopyOption.REPLACE_EXISTING
 import javax.inject.Inject
 
 @Suppress("Unused", "UnstableApiUsage", "MemberVisibilityCanBePrivate")
 open class SignJar @Inject constructor(objects: ObjectFactory) : DefaultTask() {
     companion object {
+        private const val DUMMY_VALUE = "****"
+
         private fun createTempFileFromResource(resourcePath: String, tempFileName: String, tempFileExtension: String): Path {
             val path = Files.createTempFile(tempFileName, tempFileExtension)
             this::class.java.classLoader.getResourceAsStream(resourcePath)?.use {
-                Files.copy(it, path, StandardCopyOption.REPLACE_EXISTING)
+                Files.copy(it, path, REPLACE_EXISTING)
             }
             return path
         }
 
-        fun sign(task: Task, signing: Signing, file: File) {
+        fun Task.sign(signing: Signing, file: File) {
             val options = signing.options.toSignJarOptionsMap()
             if (signing.options.hasDefaultOptions()) {
-                task.logger.info("CorDapp JAR signing with the default Corda development key, suitable for Corda running in development mode only.")
+                logger.info("CorDapp JAR signing with the default Corda development key, suitable for Corda running in development mode only.")
                 val keyStorePath = createTempFileFromResource(SigningOptions.DEFAULT_KEYSTORE, SigningOptions.DEFAULT_KEYSTORE_FILE, SigningOptions.DEFAULT_KEYSTORE_EXTENSION)
                 options[SigningOptions.Key.KEYSTORE] = keyStorePath.toString()
             }
@@ -48,26 +50,35 @@ open class SignJar @Inject constructor(objects: ObjectFactory) : DefaultTask() {
             options[SigningOptions.Key.JAR] = path.toString()
 
             try {
-                task.logger.info("Jar signing with following options: $options")
-                task.ant.invokeMethod("signjar", options)
+                logger.info("Jar signing with following options: ${options.toSanitized()}")
+                ant.invokeMethod("signjar", options)
             } catch (e: Exception) {
                 // Not adding error message as it's always meaningless, logs with --INFO level contain more insights
                 throw InvalidUserDataException("Exception while signing ${path.fileName}, " +
                         "ensure the 'cordapp.signing.options' entry contains correct keyStore configuration, " +
                         "or disable signing by 'cordapp.signing.enabled false'. " +
-                        if (task.logger.isInfoEnabled || task.logger.isDebugEnabled) "Search for 'ant:signjar' in log output."
+                        if (logger.isInfoEnabled || logger.isDebugEnabled) "Search for 'ant:signjar' in log output."
                         else "Run with --info or --debug option and search for 'ant:signjar' in log output. ", e)
             } finally {
                 if (signing.options.hasDefaultOptions()) {
-                    Files.delete(Paths.get(options[SigningOptions.Key.KEYSTORE]))
+                    options[SigningOptions.Key.KEYSTORE]?.apply {
+                        Paths.get(this).toFile().delete()
+                    }
                 }
+            }
+        }
+
+        private fun MutableMap<String, String>.toSanitized(): Map<String, String> {
+            return LinkedHashMap(this).also {
+                it.computeIfPresent(SigningOptions.Key.KEYPASS) { _, _ -> DUMMY_VALUE }
+                it.computeIfPresent(SigningOptions.Key.STOREPASS) { _, _ -> DUMMY_VALUE }
             }
         }
     }
 
     init {
         description = "Signs the given jars using the configuration from cordapp.signing.options."
-        group = "Cordapp"
+        group = GROUP_NAME
     }
 
     private val signing: Signing = project.extensions.getByType(CordappExtension::class.java).signing
@@ -78,8 +89,8 @@ open class SignJar @Inject constructor(objects: ObjectFactory) : DefaultTask() {
     private val _inputJars: ConfigurableFileCollection = objects.fileCollection()
     val inputJars: FileCollection
         @PathSensitive(RELATIVE)
-        @InputFiles
         @SkipWhenEmpty
+        @InputFiles
         get() = _inputJars
 
     fun setInputJars(jars: Any?) {
@@ -113,8 +124,8 @@ open class SignJar @Inject constructor(objects: ObjectFactory) : DefaultTask() {
     fun build() {
         for (file: File in inputJars) {
             val signedFile = toSigned(file).get()
-            Files.copy(file.toPath(), signedFile.toPath(), StandardCopyOption.REPLACE_EXISTING)
-            sign(this, signing, signedFile)
+            Files.copy(file.toPath(), signedFile.toPath(), REPLACE_EXISTING)
+            sign(signing, signedFile)
         }
     }
 }
