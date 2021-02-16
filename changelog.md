@@ -1,5 +1,9 @@
 # Changelog
 
+## Version 6
+
+### Version 6.0.0
+
 ## Version 5
 
 ### Version 5.0.13
