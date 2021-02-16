@@ -12,6 +12,7 @@ import org.gradle.api.file.ProjectLayout
 import org.gradle.api.file.RegularFile
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Console
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
@@ -90,16 +91,10 @@ open class JarFilterTask @Inject constructor(objects: ObjectFactory, layouts: Pr
         _jars.elements.map { files ->
             files.map { file -> toFiltered(dir, file) }
         }
-    })
-    val filtered: FileCollection
+    }).apply(ConfigurableFileCollection::disallowChanges)
+    val filtered: Provider<Set<FileSystemLocation>>
         @OutputFiles
-        get() {
-            // Don't compute these values more than once.
-            // Replace with finalizeValueOnRead() immediately after
-            // construction when we upgrade this plugin to Gradle 6.1.
-            _filtered.finalizeValue()
-            return _filtered
-        }
+        get() = _filtered.elements
 
     private fun toFiltered(dir: Directory, source: File): RegularFile {
         return dir.file(source.name.replace(JAR_PATTERN, "-filtered\$1"))

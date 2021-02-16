@@ -71,16 +71,10 @@ open class MetaFixerTask @Inject constructor(objects: ObjectFactory, layouts: Pr
         _jars.elements.map { files ->
             files.map { file -> toMetaFixed(dir, file) }
         }
-    })
-    val metafixed: FileCollection
+    }).apply(ConfigurableFileCollection::disallowChanges)
+    val metafixed: Provider<Set<FileSystemLocation>>
         @OutputFiles
-        get() {
-            // Don't compute these values more than once.
-            // Replace with finalizeValueOnRead() immediately after
-            // construction when we upgrade this plugin to Gradle 6.1.
-            _metafixed.finalizeValue()
-            return _metafixed
-        }
+        get() = _metafixed.elements
 
     private fun toMetaFixed(dir: Directory, source: File): Provider<RegularFile> {
         return dir.file(suffix.map { sfx -> source.name.replace(JAR_PATTERN, "$sfx\$1") })
