@@ -41,7 +41,7 @@ open class Baseform(objects: ObjectFactory) : DefaultTask() {
         group = GROUP_NAME
     }
 
-    @get:Input
+    @get:Internal
     var directory: Path = project.buildDir.toPath().resolve("nodes")
 
     @get:Nested
