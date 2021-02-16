@@ -4,6 +4,8 @@
 
 ### Version 6.0.0
 
+* Compatible with Gradle 6.x.
+
 ## Version 5
 
 ### Version 5.0.13
