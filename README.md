@@ -9,15 +9,18 @@ belong in this repository.
 
 ## Version number
 
-To modify the version number edit the root build.gradle.
+To modify the version number edit the root `build.gradle`.
 
 Until `v4.0`, the version number was tracking the Corda version number it was built for. Eg; Corda `4.0` was built as `4.0.x`.
 This was broken from `v4.3` onwards (Corda 4.3 and plugins 5.0). The major version number will change when there is a breaking change,
 for example when the minimum (major) version of Gradle changes.
 
+Corda 5 requires Corda Gradle Plugins 6.x.
+
 ## Getting started
 
 You will need JVM 8 installed and on the path to run and install these plugins.
+However, some plugins may also require a Java 11 toolchain for testing purposes.
 
 ## Installing locally
 
@@ -58,20 +61,20 @@ you with a `runnodes` script to boot it all up afterwards.
 
 - [`net.corda.plugins.quasar-utils`](quasar-utils/README.rst)\
 This plugin configures a Gradle module to use Quasar. Specifically:
-    - It allows you to specify the Maven group, version and classifier of
-the `quasar-core` artifact to use.
-    - Adds the `quasar-core` artifact, along with all of its transitive
-dependencies, to Gradle's `cordaRuntime` configuration.
-    - Adds the `quasar-core` artifact to Gradle's `compileOnly`
+    - It allows you to specify the Maven group and version of
+the `quasar-core-osgi` artifacts to use.
+    - Adds the `quasar-core-osgi` artifact, along with all of its transitive
+dependencies, to Gradle's `cordaRuntimeOnly` configuration.
+    - Adds the `quasar-core-osgi` artifact to Gradle's `cordaProvided`
 configuration without any of its transitive dependencies.
-    - Applies `quasar-core` as a Java agent to all of the module's
+    - Applies the `quasar-core-osgi` Java agent to all of the module's
 `JavaExec` tasks.
-    - Applies `quasar-core` as a Java agent to all of the module's
+    - Applies the `quasar-core-osgi` Java agent to all of the module's
 `Test` tasks.
     - Provides a `quasar` Gradle extension so that you can configure
-which classes the Quasar java agent should not instrument at runtime.
+which packages the Quasar Java agent should not instrument at runtime.
 
-    <sup>Requires Gradle 5.1</sup>
+    <sup>Requires Gradle 6.6</sup>
 
 ### Internal Corda plugins.
 These plugins are unlikely to be useful to CorDapp developers outside of R3.

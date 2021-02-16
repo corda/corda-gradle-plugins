@@ -28,7 +28,7 @@ class QuasarPlugin implements Plugin<Project> {
 
     private static final String QUASAR = "quasar"
     private static final String QUASAR_AGENT = "quasarAgent"
-    private static final String MINIMUM_GRADLE_VERSION = "5.1"
+    private static final String MINIMUM_GRADLE_VERSION = "6.6"
     private static final String CORDA_PROVIDED_CONFIGURATION_NAME = "cordaProvided"
     private static final String CORDA_RUNTIME_ONLY_CONFIGURATION_NAME = "cordaRuntimeOnly"
     @PackageScope static final String defaultGroup = "co.paralleluniverse"

@@ -4,7 +4,7 @@
 
 ### Version 6.0.0
 
-* Compatible with Gradle 6.x.
+* Compatible with Gradle 6.6+.
 * `quasar-utils`: Upgrade to use Quasar 0.8.5_r3 OSGi bundles.
 * `quasar-utils`: Support configurable `@Suspendable` annotation.
 
