@@ -1,12 +1,51 @@
 package net.corda.plugins.quasar
 
+
 import groovy.transform.PackageScope
+import org.gradle.api.Action
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 
 import javax.inject.Inject
+
+class JavacPluginExtension {
+
+    /**
+     * Activates the javac compiler plugin to detect missing @Suspendable annotations
+     */
+    Property<Boolean> enable
+
+    ListProperty<String> suspendableAnnotationMarkers
+
+    /**
+     * Add the specified annotation classes to the list of annotations that makes methods suspendable
+     * @param suspendable annotation class names
+     * @return
+     */
+    def suspendableAnnotationMarkers(String...classNames) {
+        suspendableAnnotationMarkers.addAll(classNames)
+    }
+
+    ListProperty<String> suspendableThrowableMarkers
+
+    /**
+     * Add the specified exception classes to the list of exceptions that makes methods suspendable
+     * @param suspendable exception class names
+     * @return
+     */
+    def suspendableThrowableMarkers(String...classNames) {
+        suspendableThrowableMarkers.addAll(classNames)
+    }
+
+    @Inject
+    JavacPluginExtension(ObjectFactory objects) {
+        enable = objects.property(Boolean.class).convention(false)
+        suspendableAnnotationMarkers = objects.listProperty(String)
+        suspendableThrowableMarkers = objects.listProperty(String)
+    }
+}
 
 class QuasarExtension {
 
@@ -31,6 +70,15 @@ class QuasarExtension {
     final Provider<Map<String, String>> dependency
 
     /**
+     * Activates the javac compiler plugin to detect missing @Suspendable annotations
+     */
+    private final JavacPluginExtension javacPluginExtension
+
+    JavacPluginExtension getJavacPluginExtension() {
+        return javacPluginExtension
+    }
+
+    /**
      * Runtime options for the Quasar agent:
      * - debug
      * - verbose
@@ -47,6 +95,10 @@ class QuasarExtension {
 
     @PackageScope
     final Provider<String> options
+
+    def javacPlugin(Action<JavacPluginExtension> action) {
+        action.execute(javacPluginExtension)
+    }
 
     @Inject
     QuasarExtension(
@@ -67,6 +119,7 @@ class QuasarExtension {
                 }
             }
         }
+        javacPluginExtension = objects.newInstance(JavacPluginExtension.class)
 
         debug = objects.property(Boolean).convention(false)
         verbose = objects.property(Boolean).convention(false)

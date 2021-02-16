@@ -1,22 +1,86 @@
 package net.corda.plugins.quasar
 
 import groovy.transform.PackageScope
-import org.gradle.api.GradleException
-import org.gradle.api.InvalidUserDataException
-import org.gradle.api.Plugin
-import org.gradle.api.Project
+import org.gradle.api.*
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.JavaPlugin
+import org.gradle.api.provider.Provider
+import org.gradle.api.resources.MissingResourceException
+import org.gradle.api.resources.ReadableResource
+import org.gradle.api.resources.ResourceException
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.JavaExec
+import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.TaskProvider
+import org.gradle.api.tasks.compile.JavaCompile
+import org.gradle.api.tasks.testing.Test
 import org.gradle.util.GradleVersion
+
+import javax.inject.Inject
 
 import static org.gradle.api.plugins.JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME
 import static org.gradle.api.plugins.JavaPlugin.RUNTIME_CONFIGURATION_NAME
-import org.gradle.api.tasks.JavaExec
-import org.gradle.api.tasks.testing.Test
 
-import javax.inject.Inject
+class ExtractJavaPluginTask extends DefaultTask {
+
+    final Provider<Boolean> javacPluginEnabled
+
+    @Input
+    final File thisPluginJar
+
+    final File outputDir
+
+    @Inject
+    ExtractJavaPluginTask(JavacPluginExtension javacPluginExtension) {
+        javacPluginEnabled = javacPluginExtension.enable
+        String resourceName = QuasarPlugin.class.name.replace('.', '/') + '.class'
+        String url = QuasarPlugin.class.classLoader.getResource(resourceName).toString()
+        String prefix = "file:"
+        int start = url.indexOf(prefix) + prefix.length()
+        int end = url.indexOf('!', start)
+        thisPluginJar = new File(url.substring(start, end))
+
+        outputDir = new File(project.buildDir, "classes/javacPlugin")
+        outputs.dir(outputDir)
+    }
+
+    @TaskAction
+    def run() {
+        if(javacPluginEnabled) {
+            if (!outputDir.exists()) outputDir.mkdirs()
+            project.resources
+            ReadableResource readableResource = new ReadableResource() {
+                private URL url = QuasarPlugin.class.getResource("/META-INF/javac-plugin.tar")
+                @Override
+                InputStream read() throws MissingResourceException, ResourceException {
+                    return url.openStream()
+                }
+
+                @Override
+                String getDisplayName() {
+                    return "javac-plugin.tar"
+                }
+
+                @Override
+                URI getURI() {
+                    return url.toURI()
+                }
+
+                @Override
+                String getBaseName() {
+                    return "javac-plugin"
+                }
+            }
+
+            project.copy {
+                from project.tarTree(readableResource)
+                into outputDir
+            }
+        }
+    }
+}
 
 /**
  * QuasarPlugin creates a "quasar" configuration and adds quasar as a dependency.
@@ -59,7 +123,12 @@ class QuasarPlugin implements Plugin<Project> {
             throw new InvalidUserDataException("quasar_classloader_exclusions property must be an Iterable<String>")
         }
         def quasarExtension = project.extensions.create(QUASAR, QuasarExtension, objects,
-                quasarGroup, quasarVersion, quasarClassifier, quasarPackageExclusions, quasarClassLoaderExclusions)
+                quasarGroup,
+                quasarVersion,
+                quasarClassifier,
+                quasarPackageExclusions,
+                quasarClassLoaderExclusions
+        )
 
         addQuasarDependencies(project, quasarExtension)
         configureQuasarTasks(project, quasarExtension)
@@ -98,6 +167,27 @@ class QuasarPlugin implements Plugin<Project> {
             doFirst {
                 jvmArgs "-javaagent:${project.configurations[QUASAR].singleFile}${extension.options.get()}",
                         "-Dco.paralleluniverse.fibers.verifyInstrumentation"
+            }
+        }
+
+        TaskProvider<ExtractJavaPluginTask> extractJavacPluginTask = project.tasks.register("extractJavacPlugin", ExtractJavaPluginTask, extension.javacPluginExtension)
+
+        project.tasks.withType(JavaCompile).configureEach {
+            inputs.files(extractJavacPluginTask.get().outputs.files)
+            doFirst {
+                List<String> compilerArgs = ["-Xplugin:net.corda.plugins.javac.quasar.SuspendableChecker"]
+                extension.javacPluginExtension.suspendableAnnotationMarkers.get().with { classNames ->
+                    if(classNames) {
+                        compilerArgs += "annotations:${classNames.join(',')}"
+                    }
+                }
+                extension.javacPluginExtension.suspendableThrowableMarkers.get().with { classNames ->
+                    if(classNames) {
+                        compilerArgs += "throwables:${classNames.join(',')}"
+                    }
+                }
+                options.annotationProcessorPath += extractJavacPluginTask.get().outputs.files
+                options.compilerArgs += compilerArgs.join(" ")
             }
         }
     }
