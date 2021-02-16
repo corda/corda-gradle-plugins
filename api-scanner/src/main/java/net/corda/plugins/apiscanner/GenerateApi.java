@@ -15,6 +15,8 @@ import org.gradle.api.tasks.*;
 import javax.annotation.Nonnull;
 import java.io.*;
 import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.List;
 
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toList;
@@ -51,11 +53,11 @@ public class GenerateApi extends DefaultTask {
                         .withType(ScanApi.class)
                         .matching(ScanApi::isEnabled)
                         .stream())
-                    .flatMap(scanTask -> scanTask.getTargets().getFiles().stream())
-                    .sorted(comparing(File::getName))
+                    .map(ScanApi::getTargets)
                     .collect(toList())
             )
         );
+        sources.disallowChanges();
     }
 
     @Nonnull
@@ -80,10 +82,6 @@ public class GenerateApi extends DefaultTask {
     @PathSensitive(RELATIVE)
     @InputFiles
     public FileCollection getSources() {
-        // Don't compute these values more than once.
-        // Replace with finalizeValueOnRead() immediately after
-        // construction when we upgrade this plugin to Gradle 6.1.
-        sources.finalizeValue();
         return sources;
     }
 
@@ -95,12 +93,19 @@ public class GenerateApi extends DefaultTask {
     @TaskAction
     public void generate() {
         try (OutputStream output = new BufferedOutputStream(new FileOutputStream(target.get().getAsFile()))) {
-            for (File apiFile : sources) {
+            for (File apiFile : getApiFiles()) {
                 Files.copy(apiFile.toPath(), output);
             }
         } catch (IOException e) {
             getLogger().error("Failed to generate API file: {}", e.getMessage());
             throw new InvalidUserCodeException(e.getMessage(), e);
         }
+    }
+
+    @Nonnull
+    private List<File> getApiFiles() {
+        List<File> apiFiles = new ArrayList<>(sources.getFiles());
+        apiFiles.sort(comparing(File::getName));
+        return apiFiles;
     }
 }

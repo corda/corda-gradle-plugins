@@ -104,6 +104,7 @@ class ScanApi extends DefaultTask {
                 files.stream().map(file -> toTarget(dir, file)).collect(toList())
             ))
         );
+        targets.disallowChanges();
 
         setDescription("Summarises the target JAR's public and protected API elements.");
         setGroup(GROUP_NAME);
@@ -158,18 +159,14 @@ class ScanApi extends DefaultTask {
         this.excludeMethods.empty()
             .putAll(excludeMethods.map(m -> {
                 Map<String, Set<String>> result = new LinkedHashMap<>();
-                m.forEach((key, value) -> result.put(key, new LinkedHashSet<String>((Collection<String>)value)));
+                m.forEach((key, value) -> result.put(key, new LinkedHashSet<>((Collection<String>)value)));
                 return result;
             }));
     }
 
     @OutputFiles
-    public FileCollection getTargets() {
-        // Don't compute these values more than once.
-        // Replace with finalizeValueOnRead() immediately after
-        // construction when we upgrade this plugin to Gradle 6.1.
-        targets.finalizeValue();
-        return targets;
+    public Provider<Set<FileSystemLocation>> getTargets() {
+        return targets.getElements();
     }
 
     @Console
