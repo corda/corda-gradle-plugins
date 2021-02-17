@@ -23,7 +23,7 @@ class PublishPlugin implements Plugin<Project> {
     private static final String BINTRAY_CONFIG_EXTENSION_NAME = 'bintrayConfig'
     private static final String PUBLISH_EXTENSION_NAME = 'publish'
     private static final String INSTALL_TASK_NAME = 'install'
-    private static final String MINIMUM_GRADLE_VERSION = "5.1"
+    private static final String MINIMUM_GRADLE_VERSION = "6.6"
 
     @PackageScope
     static final String PUBLISH_CONFIGURATION_NAME = 'publish'

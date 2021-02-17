@@ -109,4 +109,4 @@ Unfortunately, it is heavily constrained by how JFrog's Bintray and Artifactory
 plugins themselves work, and so we're currently stuck with it "as is". It _is_
 useful though - just shut your eyes and hold your nose.
 
-    <sup>Requires Gradle 5.1</sup>
+    <sup>Requires Gradle 6.6</sup>
