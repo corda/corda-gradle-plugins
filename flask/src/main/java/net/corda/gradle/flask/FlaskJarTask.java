@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import net.corda.flask.common.Flask;
 import org.gradle.api.Action;
+import org.gradle.api.GradleException;
 import org.gradle.api.NamedDomainObjectCollection;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.internal.file.CopyActionProcessingStreamAction;
@@ -19,12 +20,13 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
+import org.gradle.util.GradleVersion;
 
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
-import java.io.*;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
+import java.io.File;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.security.MessageDigest;
 import java.util.Base64;
 import java.util.List;
@@ -38,8 +40,16 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
-
 public class FlaskJarTask extends AbstractArchiveTask {
+
+    private static final String MINIMUM_GRADLE_VERSION = "6.0";
+
+    static {
+        if (GradleVersion.current().compareTo(GradleVersion.version(MINIMUM_GRADLE_VERSION)) < 0) {
+            throw new GradleException(FlaskJarTask.class.getName() +
+                    " requires Gradle " + MINIMUM_GRADLE_VERSION + " or newer.");
+        }
+    }
 
     private final Property<String> launcherClassName;
 
