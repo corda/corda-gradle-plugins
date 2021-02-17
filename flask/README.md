@@ -132,8 +132,8 @@ in the jar manifest main attribute:
   
 And 2 properties files in the `META-INF` folder:
 
-- `jvmArgs.properties` contains the jvm argument list it is supposed to use to spawn the child process
-- `javaAgents.properties` contains the list of hashes of the java agents jars and their arguments
+- `jvmArgs.xml` contains the jvm argument list it is supposed to use to spawn the child process
+- `javaAgents.xml` contains the list of hashes of the java agents jars and their arguments
 
 When the executable jar is started, the method `net.corda.flask.launcher.Launcher.main` is invoked. 
 It uses a cache directory, whose location is platform dependent and that is shared between all **Flask** processes, 
