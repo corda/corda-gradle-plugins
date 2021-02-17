@@ -85,7 +85,7 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
      */
     @TaskAction
     fun build() {
-        project.logger.lifecycle("Running DockerForm task")
+        logger.lifecycle("Running DockerForm task")
         initializeConfiguration()
         nodes.forEach { it.installDockerConfig(DEFAULT_SSH_PORT) }
         installCordaJar()
