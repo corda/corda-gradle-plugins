@@ -82,6 +82,7 @@ class MetaFixConfigurationTests {
             .withProjectDir(testProjectDir.toFile())
             .withArguments(getBasicArgsForTasks("metafix"))
             .withPluginClasspath()
+            .withDebug(true)
     }
 
     private fun BuildResult.forTask(name: String): BuildTask {

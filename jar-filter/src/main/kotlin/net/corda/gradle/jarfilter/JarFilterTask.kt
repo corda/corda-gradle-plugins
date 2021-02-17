@@ -12,7 +12,6 @@ import org.gradle.api.file.ProjectLayout
 import org.gradle.api.file.RegularFile
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
-import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Console
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
@@ -87,14 +86,18 @@ open class JarFilterTask @Inject constructor(objects: ObjectFactory, layouts: Pr
         outputDir.set(dir)
     }
 
-    private val _filtered: ConfigurableFileCollection = project.files(outputDir.map { dir ->
-        _jars.elements.map { files ->
-            files.map { file -> toFiltered(dir, file) }
-        }
-    }).apply(ConfigurableFileCollection::disallowChanges)
-    val filtered: Provider<Set<FileSystemLocation>>
+    private val _filtered = objects.fileCollection().apply {
+        setFrom(outputDir.flatMap { dir ->
+            _jars.elements.map { files ->
+                files.map { file -> toFiltered(dir, file) }
+            }
+        })
+        disallowChanges()
+    }
+
+    val filtered: FileCollection
         @OutputFiles
-        get() = _filtered.elements
+        get() = _filtered
 
     private fun toFiltered(dir: Directory, source: File): RegularFile {
         return dir.file(source.name.replace(JAR_PATTERN, "-filtered\$1"))
