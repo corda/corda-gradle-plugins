@@ -58,3 +58,9 @@ dependencies {
 tasks.named("pluginUnderTestMetadata", PluginUnderTestMetadata) {
     pluginClasspath.from(project.configurations.named("compileOnly"))
 }
+
+tasks.withType(Test).configureEach {
+    javaLauncher = javaToolchains.launcherFor {
+        languageVersion = JavaLanguageVersion.of(11)
+    }
+}

@@ -114,7 +114,6 @@ class FlaskPluginTest {
     }
 
     @Test
-    @EnabledForJreRange(min = JRE.JAVA_11)
     void runFlaskJar() {
         invokeGradle("flaskRun")
         Path propertiesFile = testProjectDir.resolve("build/testLauncher.properties")
@@ -128,7 +127,6 @@ class FlaskPluginTest {
     }
 
     @Test
-    @EnabledForJreRange(min = JRE.JAVA_11)
     void runFlaskJarMainClassOverride() {
         invokeGradle("flaskRunMainClassOverride")
         Path propertiesFile = testProjectDir.resolve("build/testLauncher.properties")

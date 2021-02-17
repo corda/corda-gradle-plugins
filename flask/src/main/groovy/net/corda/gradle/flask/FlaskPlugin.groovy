@@ -21,8 +21,8 @@ class FlaskPlugin implements Plugin<Project> {
         project.getPluginManager().apply(JavaPlugin.class)
         Provider<Directory> flaskDir = project.layout.buildDirectory.dir("classes/flask-launcher")
         Provider<Copy> extractLauncherTarProvider = project.tasks.register("extractLauncherTar", Copy) {
-            setGroup(Flask.Constants.GRADLE_TASK_GROUP)
-            setDescription("Extract the Flask Launcher classes to be used to build a custom launcher")
+            group = Flask.Constants.GRADLE_TASK_GROUP
+            description = "Extract the Flask Launcher classes to be used to build a custom launcher"
             into(flaskDir)
             from(project.tarTree(LauncherResource.instance))
         }
@@ -36,7 +36,7 @@ class FlaskPlugin implements Plugin<Project> {
         }
 
         Provider<FlaskJarTask> flaskJarTask = project.tasks.register("flaskJar", FlaskJarTask.class) {
-            setDescription("Package the current project code in an executable jar file")
+            description = "Package the current project code in an executable jar file"
             archiveBaseName = "${project.name}-flask"
             inputs.files(flaskSourceSet.output)
             from {
@@ -58,8 +58,8 @@ class FlaskPlugin implements Plugin<Project> {
             }
         }
         project.tasks.register('flaskRun', JavaExec) {
-            setGroup(Flask.Constants.GRADLE_TASK_GROUP)
-            setDescription("Run the jar file created by the 'flaskJar' task")
+            group = Flask.Constants.GRADLE_TASK_GROUP
+            description = "Run the jar file created by the 'flaskJar' task"
             inputs.files(flaskJarTask)
             classpath(flaskJarTask)
         }

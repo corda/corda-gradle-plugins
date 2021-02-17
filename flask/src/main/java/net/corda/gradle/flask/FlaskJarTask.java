@@ -82,7 +82,7 @@ public class FlaskJarTask extends AbstractArchiveTask {
         setGroup(Flask.Constants.GRADLE_TASK_GROUP);
         setDescription("Creates an executable jar file, embedding all of its runtime dependencies and default JVM arguments");
         BasePluginConvention basePluginConvention = getProject().getConvention().getPlugin(BasePluginConvention.class);
-        getDestinationDirectory().set(basePluginConvention.getLibsDir());
+        getDestinationDirectory().set(basePluginConvention.getLibsDirectory());
         getArchiveBaseName().convention(getProject().getName());
         getArchiveExtension().convention("jar");
         launcherClassName = objects.property(String.class).convention(Flask.Constants.DEFAULT_LAUNCHER_NAME);
