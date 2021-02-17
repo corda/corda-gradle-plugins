@@ -4,7 +4,6 @@ import net.corda.plugins.cpk.signing.SigningOptions
 import org.gradle.api.DefaultTask
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Task
-import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileSystemLocation
 import org.gradle.api.model.ObjectFactory
@@ -86,39 +85,39 @@ open class SignJar @Inject constructor(objects: ObjectFactory) : DefaultTask() {
     @get:Input
     val postfix: Property<String> = objects.property(String::class.java).convention("-signed")
 
-    private val _inputJars: ConfigurableFileCollection = objects.fileCollection()
+    private val _inputJars = objects.fileCollection()
     val inputJars: FileCollection
         @PathSensitive(RELATIVE)
         @SkipWhenEmpty
         @InputFiles
         get() = _inputJars
 
-    fun setInputJars(jars: Any?) {
-        _inputJars.setFrom(jars ?: return)
+    fun setInputJars(vararg jars: Any) {
+        _inputJars.setFrom(*jars)
     }
 
-    fun inputJars(jars: Any?) = setInputJars(jars)
+    fun inputJars(vararg jars: Any) {
+        _inputJars.setFrom(*jars)
+    }
 
-    private val _outputJars: ConfigurableFileCollection = objects.fileCollection().from(
-        _inputJars.elements.map { files ->
-            files.map(::toSigned)
-        }
-    ).apply(HasConfigurableValue::finalizeValueOnRead)
-        .apply(HasConfigurableValue::disallowChanges)
+    private val _outputJars = objects.fileCollection().apply {
+        setFrom(_inputJars.elements.map { files -> files.map(::toSigned) })
+        disallowChanges()
+    }
 
     val outputJars: FileCollection
         @OutputFiles
         get() = _outputJars
 
+    private fun toSigned(file: FileSystemLocation): Provider<File> = toSigned(file.asFile)
+
     private fun toSigned(file: File): Provider<File> {
         val path = file.absolutePath
         val lastDot = path.lastIndexOf('.')
-        return postfix.map { post ->
-            File(path.substring(0, lastDot) + post + path.substring(lastDot))
+        return postfix.map { pfx ->
+            File(path.substring(0, lastDot) + pfx + path.substring(lastDot))
         }
     }
-
-    private fun toSigned(file: FileSystemLocation): Provider<File> = toSigned(file.asFile)
 
     @TaskAction
     fun build() {
