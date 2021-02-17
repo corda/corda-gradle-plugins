@@ -21,14 +21,19 @@ class QuasarExtension {
     final Property<String> version
 
     /**
-     * Maven classifier for the Quasar agent.
+     * Class name for Quasar's @Suspendable annotation.
      */
-    final Property<String> classifier
+    final Property<String> suspendableAnnotation
+
+    /**
+     * Dependency notation for the Quasar bundle to use.
+     */
+    final Provider<Map<String, String>> dependency
 
     /**
      * Dependency notation for the Quasar agent to use.
      */
-    final Provider<Map<String, String>> dependency
+    final Provider<Map<String, String>> agent
 
     /**
      * Runtime options for the Quasar agent:
@@ -53,23 +58,23 @@ class QuasarExtension {
         ObjectFactory objects,
         String defaultGroup,
         String defaultVersion,
-        String defaultClassifier,
+        String defaultSuspendable,
         Iterable<? extends String> initialPackageExclusions,
         Iterable<? extends String> initialClassLoaderExclusions
     ) {
         group = objects.property(String).convention(defaultGroup)
         version = objects.property(String).convention(defaultVersion)
-        classifier = objects.property(String).convention(defaultClassifier)
-        dependency = group.flatMap { grp ->
-            version.flatMap { ver ->
-                classifier.map { cls ->
-                    [ group: grp, name: 'quasar-core', version: ver, classifier: cls, ext: 'jar' ]
-                }
-            }
+        dependency = group.zip(version) { grp, ver ->
+            [ group: grp, name: 'quasar-core-osgi', version: ver, ext: 'jar' ]
+        }
+        agent = dependency.map {
+            it['classifier'] = 'agent'
+            it
         }
 
         debug = objects.property(Boolean).convention(false)
         verbose = objects.property(Boolean).convention(false)
+        suspendableAnnotation = objects.property(String).convention(defaultSuspendable)
         excludePackages = objects.listProperty(String)
         excludePackages.set(initialPackageExclusions)
         excludeClassLoaders = objects.listProperty(String)
@@ -77,21 +82,27 @@ class QuasarExtension {
         options = excludePackages.flatMap { packages ->
             excludeClassLoaders.flatMap { classLoaders ->
                 debug.flatMap { isDebug ->
-                    verbose.map { isVerbose ->
-                        def builder = new StringBuilder('=')
-                        if (isDebug) {
-                            builder.append('d')
+                    verbose.flatMap { isVerbose ->
+                        suspendableAnnotation.orElse('').map { ann ->
+                            def builder = new StringBuilder('=')
+                            if (isDebug) {
+                                builder.append('d')
+                            }
+                            if (isVerbose) {
+                                builder.append('v')
+                            }
+                            if (!packages.isEmpty()) {
+                                builder.append('x(').append(packages.join(';')).append(')')
+                            }
+                            if (!classLoaders.isEmpty()) {
+                                builder.append('l(').append(classLoaders.join(';')).append(')')
+                            }
+                            final String annotation = ann.trim()
+                            if (!annotation.isEmpty()) {
+                                builder.append('a(SUSPENDABLE=').append(annotation).append(')')
+                            }
+                            builder.length() == 1 ? '' : builder.toString()
                         }
-                        if (isVerbose) {
-                            builder.append('v')
-                        }
-                        if (!packages.isEmpty()) {
-                            builder.append('x(').append(packages.join(';')).append(')')
-                        }
-                        if (!classLoaders.isEmpty()) {
-                            builder.append('l(').append(classLoaders.join(';')).append(')')
-                        }
-                        builder.length() == 1 ? '' : builder.toString()
                     }
                 }
             }
