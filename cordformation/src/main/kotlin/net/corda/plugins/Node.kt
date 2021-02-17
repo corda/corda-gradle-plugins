@@ -6,6 +6,7 @@ import net.corda.plugins.Cordformation.Companion.CORDA_DRIVER_CONFIGURATION_NAME
 import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ProjectDependency
+import org.gradle.api.plugins.JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
@@ -29,6 +30,7 @@ open class Node @Inject constructor(private val project: Project) {
         const val webJarName = "corda-testserver.jar"
         const val configFileProperty = "configFile"
         const val DEFAULT_HOST = "localhost"
+        const val LOGS_DIR_NAME = "logs"
     }
 
     /**
@@ -488,8 +490,6 @@ open class Node @Inject constructor(private val project: Project) {
         runNodeJob(createSchemasCmd(), "node-schema-cordform.log")
     }
 
-    private val LOGS_DIR_NAME: String = "logs"
-
     private fun runNodeJob(command: List<String>, logfileName: String) {
         val logsDir = Files.createDirectories(nodeDir.toPath().resolve(LOGS_DIR_NAME))
         val nodeRedirectFile = logsDir.resolve(logfileName).toFile()
@@ -535,7 +535,7 @@ open class Node @Inject constructor(private val project: Project) {
         // TODO: improve how we re-use existing declared external variables from root gradle.build
         val jolokiaVersion = project.findRootProperty("jolokia_version") ?: "1.6.0"
 
-        val agentJar = project.configuration("runtimeClasspath").files {
+        val agentJar = project.configuration(RUNTIME_CLASSPATH_CONFIGURATION_NAME).files {
             (it.group == "org.jolokia") &&
                     (it.name == "jolokia-jvm") &&
                     (it.version == jolokiaVersion)

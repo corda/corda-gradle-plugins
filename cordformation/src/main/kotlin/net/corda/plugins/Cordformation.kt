@@ -33,6 +33,7 @@ class Cordformation : Plugin<Project> {
             tmpDir.mkdir()
             outputFile.outputStream().use { output ->
                 Cordformation::class.java.getResourceAsStream(filePathInJar)?.use { input ->
+                    // The copyTo() function uses its own buffer.
                     input.copyTo(output)
                 }
             }
