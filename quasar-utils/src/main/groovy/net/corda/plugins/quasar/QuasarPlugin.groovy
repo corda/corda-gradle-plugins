@@ -86,7 +86,7 @@ class QuasarPlugin implements Plugin<Project> {
         // If we're building a JAR then also add the Quasar bundle to the appropriate configurations.
         project.pluginManager.withPlugin('java') {
             // Add Quasar bundle to the compile classpath WITHOUT any of its transitive dependencies.
-            def cordaProvided = createCompileOnlyConfiguration(CORDA_PROVIDED_CONFIGURATION_NAME, project.configurations)
+            def cordaProvided = createCompileConfiguration(CORDA_PROVIDED_CONFIGURATION_NAME, project.configurations)
             cordaProvided.withDependencies(new QuasarAction(project.dependencies, extension, false))
 
             // Instrumented code needs both the Quasar bundle and its transitive dependencies at runtime.
@@ -120,12 +120,16 @@ class QuasarPlugin implements Plugin<Project> {
         return configuration
     }
 
-    private static Configuration createCompileOnlyConfiguration(String name, ConfigurationContainer configurations) {
+    private static Configuration createCompileConfiguration(String name, ConfigurationContainer configurations) {
+        return createCompileConfiguration(name, "Implementation", configurations)
+    }
+
+    private static Configuration createCompileConfiguration(String name, String testSuffix, ConfigurationContainer configurations) {
         Configuration configuration = configurations.findByName(name)
         if (configuration == null) {
             configuration = configurations.create(name)
             configurations.getByName(COMPILE_ONLY_CONFIGURATION_NAME).extendsFrom(configuration)
-            configurations.matching { it.name.endsWith("CompileOnly") }.configureEach { cfg ->
+            configurations.matching { it.name.endsWith(testSuffix) }.configureEach { cfg ->
                 cfg.extendsFrom(configuration)
             }
         }

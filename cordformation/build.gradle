@@ -68,8 +68,8 @@ dependencies {
     testImplementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
     testImplementation 'org.jetbrains.kotlin:kotlin-reflect'
     testImplementation 'org.jetbrains.kotlin:kotlin-test'
-    testImplementation("org.junit.jupiter:junit-jupiter-api:$junit_jupiter_version")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junit_jupiter_version")
+    testImplementation "org.junit.jupiter:junit-jupiter-api:$junit_jupiter_version"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junit_jupiter_version"
     testImplementation "org.assertj:assertj-core:$assertj_version"
     testImplementation "net.corda:corda-serialization:$corda_release_version"
     testRuntimeOnly "net.corda:corda-node-api:$corda_release_version"
@@ -93,15 +93,6 @@ def generateSource = tasks.register('generateSource', Copy) {
 
 tasks.named('compileKotlin') { Task task ->
     task.dependsOn generateSource
-}
-
-tasks.named('validateTaskProperties', ValidateTaskProperties) {
-    // The official advice is to annotate Path inputs
-    // as @Input instead of @InputDirectory if we don't
-    // care about the directory contents changing.
-    // Unfortunately, Gradle also generates a warning
-    // for this which we are forced to tolerate.
-    failOnWarning = false
 }
 
 task createNodeRunner(type: Jar) {
