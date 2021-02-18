@@ -6,7 +6,9 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.FileCollection
+import org.gradle.api.file.FileSystemLocation
 import org.gradle.api.provider.Property
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputFiles
@@ -72,12 +74,12 @@ open class SignJar : DefaultTask() {
     @get:Input
     val postfix: Property<String> = project.objects.property(String::class.java).convention("-signed")
 
-    private val _inputJars: ConfigurableFileCollection = project.files()
+    private val _inputJars: ConfigurableFileCollection = project.objects.fileCollection()
 
     val inputJars: FileCollection
         @PathSensitive(RELATIVE)
-        @InputFiles
         @SkipWhenEmpty
+        @InputFiles
         get() = _inputJars
 
     fun setInputJars(jars: Any?) {
@@ -86,20 +88,28 @@ open class SignJar : DefaultTask() {
 
     fun inputJars(jars: Any?) = setInputJars(jars)
 
+    private val _outputJars = project.files(_inputJars.elements.map { files ->
+        files.map(::toSigned)
+    }).apply(ConfigurableFileCollection::disallowChanges)
+
     val outputJars: FileCollection
         @OutputFiles
-        get() = project.files(inputJars.map(::toSigned))
+        get() = _outputJars
 
-    private fun toSigned(file: File): File {
+    private fun toSigned(file: FileSystemLocation) = toSigned(file.asFile)
+
+    private fun toSigned(file: File): Provider<File> {
         val path = file.absolutePath
         val lastDot = path.lastIndexOf('.')
-        return File(path.substring(0, lastDot) + postfix.get() + path.substring(lastDot))
+        return postfix.map { pfx ->
+            File(path.substring(0, lastDot) + pfx + path.substring(lastDot))
+        }
     }
 
     @TaskAction
     fun build() {
         for (file: File in inputJars) {
-            val signedFile = toSigned(file)
+            val signedFile = toSigned(file).get()
             Files.copy(file.toPath(), signedFile.toPath(), StandardCopyOption.REPLACE_EXISTING)
             sign(project, signing, signedFile)
         }

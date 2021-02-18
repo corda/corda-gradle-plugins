@@ -26,13 +26,18 @@ import javax.inject.Inject
 class CordappPlugin @Inject constructor(private val objects: ObjectFactory): Plugin<Project> {
     private companion object {
         private const val UNKNOWN = "Unknown"
-        private const val MIN_GRADLE_VERSION = "5.1"
+        private const val MIN_GRADLE_VERSION = "5.6"
 
         private val HARDCODED_EXCLUDES: Set<Pair<String, String>> = unmodifiableSet(setOf(
             "org.jetbrains.kotlin" to "kotlin-stdlib",
             "org.jetbrains.kotlin" to "kotlin-stdlib-jre8",
             "org.jetbrains.kotlin" to "kotlin-stdlib-jdk8",
+            "org.jetbrains.kotlin" to "kotlin-stdlib-jdk7",
             "org.jetbrains.kotlin" to "kotlin-reflect",
+            "org.jetbrains.kotlin" to "kotlin-osgi-bundle",
+            "net.corda.kotlin" to "kotlin-stdlib-jdk8-osgi",
+            "net.corda.kotlin" to "kotlin-stdlib-jdk7-osgi",
+            "co.paralleluniverse" to "quasar-core-osgi",
             "co.paralleluniverse" to "quasar-core"
         ))
     }
@@ -156,7 +161,7 @@ class CordappPlugin @Inject constructor(private val objects: ObjectFactory): Plu
     private fun configurePomCreation(project: Project) {
         project.tasks.withType(GenerateMavenPom::class.java).configureEach { task ->
             task.doFirst {
-                project.logger.info("Modifying task: ${task.name} in project ${project.path} to exclude all dependencies from pom")
+                task.logger.info("Modifying task: ${task.name} in project ${project.path} to exclude all dependencies from pom")
                 // The CorDapp is a semi-fat jar, so we need to exclude its compile and runtime
                 // scoped dependencies from its Maven POM when we publish it.
                 task.pom = filterDependenciesFor(task.pom)
