@@ -1,0 +1,46 @@
+import net.corda.gradle.jarfilter.JarFilterTask
+import net.corda.gradle.jarfilter.MetaFixerTask
+
+plugins {
+    id 'org.jetbrains.kotlin.jvm'
+    id 'net.corda.plugins.jar-filter' apply false
+}
+apply from: 'repositories.gradle'
+apply from: 'kotlin.gradle'
+
+sourceSets {
+    main {
+        kotlin {
+            srcDir files('../resources/test/basic-execute/kotlin')
+        }
+    }
+}
+
+dependencies {
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
+    compileOnly files('../../unwanteds/build/libs/unwanteds.jar')
+}
+
+jar {
+    archiveBaseName = 'basic-execute'
+}
+
+tasks.register('jarFilter', JarFilterTask) {
+    jars jar
+
+    doLast {
+        filtered.forEach { file ->
+            println "RESULT: ${file.name}"
+        }
+    }
+}
+
+tasks.register('metafix', MetaFixerTask) {
+    jars jar
+
+    doLast {
+        metafixed.forEach { file ->
+            println "RESULT: ${file.name}"
+        }
+    }
+}

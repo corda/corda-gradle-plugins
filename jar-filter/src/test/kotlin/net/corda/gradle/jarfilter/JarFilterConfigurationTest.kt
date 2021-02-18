@@ -276,6 +276,7 @@ class JarFilterConfigurationTest {
             .withProjectDir(testProjectDir.toFile())
             .withArguments(getBasicArgsForTasks("jarFilter"))
             .withPluginClasspath()
+            .withDebug(true)
     }
 
     private fun BuildResult.forTask(name: String): BuildTask {

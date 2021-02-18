@@ -3,7 +3,6 @@ package net.corda.plugins.apiscanner;
 import org.gradle.api.GradleException;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskCollection;
@@ -48,14 +47,14 @@ public class ApiScanner implements Plugin<Project> {
         TaskProvider<ScanApi> scanProvider = project.getTasks().register(SCAN_TASK_NAME, ScanApi.class, scanTask -> {
             TaskCollection<Jar> jarTasks = project.getTasks()
                 .withType(Jar.class)
+                .matching(Jar::isEnabled)
                 .matching(jarTask ->
-                     matches(jarTask.getArchiveClassifier(), extension.getTargetClassifier()) && jarTask.isEnabled()
+                     matches(jarTask.getArchiveClassifier(), extension.getTargetClassifier())
                 );
-            FileCollection jarSources = project.files(jarTasks);
 
             scanTask.setClasspath(project.getConfigurations().getByName(COMPILE_CLASSPATH_CONFIGURATION_NAME));
             // Automatically creates a dependency on jar tasks.
-            scanTask.setSources(jarSources);
+            scanTask.setSources(jarTasks);
             scanTask.setExcludePackages(extension.getExcludePackages());
             scanTask.setExcludeClasses(extension.getExcludeClasses());
             scanTask.setExcludeMethods(extension.getExcludeMethods());
