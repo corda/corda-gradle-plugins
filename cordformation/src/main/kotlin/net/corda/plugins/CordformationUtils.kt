@@ -34,11 +34,15 @@ fun ConfigurationContainer.createChildConfiguration(name: String, parent: Config
     }
 }
 
-fun ConfigurationContainer.createCompileOnlyConfiguration(name: String): Configuration {
+fun ConfigurationContainer.createCompileConfiguration(name: String): Configuration {
+    return createCompileConfiguration(name, "Implementation")
+}
+
+private fun ConfigurationContainer.createCompileConfiguration(name: String, testSuffix: String): Configuration {
     return findByName(name) ?: run {
         val configuration = create(name)
         getByName(COMPILE_ONLY_CONFIGURATION_NAME).extendsFrom(configuration)
-        matching { it.name.endsWith("CompileOnly") }.configureEach { cfg ->
+        matching { it.name.endsWith(testSuffix) }.configureEach { cfg ->
             cfg.extendsFrom(configuration)
         }
         configuration

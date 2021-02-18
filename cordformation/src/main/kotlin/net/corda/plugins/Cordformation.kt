@@ -77,7 +77,7 @@ class Cordformation : Plugin<Project> {
         project.pluginManager.apply(JavaPlugin::class.java)
 
         project.configurations.apply {
-            createCompileOnlyConfiguration(CORDAPP_CONFIGURATION_NAME)
+            createCompileConfiguration(CORDAPP_CONFIGURATION_NAME)
             val cordaRuntimeOnly = createRuntimeOnlyConfiguration(CORDA_RUNTIME_ONLY_CONFIGURATION_NAME)
             createChildConfiguration(CORDFORMATION_TYPE, cordaRuntimeOnly)
             maybeCreate(CORDA_DRIVER_CONFIGURATION_NAME)
