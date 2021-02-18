@@ -7,12 +7,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
 import java.lang.reflect.Constructor;
 import java.net.URI;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -51,7 +48,7 @@ public class Launcher {
                 .collect(Collectors.toList());
     }
 
-    private static List<String> extractJvmArgsFromCliArgs(String args[], List<String> passThroughJvmArguments) {
+    private static List<String> extractJvmArgsFromCliArgs(String[] args, List<String> passThroughJvmArguments) {
         List<String> result = new ArrayList<>();
         int originalLength = passThroughJvmArguments.size();
         for(String arg : args) {
@@ -105,14 +102,15 @@ public class Launcher {
         }
         cliArgs = extractJvmArgsFromCliArgs(args, jvmArgs);
         String mainClassName = manifest.getMainAttributes().getValue(Flask.ManifestAttributes.LAUNCHER_CLASS);
+        @SuppressWarnings("unchecked")
         Class<? extends Launcher> launcherClass = (Class<? extends Launcher>)
-                Class.forName(mainClassName, true, ClassLoader.getSystemClassLoader());
+                Class.forName(mainClassName, true, Launcher.class.getClassLoader());
         Constructor<? extends Launcher> ctor = launcherClass.getConstructor();
         System.exit(ctor.newInstance().launch(manifest, jvmArgs, javaAgents, cliArgs));
     }
 
     @SneakyThrows
-    int launch(Manifest manifest, List<String> jvmArgs, List<String> javaAgents, List<String> args) {
+    final int launch(Manifest manifest, List<String> jvmArgs, List<String> javaAgents, List<String> args) {
         JarCache cache = new JarCache(CACHE_FOLDER_DEFAULT_NAME);
         if(Boolean.parseBoolean(System.getProperty(Flask.JvmProperties.WIPE_CACHE))) {
             cache.wipeLibDir();
