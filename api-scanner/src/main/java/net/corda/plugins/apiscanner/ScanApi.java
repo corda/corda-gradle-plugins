@@ -30,7 +30,10 @@ import java.net.URLClassLoader;
 import java.util.*;
 
 import static java.util.Collections.*;
-import static java.util.stream.Collectors.*;
+import static java.util.stream.Collectors.partitioningBy;
+import static java.util.stream.Collectors.toCollection;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import static net.corda.plugins.apiscanner.ApiScanner.GROUP_NAME;
 import static org.gradle.api.tasks.PathSensitivity.RELATIVE;
 
@@ -82,7 +85,7 @@ class ScanApi extends DefaultTask {
 
     private final ConfigurableFileCollection sources;
     private final ConfigurableFileCollection classpath;
-    private final ConfigurableFileCollection targets;
+    private final Provider<Set<FileSystemLocation>> targets;
     private final SetProperty<String> excludePackages;
     private final SetProperty<String> excludeClasses;
     private final MapProperty<String, Set> excludeMethods;
@@ -99,12 +102,11 @@ class ScanApi extends DefaultTask {
         verbose = objectFactory.property(Boolean.class).convention(false);
 
         outputDir = getProject().getLayout().getBuildDirectory().dir("api");
-        targets = getProject().files(
-            outputDir.map(dir -> sources.getElements().map(files ->
-                files.stream().map(file -> toTarget(dir, file)).collect(toList())
-            ))
+        targets = outputDir.flatMap(dir ->
+            sources.getElements().map(files ->
+                files.stream().map(file -> toTarget(dir, file)).collect(toSet())
+            )
         );
-        targets.disallowChanges();
 
         setDescription("Summarises the target JAR's public and protected API elements.");
         setGroup(GROUP_NAME);
@@ -117,8 +119,9 @@ class ScanApi extends DefaultTask {
         return sources;
     }
 
-    void setSources(FileCollection sources) {
+    void setSources(Object... sources) {
         this.sources.setFrom(sources);
+        this.sources.disallowChanges();
     }
 
     @CompileClasspath
@@ -129,6 +132,7 @@ class ScanApi extends DefaultTask {
 
     void setClasspath(FileCollection classpath) {
         this.classpath.setFrom(classpath);
+        this.classpath.disallowChanges();
     }
 
     @Input
@@ -166,7 +170,7 @@ class ScanApi extends DefaultTask {
 
     @OutputFiles
     public Provider<Set<FileSystemLocation>> getTargets() {
-        return targets.getElements();
+        return targets;
     }
 
     @Console
