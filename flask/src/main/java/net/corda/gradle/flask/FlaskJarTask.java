@@ -183,6 +183,7 @@ public class FlaskJarTask extends AbstractArchiveTask {
     }
 
     @Override
+    @Nonnull
     protected CopyAction createCopyAction() {
         File destination = getArchiveFile().get().getAsFile();
         return new CopyAction() {
@@ -190,8 +191,9 @@ public class FlaskJarTask extends AbstractArchiveTask {
             private final ZipEntryFactory zipEntryFactory = new ZipEntryFactory(isPreserveFileTimestamps());
 
             @Override
+            @Nonnull
             @SneakyThrows
-            public WorkResult execute(CopyActionProcessingStream copyActionProcessingStream) {
+            public WorkResult execute(@Nonnull CopyActionProcessingStream copyActionProcessingStream) {
                 Manifest manifest = new Manifest();
                 Attributes mainAttributes = manifest.getMainAttributes();
                 mainAttributes.put(Attributes.Name.MANIFEST_VERSION, "1.0");
@@ -221,7 +223,7 @@ public class FlaskJarTask extends AbstractArchiveTask {
                 }
 
                 try (ZipOutputStream zipOutputStream = new ZipOutputStream(Flask.write(destination, true));
-                     ZipInputStream zipInputStream = new ZipInputStream(Flask.read(temporaryJar, false))) {
+                     ZipInputStream zipInputStream = new ZipInputStream(Flask.read(temporaryJar, true))) {
                     ZipEntry zipEntry = zipEntryFactory.createZipEntry(Flask.Constants.METADATA_FOLDER + '/');
                     zipOutputStream.putNextEntry(zipEntry);
                     zipEntry = zipEntryFactory.createZipEntry(JarFile.MANIFEST_NAME);

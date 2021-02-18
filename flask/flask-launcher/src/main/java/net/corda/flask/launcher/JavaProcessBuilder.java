@@ -44,7 +44,7 @@ public class JavaProcessBuilder {
 
     private Path executableJar;
 
-    private String javaHome = System.getProperty("java.home");
+    private final String javaHome = System.getProperty("java.home");
 
     private List<String> jvmArgs = new ArrayList<>();
 

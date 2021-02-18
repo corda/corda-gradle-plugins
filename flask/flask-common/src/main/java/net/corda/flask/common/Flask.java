@@ -111,7 +111,7 @@ public class Flask {
 
     @SneakyThrows
     public static byte[] computeSHA256Digest(Supplier<InputStream> streamSupplier) {
-        byte buffer[] = new byte[Constants.BUFFER_SIZE];
+        byte[] buffer = new byte[Constants.BUFFER_SIZE];
         MessageDigest md = MessageDigest.getInstance("SHA-256");
         return computeDigest(streamSupplier, md, buffer);
     }

@@ -4,6 +4,7 @@ import lombok.SneakyThrows;
 import org.gradle.api.resources.ReadableResource;
 import org.gradle.api.resources.ResourceException;
 
+import javax.annotation.Nonnull;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URL;
@@ -18,6 +19,7 @@ final class LauncherResource implements ReadableResource {
     }
 
     @Override
+    @Nonnull
     @SneakyThrows
     public InputStream read() throws ResourceException {
         return url.openStream();
