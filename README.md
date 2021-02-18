@@ -49,7 +49,7 @@ excluded from this packaging. The final jar is then signed. It also provides
 a `cordapp` Gradle extension so that you can configure your CorDapp's metadata.
 This metadata is currently optional, but you are _strongly_ advised to provide it.
 
-    <sup>Requires Gradle 5.1</sup>
+    <sup>Requires Gradle 5.6</sup>
 
 - [`net.corda.plugins.cordformation`](cordformation/README.rst)\
 This plugin provides `Cordform`, `Dockerform` and `DockerImage` Gradle tasks
