@@ -1,0 +1,66 @@
+plugins {
+    id 'groovy'
+    id "java-gradle-plugin"
+}
+
+evaluationDependsOn("flask-common")
+evaluationDependsOn("flask-launcher")
+
+dependencies {
+    compileOnly project("flask-common")
+}
+
+Provider<Copy> copyLauncher = tasks.register("copyLauncher", Copy) {
+    from(project("flask-launcher").tasks.named("tar").map {it.outputs })
+    into(new File(project.buildDir, "resources/main/META-INF"))
+}
+
+Provider<Copy> copyHeartbeatAgent = tasks.register("copyHeartbeatAgent", Copy) {
+    from(project("flask-heartbeat-agent").tasks.named("jar").map {it.outputs })
+    into(new File(project.buildDir, "resources/main/META-INF"))
+}
+
+tasks.named("processResources") {
+    inputs.files(copyLauncher)
+    inputs.files(copyHeartbeatAgent)
+}
+
+jar {
+    manifest {
+        attributes "version" : archiveVersion.get()
+    }
+    from(project("flask-common").tasks.named("jar").map { zipTree(it.outputs.files.singleFile) })
+}
+
+gradlePlugin {
+    plugins {
+        flaskPlugin {
+            id = 'net.corda.plugins.flask'
+            implementationClass = 'net.corda.gradle.flask.FlaskPlugin'
+        }
+    }
+    automatedPublishing = false
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    ['compileOnly', 'annotationProcessor', 'testCompileOnly', 'testAnnotationProcessor'].each { conf ->
+        add(conf, [group: "org.projectlombok", name: "lombok", version: lombok_version])
+    }
+    testImplementation project("flask-common")
+    testImplementation "org.junit.jupiter:junit-jupiter-api:$junit_jupiter_version"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junit_jupiter_version"
+}
+
+tasks.named("pluginUnderTestMetadata", PluginUnderTestMetadata) {
+    pluginClasspath.from(project.configurations.named("compileOnly"))
+}
+
+tasks.withType(Test).configureEach {
+    javaLauncher = javaToolchains.launcherFor {
+        languageVersion = JavaLanguageVersion.of(11)
+    }
+}
