@@ -183,7 +183,7 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
         }
 
         val jarTask = project.tasks.named(JAR_TASK_NAME, Jar::class.java) { jar ->
-            val osgi = jar.extensions.create(OSGI_EXTENSION_NAME, OsgiExtension::class.java, project, jar)
+            val osgi = jar.extensions.create(OSGI_EXTENSION_NAME, OsgiExtension::class.java, project.objects, project, jar)
             osgi.embed(calculatorTask.flatMap(DependencyCalculator::embeddedJars))
 
             val noPackages = project.objects.setProperty(String::class.java)
@@ -226,6 +226,9 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
 
                 // Add a Bnd instruction for explicit package imports.
                 bnd(osgi.imports)
+
+                // Add Bnd instructions to scan for Corda contracts, flows etc.
+                bnd(osgi.cordaScanning)
             }
 
             jar.doFirst { t ->
@@ -302,20 +305,20 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
             attributes[BUNDLE_NAME] = contractName
             attributes[BUNDLE_VENDOR] = vendor
             attributes[BUNDLE_LICENSE] = licence
-            attributes["Cordapp-Contract-Name"] = contractName
-            attributes["Cordapp-Contract-Version"] = checkCorDappVersionId(cordapp.contract.versionId)
+            attributes[CORDAPP_CONTRACT_NAME] = contractName
+            attributes[CORDAPP_CONTRACT_VERSION] = checkCorDappVersionId(cordapp.contract.versionId)
             attributes["Cordapp-Contract-Vendor"] = vendor
             attributes["Cordapp-Contract-Licence"] = licence
         }
         if (!cordapp.workflow.isEmpty()) {
-            val workflowName = cordapp.contract.name.getOrElse(symbolicName)
+            val workflowName = cordapp.workflow.name.getOrElse(symbolicName)
             val vendor = cordapp.workflow.vendor.getOrElse(UNKNOWN)
             val licence = cordapp.workflow.licence.getOrElse(UNKNOWN)
             attributes[BUNDLE_NAME] = workflowName
             attributes[BUNDLE_VENDOR] = vendor
             attributes[BUNDLE_LICENSE] = licence
-            attributes["Cordapp-Workflow-Name"] = workflowName
-            attributes["Cordapp-Workflow-Version"] = checkCorDappVersionId(cordapp.workflow.versionId)
+            attributes[CORDAPP_WORKFLOW_NAME] = workflowName
+            attributes[CORDAPP_WORKFLOW_VERSION] = checkCorDappVersionId(cordapp.workflow.versionId)
             attributes["Cordapp-Workflow-Vendor"] = vendor
             attributes["Cordapp-Workflow-Licence"] = licence
         }

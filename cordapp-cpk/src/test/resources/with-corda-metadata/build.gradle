@@ -1,0 +1,29 @@
+plugins {
+    id 'base'
+}
+
+subprojects {
+    group 'com.example'
+}
+
+configurations {
+    testArtifacts {
+        transitive = false
+    }
+}
+
+dependencies {
+    testArtifacts project(':contracts')
+    testArtifacts project(':workflows')
+    testArtifacts project(path: ':contracts', configuration: 'cordaCPK')
+    testArtifacts project(path: ':workflows', configuration: 'cordaCPK')
+}
+
+def copy = tasks.register('copy', Copy) {
+    into(project.layout.buildDirectory.dir("libs"))
+    from(configurations.testArtifacts)
+}
+
+tasks.named('assemble') {
+    dependsOn copy
+}

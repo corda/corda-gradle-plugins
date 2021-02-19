@@ -1,24 +1,13 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import static org.gradle.api.JavaVersion.*
-
 plugins {
     id 'net.corda.plugins.cordapp-cpk'
     id 'org.jetbrains.kotlin.jvm'
 }
 
 apply from: 'repositories.gradle'
+apply from: 'kotlin.gradle'
 
 group = 'com.example'
 version = cordapp_version
-
-tasks.withType(KotlinCompile).configureEach {
-    kotlinOptions {
-        jvmTarget = VERSION_1_8
-        apiVersion = '1.3'
-        languageVersion = '1.3'
-        freeCompilerArgs = ['-Xjvm-default=enable']
-    }
-}
 
 cordapp {
     targetPlatformVersion = platform_version.toInteger()

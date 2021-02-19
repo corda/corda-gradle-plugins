@@ -9,6 +9,7 @@ description 'Configures this project to create a CPK CorDapp'
 
 ext {
     test_quasar_utils_version = '5.0.12'
+    test_kotlin_version = '1.4.30'
     corda_guava_version = '20.0'
 }
 
@@ -84,7 +85,7 @@ processTestResources {
             'quasar_utils_version': test_quasar_utils_version,
             'corda_guava_version': corda_guava_version,
             'osgi_version': osgi_version,
-            'kotlin_version': kotlin_version,
+            'kotlin_version': test_kotlin_version,
             'bnd_version': bnd_version
         ])
     }

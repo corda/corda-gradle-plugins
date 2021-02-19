@@ -23,7 +23,7 @@ class CordappWithEmbeddedTransitivesTest {
         private const val cordappVersion = "2.3.4-SNAPSHOT"
         private const val hostVersion = "1.2.3-SNAPSHOT"
 
-        private const val kotlinOsgiVersion = "version=\"[1.3,2)\""
+        private const val kotlinOsgiVersion = "version=\"[1.4,2)\""
         private const val commonsIoOsgiVersion = "version=\"[1.4,2)\""
         private const val slf4jOsgiVersion = "version=\"[1.7,2)\""
         private const val cordaOsgiVersion = "version=\"[5.0,6)\""

@@ -2,7 +2,7 @@ package net.corda.plugins.cpk
 
 import org.gradle.api.Project
 import org.gradle.api.file.FileSystemLocation
-import org.gradle.api.provider.HasConfigurableValue
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.SetProperty
@@ -11,15 +11,28 @@ import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.bundling.Jar
 import org.osgi.framework.Constants.BUNDLE_CLASSPATH
 import org.osgi.framework.Constants.IMPORT_PACKAGE
+import java.util.Collections.unmodifiableMap
 import java.util.StringJoiner
 
 @Suppress("UnstableApiUsage", "MemberVisibilityCanBePrivate", "unused")
-open class OsgiExtension(project: Project, jar: Jar) {
-    private val _exports: SetProperty<String> = project.objects.setProperty(String::class.java)
-    private val _imports: SetProperty<String> = project.objects.setProperty(String::class.java)
-        .apply(HasConfigurableValue::finalizeValueOnRead)
-    private val _embeddeds: SetProperty<FileSystemLocation> = project.objects.setProperty(FileSystemLocation::class.java)
-        .apply(HasConfigurableValue::finalizeValueOnRead)
+open class OsgiExtension(objects: ObjectFactory, project: Project, jar: Jar) {
+    private companion object {
+        val cordaClasses: Map<String, String> = unmodifiableMap(mapOf(
+            CORDA_CONTRACT_CLASSES to "IMPLEMENTS;net.corda.core.contracts.Contract",
+            CORDA_WORKFLOW_CLASSES to "IMPLEMENTS;net.corda.core.flows.Flow",
+            CORDA_MAPPED_SCHEMA_CLASSES to "IMPLEMENTS;net.corda.core.schemas.MappedSchema",
+            CORDA_SERIALIZATION_WHITELIST_CLASSES to "IMPLEMENTS;net.corda.core.serialization.SerializationWhitelist",
+            CORDA_CHECKPOINT_CUSTOM_SERIALIZER_CLASSES to "IMPLEMENTS;net.corda.core.serialization.CheckpointCustomSerializer",
+            CORDA_SERIALIZATION_CUSTOM_SERIALIZER_CLASSES to "IMPLEMENTS;net.corda.v5.serialization.SerializationCustomSerializer",
+            CORDA_SERVICE_CLASSES to "IMPLEMENTS;net.corda.core.serialization.SerializeAsToken;HIERARCHY_INDIRECTLY_ANNOTATED;net.corda.core.node.services.CordaService"
+        ))
+    }
+
+    private val _exports: SetProperty<String> = objects.setProperty(String::class.java)
+    private val _imports: SetProperty<String> = objects.setProperty(String::class.java)
+        .apply(SetProperty<String>::finalizeValueOnRead)
+    private val _embeddeds: SetProperty<FileSystemLocation> = objects.setProperty(FileSystemLocation::class.java)
+        .apply(SetProperty<FileSystemLocation>::finalizeValueOnRead)
 
     fun exportPackage(packageNames: Iterable<String>) {
         _exports.addAll(packageNames)
@@ -78,7 +91,7 @@ open class OsgiExtension(project: Project, jar: Jar) {
     }
 
     @get:Input
-    val autoExport: Property<Boolean> = project.objects.property(Boolean::class.java).convention(true)
+    val autoExport: Property<Boolean> = objects.property(Boolean::class.java).convention(true)
 
     @get:Internal
     val exports: Provider<String> = _exports.map { names ->
@@ -117,6 +130,21 @@ open class OsgiExtension(project: Project, jar: Jar) {
         } else {
             ""
         }
+    }
+
+    @get:Internal
+    val cordaScanning: Provider<String> = objects.property(String::class.java)
+        .value(generateCordaClassQuery())
+        .apply(Property<String>::finalizeValueOnRead)
+
+    private fun generateCordaClassQuery(): String {
+        val joiner = StringJoiner(System.lineSeparator())
+        for (cordaClass in cordaClasses) {
+            // This NAMED filter only identifies "anonymous" classes.
+            // Bnd 5.4 should also allow us to remove any "inner" classes as well.
+            joiner.add("${cordaClass.key}=\${classes;${cordaClass.value};CONCRETE;PUBLIC;NAMED;!*\\.[\\\\d]+*}")
+        }
+        return joiner.toString()
     }
 
     @get:Internal

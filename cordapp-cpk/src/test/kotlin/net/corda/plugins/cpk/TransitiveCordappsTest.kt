@@ -30,7 +30,7 @@ class TransitiveCordappsTest {
         private const val cpk3Version = "3.0-SNAPSHOT"
 
         const val ioOsgiVersion = "version=\"[1.4,2)\""
-        const val kotlinOsgiVersion = "version=\"[1.3,2)\""
+        const val kotlinOsgiVersion = "version=\"[1.4,2)\""
         const val cordaOsgiVersion = "version=\"[5.0,6)\""
         const val cordappOsgiVersion = "version=\"1.0.1\""
 

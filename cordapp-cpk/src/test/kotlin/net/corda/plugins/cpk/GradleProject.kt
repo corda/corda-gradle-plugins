@@ -118,6 +118,7 @@ class GradleProject(private val projectDir: Path, private val reporter: TestRepo
 
     private fun configureGradle(builder: (GradleRunner) -> BuildResult, args: Array<out String>) {
         installResource(projectDir, "repositories.gradle")
+        installResource(projectDir, "kotlin.gradle")
         installResource(projectDir, "gradle.properties")
         if (!installResource(projectDir, "$testName/settings.gradle")) {
             installResource(projectDir, "settings.gradle")

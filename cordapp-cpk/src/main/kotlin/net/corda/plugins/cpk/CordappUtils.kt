@@ -23,6 +23,19 @@ const val CORDA_EMBEDDED_CONFIGURATION_NAME = "cordaEmbedded"
 const val ALL_CORDAPPS_CONFIGURATION_NAME = "allCordapps"
 const val CORDA_CPK_CONFIGURATION_NAME = "cordaCPK"
 
+const val CORDA_CONTRACT_CLASSES = "Corda-Contract-Classes"
+const val CORDA_WORKFLOW_CLASSES = "Corda-Flow-Classes"
+const val CORDA_MAPPED_SCHEMA_CLASSES = "Corda-MappedSchema-Classes"
+const val CORDA_SERIALIZATION_WHITELIST_CLASSES = "Corda-SerializationWhitelist-Classes"
+const val CORDA_CHECKPOINT_CUSTOM_SERIALIZER_CLASSES = "Corda-CheckpointCustomSerializer-Classes"
+const val CORDA_SERIALIZATION_CUSTOM_SERIALIZER_CLASSES = "Corda-SerializationCustomSerializer-Classes"
+const val CORDA_SERVICE_CLASSES = "Corda-Service-Classes"
+
+const val CORDAPP_CONTRACT_NAME = "Cordapp-Contract-Name"
+const val CORDAPP_CONTRACT_VERSION = "Cordapp-Contract-Version"
+const val CORDAPP_WORKFLOW_NAME = "Cordapp-Workflow-Name"
+const val CORDAPP_WORKFLOW_VERSION = "Cordapp-Workflow-Version"
+
 val HARDCODED_EXCLUDES: Set<Pair<String, String>> = unmodifiableSet(setOf(
     "org.jetbrains.kotlin" to "*",
     "net.corda.kotlin" to "*",
