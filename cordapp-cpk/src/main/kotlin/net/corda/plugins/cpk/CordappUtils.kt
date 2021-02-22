@@ -10,7 +10,9 @@ import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.plugins.JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME
 import org.gradle.api.plugins.JavaPlugin.RUNTIME_ONLY_CONFIGURATION_NAME
 import org.gradle.api.specs.Spec
+import java.io.File
 import java.util.Collections.unmodifiableSet
+import java.util.jar.JarFile
 
 const val GROUP_NAME = "Cordapp"
 
@@ -98,6 +100,48 @@ fun ResolvedConfiguration.resolveFirstLevel(dependencies: Collection<Dependency>
 private fun ResolvedConfiguration.resolve(dependencies: Collection<Dependency>, fetchArtifacts: (ResolvedDependency) -> Iterable<ResolvedArtifact>): Set<ResolvedArtifact> {
     return getFirstLevelModuleDependencies(Spec(dependencies::contains))
         .flatMapTo(LinkedHashSet(), fetchArtifacts)
+}
+
+/**
+ * Extracts the package names from a [JarFile].
+ */
+private val MULTI_RELEASE = "^META-INF/versions/\\d++/(.++)".toRegex()
+private const val DIRECTORY_SEPARATOR = '/'
+private const val PACKAGE_SEPARATOR = '.'
+
+val File.packages: MutableSet<String> get() {
+    return JarFile(this).use { jar ->
+        val packages = mutableSetOf<String>()
+        val jarEntries = jar.entries()
+        while (jarEntries.hasMoreElements()) {
+            val jarEntry = jarEntries.nextElement()
+            if (!jarEntry.isDirectory) {
+                val entryName = jarEntry.name
+                if (entryName.startsWith("OSGI-INF/")) {
+                    continue
+                }
+
+                val binaryFQN = if (entryName.startsWith("META-INF/")) {
+                    (MULTI_RELEASE.matchEntire(entryName) ?: continue).groupValues[1]
+                } else {
+                    entryName
+                }
+                val binaryPackageName = binaryFQN.substringBeforeLast(DIRECTORY_SEPARATOR)
+                if (isValidPackage(binaryPackageName)) {
+                    packages.add(binaryPackageName.toPackageName())
+                }
+            }
+        }
+        packages
+    }
+}
+
+private fun isValidPackage(name: String): Boolean {
+    return name.split(DIRECTORY_SEPARATOR).all(String::isJavaIdentifier)
+}
+
+private fun String.toPackageName(): String {
+    return replace(DIRECTORY_SEPARATOR, PACKAGE_SEPARATOR)
 }
 
 /**

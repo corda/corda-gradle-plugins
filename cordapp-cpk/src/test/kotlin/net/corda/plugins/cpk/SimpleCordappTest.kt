@@ -16,7 +16,6 @@ import org.osgi.framework.Constants.EXPORT_PACKAGE
 import org.osgi.framework.Constants.IMPORT_PACKAGE
 import org.osgi.framework.Constants.REQUIRE_CAPABILITY
 import java.nio.file.Path
-import java.util.jar.JarFile
 
 class SimpleCordappTest {
     companion object {
@@ -58,15 +57,20 @@ class SimpleCordappTest {
         val cordapp = artifacts.single { it.toString().endsWith(".jar") }
         assertThat(cordapp).isRegularFile()
 
-        val jarManifest = JarFile(cordapp.toFile()).use(JarFile::getManifest)
+        val jarManifest = cordapp.manifest
         println(jarManifest.mainAttributes.entries)
 
         with(jarManifest.mainAttributes) {
             assertEquals("Simple Java", getValue(BUNDLE_NAME))
             assertEquals("com.example.simple-cordapp", getValue(BUNDLE_SYMBOLICNAME))
             assertEquals(toOSGi(cordappVersion), getValue(BUNDLE_VERSION))
-            assertEquals("net.corda.core.contracts;$cordaOsgiVersion,net.corda.core.transactions;$cordaOsgiVersion,org.apache.commons.io;$ioOsgiVersion", getValue(IMPORT_PACKAGE))
-            assertEquals("com.example.contract;uses:=\"net.corda.core.contracts,net.corda.core.transactions\";$cordappOsgiVersion", getValue(EXPORT_PACKAGE))
+            assertThatHeader(getValue(IMPORT_PACKAGE)).containsAll(
+                "net.corda.core.contracts;$cordaOsgiVersion",
+                "org.apache.commons.io;$ioOsgiVersion"
+            )
+            assertThatHeader(getValue(EXPORT_PACKAGE)).containsAll(
+                "com.example.contract;uses:=\"net.corda.core.contracts,net.corda.core.transactions\";$cordappOsgiVersion"
+            )
             assertEquals("osgi.ee;filter:=\"(&(osgi.ee=JavaSE)(version=1.8))\"", getValue(REQUIRE_CAPABILITY))
             assertEquals("Test-Licence", getValue(BUNDLE_LICENSE))
             assertEquals("R3", getValue(BUNDLE_VENDOR))

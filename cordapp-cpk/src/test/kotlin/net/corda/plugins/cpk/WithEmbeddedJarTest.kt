@@ -55,7 +55,7 @@ class WithEmbeddedJarTest {
         val cordapp = artifacts.single { it.toString().endsWith(".jar") }
         assertThat(cordapp).isRegularFile()
 
-        val jarManifest = JarFile(cordapp.toFile()).use(JarFile::getManifest)
+        val jarManifest = cordapp.manifest
         println(jarManifest.mainAttributes.entries)
 
         val libs = JarFile(cordapp.toFile()).use { jar ->

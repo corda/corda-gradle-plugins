@@ -15,11 +15,14 @@ import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardCopyOption.REPLACE_EXISTING
+import java.util.jar.JarFile
+import java.util.jar.Manifest
 import java.util.stream.Collectors.toList
 import kotlin.test.fail
 
 const val expectedCordappContractVersion = 2
 const val expectedCordappWorkflowVersion = 3
+const val expectedCordappServiceVersion = 4
 const val cordaReleaseVersion = "4.6"
 const val annotationsVersion = "1.0.1"
 const val commonsCollectionsVersion = "3.2.2"
@@ -30,6 +33,8 @@ const val slf4jVersion = "1.7.30"
 fun toOSGi(version: String): String {
     return parseMavenString(version).osGiVersion.toString()
 }
+
+val Path.manifest: Manifest get() = JarFile(toFile()).use(JarFile::getManifest)
 
 @Suppress("unused", "MemberVisibilityCanBePrivate")
 class GradleProject(private val projectDir: Path, private val reporter: TestReporter) {

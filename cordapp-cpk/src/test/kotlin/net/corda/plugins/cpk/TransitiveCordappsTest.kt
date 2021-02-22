@@ -16,7 +16,6 @@ import org.osgi.framework.Constants.EXPORT_PACKAGE
 import org.osgi.framework.Constants.IMPORT_PACKAGE
 import org.osgi.framework.Constants.REQUIRE_CAPABILITY
 import java.nio.file.Path
-import java.util.jar.JarFile
 
 /**
  * Verify that transitive cordapp and cordaProvided dependencies
@@ -87,15 +86,25 @@ class TransitiveCordappsTest {
         val cordapp = artifacts.single { it.toString().endsWith(".jar") }
         assertThat(cordapp).isRegularFile()
 
-        val jarManifest = JarFile(cordapp.toFile()).use(JarFile::getManifest)
+        val jarManifest = cordapp.manifest
         println(jarManifest.mainAttributes.entries)
 
         with(jarManifest.mainAttributes) {
             assertEquals("Transitive CorDapps", getValue(BUNDLE_NAME))
             assertEquals("com.example.transitive-cordapps", getValue(BUNDLE_SYMBOLICNAME))
             assertEquals(toOSGi(cordappVersion), getValue(BUNDLE_VERSION))
-            assertEquals("kotlin;$kotlinOsgiVersion,kotlin.io;$kotlinOsgiVersion,kotlin.jvm.internal;$kotlinOsgiVersion,kotlin.text;$kotlinOsgiVersion,net.corda.core.contracts;$cordaOsgiVersion,net.corda.core.transactions;$cordaOsgiVersion,org.apache.commons.io;$ioOsgiVersion", getValue(IMPORT_PACKAGE))
-            assertEquals("com.example.transitives;uses:=\"kotlin,net.corda.core.contracts,net.corda.core.transactions\";$cordappOsgiVersion", getValue(EXPORT_PACKAGE))
+            assertThatHeader(getValue(IMPORT_PACKAGE)).containsAll(
+                "kotlin;$kotlinOsgiVersion",
+                "kotlin.io;$kotlinOsgiVersion",
+                "kotlin.jvm.internal;$kotlinOsgiVersion",
+                "kotlin.text;$kotlinOsgiVersion",
+                "net.corda.core.contracts;$cordaOsgiVersion",
+                "net.corda.core.transactions;$cordaOsgiVersion",
+                "org.apache.commons.io;$ioOsgiVersion"
+            )
+            assertThatHeader(getValue(EXPORT_PACKAGE)).containsAll(
+                "com.example.transitives;uses:=\"kotlin,net.corda.core.contracts,net.corda.core.transactions\";$cordappOsgiVersion"
+            )
             assertEquals("osgi.ee;filter:=\"(&(osgi.ee=JavaSE)(version=1.8))\"", getValue(REQUIRE_CAPABILITY))
             assertEquals("Test-Licence", getValue(BUNDLE_LICENSE))
             assertEquals("R3", getValue(BUNDLE_VENDOR))

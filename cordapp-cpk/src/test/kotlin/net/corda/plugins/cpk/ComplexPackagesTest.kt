@@ -16,7 +16,6 @@ import org.osgi.framework.Constants.EXPORT_PACKAGE
 import org.osgi.framework.Constants.IMPORT_PACKAGE
 import org.osgi.framework.Constants.REQUIRE_CAPABILITY
 import java.nio.file.Path
-import java.util.jar.JarFile
 
 class ComplexPackagesTest {
     companion object {
@@ -49,7 +48,7 @@ class ComplexPackagesTest {
         val cordapp = artifacts.single { it.toString().endsWith(".jar") }
         assertThat(cordapp).isRegularFile()
 
-        val jarManifest = JarFile(cordapp.toFile()).use(JarFile::getManifest)
+        val jarManifest = cordapp.manifest
         println(jarManifest.mainAttributes.entries)
 
         with(jarManifest.mainAttributes) {
@@ -57,7 +56,10 @@ class ComplexPackagesTest {
             assertEquals("com.example.complex-packages", getValue(BUNDLE_SYMBOLICNAME))
             assertEquals("1.0.1.SNAPSHOT", getValue(BUNDLE_VERSION))
             assertNull(getValue(IMPORT_PACKAGE))
-            assertEquals("com.example.cordapp;version=\"1.0.1\",com.example.cordapp.sub2;version=\"1.0.1\"", getValue(EXPORT_PACKAGE))
+            assertThatHeader(getValue(EXPORT_PACKAGE)).containsAll(
+                "com.example.cordapp;version=\"1.0.1\"",
+                "com.example.cordapp.sub2;version=\"1.0.1\""
+            )
             assertEquals("osgi.ee;filter:=\"(&(osgi.ee=JavaSE)(version=1.8))\"", getValue(REQUIRE_CAPABILITY))
             assertEquals("Test-Licence", getValue(BUNDLE_LICENSE))
             assertEquals("R3", getValue(BUNDLE_VENDOR))

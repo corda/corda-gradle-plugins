@@ -24,15 +24,10 @@ import org.gradle.api.tasks.PathSensitivity.RELATIVE
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.TaskProvider
 import java.io.File
-import java.util.jar.JarInputStream
 import javax.inject.Inject
 
 @Suppress("UnstableApiUsage")
 open class VerifyBundle @Inject constructor(objects: ObjectFactory) : DefaultTask() {
-    private companion object {
-        private val MULTI_RELEASE = "^META-INF/versions/\\d++/(.++)".toRegex()
-    }
-
     init {
         description = "Verifies that a bundle's OSGi meta-data is consistent."
         group = GROUP_NAME
@@ -109,40 +104,6 @@ open class VerifyBundle @Inject constructor(objects: ObjectFactory) : DefaultTas
     }
 
     private fun getClasspathPackages(): Set<String> {
-        return classpath.files.flatMapTo(HashSet(), ::getPackages)
-    }
-
-    private fun getPackages(file: File): Set<String> {
-        return JarInputStream(file.inputStream().buffered()).use { jar ->
-            val packages = mutableSetOf<String>()
-            while (true) {
-                val jarEntry = jar.nextJarEntry ?: break
-                if (!jarEntry.isDirectory) {
-                    val entryName = jarEntry.name
-                    if (entryName.startsWith("OSGI-INF/")) {
-                        continue
-                    }
-
-                    val binaryFQN = if (entryName.startsWith("META-INF/")) {
-                        (MULTI_RELEASE.matchEntire(entryName) ?: continue).groupValues[1]
-                    } else {
-                        entryName
-                    }
-                    val binaryPackageName = binaryFQN.substringBeforeLast('/')
-                    if (isValidPackage(binaryPackageName)) {
-                        packages.add(binaryPackageName.toPackageName())
-                    }
-                }
-            }
-            packages
-        }
-    }
-
-    private fun isValidPackage(name: String): Boolean {
-        return name.split('/').all(String::isJavaIdentifier)
-    }
-
-    private fun String.toPackageName(): String {
-        return replace('/', '.')
+        return classpath.files.flatMapTo(HashSet(), File::packages)
     }
 }

@@ -82,7 +82,7 @@ class CordappWithEmbeddedTransitivesTest {
             .contains("lib/commons-collections-$commonsCollectionsVersion.jar")
             .hasSize(2)
 
-        val jarManifest = JarFile(cordapp.toFile()).use(JarFile::getManifest)
+        val jarManifest = cordapp.manifest
         println(jarManifest.mainAttributes.entries)
 
         with(jarManifest.mainAttributes) {
@@ -90,7 +90,6 @@ class CordappWithEmbeddedTransitivesTest {
             assertEquals("com.example.cordapp-embedded-transitives", getValue(BUNDLE_SYMBOLICNAME))
             assertEquals(toOSGi(hostVersion), getValue(BUNDLE_VERSION))
             assertEquals("osgi.ee;filter:=\"(&(osgi.ee=JavaSE)(version=1.8))\"", getValue(REQUIRE_CAPABILITY))
-            assertEquals("com.example.host;uses:=\"com.example.cordapp,kotlin,net.corda.core.transactions\";$hostOsgiVersion", getValue(EXPORT_PACKAGE))
             assertEquals("true", getValue("Sealed"))
 
             assertThat(getValue(PRIVATE_PACKAGE)?.split(","))
@@ -99,12 +98,15 @@ class CordappWithEmbeddedTransitivesTest {
             assertThat(getValue(BUNDLE_CLASSPATH))
                 .startsWith(".,")
                 .contains(libs.map { ",$it" })
-            assertThat(getValue(IMPORT_PACKAGE)).contains(
+            assertThatHeader(getValue(IMPORT_PACKAGE)).containsAll(
                 "com.example.cordapp;$cordappOsgiVersion",
                 "net.corda.core.transactions;$cordaOsgiVersion",
                 "org.apache.commons.io;$commonsIoOsgiVersion",
                 "kotlin;$kotlinOsgiVersion",
                 "org.slf4j;$slf4jOsgiVersion"
+            )
+            assertThatHeader(getValue(EXPORT_PACKAGE)).containsAll(
+                "com.example.host;uses:=\"com.example.cordapp,kotlin,net.corda.core.transactions\";$hostOsgiVersion"
             )
         }
     }

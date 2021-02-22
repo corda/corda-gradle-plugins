@@ -26,6 +26,9 @@ open class OsgiExtension(objects: ObjectFactory, project: Project, jar: Jar) {
             CORDA_SERIALIZATION_CUSTOM_SERIALIZER_CLASSES to "IMPLEMENTS;net.corda.v5.serialization.SerializationCustomSerializer",
             CORDA_SERVICE_CLASSES to "IMPLEMENTS;net.corda.core.serialization.SerializeAsToken;HIERARCHY_INDIRECTLY_ANNOTATED;net.corda.core.node.services.CordaService"
         ))
+
+        fun optional(value: String): String = "$value;resolution:=optional"
+        fun emptyVersion(value: String): String = "$value;version='[0,0)'"
     }
 
     private val _exports: SetProperty<String> = objects.setProperty(String::class.java)
@@ -34,56 +37,64 @@ open class OsgiExtension(objects: ObjectFactory, project: Project, jar: Jar) {
     private val _embeddeds: SetProperty<FileSystemLocation> = objects.setProperty(FileSystemLocation::class.java)
         .apply(SetProperty<FileSystemLocation>::finalizeValueOnRead)
 
-    fun exportPackage(packageNames: Iterable<String>) {
+    fun exportPackages(packageNames: Provider<out Iterable<String>>) {
+        _exports.addAll(packageNames)
+    }
+
+    fun exportPackages(packageNames: Iterable<String>) {
         _exports.addAll(packageNames)
     }
 
     fun exportPackage(vararg packageNames: String) {
-        exportPackage(packageNames.toList())
+        exportPackages(packageNames.toList())
     }
 
     fun exportPackage(packageName: Provider<String>) {
         _exports.add(packageName)
     }
 
-    fun exportAll(packageNames: Provider<out Iterable<String>>) {
-        _exports.addAll(packageNames)
+    fun importPackages(packageNames: Provider<out Iterable<String>>) {
+        _imports.addAll(packageNames)
     }
 
-    fun importPackage(packageNames: Iterable<String>) {
+    fun importPackages(packageNames: Iterable<String>) {
         _imports.addAll(packageNames)
     }
 
     fun importPackage(vararg packageNames: String) {
-        importPackage(packageNames.toList())
+        importPackages(packageNames.toList())
     }
 
     fun importPackage(packageName: Provider<String>) {
         _imports.add(packageName)
     }
 
-    fun optionalImport(packageNames: Iterable<String>) {
-        _imports.addAll(packageNames.map { "$it;resolution:=optional" })
+    fun optionalImports(packageNames: Iterable<String>) {
+        importPackages(packageNames.map(::optional))
+    }
+
+    fun optionalImports(packageNames: Provider<out Iterable<String>>) {
+        importPackages(packageNames.map { names -> names.map(::optional) })
     }
 
     fun optionalImport(vararg packageNames: String) {
-        optionalImport(packageNames.toList())
+        optionalImports(packageNames.toList())
     }
 
     fun optionalImport(packageName: Provider<String>) {
-        importPackage(packageName.map { "$it;resolution:=optional" })
+        importPackage(packageName.map(::optional))
     }
 
-    fun suppressImportVersion(packageNames: Iterable<String>) {
-        optionalImport(packageNames.map { "$it;version='[0,0)'" })
+    fun suppressImportVersions(packageNames: Iterable<String>) {
+        optionalImports(packageNames.map(::emptyVersion))
     }
 
     fun suppressImportVersion(vararg packageNames: String) {
-        suppressImportVersion(packageNames.toList())
+        suppressImportVersions(packageNames.toList())
     }
 
     fun suppressImportVersion(packageName: Provider<String>) {
-        optionalImport(packageName.map { "$it;version='[0,0)'" })
+        optionalImport(packageName.map(::emptyVersion))
     }
 
     fun embed(files: Provider<Set<FileSystemLocation>>) {

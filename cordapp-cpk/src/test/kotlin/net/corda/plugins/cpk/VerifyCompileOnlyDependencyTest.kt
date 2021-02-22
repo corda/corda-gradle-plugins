@@ -17,7 +17,6 @@ import org.osgi.framework.Constants.EXPORT_PACKAGE
 import org.osgi.framework.Constants.IMPORT_PACKAGE
 import org.osgi.framework.Constants.REQUIRE_CAPABILITY
 import java.nio.file.Path
-import java.util.jar.JarFile
 
 class VerifyCompileOnlyDependencyTest {
     companion object {
@@ -57,7 +56,7 @@ class VerifyCompileOnlyDependencyTest {
         val cordapp = artifacts.single { it.toString().endsWith(".jar") }
         assertThat(cordapp).isRegularFile()
 
-        val jarManifest = JarFile(cordapp.toFile()).use(JarFile::getManifest)
+        val jarManifest = cordapp.manifest
         println(jarManifest.mainAttributes.entries)
 
         with(jarManifest.mainAttributes) {
@@ -65,7 +64,7 @@ class VerifyCompileOnlyDependencyTest {
             assertEquals("com.example.verify-compile-only", getValue(BUNDLE_SYMBOLICNAME))
             assertEquals(toOSGi(cordappVersion), getValue(BUNDLE_VERSION))
             assertNull(getValue(IMPORT_PACKAGE))
-            assertEquals("com.example.sample;$cordappOsgiVersion", getValue(EXPORT_PACKAGE))
+            assertThatHeader(getValue(EXPORT_PACKAGE)).containsAll("com.example.sample;$cordappOsgiVersion")
             assertEquals("osgi.ee;filter:=\"(&(osgi.ee=JavaSE)(version=1.8))\"", getValue(REQUIRE_CAPABILITY))
             assertEquals("Test-Licence", getValue(BUNDLE_LICENSE))
             assertEquals("R3", getValue(BUNDLE_VENDOR))

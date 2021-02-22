@@ -1,5 +1,3 @@
-import static org.gradle.api.JavaVersion.VERSION_1_8
-
 plugins {
     id 'org.jetbrains.kotlin.jvm'
     id 'biz.aQute.bnd.builder'
@@ -17,14 +15,12 @@ repositories {
     mavenCentral()
 }
 
-kotlin {
-    sourceCompatibility = VERSION_1_8
-    targetCompatibility = VERSION_1_8
-}
-
 dependencies {
     compileOnly "org.osgi:osgi.annotation:$osgi_version"
     implementation "org.jetbrains.kotlin:kotlin-osgi-bundle:$kotlin_version"
+    api("org.hibernate:hibernate-osgi:$hibernate_version") {
+        exclude group: 'org.osgi'
+    }
     runtimeOnly "com.google.guava:guava:$corda_guava_version"
 }
 

@@ -15,8 +15,10 @@ configurations {
 dependencies {
     testArtifacts project(':contracts')
     testArtifacts project(':workflows')
+    testArtifacts project(':services')
     testArtifacts project(path: ':contracts', configuration: 'cordaCPK')
     testArtifacts project(path: ':workflows', configuration: 'cordaCPK')
+    testArtifacts project(path: ':services', configuration: 'cordaCPK')
 }
 
 def copy = tasks.register('copy', Copy) {

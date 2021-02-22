@@ -17,7 +17,6 @@ import org.osgi.framework.Constants.EXPORT_PACKAGE
 import org.osgi.framework.Constants.IMPORT_PACKAGE
 import org.osgi.framework.Constants.REQUIRE_CAPABILITY
 import java.nio.file.Path
-import java.util.jar.JarFile
 
 class VerifyCordappDependencyTest {
     companion object {
@@ -70,15 +69,23 @@ class VerifyCordappDependencyTest {
         val cordapp = artifacts.single { it.toString().endsWith(".jar") }
         assertThat(cordapp).isRegularFile()
 
-        val jarManifest = JarFile(cordapp.toFile()).use(JarFile::getManifest)
+        val jarManifest = cordapp.manifest
         println(jarManifest.mainAttributes.entries)
 
         with(jarManifest.mainAttributes) {
             assertEquals("Verify CorDapp Dependency", getValue(BUNDLE_NAME))
             assertEquals("com.example.verify-cordapp-dependency", getValue(BUNDLE_SYMBOLICNAME))
             assertEquals(toOSGi(hostVersion), getValue(BUNDLE_VERSION))
-            assertEquals("com.example.cordapp;$cordappOsgiVersion,kotlin;$kotlinOsgiVersion,kotlin.jvm.internal;$kotlinOsgiVersion,net.corda.core.contracts;$cordaOsgiVersion,net.corda.core.transactions;$cordaOsgiVersion", getValue(IMPORT_PACKAGE))
-            assertEquals("com.example.host;uses:=\"kotlin,net.corda.core.contracts,net.corda.core.transactions\";$hostOsgiVersion", getValue(EXPORT_PACKAGE))
+            assertThatHeader(getValue(IMPORT_PACKAGE)).containsAll(
+                "com.example.cordapp;$cordappOsgiVersion",
+                "kotlin;$kotlinOsgiVersion",
+                "kotlin.jvm.internal;$kotlinOsgiVersion",
+                "net.corda.core.contracts;$cordaOsgiVersion",
+                "net.corda.core.transactions;$cordaOsgiVersion"
+            )
+            assertThatHeader(getValue(EXPORT_PACKAGE)).containsAll(
+                "com.example.host;uses:=\"kotlin,net.corda.core.contracts,net.corda.core.transactions\";$hostOsgiVersion"
+            )
             assertEquals("osgi.ee;filter:=\"(&(osgi.ee=JavaSE)(version=1.8))\"", getValue(REQUIRE_CAPABILITY))
             assertEquals("Test-Licence", getValue(BUNDLE_LICENSE))
             assertEquals("R3", getValue(BUNDLE_VENDOR))

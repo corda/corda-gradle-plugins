@@ -67,7 +67,7 @@ class EmbedTransitiveDependenciesTest {
             .contains("lib/annotations-$annotationsVersion.jar")
             .hasSize(1)
 
-        val jarManifest = JarFile(cordapp.toFile()).use(JarFile::getManifest)
+        val jarManifest = cordapp.manifest
         println(jarManifest.mainAttributes.entries)
 
         with(jarManifest.mainAttributes) {
