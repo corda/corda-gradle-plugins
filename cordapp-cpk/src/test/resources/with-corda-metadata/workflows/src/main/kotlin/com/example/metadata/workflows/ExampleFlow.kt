@@ -25,7 +25,7 @@ class ExampleFlow(private val state: ExampleState) : Flow<String> {
         override fun call(): String = throw UnsupportedOperationException(this::class.java.name)
     }
 
-//    inner class InnerFlow : Flow<String> {
-//        override fun call(): String = throw UnsupportedOperationException(this::class.java.name)
-//    }
+    inner class InnerFlow : Flow<String> {
+        override fun call(): String = throw UnsupportedOperationException(this::class.java.name)
+    }
 }

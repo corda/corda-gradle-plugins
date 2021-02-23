@@ -152,8 +152,8 @@ open class OsgiExtension(objects: ObjectFactory, project: Project, jar: Jar) {
         val joiner = StringJoiner(System.lineSeparator())
         for (cordaClass in cordaClasses) {
             // This NAMED filter only identifies "anonymous" classes.
-            // Bnd 5.4 should also allow us to remove any "inner" classes as well.
-            joiner.add("${cordaClass.key}=\${classes;${cordaClass.value};CONCRETE;PUBLIC;NAMED;!*\\.[\\\\d]+*}")
+            // Adding STATIC removes all inner classes as well.
+            joiner.add("${cordaClass.key}=\${classes;${cordaClass.value};CONCRETE;PUBLIC;STATIC;NAMED;!*\\.[\\\\d]+*}")
         }
         return joiner.toString()
     }

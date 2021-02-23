@@ -25,9 +25,9 @@ class ExampleContract : Contract {
         override fun verify(ltx: LedgerTransaction) = throw UnsupportedOperationException(this::class.java.name)
     }
 
-//    inner class InnerContract : Contract {
-//        override fun verify(ltx: LedgerTransaction) = throw UnsupportedOperationException(this::class.java.name)
-//    }
+    inner class InnerContract : Contract {
+        override fun verify(ltx: LedgerTransaction) = throw UnsupportedOperationException(this::class.java.name)
+    }
 }
 
 class ExampleState(val issuer: AbstractParty) : ContractState {
