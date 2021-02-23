@@ -16,13 +16,11 @@ import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.bundling.ZipEntryCompression.DEFLATED
 import javax.inject.Inject
 
-@Suppress("UnstableApiUsage")
+@Suppress("UnstableApiUsage", "MemberVisibilityCanBePrivate")
 open class PackagingTask @Inject constructor(objects: ObjectFactory) : Jar() {
     private companion object {
         private const val CORDAPP_CLASSIFIER = "cordapp"
         private const val CORDAPP_EXTENSION = "cpk"
-        private const val CPK_FORMAT_TAG = "Corda-CPK-Format"
-        private const val CPK_FORMAT = "1.0"
     }
 
     private val _libraries: ConfigurableFileCollection = objects.fileCollection()
@@ -56,7 +54,7 @@ open class PackagingTask @Inject constructor(objects: ObjectFactory) : Jar() {
             }
             is TaskProvider<*> -> {
                 dependsOn(item)
-                cordapp.set(item.map { RegularFile(it.outputs.files::getSingleFile)})
+                cordapp.set(item.map { RegularFile(it.outputs.files::getSingleFile) })
             }
             else -> {
                 throw InvalidUserCodeException("cordapp() requires a task that creates a Jar.")

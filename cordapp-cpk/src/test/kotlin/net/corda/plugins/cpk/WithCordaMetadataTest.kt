@@ -80,6 +80,14 @@ class WithCordaMetadataTest {
     }
 
     @Test
+    fun verifyContractCPKMetadata() {
+        val contractCPK = testProject.artifacts.single { it.toString().endsWith("contracts-$CONTRACT_CORDAPP_VERSION-cordapp.cpk") }
+        assertThat(contractCPK).isRegularFile()
+        val mainAttributes = contractCPK.manifest.mainAttributes
+        assertThat(mainAttributes.getValue(CPK_FORMAT_TAG)).isEqualTo(CPK_FORMAT)
+    }
+
+    @Test
     fun verifyWorkflowMetadata() {
         val workflowJar = testProject.artifacts.single { it.toString().endsWith("workflows-$WORKFLOW_CORDAPP_VERSION.jar") }
         assertThat(workflowJar).isRegularFile()
@@ -102,6 +110,14 @@ class WithCordaMetadataTest {
     }
 
     @Test
+    fun verifyWorkflowCPKMetadata() {
+        val workflowCPK = testProject.artifacts.single { it.toString().endsWith("workflows-$WORKFLOW_CORDAPP_VERSION-cordapp.cpk") }
+        assertThat(workflowCPK).isRegularFile()
+        val mainAttributes = workflowCPK.manifest.mainAttributes
+        assertThat(mainAttributes.getValue(CPK_FORMAT_TAG)).isEqualTo(CPK_FORMAT)
+    }
+
+    @Test
     fun verifyServiceMetadata() {
         val serviceJar = testProject.artifacts.single { it.toString().endsWith("services-$SERVICE_CORDAPP_VERSION.jar") }
         assertThat(serviceJar).isRegularFile()
@@ -121,5 +137,13 @@ class WithCordaMetadataTest {
             .containsPackage(JAVASSIST_PACKAGE, OPTIONAL_ATTR)
             .hasPackageVersion(HIBERNATE_PACKAGE)
             .hasPackageVersion(JAVASSIST_PACKAGE)
+    }
+
+    @Test
+    fun verifyServiceCPKMetadata() {
+        val serviceCPK = testProject.artifacts.single { it.toString().endsWith("services-$SERVICE_CORDAPP_VERSION-cordapp.cpk") }
+        assertThat(serviceCPK).isRegularFile()
+        val mainAttributes = serviceCPK.manifest.mainAttributes
+        assertThat(mainAttributes.getValue(CPK_FORMAT_TAG)).isEqualTo(CPK_FORMAT)
     }
 }

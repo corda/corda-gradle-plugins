@@ -25,6 +25,9 @@ const val CORDA_EMBEDDED_CONFIGURATION_NAME = "cordaEmbedded"
 const val ALL_CORDAPPS_CONFIGURATION_NAME = "allCordapps"
 const val CORDA_CPK_CONFIGURATION_NAME = "cordaCPK"
 
+const val CPK_FORMAT_TAG = "Corda-CPK-Format"
+const val CPK_FORMAT = "1.0"
+
 const val CORDA_CONTRACT_CLASSES = "Corda-Contract-Classes"
 const val CORDA_WORKFLOW_CLASSES = "Corda-Flow-Classes"
 const val CORDA_MAPPED_SCHEMA_CLASSES = "Corda-MappedSchema-Classes"
