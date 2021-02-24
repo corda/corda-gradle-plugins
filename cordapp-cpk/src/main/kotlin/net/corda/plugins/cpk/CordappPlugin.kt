@@ -39,7 +39,6 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
         private const val BNDLIB_PROPERTIES = "META-INF/maven/biz.aQute.bnd/biz.aQute.bndlib/pom.properties"
         private const val DEPENDENCY_CONSTRAINTS_TASK_NAME = "cordappDependencyConstraints"
         private const val DEPENDENCY_CALCULATOR_TASK_NAME = "cordappDependencyCalculator"
-        private const val PACKAGE_DETECTION_TASK_NAME = "cordappDetectPackages"
         private const val CPK_DEPENDENCIES_TASK_NAME = "cordappCPKDependencies"
         private const val VERIFY_BUNDLE_TASK_NAME = "verifyBundle"
         private const val CORDAPP_EXTENSION_NAME = "cordapp"
@@ -183,19 +182,9 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
             }
         }
 
-        /**
-         * Scan the "Corda provided" dependencies for certain key packages.
-         */
-        val detectPackagesTask = project.tasks.register(PACKAGE_DETECTION_TASK_NAME, DetectPackagesTask::class.java) { detect ->
-            detect.packages.addAll("org.hibernate.proxy", "javassist.util.proxy")
-            detect.setExternalJarsFrom(calculatorTask)
-        }
-
         val jarTask = project.tasks.named(JAR_TASK_NAME, Jar::class.java) { jar ->
             val osgi = jar.extensions.create(OSGI_EXTENSION_NAME, OsgiExtension::class.java, project.objects, project, jar)
-            osgi.optionalImports(detectPackagesTask.flatMap(DetectPackagesTask::detections))
             osgi.embed(calculatorTask.flatMap(DependencyCalculator::embeddedJars))
-            jar.dependsOn(detectPackagesTask)
 
             val noPackages = project.objects.setProperty(String::class.java)
                 .apply(SetProperty<String>::disallowChanges)

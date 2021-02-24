@@ -12,6 +12,7 @@ import org.gradle.api.tasks.bundling.Jar
 import org.osgi.framework.Constants.BUNDLE_CLASSPATH
 import org.osgi.framework.Constants.IMPORT_PACKAGE
 import java.util.Collections.unmodifiableMap
+import java.util.Collections.unmodifiableSet
 import java.util.StringJoiner
 
 @Suppress("UnstableApiUsage", "MemberVisibilityCanBePrivate", "unused")
@@ -20,13 +21,20 @@ open class OsgiExtension(objects: ObjectFactory, project: Project, jar: Jar) {
         val cordaClasses: Map<String, String> = unmodifiableMap(mapOf(
             CORDA_CONTRACT_CLASSES to "IMPLEMENTS;net.corda.core.contracts.Contract",
             CORDA_WORKFLOW_CLASSES to "IMPLEMENTS;net.corda.core.flows.Flow",
-            CORDA_MAPPED_SCHEMA_CLASSES to "IMPLEMENTS;net.corda.core.schemas.MappedSchema",
+            CORDA_MAPPED_SCHEMA_CLASSES to "EXTENDS;net.corda.core.schemas.MappedSchema",
             CORDA_SERIALIZATION_WHITELIST_CLASSES to "IMPLEMENTS;net.corda.core.serialization.SerializationWhitelist",
             CORDA_CHECKPOINT_CUSTOM_SERIALIZER_CLASSES to "IMPLEMENTS;net.corda.core.serialization.CheckpointCustomSerializer",
             CORDA_SERIALIZATION_CUSTOM_SERIALIZER_CLASSES to "IMPLEMENTS;net.corda.v5.serialization.SerializationCustomSerializer",
             CORDA_SERVICE_CLASSES to "IMPLEMENTS;net.corda.core.serialization.SerializeAsToken;HIERARCHY_INDIRECTLY_ANNOTATED;net.corda.core.node.services.CordaService"
         ))
 
+        val requiredPackages: Set<String> = unmodifiableSet(setOf(
+            "org.hibernate.annotations",
+            "org.hibernate.proxy",
+            "javassist.util.proxy"
+        ))
+
+        fun dynamic(value: String): String = "$value;resolution:=dynamic;version=!"
         fun optional(value: String): String = "$value;resolution:=optional"
         fun emptyVersion(value: String): String = "$value;version='[0,0)'"
     }
@@ -171,6 +179,16 @@ open class OsgiExtension(objects: ObjectFactory, project: Project, jar: Jar) {
                 "$group.$name"
             }
         }
+
+        /**
+         * We need to import these packages so that the OSGi framework
+         * will create bundle wirings for them. This allows Hibernate
+         * to create lazy proxies for any JPA entities inside the CPK.
+         *
+         * We DO NOT want to bind the CPK to use specific versions of
+         * either Hibernate or Javassist here.
+         */
+        importPackages(requiredPackages.map(::dynamic))
     }
 
     private fun createArchiveName(jar: Jar): Provider<String> {

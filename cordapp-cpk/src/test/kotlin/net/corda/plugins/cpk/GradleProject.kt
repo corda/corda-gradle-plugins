@@ -2,6 +2,7 @@
 package net.corda.plugins.cpk
 
 import aQute.bnd.version.MavenVersion.parseMavenString
+import aQute.bnd.version.VersionRange
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.api.plugins.BasePlugin.ASSEMBLE_TASK_NAME
 import org.gradle.testkit.runner.BuildResult
@@ -15,6 +16,7 @@ import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardCopyOption.REPLACE_EXISTING
+import java.util.Properties
 import java.util.jar.JarFile
 import java.util.jar.Manifest
 import java.util.stream.Collectors.toList
@@ -34,6 +36,12 @@ fun toOSGi(version: String): String {
     return parseMavenString(version).osGiVersion.toString()
 }
 
+fun toOSGiRange(version: String): String {
+    val osgiVersion = parseMavenString(version).osGiVersion
+    return VersionRange(true, osgiVersion, osgiVersion.bumpMajor(), false)
+        .toString().replace(".0","")
+}
+
 val Path.manifest: Manifest get() = JarFile(toFile()).use(JarFile::getManifest)
 
 @Suppress("unused", "MemberVisibilityCanBePrivate")
@@ -42,6 +50,10 @@ class GradleProject(private val projectDir: Path, private val reporter: TestRepo
         private const val DEFAULT_TASK_NAME = ASSEMBLE_TASK_NAME
         private const val META_INF_DIR = "META-INF"
         private val testGradleUserHome = systemProperty("test.gradle.user.home")
+
+        private val testProperties: Properties = Properties().also { props ->
+            this::class.java.classLoader.getResourceAsStream("gradle.properties")?.use(props::load)
+        }
 
         fun systemProperty(name: String): String = System.getProperty(name) ?: fail("System property '$name' not set.")
 
@@ -97,6 +109,8 @@ class GradleProject(private val projectDir: Path, private val reporter: TestRepo
         this.buildScript = buildScript
         return this
     }
+
+    val properties: Properties = testProperties
 
     val buildDir: Path = projectDir.resolve("build")
     val artifactDir: Path = buildDir.resolve("libs")

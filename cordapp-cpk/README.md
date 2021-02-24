@@ -168,16 +168,6 @@ These tasks perform intermediate steps as part of creating a CPK.
 
 - `cordappCPKDependencies`: Generates the "main" jar's `META-INF/CPKDependencies` file.
 
-- `cordappDetectPackages`: There are some packages that a CorDapp must _always_ include in its OSGi
-`Import-Package` header. (This is currently just for the sake of Hibernate and its lazy proxies when
-inside an OSGi framework.) The `cordappDetectPackages` task scans the `Export-Package` metadata inside
-the `cordaProvided` bundles for these packages so that the CorDapp can import their correct versions.
-
-(More technically correct, Bnd will import the correct package versions _automatically_, so long as some
-bundle on the compile classpath contains this information. We only need the required bundles to be
-transitive `api` dependencies of `corda-core`, append the packages to Bnds' `Import-Package` instruction,
-and then Gradle and Bnd will do the rest.)
-
 - `verifyBundle`: Verifies that the "main" jar's OSGi metadata is consistent with the packages
 that have been included in the CPK. This task uses Bnd's `Verifier` class with "strict" verification
 enabled to ensure that every `Import-Package` element has an associated version too.

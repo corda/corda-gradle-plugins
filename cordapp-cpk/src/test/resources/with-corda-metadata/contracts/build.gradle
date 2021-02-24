@@ -27,4 +27,7 @@ jar {
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-osgi-bundle:$kotlin_version"
     cordaProvided project(':corda-core')
+    cordaProvided("org.hibernate:hibernate-osgi:$hibernate_version") {
+        exclude group: 'org.osgi'
+    }
 }

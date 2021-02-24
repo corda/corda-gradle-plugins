@@ -18,9 +18,7 @@ repositories {
 dependencies {
     compileOnly "org.osgi:osgi.annotation:$osgi_version"
     implementation "org.jetbrains.kotlin:kotlin-osgi-bundle:$kotlin_version"
-    api("org.hibernate:hibernate-osgi:$hibernate_version") {
-        exclude group: 'org.osgi'
-    }
+    api "javax.persistence:javax.persistence-api:$persistence_api_version"
     runtimeOnly "com.google.guava:guava:$corda_guava_version"
 }
 

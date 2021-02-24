@@ -5,6 +5,7 @@ import aQute.bnd.header.OSGiHeader
 import aQute.bnd.header.Parameters
 import org.assertj.core.api.Assertions.assertThat
 
+@Suppress("unused")
 class AssertHeaders(private val parameters: Parameters) {
     constructor(header: String) : this(OSGiHeader.parseHeader(header))
 
@@ -13,14 +14,19 @@ class AssertHeaders(private val parameters: Parameters) {
         return this
     }
 
-    fun containsPackage(packageName: String, vararg attributes: String): AssertHeaders {
+    fun containsPackageWithAttributes(packageName: String, vararg attributes: String): AssertHeaders {
         assertThat(parameters.keys).contains(packageName)
-        assertThat(parameters[packageName].map(Any::toString)).contains(*attributes)
+        val packageAttributes = parameters[packageName].map(Any::toString)
+        if (attributes.isEmpty()) {
+            assertThat(packageAttributes).isEmpty()
+        } else {
+            assertThat(packageAttributes).containsExactlyInAnyOrder(*attributes)
+        }
         return this
     }
 
-    fun hasPackageVersion(packageName: String): AssertHeaders {
-        assertThat(parameters[packageName].version).isNotNull()
+    fun doesNotContainPackage(vararg packageNames: String): AssertHeaders {
+        assertThat(parameters.keys).doesNotContain(*packageNames)
         return this
     }
 
