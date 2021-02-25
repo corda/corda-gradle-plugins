@@ -118,15 +118,14 @@ private class ProvidedXmlWriter(dependencies: Node): DependencyXmlWriter(depende
 }
 
 /**
- * Integrate with the com.jfrog.artifactory Gradle plugin,
- * which uses a [org.gradle.api.ProjectEvaluationListener]
- * to configure itself. We can therefore assume here that
- * any ArtifactoryTask objects have already been configured.
+ * Integrate with the `com.jfrog.artifactory` Gradle plugin, which uses a
+ * [ProjectEvaluationListener][org.gradle.api.ProjectEvaluationListener] to
+ * configure itself. We can therefore assume here that any `ArtifactoryTask`
+ * objects have already been configured.
  *
- * All we need is the set of [MavenPublication] objects
- * that are to be published to Artifactory. If our CPK's
- * own [MavenPublication] is among them then we include
- * its companion's publication too.
+ * All we need is the set of [MavenPublication] objects that are to be
+ * published to Artifactory. If our CPK's own [MavenPublication] is
+ * among them then we include its companion's publication too.
  */
 private class ArtifactoryPublisher(logger: Logger) {
     private companion object {
@@ -151,7 +150,7 @@ private class ArtifactoryPublisher(logger: Logger) {
 
     init {
         if (!MutableCollection::class.java.isAssignableFrom(mavenPublications.returnType)) {
-            logger.warn("Method $mavenPublications does not return a collection type.")
+            logger.warn("Method {} does not return a collection type.", mavenPublications)
             throw InvalidUserCodeException()
         }
     }

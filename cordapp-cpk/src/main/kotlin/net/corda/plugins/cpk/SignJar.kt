@@ -7,7 +7,6 @@ import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileSystemLocation
 import org.gradle.api.model.ObjectFactory
-import org.gradle.api.provider.HasConfigurableValue
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Input
@@ -29,6 +28,7 @@ open class SignJar @Inject constructor(objects: ObjectFactory) : DefaultTask() {
     companion object {
         private const val DUMMY_VALUE = "****"
 
+        @Suppress("SameParameterValue")
         private fun createTempFileFromResource(resourcePath: String, tempFileName: String, tempFileExtension: String): Path {
             val path = Files.createTempFile(tempFileName, tempFileExtension)
             this::class.java.classLoader.getResourceAsStream(resourcePath)?.use {

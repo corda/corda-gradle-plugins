@@ -5,7 +5,7 @@ import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import javax.inject.Inject
 
-@Suppress("UnstableApiUsage", "Unused")
+@Suppress("UnstableApiUsage", "Unused", "PlatformExtensionReceiverOfInline")
 open class Sealing @Inject constructor(objects: ObjectFactory) {
 
     @get:Input

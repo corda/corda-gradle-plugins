@@ -31,8 +31,8 @@ open class DependencyCalculator @Inject constructor(objects: ObjectFactory) : De
         val CORDAPP_BUILD_CONFIGURATIONS: List<String> = unmodifiableList(listOf(
             /**
              * Every CorDapp configuration is a super-configuration of at least one of these
-             * configurations. Hence every [org.gradle.api.artifacts.ProjectDependency] needed
-             * to build this CorDapp should exist somewhere beneath their umbrella.
+             * configurations. Hence every [ProjectDependency][org.gradle.api.artifacts.ProjectDependency]
+             * needed to build this CorDapp should exist somewhere beneath their umbrella.
              */
             RUNTIME_CLASSPATH_CONFIGURATION_NAME,
             COMPILE_CLASSPATH_CONFIGURATION_NAME
@@ -74,8 +74,8 @@ open class DependencyCalculator @Inject constructor(objects: ObjectFactory) : De
 
     /**
      * Sets this task's dependencies; to be invoked when the task is configured.
-     * (Deliberately NOT invoking this from the constructor because I'm unclear
-     * on where [org.gradle.api.Task] construction fits into the Gradle lifecycle.
+     * (Deliberately NOT invoking this from the constructor because I'm unclear on
+     * where [Task][org.gradle.api.Task] construction fits into the Gradle lifecycle.
      */
     fun dependsOnCordappConfigurations() {
         dependsOn(calculateTaskDependencies())

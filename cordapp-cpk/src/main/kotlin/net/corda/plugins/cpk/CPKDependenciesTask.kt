@@ -21,7 +21,7 @@ import java.io.IOException
 import java.util.jar.JarFile
 import javax.inject.Inject
 
-@Suppress("UnstableApiUsage")
+@Suppress("UnstableApiUsage", "MemberVisibilityCanBePrivate")
 open class CPKDependenciesTask @Inject constructor(objects: ObjectFactory) : DefaultTask() {
     private companion object {
         const val CPK_DEPENDENCIES = "META-INF/CPKDependencies"
