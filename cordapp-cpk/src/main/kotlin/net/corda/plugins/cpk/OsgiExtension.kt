@@ -152,18 +152,16 @@ open class OsgiExtension(objects: ObjectFactory, project: Project, jar: Jar) {
     }
 
     @get:Internal
-    val cordaScanning: Provider<String> = objects.property(String::class.java)
+    val scanCordaClasses: Provider<String> = objects.property(String::class.java)
         .value(generateCordaClassQuery())
         .apply(Property<String>::finalizeValueOnRead)
 
     private fun generateCordaClassQuery(): String {
-        val joiner = StringJoiner(System.lineSeparator())
-        for (cordaClass in cordaClasses) {
+        return cordaClasses.map { cordaClass ->
             // This NAMED filter only identifies "anonymous" classes.
             // Adding STATIC removes all inner classes as well.
-            joiner.add("${cordaClass.key}=\${classes;${cordaClass.value};CONCRETE;PUBLIC;STATIC;NAMED;!*\\.[\\\\d]+*}")
-        }
-        return joiner.toString()
+            "${cordaClass.key}=\${classes;${cordaClass.value};CONCRETE;PUBLIC;STATIC;NAMED;!*\\.[\\\\d]+*}"
+        }.joinToString(System.lineSeparator())
     }
 
     @get:Internal

@@ -227,8 +227,8 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
                 // Add a Bnd instruction for explicit package imports.
                 bnd(osgi.imports)
 
-                // Add Bnd instructions to scan for Corda contracts, flows etc.
-                bnd(osgi.cordaScanning)
+                // Add Bnd instructions to scan for any contracts, flows, schemas etc.
+                bnd(osgi.scanCordaClasses)
             }
 
             jar.doFirst { t ->
