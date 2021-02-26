@@ -2,19 +2,14 @@ package net.corda.gradle.flask
 
 import groovy.transform.CompileStatic
 import net.corda.flask.common.Flask
-import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.condition.EnabledForJreRange
-import org.junit.jupiter.api.condition.JRE
 import org.junit.jupiter.api.io.TempDir
 
-import java.nio.file.CopyOption
 import java.nio.file.Files
 import java.nio.file.Path
-import java.nio.file.Paths
 import java.nio.file.StandardCopyOption
 import java.security.MessageDigest
 import java.util.zip.ZipEntry

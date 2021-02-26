@@ -39,6 +39,8 @@ import java.util.jar.Manifest;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
+import static java.util.zip.Deflater.BEST_COMPRESSION;
+import static java.util.zip.Deflater.NO_COMPRESSION;
 
 public class FlaskJarTask extends AbstractArchiveTask {
 
@@ -147,6 +149,10 @@ public class FlaskJarTask extends AbstractArchiveTask {
                 zipEntry.setTime(fileCopyDetails.getLastModified());
             }
             if (fileCopyDetails.isDirectory()) {
+                zipEntry.setMethod(ZipEntry.STORED);
+                zipEntry.setCompressedSize(0);
+                zipEntry.setSize(0);
+                zipEntry.setCrc(0);
                 zoos.putNextEntry(zipEntry);
             } else {
                 boolean compressed = Flask.splitExtension(fileCopyDetails.getSourceName())
@@ -160,8 +166,8 @@ public class FlaskJarTask extends AbstractArchiveTask {
                     }
                     zipEntry.setMethod(ZipEntry.STORED);
                 }
+                zoos.putNextEntry(zipEntry);
                 try (InputStream is = Flask.read(fileCopyDetails.getFile(), false)) {
-                    zoos.putNextEntry(zipEntry);
                     Flask.write2Stream(is, zoos, buffer);
                 }
             }
@@ -215,15 +221,20 @@ public class FlaskJarTask extends AbstractArchiveTask {
                  * be computed in advance, we write all the entries to a temporary zip archive while computing the manifest,
                  * then we write the manifest to the final zip file as the first entry and, finally,
                  * we copy all the other entries from the temporary archive.
+                 *
+                 * The {@link org.gradle.api.Task#getTemporaryDir} directory is guaranteed
+                 * to be unique per instance of this task.
                  */
-                File temporaryJar = File.createTempFile("premature", ".zip", getTemporaryDir());
+                File temporaryJar = new File(getTemporaryDir(), "premature.zip");
                 try (ZipOutputStream zipOutputStream = new ZipOutputStream(Flask.write(temporaryJar, true))) {
+                    zipOutputStream.setLevel(NO_COMPRESSION);
                     StreamAction streamAction = new StreamAction(zipOutputStream, manifest, md, zipEntryFactory, buffer);
                     copyActionProcessingStream.process(streamAction);
                 }
 
                 try (ZipOutputStream zipOutputStream = new ZipOutputStream(Flask.write(destination, true));
                      ZipInputStream zipInputStream = new ZipInputStream(Flask.read(temporaryJar, true))) {
+                    zipOutputStream.setLevel(BEST_COMPRESSION);
                     ZipEntry zipEntry = zipEntryFactory.createZipEntry(Flask.Constants.METADATA_FOLDER + '/');
                     zipOutputStream.putNextEntry(zipEntry);
                     zipEntry = zipEntryFactory.createZipEntry(JarFile.MANIFEST_NAME);
@@ -268,7 +279,7 @@ public class FlaskJarTask extends AbstractArchiveTask {
                     while (true) {
                         zipEntry = zipInputStream.getNextEntry();
                         if (zipEntry == null) break;
-                        zipOutputStream.putNextEntry(zipEntry);
+                        zipOutputStream.putNextEntry(new ZipEntry(zipEntry));
                         Flask.write2Stream(zipInputStream, zipOutputStream, buffer);
                     }
                     return () -> true;
