@@ -51,6 +51,7 @@ dependencies {
         add(conf, [group: "org.projectlombok", name: "lombok", version: lombok_version])
     }
     testImplementation project("flask-common")
+    testImplementation "org.assertj:assertj-core:$assertj_version"
     testImplementation "org.junit.jupiter:junit-jupiter-api:$junit_jupiter_version"
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junit_jupiter_version"
 }

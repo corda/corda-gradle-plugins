@@ -41,7 +41,16 @@ import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 import static java.util.zip.Deflater.BEST_COMPRESSION;
 import static java.util.zip.Deflater.NO_COMPRESSION;
+import static net.corda.flask.common.Flask.Constants.BUFFER_SIZE;
+import static net.corda.flask.common.Flask.Constants.DEFAULT_LAUNCHER_NAME;
+import static net.corda.flask.common.Flask.Constants.GRADLE_TASK_GROUP;
+import static net.corda.flask.common.Flask.Constants.JAVA_AGENTS_FILE;
+import static net.corda.flask.common.Flask.Constants.JVM_ARGUMENT_FILE;
+import static net.corda.flask.common.Flask.Constants.LIBRARIES_FOLDER;
+import static net.corda.flask.common.Flask.Constants.METADATA_FOLDER;
+import static net.corda.flask.common.Flask.Constants.ZIP_ENTRIES_DEFAULT_TIMESTAMP;
 
+@SuppressWarnings({ "UnstableApiUsage", "unused" })
 public class FlaskJarTask extends AbstractArchiveTask {
 
     private static final String MINIMUM_GRADLE_VERSION = "6.0";
@@ -75,7 +84,7 @@ public class FlaskJarTask extends AbstractArchiveTask {
     }
 
     public void includeLibraries(Object... files) {
-        into(Flask.Constants.LIBRARIES_FOLDER, (copySpec) -> copySpec.from(files));
+        into(LIBRARIES_FOLDER, (copySpec) -> copySpec.from(files));
     }
 
     private final NamedDomainObjectContainer<JavaAgent> javaAgents;
@@ -91,13 +100,13 @@ public class FlaskJarTask extends AbstractArchiveTask {
 
     @Inject
     public FlaskJarTask(@Nonnull ObjectFactory objects) {
-        setGroup(Flask.Constants.GRADLE_TASK_GROUP);
+        setGroup(GRADLE_TASK_GROUP);
         setDescription("Creates an executable jar file, embedding all of its runtime dependencies and default JVM arguments");
         BasePluginConvention basePluginConvention = getProject().getConvention().getPlugin(BasePluginConvention.class);
         getDestinationDirectory().set(basePluginConvention.getLibsDirectory());
         getArchiveBaseName().convention(getProject().getName());
         getArchiveExtension().convention("jar");
-        launcherClassName = objects.property(String.class).convention(Flask.Constants.DEFAULT_LAUNCHER_NAME);
+        launcherClassName = objects.property(String.class).convention(DEFAULT_LAUNCHER_NAME);
         mainClassName = objects.property(String.class);
         jvmArgs = objects.listProperty(String.class);
         javaAgents = objects.domainObjectContainer(JavaAgent.class);
@@ -136,25 +145,19 @@ public class FlaskJarTask extends AbstractArchiveTask {
         @SneakyThrows
         public void processFile(FileCopyDetailsInternal fileCopyDetails) {
             String entryName = fileCopyDetails.getRelativePath().toString();
-            if (!fileCopyDetails.isDirectory() && entryName.startsWith(Flask.Constants.LIBRARIES_FOLDER)) {
+            if (!fileCopyDetails.isDirectory() && entryName.startsWith(LIBRARIES_FOLDER)) {
                 Supplier<InputStream> streamSupplier = () -> Flask.read(fileCopyDetails.getFile(), false);
                 Attributes attr = manifest.getEntries().computeIfAbsent(entryName, it -> new Attributes());
                 md.reset();
                 attr.putValue(Flask.ManifestAttributes.ENTRY_HASH,
                         Base64.getEncoder().encodeToString(Flask.computeDigest(streamSupplier, md, buffer)));
             }
-            if (Flask.Constants.METADATA_FOLDER.equals(entryName)) return;
-            ZipEntry zipEntry = zipEntryFactory.createZipEntry(entryName + (fileCopyDetails.isDirectory() ? "/" : ""));
-            if(zipEntryFactory.isPreserveFileTimestamps) {
-                zipEntry.setTime(fileCopyDetails.getLastModified());
-            }
+            if (METADATA_FOLDER.equals(entryName)) return;
             if (fileCopyDetails.isDirectory()) {
-                zipEntry.setMethod(ZipEntry.STORED);
-                zipEntry.setCompressedSize(0);
-                zipEntry.setSize(0);
-                zipEntry.setCrc(0);
+                ZipEntry zipEntry = zipEntryFactory.createDirectoryEntry(entryName, fileCopyDetails.getLastModified());
                 zoos.putNextEntry(zipEntry);
             } else {
+                ZipEntry zipEntry = zipEntryFactory.createZipEntry(entryName, fileCopyDetails.getLastModified());
                 boolean compressed = Flask.splitExtension(fileCopyDetails.getSourceName())
                         .map(entry -> ".jar".equals(entry.getValue()))
                         .orElse(false);
@@ -174,17 +177,52 @@ public class FlaskJarTask extends AbstractArchiveTask {
         }
     }
 
+    @SuppressWarnings("SameParameterValue")
     @RequiredArgsConstructor
-    private static class ZipEntryFactory {
+    private static final class ZipEntryFactory {
 
-        public final boolean isPreserveFileTimestamps;
+        private final boolean isPreserveFileTimestamps;
+        private final long defaultLastModifiedTime;
 
-        ZipEntry createZipEntry(String entryName) {
+        @Nonnull
+        ZipEntry createZipEntry(String entryName, long lastModifiedTime) {
             ZipEntry zipEntry = new ZipEntry(entryName);
-            if(!isPreserveFileTimestamps) {
-                zipEntry.setTime(Flask.Constants.ZIP_ENTRIES_DEFAULT_TIMESTAMP);
-            }
+            zipEntry.setTime(isPreserveFileTimestamps ? lastModifiedTime : ZIP_ENTRIES_DEFAULT_TIMESTAMP);
             return zipEntry;
+        }
+
+        @Nonnull
+        ZipEntry createZipEntry(String entryName) {
+            return createZipEntry(entryName, defaultLastModifiedTime);
+        }
+
+        @Nonnull
+        ZipEntry createDirectoryEntry(@Nonnull String entryName, long lastModifiedTime) {
+            ZipEntry zipEntry = createZipEntry(entryName.endsWith("/") ? entryName : entryName + '/', lastModifiedTime);
+            zipEntry.setMethod(ZipEntry.STORED);
+            zipEntry.setCompressedSize(0);
+            zipEntry.setSize(0);
+            zipEntry.setCrc(0);
+            return zipEntry;
+        }
+
+        @Nonnull
+        ZipEntry createDirectoryEntry(@Nonnull String entryName) {
+            return createDirectoryEntry(entryName, defaultLastModifiedTime);
+        }
+
+        @Nonnull
+        ZipEntry copyOf(@Nonnull ZipEntry zipEntry) {
+            if (zipEntry.getMethod() == ZipEntry.STORED) {
+                return new ZipEntry(zipEntry);
+            } else {
+                ZipEntry newEntry = new ZipEntry(zipEntry.getName());
+                newEntry.setMethod(ZipEntry.DEFLATED);
+                newEntry.setTime(zipEntry.getTime());
+                newEntry.setExtra(zipEntry.getExtra());
+                newEntry.setComment(zipEntry.getComment());
+                return newEntry;
+            }
         }
     }
 
@@ -194,7 +232,7 @@ public class FlaskJarTask extends AbstractArchiveTask {
         File destination = getArchiveFile().get().getAsFile();
         return new CopyAction() {
 
-            private final ZipEntryFactory zipEntryFactory = new ZipEntryFactory(isPreserveFileTimestamps());
+            private final ZipEntryFactory zipEntryFactory = new ZipEntryFactory(isPreserveFileTimestamps(), System.currentTimeMillis());
 
             @Override
             @Nonnull
@@ -203,13 +241,13 @@ public class FlaskJarTask extends AbstractArchiveTask {
                 Manifest manifest = new Manifest();
                 Attributes mainAttributes = manifest.getMainAttributes();
                 mainAttributes.put(Attributes.Name.MANIFEST_VERSION, "1.0");
-                mainAttributes.put(Attributes.Name.MAIN_CLASS, Flask.Constants.DEFAULT_LAUNCHER_NAME);
+                mainAttributes.put(Attributes.Name.MAIN_CLASS, DEFAULT_LAUNCHER_NAME);
                 mainAttributes.putValue(Flask.ManifestAttributes.LAUNCHER_CLASS, launcherClassName.get());
-                mainAttributes.putValue(Flask.ManifestAttributes.PREMAIN_CLASS, Flask.Constants.DEFAULT_LAUNCHER_NAME);
+                mainAttributes.putValue(Flask.ManifestAttributes.PREMAIN_CLASS, DEFAULT_LAUNCHER_NAME);
                 Optional.ofNullable(mainClassName.getOrNull()).ifPresent(it ->
                         mainAttributes.putValue(Flask.ManifestAttributes.APPLICATION_CLASS, it));
                 MessageDigest md = MessageDigest.getInstance("SHA-256");
-                byte[] buffer = new byte[Flask.Constants.BUFFER_SIZE];
+                byte[] buffer = new byte[BUFFER_SIZE];
                 mainAttributes.putValue(Flask.ManifestAttributes.HEARTBEAT_AGENT_HASH,
                     Flask.bytes2Hex(Flask.computeDigest(HeartbeatAgentResource.instance::read, md, buffer)));
 
@@ -235,7 +273,7 @@ public class FlaskJarTask extends AbstractArchiveTask {
                 try (ZipOutputStream zipOutputStream = new ZipOutputStream(Flask.write(destination, true));
                      ZipInputStream zipInputStream = new ZipInputStream(Flask.read(temporaryJar, true))) {
                     zipOutputStream.setLevel(BEST_COMPRESSION);
-                    ZipEntry zipEntry = zipEntryFactory.createZipEntry(Flask.Constants.METADATA_FOLDER + '/');
+                    ZipEntry zipEntry = zipEntryFactory.createDirectoryEntry(METADATA_FOLDER);
                     zipOutputStream.putNextEntry(zipEntry);
                     zipEntry = zipEntryFactory.createZipEntry(JarFile.MANIFEST_NAME);
                     zipEntry.setMethod(ZipEntry.DEFLATED);
@@ -250,7 +288,7 @@ public class FlaskJarTask extends AbstractArchiveTask {
                             String jvmArg = df.get(i);
                             jvmArgsPropertyFile.setProperty(Integer.toString(i), jvmArg);
                         }
-                        zipEntry = zipEntryFactory.createZipEntry(Flask.Constants.JVM_ARGUMENT_FILE);
+                        zipEntry = zipEntryFactory.createZipEntry(JVM_ARGUMENT_FILE);
                         zipEntry.setMethod(ZipEntry.DEFLATED);
                         zipOutputStream.putNextEntry(zipEntry);
                         Flask.storeProperties(jvmArgsPropertyFile, zipOutputStream);
@@ -270,7 +308,7 @@ public class FlaskJarTask extends AbstractArchiveTask {
                             }
                             javaAgentPropertyFile.setProperty(Integer.toString(index++), sb.toString());
                         }
-                        zipEntry = zipEntryFactory.createZipEntry(Flask.Constants.JAVA_AGENTS_FILE);
+                        zipEntry = zipEntryFactory.createZipEntry(JAVA_AGENTS_FILE);
                         zipEntry.setMethod(ZipEntry.DEFLATED);
                         zipOutputStream.putNextEntry(zipEntry);
                         Flask.storeProperties(javaAgentPropertyFile, zipOutputStream);
@@ -279,7 +317,9 @@ public class FlaskJarTask extends AbstractArchiveTask {
                     while (true) {
                         zipEntry = zipInputStream.getNextEntry();
                         if (zipEntry == null) break;
-                        zipOutputStream.putNextEntry(new ZipEntry(zipEntry));
+                        // Create a new ZipEntry explicitly, without relying on
+                        // subtle (undocumented?) behaviour of ZipInputStream.
+                        zipOutputStream.putNextEntry(zipEntryFactory.copyOf(zipEntry));
                         Flask.write2Stream(zipInputStream, zipOutputStream, buffer);
                     }
                     return () -> true;
