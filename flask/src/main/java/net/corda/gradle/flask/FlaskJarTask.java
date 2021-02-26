@@ -216,7 +216,7 @@ public class FlaskJarTask extends AbstractArchiveTask {
                  * then we write the manifest to the final zip file as the first entry and, finally,
                  * we copy all the other entries from the temporary archive.
                  */
-                File temporaryJar = new File(getTemporaryDir(), "premature.zip");
+                File temporaryJar = File.createTempFile("premature", ".zip", getTemporaryDir());
                 try (ZipOutputStream zipOutputStream = new ZipOutputStream(Flask.write(temporaryJar, true))) {
                     StreamAction streamAction = new StreamAction(zipOutputStream, manifest, md, zipEntryFactory, buffer);
                     copyActionProcessingStream.process(streamAction);
