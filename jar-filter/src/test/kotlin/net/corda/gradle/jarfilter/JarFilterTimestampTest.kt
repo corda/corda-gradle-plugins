@@ -53,6 +53,7 @@ class JarFilterTimestampTest {
                 .withProjectDir(testProjectDir.toFile())
                 .withArguments(getGradleArgsForTasks("jarFilter"))
                 .withPluginClasspath()
+                .withDebug(true)
                 .build()
             output = result.output
             println(output)
