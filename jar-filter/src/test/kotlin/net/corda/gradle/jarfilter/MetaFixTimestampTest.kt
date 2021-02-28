@@ -54,6 +54,7 @@ class MetaFixTimestampTest {
                 .withProjectDir(testProjectDir.toFile())
                 .withArguments(getGradleArgsForTasks("metafix"))
                 .withPluginClasspath()
+                .withDebug(true)
                 .build()
             output = result.output
             println(output)
