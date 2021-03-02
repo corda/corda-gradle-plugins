@@ -1,10 +1,10 @@
 @file:Suppress("unused")
 package com.example.metadata.contracts
 
-import net.corda.core.contracts.Contract
-import net.corda.core.contracts.ContractState
 import net.corda.core.identity.AbstractParty
-import net.corda.core.transactions.LedgerTransaction
+import net.corda.v5.ledger.contracts.Contract
+import net.corda.v5.ledger.contracts.ContractState
+import net.corda.v5.ledger.transactions.LedgerTransaction
 import java.util.Collections.unmodifiableList
 
 class ExampleContract : Contract {

@@ -9,5 +9,5 @@ rootProject.name = 'with-dependent-cordapp'
 
 include 'library'
 include 'cordapp'
-include 'corda-core'
-project(':corda-core').projectDir = file('../resources/test/corda-core')
+include 'corda-api'
+project(':corda-api').projectDir = file('../resources/test/corda-api')

@@ -100,13 +100,13 @@ class CordappWithEmbeddedTransitivesTest {
                 .contains(libs.map { ",$it" })
             assertThatHeader(getValue(IMPORT_PACKAGE)).containsAll(
                 "com.example.cordapp;$cordappOsgiVersion",
-                "net.corda.core.transactions;$cordaOsgiVersion",
+                "net.corda.v5.ledger.transactions;$cordaOsgiVersion",
                 "org.apache.commons.io;$commonsIoOsgiVersion",
                 "kotlin;$kotlinOsgiVersion",
                 "org.slf4j;$slf4jOsgiVersion"
             )
             assertThatHeader(getValue(EXPORT_PACKAGE)).containsAll(
-                "com.example.host;uses:=\"com.example.cordapp,kotlin,net.corda.core.transactions\";$hostOsgiVersion"
+                "com.example.host;uses:=\"com.example.cordapp,kotlin,net.corda.v5.ledger.transactions\";$hostOsgiVersion"
             )
         }
     }

@@ -24,7 +24,7 @@ dependencies {
 
 tasks.named('jar', Jar) {
     bnd """\
-Bundle-SymbolicName: net.corda.core
-Bundle-Name: Fake Corda Core
+Bundle-SymbolicName: net.corda.api
+Bundle-Name: Fake Corda APIs
 """
 }

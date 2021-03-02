@@ -1,4 +1,4 @@
 @Export
-package net.corda.core.transactions;
+package net.corda.v5.ledger.transactions;
 
 import org.osgi.annotation.bundle.Export;

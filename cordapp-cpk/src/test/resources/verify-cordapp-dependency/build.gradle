@@ -26,7 +26,7 @@ cordapp {
 
 dependencies {
     cordapp project(':cordapp')
-    cordaProvided project(':corda-core')
+    cordaProvided project(':corda-api')
     implementation "org.jetbrains.kotlin:kotlin-osgi-bundle:$kotlin_version"
     implementation "commons-collections:commons-collections:$commons_collections_version"
 }

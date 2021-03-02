@@ -34,6 +34,6 @@ jar {
 }
 
 dependencies {
-    cordaProvided project(':corda-core')
+    cordaProvided project(':corda-api')
     cordaEmbedded project(':library')
 }

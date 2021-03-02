@@ -1,7 +1,7 @@
 package com.example.contract
 
-import net.corda.core.contracts.Contract
-import net.corda.core.transactions.LedgerTransaction
+import net.corda.v5.ledger.contracts.Contract
+import net.corda.v5.ledger.transactions.LedgerTransaction
 import org.apache.commons.io.IOUtils
 import java.io.ByteArrayInputStream
 

@@ -1,8 +1,8 @@
 package com.example.contract.states
 
 import com.google.common.collect.ImmutableList
-import net.corda.core.contracts.ContractState
 import net.corda.core.identity.AbstractParty
+import net.corda.v5.ledger.contracts.ContractState
 
 class ExampleState(val issuer: AbstractParty) : ContractState {
     override val participants: List<AbstractParty> = ImmutableList.of(issuer)

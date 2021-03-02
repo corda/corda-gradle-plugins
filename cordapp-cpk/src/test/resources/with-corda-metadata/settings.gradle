@@ -13,5 +13,5 @@ include 'contracts'
 include 'services'
 include 'workflows'
 
-include 'corda-core'
-project(':corda-core').projectDir = file('../resources/test/corda-core')
+include 'corda-api'
+project(':corda-api').projectDir = file('../resources/test/corda-api')

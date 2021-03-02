@@ -1,5 +1,5 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import static org.gradle.api.JavaVersion.*
+import static org.gradle.api.JavaVersion.VERSION_1_8
 
 plugins {
     id 'net.corda.plugins.cordapp-cpk'
@@ -38,7 +38,7 @@ cordapp {
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-osgi-bundle:$kotlin_version"
     implementation "commons-codec:commons-codec:$commons_codec_version"
-    cordaProvided project(':corda-core')
+    cordaProvided project(':corda-api')
     cordapp project(':cordapp')
 }
 

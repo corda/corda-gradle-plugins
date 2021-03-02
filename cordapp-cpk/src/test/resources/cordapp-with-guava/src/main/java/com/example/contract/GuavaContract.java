@@ -1,8 +1,8 @@
 package com.example.contract;
 
 import com.google.common.collect.ImmutableList;
-import net.corda.core.contracts.Contract;
-import net.corda.core.transactions.LedgerTransaction;
+import net.corda.v5.ledger.contracts.Contract;
+import net.corda.v5.ledger.transactions.LedgerTransaction;
 
 import java.util.List;
 

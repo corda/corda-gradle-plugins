@@ -19,9 +19,9 @@ import java.util.StringJoiner
 open class OsgiExtension(objects: ObjectFactory, project: Project, jar: Jar) {
     private companion object {
         val cordaClasses: Map<String, String> = unmodifiableMap(mapOf(
-            CORDA_CONTRACT_CLASSES to "IMPLEMENTS;net.corda.core.contracts.Contract",
+            CORDA_CONTRACT_CLASSES to "IMPLEMENTS;net.corda.v5.ledger.contracts.Contract",
             CORDA_WORKFLOW_CLASSES to "IMPLEMENTS;net.corda.core.flows.Flow",
-            CORDA_MAPPED_SCHEMA_CLASSES to "EXTENDS;net.corda.core.schemas.MappedSchema",
+            CORDA_MAPPED_SCHEMA_CLASSES to "EXTENDS;net.corda.core.node.services.persistence.MappedSchema",
             CORDA_SERIALIZATION_WHITELIST_CLASSES to "IMPLEMENTS;net.corda.core.serialization.SerializationWhitelist",
             CORDA_CHECKPOINT_CUSTOM_SERIALIZER_CLASSES to "IMPLEMENTS;net.corda.core.serialization.CheckpointCustomSerializer",
             CORDA_SERIALIZATION_CUSTOM_SERIALIZER_CLASSES to "IMPLEMENTS;net.corda.v5.serialization.SerializationCustomSerializer",

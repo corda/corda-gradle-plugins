@@ -65,11 +65,11 @@ class SimpleCordappTest {
             assertEquals("com.example.simple-cordapp", getValue(BUNDLE_SYMBOLICNAME))
             assertEquals(toOSGi(cordappVersion), getValue(BUNDLE_VERSION))
             assertThatHeader(getValue(IMPORT_PACKAGE)).containsAll(
-                "net.corda.core.contracts;$cordaOsgiVersion",
+                "net.corda.v5.ledger.contracts;$cordaOsgiVersion",
                 "org.apache.commons.io;$ioOsgiVersion"
             )
             assertThatHeader(getValue(EXPORT_PACKAGE)).containsAll(
-                "com.example.contract;uses:=\"net.corda.core.contracts,net.corda.core.transactions\";$cordappOsgiVersion"
+                "com.example.contract;uses:=\"net.corda.v5.ledger.contracts,net.corda.v5.ledger.transactions\";$cordappOsgiVersion"
             )
             assertEquals("osgi.ee;filter:=\"(&(osgi.ee=JavaSE)(version=1.8))\"", getValue(REQUIRE_CAPABILITY))
             assertEquals("Test-Licence", getValue(BUNDLE_LICENSE))

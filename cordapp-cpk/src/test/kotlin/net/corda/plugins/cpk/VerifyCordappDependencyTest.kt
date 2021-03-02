@@ -80,11 +80,11 @@ class VerifyCordappDependencyTest {
                 "com.example.cordapp;$cordappOsgiVersion",
                 "kotlin;$kotlinOsgiVersion",
                 "kotlin.jvm.internal;$kotlinOsgiVersion",
-                "net.corda.core.contracts;$cordaOsgiVersion",
-                "net.corda.core.transactions;$cordaOsgiVersion"
+                "net.corda.v5.ledger.contracts;$cordaOsgiVersion",
+                "net.corda.v5.ledger.transactions;$cordaOsgiVersion"
             )
             assertThatHeader(getValue(EXPORT_PACKAGE)).containsAll(
-                "com.example.host;uses:=\"kotlin,net.corda.core.contracts,net.corda.core.transactions\";$hostOsgiVersion"
+                "com.example.host;uses:=\"kotlin,net.corda.v5.ledger.contracts,net.corda.v5.ledger.transactions\";$hostOsgiVersion"
             )
             assertEquals("osgi.ee;filter:=\"(&(osgi.ee=JavaSE)(version=1.8))\"", getValue(REQUIRE_CAPABILITY))
             assertEquals("Test-Licence", getValue(BUNDLE_LICENSE))
