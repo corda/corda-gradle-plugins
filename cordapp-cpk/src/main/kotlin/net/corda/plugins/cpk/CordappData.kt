@@ -19,7 +19,8 @@ open class CordappData @Inject constructor(objects: ObjectFactory) {
     @get:Input
     val licence: Property<String> = objects.property(String::class.java)
 
-    internal fun isEmpty(): Boolean = (!name.isPresent && !versionId.isPresent && !vendor.isPresent && !licence.isPresent)
+    internal val isEmpty: Boolean
+        get() = (!name.isPresent && !versionId.isPresent && !vendor.isPresent && !licence.isPresent)
 
     fun name(value: String?) {
         name.set(value)

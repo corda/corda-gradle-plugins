@@ -245,7 +245,7 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
 
                 val attributes = t.manifest.attributes
                 // check whether metadata has been configured (not mandatory for non-flow, non-contract gradle build files)
-                if (cordapp.contract.isEmpty() && cordapp.workflow.isEmpty()) {
+                if (cordapp.contract.isEmpty && cordapp.workflow.isEmpty) {
                     throw InvalidUserDataException("Cordapp metadata not defined for this gradle build file. See https://docs.corda.net/head/cordapp-build-systems.html#separation-of-cordapp-contracts-flows-and-services")
                 }
 
@@ -298,7 +298,7 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
     private fun configureCordappAttributes(symbolicName: String, attributes: Attributes) {
         attributes[BUNDLE_SYMBOLICNAME] = symbolicName
 
-        if (!cordapp.contract.isEmpty()) {
+        if (!cordapp.contract.isEmpty) {
             val contractName = cordapp.contract.name.getOrElse(symbolicName)
             val vendor = cordapp.contract.vendor.getOrElse(UNKNOWN)
             val licence = cordapp.contract.licence.getOrElse(UNKNOWN)
@@ -310,7 +310,7 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
             attributes["Cordapp-Contract-Vendor"] = vendor
             attributes["Cordapp-Contract-Licence"] = licence
         }
-        if (!cordapp.workflow.isEmpty()) {
+        if (!cordapp.workflow.isEmpty) {
             val workflowName = cordapp.workflow.name.getOrElse(symbolicName)
             val vendor = cordapp.workflow.vendor.getOrElse(UNKNOWN)
             val licence = cordapp.workflow.licence.getOrElse(UNKNOWN)
