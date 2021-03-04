@@ -19,14 +19,14 @@ import java.nio.file.Path
 
 class SimpleKotlinCordappTest {
     companion object {
-        const val cordappVersion = "1.0.1-SNAPSHOT"
-        const val guavaVersion = "29.0-jre"
+        private const val cordappVersion = "1.0.1-SNAPSHOT"
+        private const val guavaVersion = "29.0-jre"
 
-        const val ioOsgiVersion = "version=\"[1.4,2)\""
-        const val guavaOsgiVersion = "version=\"[29.0,30)\""
-        const val kotlinOsgiVersion = "version=\"[1.4,2)\""
-        const val cordaOsgiVersion = "version=\"[5.0,6)\""
-        const val cordappOsgiVersion = "version=\"1.0.1\""
+        private const val ioOsgiVersion = "version=\"[1.4,2)\""
+        private const val guavaOsgiVersion = "version=\"[29.0,30)\""
+        private const val kotlinOsgiVersion = "version=\"[1.4,2)\""
+        private const val cordaOsgiVersion = "version=\"[5.0,6)\""
+        private const val cordappOsgiVersion = "version=\"1.0.1\""
 
         private lateinit var testProject: GradleProject
 

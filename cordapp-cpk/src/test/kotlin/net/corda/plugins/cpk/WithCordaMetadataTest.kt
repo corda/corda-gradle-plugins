@@ -12,13 +12,13 @@ import java.nio.file.Path
 
 class WithCordaMetadataTest {
     companion object {
-        const val CONTRACT_CORDAPP_VERSION = "1.1.1-SNAPSHOT"
-        const val WORKFLOW_CORDAPP_VERSION = "2.2.2-SNAPSHOT"
-        const val SERVICE_CORDAPP_VERSION = "3.3.3-SNAPSHOT"
-        const val HIBERNATE_ANNOTATIONS_PACKAGE = "org.hibernate.annotations"
-        const val HIBERNATE_PROXY_PACKAGE = "org.hibernate.proxy"
-        const val JAVASSIST_PROXY_PACKAGE = "javassist.util.proxy"
-        const val JAVAX_PERSISTENCE_PACKAGE = "javax.persistence"
+        private const val CONTRACT_CORDAPP_VERSION = "1.1.1-SNAPSHOT"
+        private const val WORKFLOW_CORDAPP_VERSION = "2.2.2-SNAPSHOT"
+        private const val SERVICE_CORDAPP_VERSION = "3.3.3-SNAPSHOT"
+        private const val HIBERNATE_ANNOTATIONS_PACKAGE = "org.hibernate.annotations"
+        private const val HIBERNATE_PROXY_PACKAGE = "org.hibernate.proxy"
+        private const val JAVASSIST_PROXY_PACKAGE = "javassist.util.proxy"
+        private const val JAVAX_PERSISTENCE_PACKAGE = "javax.persistence"
         private lateinit var testProject: GradleProject
 
         @Suppress("unused")

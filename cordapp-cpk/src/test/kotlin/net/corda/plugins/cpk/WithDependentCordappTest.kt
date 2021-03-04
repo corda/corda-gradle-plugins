@@ -9,7 +9,7 @@ import java.nio.file.Path
 
 class WithDependentCordappTest {
     companion object {
-        const val CORDA_GUAVA_VERSION = "20.0"
+        private const val CORDA_GUAVA_VERSION = "20.0"
 
         private fun buildProject(
             guavaVersion: String,

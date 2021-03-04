@@ -19,12 +19,12 @@ import java.nio.file.Path
 
 class CordappWithSameGuavaVersionAsCordaTest {
     companion object {
-        const val cordappVersion = "1.0.1-SNAPSHOT"
-        const val cordaGuavaVersion = "20.0"
+        private const val cordappVersion = "1.0.1-SNAPSHOT"
+        private const val cordaGuavaVersion = "20.0"
 
-        const val guavaOsgiVersion = "version=\"[20.0,21)\""
-        const val cordaOsgiVersion = "version=\"[5.0,6)\""
-        const val cordappOsgiVersion = "version=\"1.0.1\""
+        private const val guavaOsgiVersion = "version=\"[20.0,21)\""
+        private const val cordaOsgiVersion = "version=\"[5.0,6)\""
+        private const val cordappOsgiVersion = "version=\"1.0.1\""
 
         private lateinit var testProject: GradleProject
 

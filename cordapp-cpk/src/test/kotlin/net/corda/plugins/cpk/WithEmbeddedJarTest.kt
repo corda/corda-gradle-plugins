@@ -22,8 +22,8 @@ import java.util.jar.JarFile
 
 class WithEmbeddedJarTest {
     companion object {
-        const val cordappVersion = "1.0.2-SNAPSHOT"
-        const val guavaVersion = "29.0-jre"
+        private const val cordappVersion = "1.0.2-SNAPSHOT"
+        private const val guavaVersion = "29.0-jre"
         private lateinit var testProject: GradleProject
 
         @Suppress("unused")
