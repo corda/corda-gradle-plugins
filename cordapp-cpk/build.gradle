@@ -8,10 +8,10 @@ plugins {
 description 'Configures this project to create a CPK CorDapp'
 
 ext {
-    test_quasar_utils_version = '5.0.12'
+    test_quasar_utils_version = '5.0.13'
     test_persistence_api_version = '2.2'
     test_hibernate_version = '5.4.3.Final'
-    test_kotlin_version = '1.4.30'
+    test_kotlin_version = '1.4.31'
     corda_guava_version = '20.0'
 }
 
