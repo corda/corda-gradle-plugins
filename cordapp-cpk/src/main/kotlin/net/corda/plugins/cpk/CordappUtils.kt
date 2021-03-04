@@ -28,6 +28,7 @@ const val CORDA_CPK_CONFIGURATION_NAME = "cordaCPK"
 const val CPK_FORMAT_TAG = "Corda-CPK-Format"
 const val CPK_FORMAT = "1.0"
 
+const val CORDA_PREFIX = "Corda-"
 const val CORDA_CONTRACT_CLASSES = "Corda-Contract-Classes"
 const val CORDA_WORKFLOW_CLASSES = "Corda-Flow-Classes"
 const val CORDA_MAPPED_SCHEMA_CLASSES = "Corda-MappedSchema-Classes"
@@ -35,6 +36,7 @@ const val CORDA_SERIALIZATION_WHITELIST_CLASSES = "Corda-SerializationWhitelist-
 const val CORDA_CHECKPOINT_CUSTOM_SERIALIZER_CLASSES = "Corda-CheckpointCustomSerializer-Classes"
 const val CORDA_SERIALIZATION_CUSTOM_SERIALIZER_CLASSES = "Corda-SerializationCustomSerializer-Classes"
 const val CORDA_SERVICE_CLASSES = "Corda-Service-Classes"
+const val REQUIRED_PACKAGES = "Required-Packages"
 
 const val CORDAPP_CONTRACT_NAME = "Cordapp-Contract-Name"
 const val CORDAPP_CONTRACT_VERSION = "Cordapp-Contract-Version"

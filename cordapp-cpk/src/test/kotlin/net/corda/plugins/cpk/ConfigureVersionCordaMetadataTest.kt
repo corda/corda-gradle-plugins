@@ -24,7 +24,7 @@ class ConfigureVersionCordaMetadataTest {
         fun setup(@TempDir testProjectDir: Path, reporter: TestReporter) {
             testProject = GradleProject(testProjectDir, reporter)
                 .withTestName("configure-corda-metadata")
-                .withSubResource("corda-classes-$CORDA_RELEASE_VERSION.properties")
+                .withSubResource("cordapp-config-$CORDA_RELEASE_VERSION.properties")
                 .withSubResource("cordapp/build.gradle")
                 .withSubResource("cordapp/src/main/kotlin/com/example/metadata/custom/ExampleContract.kt")
                 .build(
@@ -48,11 +48,11 @@ class ConfigureVersionCordaMetadataTest {
         val contractJar = testProject.artifacts.single { it.toString().endsWith("cordapp-$CORDAPP_VERSION.jar") }
         assertThat(contractJar).isRegularFile()
         with(contractJar.manifest.mainAttributes) {
-            assertThat(getValue("Override-Contract-Classes"))
+            assertThat(getValue("Corda-Override-Contract-Classes"))
                 .isEqualTo("com.example.metadata.custom.ExampleContract,com.example.metadata.custom.ExampleContract\$NestedContract")
             assertThat(getValue(CORDA_CONTRACT_CLASSES))
                 .isEqualTo("com.example.metadata.custom.ExampleContract,com.example.metadata.custom.ExampleContract\$NestedContract")
-            assertThat(getValue("Extra-Contract-Classes")).isNull()
+            assertThat(getValue("Corda-Extra-Contract-Classes")).isNull()
             assertThatHeader(getValue(IMPORT_PACKAGE))
                 .doesNotContainPackage(HIBERNATE_ANNOTATIONS_PACKAGE, HIBERNATE_PROXY_PACKAGE, JAVASSIST_PROXY_PACKAGE)
             assertThatHeader(getValue(DYNAMICIMPORT_PACKAGE))

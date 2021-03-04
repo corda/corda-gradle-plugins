@@ -23,7 +23,7 @@ class ConfigureCordaMetadataTest {
         fun setup(@TempDir testProjectDir: Path, reporter: TestReporter) {
             testProject = GradleProject(testProjectDir, reporter)
                 .withTestName("configure-corda-metadata")
-                .withSubResource("corda-classes.properties")
+                .withSubResource("cordapp-config.properties")
                 .withSubResource("cordapp/build.gradle")
                 .withSubResource("cordapp/src/main/kotlin/com/example/metadata/custom/ExampleContract.kt")
                 .build(
@@ -46,7 +46,7 @@ class ConfigureCordaMetadataTest {
         val contractJar = testProject.artifacts.single { it.toString().endsWith("cordapp-$CORDAPP_VERSION.jar") }
         assertThat(contractJar).isRegularFile()
         with(contractJar.manifest.mainAttributes) {
-            assertThat(getValue("Extra-Contract-Classes"))
+            assertThat(getValue("Corda-Extra-Contract-Classes"))
                 .isEqualTo("com.example.metadata.custom.ExampleContract,com.example.metadata.custom.ExampleContract\$NestedContract")
             assertThat(getValue(CORDA_CONTRACT_CLASSES))
                 .isEqualTo("com.example.metadata.custom.ExampleContract,com.example.metadata.custom.ExampleContract\$NestedContract")

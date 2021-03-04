@@ -20,8 +20,8 @@ import java.util.StringJoiner
 @Suppress("UnstableApiUsage", "MemberVisibilityCanBePrivate", "unused")
 open class OsgiExtension(objects: ObjectFactory, project: Project, jar: Jar) {
     private companion object {
-        private const val CORDA_CLASSES_VERSION = "net.corda.release.version"
-        private const val CORDA_CLASSES_FILENAME = "corda-classes"
+        private const val CORDA_RELEASE_VERSION = "net.corda.release.version"
+        private const val CORDAPP_CONFIG_FILENAME = "cordapp-config"
 
         val BASE_CORDA_CLASSES: Map<String, String> = unmodifiableMap(mapOf(
             CORDA_CONTRACT_CLASSES to "IMPLEMENTS;net.corda.v5.ledger.contracts.Contract",
@@ -33,7 +33,7 @@ open class OsgiExtension(objects: ObjectFactory, project: Project, jar: Jar) {
             CORDA_SERVICE_CLASSES to "IMPLEMENTS;net.corda.core.serialization.SerializeAsToken;HIERARCHY_INDIRECTLY_ANNOTATED;net.corda.core.node.services.CordaService"
         ))
 
-        val requiredPackages: Set<String> = unmodifiableSet(setOf(
+        val BASE_REQUIRED_PACKAGES: Set<String> = unmodifiableSet(setOf(
             "org.hibernate.annotations",
             "org.hibernate.proxy",
             "javassist.util.proxy"
@@ -44,12 +44,12 @@ open class OsgiExtension(objects: ObjectFactory, project: Project, jar: Jar) {
          * We will read them from an optional properties file.
          */
         @Throws(IOException::class)
-        fun loadCordaClasses(project: Project): Map<String, String> {
-            val cordaReleaseVersion = project.findProperty(CORDA_CLASSES_VERSION)?.toString()?.trim()
-            val classesFile = project.file(dashConcat(CORDA_CLASSES_FILENAME, cordaReleaseVersion) + ".properties")
-            return if (classesFile.isFile) {
+        fun loadCordappConfig(project: Project): Map<String, String> {
+            val cordaReleaseVersion = project.findProperty(CORDA_RELEASE_VERSION)?.toString()?.trim()
+            val configFile = project.file(dashConcat(CORDAPP_CONFIG_FILENAME, cordaReleaseVersion) + ".properties")
+            return if (configFile.isFile) {
                 Properties().let { props ->
-                    classesFile.inputStream().buffered().use(props::load)
+                    configFile.inputStream().buffered().use(props::load)
                     props.entries.associate { entry ->
                         entry.key.toString() to entry.value.toString().trim()
                     }
@@ -67,15 +67,16 @@ open class OsgiExtension(objects: ObjectFactory, project: Project, jar: Jar) {
             }
         }
 
+        fun parsePackages(value: String): Set<String> {
+            return value.split(",").mapTo(LinkedHashSet(), String::trim)
+        }
+
         fun dynamic(value: String): String = "$value;resolution:=dynamic;version=!"
         fun optional(value: String): String = "$value;resolution:=optional"
         fun emptyVersion(value: String): String = "$value;version='[0,0)'"
     }
 
-    private val _cordaClasses: MapProperty<String, String> = objects.mapProperty(String::class.java, String::class.java).apply {
-        putAll(BASE_CORDA_CLASSES)
-        putAll(loadCordaClasses(project.rootProject))
-    }
+    private val _cordaClasses: MapProperty<String, String> = objects.mapProperty(String::class.java, String::class.java)
     private val _exports: SetProperty<String> = objects.setProperty(String::class.java)
     private val _imports: SetProperty<String> = objects.setProperty(String::class.java)
         .apply(SetProperty<String>::finalizeValueOnRead)
@@ -216,6 +217,19 @@ open class OsgiExtension(objects: ObjectFactory, project: Project, jar: Jar) {
         }
 
         /**
+         * Read an optional configuration file that this plugin may have:
+         * ```
+         *     cordapp-config-${net.corda.release.version}.properties
+         * ```
+         * This will allow us to keep the plugin's metadata instructions
+         * up-to-date with future versions of Corda without also needing
+         * to update the plugin itself. (Hopefully, anyway.)
+         */
+        val config = loadCordappConfig(project.rootProject)
+        _cordaClasses.putAll(BASE_CORDA_CLASSES)
+        _cordaClasses.putAll(config.filterKeys { key -> key.startsWith(CORDA_PREFIX) })
+
+        /**
          * We need to import these packages so that the OSGi framework
          * will create bundle wirings for them. This allows Hibernate
          * to create lazy proxies for any JPA entities inside the CPK.
@@ -223,6 +237,7 @@ open class OsgiExtension(objects: ObjectFactory, project: Project, jar: Jar) {
          * We DO NOT want to bind the CPK to use specific versions of
          * either Hibernate or Javassist here.
          */
+        val requiredPackages = config[REQUIRED_PACKAGES]?.let(::parsePackages) ?: BASE_REQUIRED_PACKAGES
         importPackages(requiredPackages.map(::dynamic))
     }
 
