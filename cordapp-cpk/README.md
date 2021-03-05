@@ -119,11 +119,24 @@ are listed as lines in this "main" jar's `META-INF/CPKDependencies` file:
 ```
 <Bundle-SymbolicName>,<Bundle-Version>
 ```
-`cordapp` dependencies are currently _not_ transitive, and so all dependent CorDapps must be
-declared explicitly in the `build.gradle` file. This is due to limitations of Gradle and POM files.
-(We would likely need to preserve relationships between CPKs in a separate POM, as there is no other
-way to recognise which among all `compile`-scoped dependencies are CPKs. This approach is something
-I intend to investigate later.)
+`cordapp` dependencies are transitive in the sense that if CorDapp `B` declares a `cordapp`
+dependency on CorDapp `A`, and then CorDapp `C` declares a `cordapp` dependency on CorDapp `B`,
+then CorDapp `C` will acquire compile-time dependencies on the "main" jars of both CorDapps `A`
+and `B`. The `cordaProvided` dependencies of both `A` and `B` will also be added to CorDapp `C`'s
+`cordaProvided` configuration. This piece of _Dark Magic_ is achieved by publishing each CPK with
+a "companion" POM that contains the extra dependency information. The `cordapp-cpk` plugin resolves
+these "companion" POMs transparently to the user so that CorDapps have the transitive relationships
+that everyone expects.
+
+Note that in order for everything to work as intended, the "companion" POM must be published into
+the same repository as its associated "main" jar artifact. For a jar with Maven coordinates:
+```
+    <group>:<artifact>:<version>
+```
+the "companion"'s Maven coordinates will be:
+```
+    <group>:<group>.<artifact>.corda.cpk:<version>
+```
 
 - `cordaEmbedded`: This configuration behaves similarly to `cordaProvided` in the sense that it
 declares a `compileOnly` dependency that is excluded from both the CPK contents and from the
@@ -243,3 +256,58 @@ Bnd provides [`@ServiceProvider` and `@ServiceConsumer` annotations](https://bnd
 to ensure that the bundle respects OSGi's [Service Loader Mediator Specification](https://docs.osgi.org/specification/osgi.cmpn/7.0.0/service.loader.html).
 
     <sup>Requires Gradle 6.6</sup>
+
+## Corda Metadata
+
+The plugin will generate the following tags in the "main" jar's `MANIFEST.MF`:
+- `Corda-Contract-Classes`
+- `Corda-Flow-Classes`
+- `Corda-MappedSchema-Classes`
+- `Corda-Service-Classes`
+- `Corda-SerializationWhitelist-Classes`
+- `Corda-SerializationCustomSerializer-Classes`
+- `Corda-CheckpointCustomSerializer-Classes`
+
+Each tag contains a list of the classes within the jar that have been identified as being
+a Corda contract, a Corda flow etc. Each of these classes has also been confirmed as being
+public, static and non-abstract, which allows Corda to instantiate them. Empty tags are
+excluded from the final manifest, and so not every tag is guaranteed to be present.
+
+The plugin generates these lists using Bnd's `${classes}` macro. However, we may also need to
+update these macros as Corda evolves, and would prefer not to need to update the `cordapp-cpk`
+plugin at the same time. We can update the macros by creating this properties file in the
+Gradle project's root directory:
+```
+cordapp-config-${net.corda.release.version}.properties
+```
+where `net.corda.release.version` is a Gradle property. Any key inside this file that matches
+`Corda-*` defines a filter to generate a new manifest tag (or replace an existing tag). E.g.
+```
+Corda-Contract-Classes=IMPLEMENTS;net.corda.v10.ledger.contracts.Contract
+```
+The plugin will append additional clauses to each filter to ensure that it still only selects
+public static non-abstract classes, since we don't expect this requirement to change.
+
+### Dynamic Imports
+
+The CPK needs to declare imports for these packages so that OSGi can create lazy proxies
+for any JPA entities the bundle may contain:
+- `org.hibernate.proxy`
+- `javaassist.util.proxy`
+
+We must also allow the bundle to import this package, which contains Hibernate-specific annotations:
+- `org.hibernate.annotations`
+
+We declare all these packages as "dynamic" imports to avoid binding the CPK to a specific
+version of Hibernate, which should make it easier for Corda itself to evolve without breaking
+everyone's CorDapps. (Future versions of Hibernate are also likely not to use Javassist.)
+
+The plugin will declare these packages using the OSGI `DynamicImport-Package` header.
+
+If necessary, we can update these package names via the `cordapp-config.properties` file
+by adding a comma-separated list to the `Required-Packages` key:
+```
+Required-Packages=org.foo,org.bar
+```
+
+Note that doing this will completely override the plugin's hard-coded list of packages.
