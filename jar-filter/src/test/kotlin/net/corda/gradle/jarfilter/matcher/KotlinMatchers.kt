@@ -25,16 +25,16 @@ fun isFunction(name: String, returnType: KClass<*>, vararg parameters: KClass<*>
     return isFunction(equalTo(name), matches(returnType), *parameters.toMatchers())
 }
 
-fun isConstructor(returnType: Matcher<in String>, vararg parameters: Matcher<in KParameter>): Matcher<in KFunction<*>> {
+fun isKonstructor(returnType: Matcher<in String>, vararg parameters: Matcher<in KParameter>): Matcher<in KFunction<*>> {
     return KFunctionMatcher(equalTo("<init>"), returnType, *parameters)
 }
 
-fun isConstructor(returnType: KClass<*>, vararg parameters: KClass<*>): Matcher<in KFunction<*>> {
-    return isConstructor(matches(returnType), *parameters.toMatchers())
+fun isKonstructor(returnType: KClass<*>, vararg parameters: KClass<*>): Matcher<in KFunction<*>> {
+    return isKonstructor(matches(returnType), *parameters.toMatchers())
 }
 
-fun isConstructor(returnType: String, vararg parameters: KClass<*>): Matcher<in KFunction<*>> {
-    return isConstructor(equalTo(returnType), *parameters.toMatchers())
+fun isKonstructor(returnType: String, vararg parameters: KClass<*>): Matcher<in KFunction<*>> {
+    return isKonstructor(equalTo(returnType), *parameters.toMatchers())
 }
 
 fun hasParam(type: Matcher<in String>): Matcher<KParameter> = KParameterMatcher(type)
