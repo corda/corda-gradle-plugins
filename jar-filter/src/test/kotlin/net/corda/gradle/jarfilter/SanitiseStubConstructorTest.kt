@@ -1,6 +1,6 @@
 package net.corda.gradle.jarfilter
 
-import net.corda.gradle.jarfilter.matcher.isConstructor
+import net.corda.gradle.jarfilter.matcher.isKonstructor
 import net.corda.gradle.unwanted.HasInt
 import net.corda.gradle.unwanted.HasLong
 import net.corda.gradle.unwanted.HasString
@@ -53,7 +53,7 @@ class SanitiseStubConstructorTest {
     )
 
     private fun checkClassWithLongParameter(longClass: String, constructorCount: Int) {
-        val longConstructor = isConstructor(longClass, Long::class)
+        val longConstructor = isKonstructor(longClass, Long::class)
 
         classLoaderFor(testProject.sourceJar).use { cl ->
             with(cl.load<HasLong>(longClass)) {
@@ -108,7 +108,7 @@ class SanitiseStubConstructorTest {
     )
 
     private fun checkClassWithIntParameter(intClass: String, constructorCount: Int) {
-        val intConstructor = isConstructor(intClass, Int::class)
+        val intConstructor = isKonstructor(intClass, Int::class)
 
         classLoaderFor(testProject.sourceJar).use { cl ->
             with(cl.load<HasInt>(intClass)) {
@@ -163,7 +163,7 @@ class SanitiseStubConstructorTest {
     )
 
     private fun checkClassWithStringParameter(stringClass: String, constructorCount: Int) {
-        val stringConstructor = isConstructor(stringClass, String::class)
+        val stringConstructor = isKonstructor(stringClass, String::class)
 
         classLoaderFor(testProject.sourceJar).use { cl ->
             with(cl.load<HasString>(stringClass)) {
@@ -207,7 +207,7 @@ class SanitiseStubConstructorTest {
 
     @Test
     fun stubOverloadedComplexConstructor() {
-        val complexConstructor = isConstructor(COMPLEX_CONSTRUCTOR_CLASS, Int::class, String::class)
+        val complexConstructor = isKonstructor(COMPLEX_CONSTRUCTOR_CLASS, Int::class, String::class)
 
         classLoaderFor(testProject.sourceJar).use { cl ->
             with(cl.load<Any>(COMPLEX_CONSTRUCTOR_CLASS)) {

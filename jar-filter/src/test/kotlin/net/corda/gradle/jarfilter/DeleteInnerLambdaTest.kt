@@ -1,6 +1,6 @@
 package net.corda.gradle.jarfilter
 
-import net.corda.gradle.jarfilter.matcher.isConstructor
+import net.corda.gradle.jarfilter.matcher.isKonstructor
 import net.corda.gradle.unwanted.HasInt
 import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.MatcherAssert.assertThat
@@ -18,8 +18,8 @@ class DeleteInnerLambdaTest {
         private const val LAMBDA_CLASS = "net.corda.gradle.HasInnerLambda"
         private const val SIZE = 64
 
-        private val constructInt = isConstructor(LAMBDA_CLASS, Int::class)
-        private val constructBytes = isConstructor(LAMBDA_CLASS, ByteArray::class)
+        private val constructInt = isKonstructor(LAMBDA_CLASS, Int::class)
+        private val constructBytes = isKonstructor(LAMBDA_CLASS, ByteArray::class)
 
         private lateinit var testProject: JarFilterProject
         private lateinit var sourceClasses: List<String>

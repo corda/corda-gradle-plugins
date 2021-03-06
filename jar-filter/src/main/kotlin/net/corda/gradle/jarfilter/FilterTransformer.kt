@@ -92,7 +92,7 @@ class FilterTransformer private constructor (
         visitor = visitor,
         logger = logger,
         kotlinMetadata = kotlinMetadata,
-        importExtra =  { null },
+        importExtra = { null },
         removeAnnotations = removeAnnotations,
         deleteAnnotations = deleteAnnotations,
         stubAnnotations = stubAnnotations,
@@ -129,7 +129,7 @@ class FilterTransformer private constructor (
             return null
         }
         val fv = super.visitField(access, fieldName, descriptor, signature, value) ?: return null
-        return UnwantedFieldAdapter(fv, field)
+        return if (isUnwantedClass) fv else UnwantedFieldAdapter(fv, field)
     }
 
     override fun visitMethod(access: Int, methodName: String, descriptor: String, signature: String?, exceptions: Array<String>?): MethodVisitor? {
@@ -153,7 +153,7 @@ class FilterTransformer private constructor (
             return if (method.isVoidFunction) VoidStubMethodAdapter(mv) else ThrowingStubMethodAdapter(mv)
         }
 
-        return UnwantedMethodAdapter(mv, method)
+        return if (isUnwantedClass) mv else UnwantedMethodAdapter(mv, method)
     }
 
     override fun visitInnerClass(clsName: String, outerName: String?, innerName: String?, access: Int) {
