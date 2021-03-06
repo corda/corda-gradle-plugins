@@ -1,6 +1,7 @@
 package net.corda.gradle.jarfilter
 
 import net.corda.gradle.jarfilter.matcher.isConstructor
+import net.corda.gradle.jarfilter.matcher.isKonstructor
 import net.corda.gradle.jarfilter.matcher.matches
 import net.corda.gradle.unwanted.HasAll
 import net.corda.gradle.unwanted.HasInt
@@ -41,7 +42,7 @@ class DeleteConstructorTest {
 
     @Test
     fun deleteConstructorWithLongParameter() {
-        val longConstructor = isConstructor(SECONDARY_CONSTRUCTOR_CLASS, Long::class)
+        val longConstructor = isKonstructor(SECONDARY_CONSTRUCTOR_CLASS, Long::class)
 
         classLoaderFor(testProject.sourceJar).use { cl ->
             with(cl.load<HasLong>(SECONDARY_CONSTRUCTOR_CLASS)) {
@@ -63,7 +64,7 @@ class DeleteConstructorTest {
 
     @Test
     fun deleteConstructorWithStringParameter() {
-        val stringConstructor = isConstructor(SECONDARY_CONSTRUCTOR_CLASS, String::class)
+        val stringConstructor = isKonstructor(SECONDARY_CONSTRUCTOR_CLASS, String::class)
 
         classLoaderFor(testProject.sourceJar).use { cl ->
             with(cl.load<HasString>(SECONDARY_CONSTRUCTOR_CLASS)) {
@@ -85,7 +86,7 @@ class DeleteConstructorTest {
 
     @Test
     fun showUnannotatedConstructorIsUnaffected() {
-        val intConstructor = isConstructor(SECONDARY_CONSTRUCTOR_CLASS, Int::class)
+        val intConstructor = isKonstructor(SECONDARY_CONSTRUCTOR_CLASS, Int::class)
         classLoaderFor(testProject.filteredJar).use { cl ->
             with(cl.load<HasAll>(SECONDARY_CONSTRUCTOR_CLASS)) {
                 getDeclaredConstructor(Int::class.java).newInstance(NUMBER).also {
@@ -101,7 +102,7 @@ class DeleteConstructorTest {
 
     @Test
     fun deletePrimaryConstructorWithStringParameter() {
-        val stringConstructor = isConstructor(STRING_PRIMARY_CONSTRUCTOR_CLASS, String::class)
+        val stringConstructor = isKonstructor(STRING_PRIMARY_CONSTRUCTOR_CLASS, String::class)
 
         classLoaderFor(testProject.sourceJar).use { cl ->
             with(cl.load<HasString>(STRING_PRIMARY_CONSTRUCTOR_CLASS)) {
@@ -124,7 +125,7 @@ class DeleteConstructorTest {
 
     @Test
     fun deletePrimaryConstructorWithLongParameter() {
-        val longConstructor = isConstructor(LONG_PRIMARY_CONSTRUCTOR_CLASS, Long::class)
+        val longConstructor = isKonstructor(LONG_PRIMARY_CONSTRUCTOR_CLASS, Long::class)
 
         classLoaderFor(testProject.sourceJar).use { cl ->
             with(cl.load<HasLong>(LONG_PRIMARY_CONSTRUCTOR_CLASS)) {
@@ -147,7 +148,7 @@ class DeleteConstructorTest {
 
     @Test
     fun deletePrimaryConstructorWithIntParameter() {
-        val intConstructor = isConstructor(INT_PRIMARY_CONSTRUCTOR_CLASS, Int::class)
+        val intConstructor = isKonstructor(INT_PRIMARY_CONSTRUCTOR_CLASS, Int::class)
 
         classLoaderFor(testProject.sourceJar).use { cl ->
             with(cl.load<HasInt>(INT_PRIMARY_CONSTRUCTOR_CLASS)) {
@@ -170,7 +171,7 @@ class DeleteConstructorTest {
 
     @Test
     fun deletePrimaryConstructorWithDefaultParameter() {
-        val defaultValueConstructor = isConstructor(DEFAULT_VALUE_PRIMARY_CLASS, String::class)
+        val defaultValueConstructor = isKonstructor(DEFAULT_VALUE_PRIMARY_CLASS, String::class)
 
         classLoaderFor(testProject.sourceJar).use { cl ->
             with(cl.load<HasString>(DEFAULT_VALUE_PRIMARY_CLASS)) {
@@ -193,7 +194,7 @@ class DeleteConstructorTest {
 
     @Test
     fun deleteSecondaryConstructorWithDefaultParameter() {
-        val defaultValueConstructor = isConstructor(DEFAULT_VALUE_SECONDARY_CLASS, String::class)
+        val defaultValueConstructor = isKonstructor(DEFAULT_VALUE_SECONDARY_CLASS, String::class)
         val syntheticSecondaryConstructor = isConstructor(
             equalTo(DEFAULT_VALUE_SECONDARY_CLASS),
             matches(String::class.java), matches(Integer.TYPE), equalTo("kotlin.jvm.internal.DefaultConstructorMarker")

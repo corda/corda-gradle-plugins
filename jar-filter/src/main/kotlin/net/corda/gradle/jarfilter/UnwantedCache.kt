@@ -43,4 +43,3 @@ class UnwantedCache {
                 (methodName != null && methodDescriptor != null && containsMethod(className, MethodElement(methodName, methodDescriptor)))
     }
 }
-

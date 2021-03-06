@@ -1,6 +1,6 @@
 package net.corda.gradle.jarfilter
 
-import net.corda.gradle.jarfilter.matcher.isConstructor
+import net.corda.gradle.jarfilter.matcher.isKonstructor
 import net.corda.gradle.unwanted.HasAll
 import net.corda.gradle.unwanted.HasInt
 import net.corda.gradle.unwanted.HasLong
@@ -164,7 +164,7 @@ class StubConstructorTest {
 
     @Test
     fun stubPrimaryConstructorWithDefaultParameter() {
-        val defaultValueConstructor = isConstructor(DEFAULT_VALUE_PRIMARY_CLASS, String::class)
+        val defaultValueConstructor = isKonstructor(DEFAULT_VALUE_PRIMARY_CLASS, String::class)
 
         classLoaderFor(testProject.sourceJar).use { cl ->
             with(cl.load<HasString>(DEFAULT_VALUE_PRIMARY_CLASS)) {

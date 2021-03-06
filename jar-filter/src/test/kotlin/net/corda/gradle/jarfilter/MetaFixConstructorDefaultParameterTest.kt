@@ -2,7 +2,7 @@ package net.corda.gradle.jarfilter
 
 import net.corda.gradle.jarfilter.asm.recodeMetadataFor
 import net.corda.gradle.jarfilter.asm.toClass
-import net.corda.gradle.jarfilter.matcher.isConstructor
+import net.corda.gradle.jarfilter.matcher.isKonstructor
 import net.corda.gradle.unwanted.HasAll
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.api.logging.Logger
@@ -18,9 +18,9 @@ class MetaFixConstructorDefaultParameterTest {
     companion object {
         private val logger: Logger = StdOutLogging(MetaFixConstructorDefaultParameterTest::class)
         private val primaryCon
-                = isConstructor(WithConstructorParameters::class, Long::class, Int::class, String::class)
+                = isKonstructor(WithConstructorParameters::class, Long::class, Int::class, String::class)
         private val secondaryCon
-                = isConstructor(WithConstructorParameters::class, Char::class, String::class)
+                = isKonstructor(WithConstructorParameters::class, Char::class, String::class)
 
         lateinit var sourceClass: Class<out HasAll>
         lateinit var fixedClass: Class<out HasAll>
