@@ -2,7 +2,7 @@ package net.corda.gradle.jarfilter
 
 import net.corda.gradle.jarfilter.asm.bytecode
 import net.corda.gradle.jarfilter.asm.toClass
-import net.corda.gradle.jarfilter.matcher.isConstructor
+import net.corda.gradle.jarfilter.matcher.isKonstructor
 import org.gradle.api.logging.Logger
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.core.IsIterableContaining.hasItem
@@ -11,10 +11,10 @@ import org.junit.jupiter.api.Test
 class MetaFixAnnotationTest {
     companion object {
         private val logger: Logger = StdOutLogging(MetaFixAnnotationTest::class)
-        private val defaultCon = isConstructor(
+        private val defaultCon = isKonstructor(
             returnType = SimpleAnnotation::class
         )
-        private val valueCon = isConstructor(
+        private val valueCon = isKonstructor(
             returnType = AnnotationWithValue::class,
             parameters = *arrayOf(String::class)
         )

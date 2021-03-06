@@ -2,7 +2,7 @@ package net.corda.gradle.jarfilter
 
 import net.corda.gradle.jarfilter.asm.recodeMetadataFor
 import net.corda.gradle.jarfilter.asm.toClass
-import net.corda.gradle.jarfilter.matcher.isConstructor
+import net.corda.gradle.jarfilter.matcher.isKonstructor
 import net.corda.gradle.unwanted.HasLong
 import org.gradle.api.logging.Logger
 import org.hamcrest.MatcherAssert.assertThat
@@ -15,8 +15,8 @@ import kotlin.jvm.kotlin
 class MetaFixConstructorTest {
     companion object {
         private val logger: Logger = StdOutLogging(MetaFixConstructorTest::class)
-        private val unwantedCon = isConstructor(WithConstructor::class, Int::class, Long::class)
-        private val wantedCon = isConstructor(WithConstructor::class, Long::class)
+        private val unwantedCon = isKonstructor(WithConstructor::class, Int::class, Long::class)
+        private val wantedCon = isKonstructor(WithConstructor::class, Long::class)
     }
 
     @Test

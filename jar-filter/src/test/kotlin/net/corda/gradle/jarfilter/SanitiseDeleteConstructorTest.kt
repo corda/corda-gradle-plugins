@@ -1,6 +1,7 @@
 package net.corda.gradle.jarfilter
 
 import net.corda.gradle.jarfilter.matcher.isConstructor
+import net.corda.gradle.jarfilter.matcher.isKonstructor
 import net.corda.gradle.jarfilter.matcher.matches
 import net.corda.gradle.unwanted.HasInt
 import net.corda.gradle.unwanted.HasLong
@@ -53,7 +54,7 @@ class SanitiseDeleteConstructorTest {
     )
 
     private fun checkClassWithLongParameter(longClass: String, deleted: List<Array<Matcher<in String>>>) {
-        val longConstructor = isConstructor(longClass, Long::class)
+        val longConstructor = isKonstructor(longClass, Long::class)
         val deletedConstructors = deleted.map { args -> isConstructor(equalTo(longClass), *args) }.toTypedArray()
 
         classLoaderFor(testProject.sourceJar).use { cl ->
@@ -111,7 +112,7 @@ class SanitiseDeleteConstructorTest {
     )
 
     private fun checkClassWithIntParameter(intClass: String, deleted: List<Array<Matcher<in String>>>) {
-        val intConstructor = isConstructor(intClass, Int::class)
+        val intConstructor = isKonstructor(intClass, Int::class)
         val deletedConstructors = deleted.map { args -> isConstructor(equalTo(intClass), *args) }.toTypedArray()
 
         classLoaderFor(testProject.sourceJar).use { cl ->
@@ -169,7 +170,7 @@ class SanitiseDeleteConstructorTest {
     )
 
     private fun checkClassWithStringParameter(stringClass: String, deleted: List<Array<Matcher<in String>>>) {
-        val stringConstructor = isConstructor(stringClass, String::class)
+        val stringConstructor = isKonstructor(stringClass, String::class)
         val deletedConstructors = deleted.map { args -> isConstructor(equalTo(stringClass), *args) }.toTypedArray()
 
         classLoaderFor(testProject.sourceJar).use { cl ->
@@ -211,7 +212,7 @@ class SanitiseDeleteConstructorTest {
 
     @Test
     fun deleteOverloadedComplexConstructor() {
-        val complexConstructor = isConstructor(COMPLEX_CONSTRUCTOR_CLASS, Int::class, String::class)
+        val complexConstructor = isKonstructor(COMPLEX_CONSTRUCTOR_CLASS, Int::class, String::class)
         val syntheticConstructor = isConstructor(
             equalTo(COMPLEX_CONSTRUCTOR_CLASS),
             matches(Integer.TYPE), matches(String::class.java), matches(Integer.TYPE), isDefaultConstructorMarker
