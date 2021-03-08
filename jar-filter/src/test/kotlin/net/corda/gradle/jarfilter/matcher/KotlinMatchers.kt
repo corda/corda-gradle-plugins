@@ -17,6 +17,8 @@ import kotlin.reflect.full.createType
 import kotlin.reflect.full.valueParameters
 import kotlin.reflect.jvm.jvmName
 
+val isUnit: Matcher<String> get() = equalTo(Unit::class.java.name)
+
 fun isFunction(name: Matcher<in String>, returnType: Matcher<in String>, vararg parameters: Matcher<in KParameter>): Matcher<in KFunction<*>> {
     return KFunctionMatcher(name, returnType, *parameters)
 }

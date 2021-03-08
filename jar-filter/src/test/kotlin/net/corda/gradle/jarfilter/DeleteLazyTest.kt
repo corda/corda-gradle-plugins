@@ -50,7 +50,7 @@ class DeleteLazyTest {
                 getConstructor(String::class.java).newInstance(MESSAGE).also { obj ->
                     assertEquals(MESSAGE, obj.unwantedVal)
                 }
-                assertThat("getUnwantedVal not found", kotlin.javaDeclaredMethods, hasItem(getUnwantedVal))
+                assertThat("getUnwantedVal not found", javaDeclaredMethods, hasItem(getUnwantedVal))
                 assertThat("unwantedVal not found", kotlin.declaredMemberProperties, hasItem(unwantedVal))
             }
         }
@@ -58,7 +58,7 @@ class DeleteLazyTest {
         classLoaderFor(testProject.filteredJar).use { cl ->
             cl.load<HasUnwantedVal>(LAZY_VAL_CLASS).apply {
                 assertFailsWith<NoSuchMethodException> { getConstructor(String::class.java) }
-                assertThat("getUnwantedVal still exists", kotlin.javaDeclaredMethods, not(hasItem(getUnwantedVal)))
+                assertThat("getUnwantedVal still exists", javaDeclaredMethods, not(hasItem(getUnwantedVal)))
                 assertThat("unwantedVal still exists", kotlin.declaredMemberProperties, not(hasItem(unwantedVal)))
             }
         }
