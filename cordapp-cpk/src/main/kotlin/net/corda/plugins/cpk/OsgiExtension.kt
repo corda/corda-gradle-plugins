@@ -30,7 +30,8 @@ open class OsgiExtension(objects: ObjectFactory, project: Project, jar: Jar) {
             CORDA_SERIALIZATION_WHITELIST_CLASSES to "IMPLEMENTS;net.corda.core.serialization.SerializationWhitelist",
             CORDA_CHECKPOINT_CUSTOM_SERIALIZER_CLASSES to "IMPLEMENTS;net.corda.core.serialization.CheckpointCustomSerializer",
             CORDA_SERIALIZATION_CUSTOM_SERIALIZER_CLASSES to "IMPLEMENTS;net.corda.v5.serialization.SerializationCustomSerializer",
-            CORDA_SERVICE_CLASSES to "IMPLEMENTS;net.corda.core.serialization.SerializeAsToken;HIERARCHY_INDIRECTLY_ANNOTATED;net.corda.core.node.services.CordaService"
+            CORDA_SERVICE_CLASSES to "IMPLEMENTS;net.corda.core.serialization.SerializeAsToken;HIERARCHY_INDIRECTLY_ANNOTATED;net.corda.core.node.services.CordaService",
+            CORDA_NOTARY_SERVICE_CLASSES to "EXTENDS;net.corda.v5.ledger.notary.NotaryService"
         ))
 
         val BASE_REQUIRED_PACKAGES: Set<String> = unmodifiableSet(setOf(

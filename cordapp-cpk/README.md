@@ -264,6 +264,7 @@ The plugin will generate the following tags in the "main" jar's `MANIFEST.MF`:
 - `Corda-Flow-Classes`
 - `Corda-MappedSchema-Classes`
 - `Corda-Service-Classes`
+- `Corda-Notary-Service-Classes`
 - `Corda-SerializationWhitelist-Classes`
 - `Corda-SerializationCustomSerializer-Classes`
 - `Corda-CheckpointCustomSerializer-Classes`
