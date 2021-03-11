@@ -95,7 +95,7 @@ public class Launcher {
             }
             ZipEntry javaAgentsEntry = jar.getEntry(Flask.Constants.JAVA_AGENTS_FILE);
             if(javaAgentsEntry != null) {
-                try (InputStream inputStream = jar.getInputStream(jar.getEntry(Flask.Constants.JAVA_AGENTS_FILE))) {
+                try (InputStream inputStream = jar.getInputStream(javaAgentsEntry)) {
                     javaAgents = listOfStringFromPropertyFile(inputStream);
                 }
             }
@@ -160,8 +160,9 @@ public class Launcher {
                 int returnCode = builder.exec();
                 afterChildJvmExit(returnCode);
                 cache.touchLibraries();
-                Files.delete(cache.getPidFile());
                 return returnCode;
+            } finally {
+                Files.delete(cache.getPidFile());
             }
         }
     }

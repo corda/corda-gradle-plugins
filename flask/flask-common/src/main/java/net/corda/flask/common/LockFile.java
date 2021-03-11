@@ -5,40 +5,39 @@ import lombok.SneakyThrows;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.io.RandomAccessFile;
+import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
+import java.util.EnumSet;
 
 @RequiredArgsConstructor
 public class LockFile implements Closeable {
 
     private final FileLock lock;
 
-    private static RandomAccessFile createLockFile(Path path) throws IOException {
+    private static FileChannel openFileChannel(Path path) throws IOException {
         Files.createDirectories(path.getParent());
-        if (!Files.exists(path)) Files.createFile(path);
-        return new RandomAccessFile(path.toFile(), "rw");
+        return FileChannel.open(path, EnumSet.of(StandardOpenOption.CREATE, StandardOpenOption.READ, StandardOpenOption.WRITE));
     }
 
     @SneakyThrows
     public static LockFile acquire(Path path, boolean shared) {
-        RandomAccessFile raf = createLockFile(path);
-        return new LockFile(raf.getChannel().lock(0L, Long.MAX_VALUE, shared));
+        FileChannel channel = openFileChannel(path);
+        return new LockFile(channel.lock(0L, Long.MAX_VALUE, shared));
     }
 
     @SneakyThrows
     public static LockFile tryAcquire(Path path, boolean shared) {
-        RandomAccessFile raf = createLockFile(path);
-        FileLock lock = raf.getChannel().tryLock(0L, Long.MAX_VALUE, shared);
-        if(lock != null)
-            return new LockFile(lock);
-        else return null;
+        FileChannel channel = openFileChannel(path);
+        FileLock lock = channel.tryLock(0L, Long.MAX_VALUE, shared);
+        return (lock != null) ? new LockFile(lock) : null;
     }
 
     @Override
     @SneakyThrows
     public void close() {
-        lock.release();
+        lock.channel().close();
     }
 }
