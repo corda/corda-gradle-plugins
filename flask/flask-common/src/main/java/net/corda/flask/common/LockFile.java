@@ -17,7 +17,6 @@ public class LockFile implements Closeable {
 
     private static RandomAccessFile createLockFile(Path path) throws IOException {
         Files.createDirectories(path.getParent());
-        if (!Files.exists(path)) Files.createFile(path);
         return new RandomAccessFile(path.toFile(), "rw");
     }
 
