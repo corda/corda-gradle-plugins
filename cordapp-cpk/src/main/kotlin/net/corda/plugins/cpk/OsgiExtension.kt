@@ -12,6 +12,7 @@ import org.gradle.api.tasks.bundling.Jar
 import org.osgi.framework.Constants.BUNDLE_CLASSPATH
 import org.osgi.framework.Constants.IMPORT_PACKAGE
 import java.io.IOException
+import java.io.InputStream
 import java.util.Collections.unmodifiableMap
 import java.util.Collections.unmodifiableSet
 import java.util.Properties
@@ -20,8 +21,8 @@ import java.util.StringJoiner
 @Suppress("UnstableApiUsage", "MemberVisibilityCanBePrivate", "unused")
 open class OsgiExtension(objects: ObjectFactory, project: Project, jar: Jar) {
     private companion object {
-        private const val CORDA_RELEASE_VERSION = "net.corda.release.version"
-        private const val CORDAPP_CONFIG_FILENAME = "cordapp-config"
+        private const val CORDAPP_CONFIG_PLUGIN_ID = "net.corda.cordapp.cordapp-configuration"
+        private const val CORDAPP_CONFIG_FILENAME = "cordapp-configuration.properties"
 
         val BASE_CORDA_CLASSES: Map<String, String> = unmodifiableMap(mapOf(
             CORDA_CONTRACT_CLASSES to "IMPLEMENTS;net.corda.v5.ledger.contracts.Contract",
@@ -34,29 +35,27 @@ open class OsgiExtension(objects: ObjectFactory, project: Project, jar: Jar) {
             CORDA_NOTARY_SERVICE_CLASSES to "EXTENDS;net.corda.v5.ledger.notary.NotaryService"
         ))
 
+        /**
+         * We need to import these packages so that the OSGi framework
+         * will create bundle wirings for them. This allows Hibernate
+         * to create lazy proxies for any JPA entities inside the CPK.
+         *
+         * We DO NOT want to bind the CPK to use specific versions of
+         * either Hibernate or Javassist here.
+         */
         val BASE_REQUIRED_PACKAGES: Set<String> = unmodifiableSet(setOf(
             "org.hibernate.annotations",
             "org.hibernate.proxy",
             "javassist.util.proxy"
         ))
 
-        /**
-         * Load any external set of class scanning instructions for Bnd.
-         * We will read them from an optional properties file.
-         */
         @Throws(IOException::class)
-        fun loadCordappConfig(project: Project): Map<String, String> {
-            val cordaReleaseVersion = project.findProperty(CORDA_RELEASE_VERSION)?.toString()?.trim()
-            val configFile = project.file(dashConcat(CORDAPP_CONFIG_FILENAME, cordaReleaseVersion) + ".properties")
-            return if (configFile.isFile) {
-                Properties().let { props ->
-                    configFile.inputStream().buffered().use(props::load)
-                    props.entries.associate { entry ->
-                        entry.key.toString() to entry.value.toString().trim()
-                    }
+        private fun loadConfig(input: InputStream): Map<String, String> {
+            return Properties().let { props ->
+                input.buffered().use(props::load)
+                props.entries.associate { entry ->
+                    entry.key.toString() to entry.value.toString().trim()
                 }
-            } else {
-                emptyMap()
             }
         }
 
@@ -77,6 +76,7 @@ open class OsgiExtension(objects: ObjectFactory, project: Project, jar: Jar) {
         fun emptyVersion(value: String): String = "$value;version='[0,0)'"
     }
 
+    private val _requiredPackages: SetProperty<String> = objects.setProperty(String::class.java).value(BASE_REQUIRED_PACKAGES)
     private val _cordaClasses: MapProperty<String, String> = objects.mapProperty(String::class.java, String::class.java)
     private val _exports: SetProperty<String> = objects.setProperty(String::class.java)
     private val _imports: SetProperty<String> = objects.setProperty(String::class.java)
@@ -180,7 +180,12 @@ open class OsgiExtension(objects: ObjectFactory, project: Project, jar: Jar) {
     }
 
     @get:Input
-    val imports: Provider<String> = _imports.map(::declareImports)
+    val imports: Provider<String> = _imports.zip(_requiredPackages) { imports, required ->
+        val result = linkedSetOf<String>()
+        result.addAll(imports)
+        result.addAll(required.map(::dynamic))
+        result
+    }.map(::declareImports)
 
     private fun declareImports(importPackages: Set<String>): String {
         return if (importPackages.isNotEmpty()) {
@@ -217,29 +222,30 @@ open class OsgiExtension(objects: ObjectFactory, project: Project, jar: Jar) {
             }
         }
 
-        /**
-         * Read an optional configuration file that this plugin may have:
-         * ```
-         *     cordapp-config-${net.corda.release.version}.properties
-         * ```
-         * This will allow us to keep the plugin's metadata instructions
-         * up-to-date with future versions of Corda without also needing
-         * to update the plugin itself. (Hopefully, anyway.)
-         */
-        val config = loadCordappConfig(project.rootProject)
         _cordaClasses.putAll(BASE_CORDA_CLASSES)
-        _cordaClasses.putAll(config.filterKeys { key -> key.startsWith(CORDA_PREFIX) })
 
         /**
-         * We need to import these packages so that the OSGi framework
-         * will create bundle wirings for them. This allows Hibernate
-         * to create lazy proxies for any JPA entities inside the CPK.
-         *
-         * We DO NOT want to bind the CPK to use specific versions of
-         * either Hibernate or Javassist here.
+         * Read an optional configuration file from a "friend" plugin:
+         * ```
+         *     net.corda.cordapp.cordapp-configuration
+         * ```
+         * This will allow us to keep our Bnd metadata instructions
+         * up-to-date with future versions of Corda without also needing
+         * to update the `cordapp-cpk` plugin itself. (Hopefully, anyway.)
          */
-        val requiredPackages = config[REQUIRED_PACKAGES]?.let(::parsePackages) ?: BASE_REQUIRED_PACKAGES
-        importPackages(requiredPackages.map(::dynamic))
+        configure(project.rootProject)
+    }
+
+    private fun configure(project: Project) {
+        project.plugins.withId(CORDAPP_CONFIG_PLUGIN_ID) { plugin ->
+            val config = loadConfig(plugin::class.java.getResourceAsStream(CORDAPP_CONFIG_FILENAME) ?: return@withId)
+            _cordaClasses.putAll(config.filterKeys { key -> key.startsWith(CORDA_PREFIX) })
+
+            /**
+             * Replace the default set of required packages with any new ones.
+             */
+            config[REQUIRED_PACKAGES]?.let(::parsePackages)?.also(_requiredPackages::set)
+        }
     }
 
     private fun createArchiveName(jar: Jar): Provider<String> {

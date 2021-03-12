@@ -276,18 +276,21 @@ excluded from the final manifest, and so not every tag is guaranteed to be prese
 
 The plugin generates these lists using Bnd's `${classes}` macro. However, we may also need to
 update these macros as Corda evolves, and would prefer not to need to update the `cordapp-cpk`
-plugin at the same time. We can update the macros by creating this properties file in the
-Gradle project's root directory:
+plugin at the same time. We can therefore update the macros by modifying the
 ```
-cordapp-config-${net.corda.release.version}.properties
+net/corda/cordapp/cordapp-configuration.properties
 ```
-where `net.corda.release.version` is a Gradle property. Any key inside this file that matches
-`Corda-*` defines a filter to generate a new manifest tag (or replace an existing tag). E.g.
+file inside the `net.corda.cordapp.cordapp-configuration`
+Gradle plugin, and then applying this new plugin to the CorDapps's root project. (The
+`cordapp-configuration` plugin is part of the Corda repository, and new versions of it
+will be released as part of Corda, of course.)
+Any property key inside this file that matches `Corda-*` defines a filter to generate a
+new manifest tag (or replace an existing tag). E.g.
 ```
 Corda-Contract-Classes=IMPLEMENTS;net.corda.v10.ledger.contracts.Contract
 ```
-The plugin will append additional clauses to each filter to ensure that it still only selects
-public static non-abstract classes, since we don't expect this requirement to change.
+The `cordapp-cpk` plugin will append additional clauses to each filter to ensure that it still
+only selects public static non-abstract classes, since we don't expect this requirement to change.
 
 ### Dynamic Imports
 
@@ -305,8 +308,8 @@ everyone's CorDapps. (Future versions of Hibernate are also likely not to use Ja
 
 The plugin will declare these packages using the OSGI `DynamicImport-Package` header.
 
-If necessary, we can update these package names via the `cordapp-config.properties` file
-by adding a comma-separated list to the `Required-Packages` key:
+If necessary, we can update these package names via the `cordapp-configuration.properties`
+file by adding a comma-separated list to the `Required-Packages` key:
 ```
 Required-Packages=org.foo,org.bar
 ```

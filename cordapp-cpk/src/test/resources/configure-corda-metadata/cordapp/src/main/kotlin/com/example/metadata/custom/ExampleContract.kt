@@ -1,4 +1,4 @@
-@file:Suppress("unused")
+@file:Suppress("unused", "PackageDirectoryMismatch")
 package com.example.metadata.custom
 
 import net.corda.core.identity.AbstractParty
@@ -30,6 +30,6 @@ class ExampleContract : Contract {
     }
 }
 
-class ExampleState(val issuer: AbstractParty) : ContractState {
+class ExampleState(issuer: AbstractParty) : ContractState {
     override val participants: List<AbstractParty> = unmodifiableList(listOf(issuer))
 }
