@@ -24,15 +24,13 @@ open class OsgiExtension(objects: ObjectFactory, project: Project, jar: Jar) {
         private const val CORDAPP_CONFIG_PLUGIN_ID = "net.corda.cordapp.cordapp-configuration"
         private const val CORDAPP_CONFIG_FILENAME = "cordapp-configuration.properties"
 
+        val CORDA_CLASSES = "^Corda-.+-Classes\$".toRegex()
+
         val BASE_CORDA_CLASSES: Map<String, String> = unmodifiableMap(mapOf(
             CORDA_CONTRACT_CLASSES to "IMPLEMENTS;net.corda.v5.ledger.contracts.Contract",
             CORDA_WORKFLOW_CLASSES to "IMPLEMENTS;net.corda.core.flows.Flow",
             CORDA_MAPPED_SCHEMA_CLASSES to "EXTENDS;net.corda.core.node.services.persistence.MappedSchema",
-            CORDA_SERIALIZATION_WHITELIST_CLASSES to "IMPLEMENTS;net.corda.core.serialization.SerializationWhitelist",
-            CORDA_CHECKPOINT_CUSTOM_SERIALIZER_CLASSES to "IMPLEMENTS;net.corda.core.serialization.CheckpointCustomSerializer",
-            CORDA_SERIALIZATION_CUSTOM_SERIALIZER_CLASSES to "IMPLEMENTS;net.corda.v5.serialization.SerializationCustomSerializer",
-            CORDA_SERVICE_CLASSES to "IMPLEMENTS;net.corda.core.serialization.SerializeAsToken;HIERARCHY_INDIRECTLY_ANNOTATED;net.corda.core.node.services.CordaService",
-            CORDA_NOTARY_SERVICE_CLASSES to "EXTENDS;net.corda.v5.ledger.notary.NotaryService"
+            CORDA_SERVICE_CLASSES to "IMPLEMENTS;net.corda.core.serialization.SerializeAsToken;HIERARCHY_INDIRECTLY_ANNOTATED;net.corda.core.node.services.CordaService"
         ))
 
         /**
@@ -45,8 +43,7 @@ open class OsgiExtension(objects: ObjectFactory, project: Project, jar: Jar) {
          */
         val BASE_REQUIRED_PACKAGES: Set<String> = unmodifiableSet(setOf(
             "org.hibernate.annotations",
-            "org.hibernate.proxy",
-            "javassist.util.proxy"
+            "org.hibernate.proxy"
         ))
 
         @Throws(IOException::class)
@@ -239,7 +236,7 @@ open class OsgiExtension(objects: ObjectFactory, project: Project, jar: Jar) {
     private fun configure(project: Project) {
         project.plugins.withId(CORDAPP_CONFIG_PLUGIN_ID) { plugin ->
             val config = loadConfig(plugin::class.java.getResourceAsStream(CORDAPP_CONFIG_FILENAME) ?: return@withId)
-            _cordaClasses.putAll(config.filterKeys { key -> key.startsWith(CORDA_PREFIX) })
+            _cordaClasses.putAll(config.filterKeys(CORDA_CLASSES::matches))
 
             /**
              * Replace the default set of required packages with any new ones.

@@ -259,15 +259,11 @@ to ensure that the bundle respects OSGi's [Service Loader Mediator Specification
 
 ## Corda Metadata
 
-The plugin will generate the following tags in the "main" jar's `MANIFEST.MF`:
+The plugin will generate the following tags in the "main" jar's `MANIFEST.MF` by default:
 - `Corda-Contract-Classes`
 - `Corda-Flow-Classes`
 - `Corda-MappedSchema-Classes`
 - `Corda-Service-Classes`
-- `Corda-Notary-Service-Classes`
-- `Corda-SerializationWhitelist-Classes`
-- `Corda-SerializationCustomSerializer-Classes`
-- `Corda-CheckpointCustomSerializer-Classes`
 
 Each tag contains a list of the classes within the jar that have been identified as being
 a Corda contract, a Corda flow etc. Each of these classes has also been confirmed as being
@@ -284,8 +280,8 @@ file inside the `net.corda.cordapp.cordapp-configuration`
 Gradle plugin, and then applying this new plugin to the CorDapps's root project. (The
 `cordapp-configuration` plugin is part of the Corda repository, and new versions of it
 will be released as part of Corda, of course.)
-Any property key inside this file that matches `Corda-*` defines a filter to generate a
-new manifest tag (or replace an existing tag). E.g.
+Any property key inside this file that matches `Corda-*-Classes` defines a filter to
+generate a new manifest tag (or replace an existing tag). E.g.
 ```
 Corda-Contract-Classes=IMPLEMENTS;net.corda.v10.ledger.contracts.Contract
 ```

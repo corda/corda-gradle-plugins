@@ -14,7 +14,6 @@ class ConfigureCordaMetadataTest {
         private const val CORDAPP_VERSION = "1.1.1-SNAPSHOT"
         private const val HIBERNATE_ANNOTATIONS_PACKAGE = "org.hibernate.annotations"
         private const val HIBERNATE_PROXY_PACKAGE = "org.hibernate.proxy"
-        private const val JAVASSIST_PROXY_PACKAGE = "javassist.util.proxy"
         private lateinit var testProject: GradleProject
 
         @Suppress("unused")
@@ -50,9 +49,9 @@ class ConfigureCordaMetadataTest {
             assertThat(getValue(CORDA_CONTRACT_CLASSES))
                 .isEqualTo("com.example.metadata.custom.ExampleContract,com.example.metadata.custom.ExampleContract\$NestedContract")
             assertThatHeader(getValue(IMPORT_PACKAGE))
-                .doesNotContainPackage(HIBERNATE_ANNOTATIONS_PACKAGE, HIBERNATE_PROXY_PACKAGE, JAVASSIST_PROXY_PACKAGE)
+                .doesNotContainPackage(HIBERNATE_ANNOTATIONS_PACKAGE, HIBERNATE_PROXY_PACKAGE)
             assertThatHeader(getValue(DYNAMICIMPORT_PACKAGE))
-                .doesNotContainPackage(HIBERNATE_ANNOTATIONS_PACKAGE, HIBERNATE_PROXY_PACKAGE, JAVASSIST_PROXY_PACKAGE)
+                .doesNotContainPackage(HIBERNATE_ANNOTATIONS_PACKAGE, HIBERNATE_PROXY_PACKAGE)
                 .containsPackageWithAttributes("org.testing")
                 .containsPackageWithAttributes("com.foo.bar")
         }

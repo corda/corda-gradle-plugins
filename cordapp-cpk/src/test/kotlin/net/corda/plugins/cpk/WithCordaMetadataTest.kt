@@ -17,7 +17,6 @@ class WithCordaMetadataTest {
         private const val SERVICE_CORDAPP_VERSION = "3.3.3-SNAPSHOT"
         private const val HIBERNATE_ANNOTATIONS_PACKAGE = "org.hibernate.annotations"
         private const val HIBERNATE_PROXY_PACKAGE = "org.hibernate.proxy"
-        private const val JAVASSIST_PROXY_PACKAGE = "javassist.util.proxy"
         private const val JAVAX_PERSISTENCE_PACKAGE = "javax.persistence"
         private lateinit var testProject: GradleProject
 
@@ -79,12 +78,11 @@ class WithCordaMetadataTest {
             assertThat(getValue(BUNDLE_VERSION))
                 .isEqualTo(toOSGi(CONTRACT_CORDAPP_VERSION))
             assertThatHeader(getValue(IMPORT_PACKAGE))
-                .doesNotContainPackage(HIBERNATE_ANNOTATIONS_PACKAGE, HIBERNATE_PROXY_PACKAGE, JAVASSIST_PROXY_PACKAGE)
+                .doesNotContainPackage(HIBERNATE_ANNOTATIONS_PACKAGE, HIBERNATE_PROXY_PACKAGE)
                 .containsPackageWithAttributes(JAVAX_PERSISTENCE_PACKAGE, "version=${toOSGiRange(persistenceApiVersion)}")
             assertThatHeader(getValue(DYNAMICIMPORT_PACKAGE))
                 .containsPackageWithAttributes(HIBERNATE_ANNOTATIONS_PACKAGE)
                 .containsPackageWithAttributes(HIBERNATE_PROXY_PACKAGE)
-                .containsPackageWithAttributes(JAVASSIST_PROXY_PACKAGE)
         }
     }
 
@@ -113,11 +111,10 @@ class WithCordaMetadataTest {
             assertThat(getValue(BUNDLE_VERSION))
                 .isEqualTo(toOSGi(WORKFLOW_CORDAPP_VERSION))
             assertThatHeader(getValue(IMPORT_PACKAGE))
-                .doesNotContainPackage(HIBERNATE_ANNOTATIONS_PACKAGE, HIBERNATE_PROXY_PACKAGE, JAVASSIST_PROXY_PACKAGE)
+                .doesNotContainPackage(HIBERNATE_ANNOTATIONS_PACKAGE, HIBERNATE_PROXY_PACKAGE)
             assertThatHeader(getValue(DYNAMICIMPORT_PACKAGE))
                 .containsPackageWithAttributes(HIBERNATE_ANNOTATIONS_PACKAGE)
                 .containsPackageWithAttributes(HIBERNATE_PROXY_PACKAGE)
-                .containsPackageWithAttributes(JAVASSIST_PROXY_PACKAGE)
         }
     }
 
@@ -146,11 +143,10 @@ class WithCordaMetadataTest {
             assertThat(getValue(BUNDLE_VERSION))
                 .isEqualTo(toOSGi(SERVICE_CORDAPP_VERSION))
             assertThatHeader(getValue(IMPORT_PACKAGE))
-                .doesNotContainPackage(HIBERNATE_ANNOTATIONS_PACKAGE, HIBERNATE_PROXY_PACKAGE, JAVASSIST_PROXY_PACKAGE)
+                .doesNotContainPackage(HIBERNATE_ANNOTATIONS_PACKAGE, HIBERNATE_PROXY_PACKAGE)
             assertThatHeader(getValue(DYNAMICIMPORT_PACKAGE))
                 .containsPackageWithAttributes(HIBERNATE_ANNOTATIONS_PACKAGE)
                 .containsPackageWithAttributes(HIBERNATE_PROXY_PACKAGE)
-                .containsPackageWithAttributes(JAVASSIST_PROXY_PACKAGE)
         }
     }
 
