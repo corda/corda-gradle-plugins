@@ -10,6 +10,7 @@ import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.plugins.JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME
 import org.gradle.api.plugins.JavaPlugin.RUNTIME_ONLY_CONFIGURATION_NAME
 import org.gradle.api.specs.Spec
+import org.w3c.dom.Element
 import java.io.File
 import java.util.Collections.unmodifiableSet
 import java.util.jar.JarFile
@@ -171,4 +172,19 @@ val String.isJavaIdentifier: Boolean get() {
     }
 
     return true
+}
+
+/**
+ * Helper functions for XML documents.
+ */
+fun Element.appendElement(name: String): Element {
+    val childElement = ownerDocument.createElement(name)
+    appendChild(childElement)
+    return childElement
+}
+
+fun Element.appendElement(name: String, value: String): Element {
+    return appendElement(name).also { child ->
+        child.appendChild(ownerDocument.createTextNode(value))
+    }
 }
