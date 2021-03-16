@@ -7,6 +7,7 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.XmlProvider
 import org.gradle.api.artifacts.ConfigurationContainer
+import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.Logger
@@ -19,6 +20,7 @@ import org.gradle.api.tasks.TaskContainer
 import org.w3c.dom.Element
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
+import java.util.function.Function
 
 class PublishAfterEvaluationHandler(rootProject: Project) : Action<Gradle> {
     private val logger: Logger = rootProject.logger
@@ -54,9 +56,9 @@ class PublishAfterEvaluationHandler(rootProject: Project) : Action<Gradle> {
             .matching { it.pom.packaging == "jar" && !it.groupId.isNullOrEmpty() }
             .all { pub ->
                 val publicationProvider = publications.register("cpk-${pub.name}-companion", MavenPublication::class.java) { cpk ->
-                    cpk.groupId = pub.groupId
+                    cpk.groupId = toCompanionGroupId(pub.groupId, pub.artifactId)
+                    cpk.artifactId = toCompanionArtifactId(pub.artifactId)
                     cpk.version = pub.version
-                    cpk.artifactId = toCompanionArtifactId(pub.groupId, pub.artifactId)
                     cpk.pom { pom ->
                         pom.packaging = "pom"
                         pom.url.set(pub.pom.url)
@@ -77,45 +79,59 @@ private class PomXmlWriter(private val configurations: ConfigurationContainer) :
         val compileClasspath = configurations.getByName(COMPILE_CLASSPATH_CONFIGURATION_NAME).resolvedConfiguration
         val dependencies = xml.asElement().appendElement("dependencies")
 
-        val cordappWriter = CordappXmlWriter(dependencies)
+        val cordappWriter = DependencyXmlWriter(dependencies, Function(::CordappCoordinate))
         val cordappDependencies = configurations.getByName(CORDAPP_CONFIGURATION_NAME).allDependencies
         compileClasspath.resolveFirstLevel(cordappDependencies).forEach(cordappWriter::write)
 
-        val providedWriter = ProvidedXmlWriter(dependencies)
+        val providedWriter = DependencyXmlWriter(dependencies, Function(::ProvidedCoordinate))
         val providedDependencies = configurations.getByName(CORDA_PROVIDED_CONFIGURATION_NAME).allDependencies
         compileClasspath.resolveFirstLevel(providedDependencies).forEach(providedWriter::write)
     }
 }
 
-private abstract class DependencyXmlWriter(private val dependencies: Element) {
+private class DependencyXmlWriter(
+    private val dependencies: Element,
+    private val coordinateFactory: Function<ResolvedArtifact, out MavenCoordinate>
+) {
     fun write(artifact: ResolvedArtifact) {
-        val artifactId = artifact.moduleVersion.id
+        val maven = coordinateFactory.apply(artifact)
         val dependency = dependencies.appendElement("dependency")
-        dependency.appendElement("groupId", artifactId.group)
-        dependency.appendElement("artifactId", toArtifactId(artifact))
-        dependency.appendElement("version", artifactId.version)
-        artifact.classifier?.also { classifier ->
+        dependency.appendElement("groupId", maven.groupId)
+        dependency.appendElement("artifactId", maven.artifactId)
+        dependency.appendElement("version", maven.version)
+        maven.classifier?.also { classifier ->
             dependency.appendElement("classifier", classifier)
         }
-        if (artifact.type != "jar") {
-            dependency.appendElement("type", artifact.type)
+        if (maven.type != "jar") {
+            dependency.appendElement("type", maven.type)
         }
         dependency.appendElement("scope", "compile")
     }
-
-    abstract fun toArtifactId(artifact: ResolvedArtifact): String
 }
 
-private class CordappXmlWriter(dependencies: Element) : DependencyXmlWriter(dependencies) {
-    override fun toArtifactId(artifact: ResolvedArtifact): String {
-        return toCompanionArtifactId(artifact.moduleVersion.id.group, artifact.name)
-    }
+private abstract class MavenCoordinate(artifact: ResolvedArtifact) {
+    @JvmField
+    protected val id: ModuleVersionIdentifier = artifact.moduleVersion.id
+
+    @JvmField
+    protected val artifactName: String = artifact.name
+
+    abstract val groupId: String?
+    abstract val artifactId: String
+
+    val version: String? get() = id.version
+    val classifier: String? = artifact.classifier
+    val type: String? = artifact.type
 }
 
-private class ProvidedXmlWriter(dependencies: Element): DependencyXmlWriter(dependencies) {
-    override fun toArtifactId(artifact: ResolvedArtifact): String {
-        return artifact.name
-    }
+private class CordappCoordinate(artifact: ResolvedArtifact): MavenCoordinate(artifact) {
+    override val groupId: String get() = toCompanionGroupId(id.group, artifactName)
+    override val artifactId: String get() = toCompanionArtifactId(artifactName)
+}
+
+private class ProvidedCoordinate(artifact: ResolvedArtifact): MavenCoordinate(artifact) {
+    override val groupId: String get() = id.group
+    override val artifactId: String get() = artifactName
 }
 
 /**

@@ -65,7 +65,9 @@ class CordappDependencyCollector(
     private fun collectFrom(cordapp: Dependency) {
         val resolved = configurations.detachedConfiguration(cordapp).resolvedConfiguration
         if (resolved.hasError()) {
-            logger.warn("Cannot resolve {} - SKIPPED", cordapp)
+            logger.warn("CorDapp has unresolved dependencies:{}",
+                resolved.lenientConfiguration.unresolvedModuleDependencies.joinToString(SEPARATOR, SEPARATOR))
+            logger.warn("Cannot resolve CPK companion artifact '{}' - SKIPPED", cordapp.toMaven())
         } else {
             // This should never now throw ResolveException.
             collectFrom(resolved.firstLevelModuleDependencies, mutableSetOf())
@@ -107,25 +109,49 @@ private fun toCpkPrefix(group: String?): String {
     return group?.let { "$it." } ?: ""
 }
 
-private val Map<String, String>.cpkPrefix: String get() {
-    return toCpkPrefix(get(DEPENDENCY_GROUP))
+private fun String.hasSuffix(suffix: String): Boolean {
+    return if (length == suffix.length) {
+        this == suffix
+    } else {
+        val idx = length - suffix.length - 1
+        idx > 0 && endsWith(suffix) && this[idx] == '.'
+    }
 }
 
 private val Map<String, String>.isCPK: Boolean get() {
+    val group = get(DEPENDENCY_GROUP) ?: return false
     val name = get(DEPENDENCY_NAME)!!
-    return name.startsWith(cpkPrefix) && name.endsWith(CPK_SUFFIX)
+    return name.length > CPK_SUFFIX.length
+        && name.endsWith(CPK_SUFFIX)
+        && group.hasSuffix(name.dropLast(CPK_SUFFIX.length))
 }
 
+/**
+ * This should only be invoked if [isCPK] has already returned `true`.
+ */
 private fun MutableMap<String, String>.toCordapp(): MutableMap<String, String> {
-    put(DEPENDENCY_NAME, get(DEPENDENCY_NAME)!!.removePrefix(cpkPrefix).removeSuffix(CPK_SUFFIX))
+    val cordappName = get(DEPENDENCY_NAME)!!.removeSuffix(CPK_SUFFIX)
+    val cpkGroup = get(DEPENDENCY_GROUP)!!
+    if (cpkGroup.length == cordappName.length) {
+        remove(DEPENDENCY_GROUP)
+    } else {
+        put(DEPENDENCY_GROUP, cpkGroup.dropLast(cordappName.length + 1))
+    }
+    put(DEPENDENCY_NAME, cordappName)
     return this
 }
 
 private fun MutableMap<String, String>.toCPK(): MutableMap<String, String> {
-    put(DEPENDENCY_NAME, toCompanionArtifactId(get(DEPENDENCY_GROUP), get(DEPENDENCY_NAME)!!))
+    val artifactName = get(DEPENDENCY_NAME)!!
+    put(DEPENDENCY_GROUP, toCompanionGroupId(get(DEPENDENCY_GROUP), artifactName))
+    put(DEPENDENCY_NAME, toCompanionArtifactId(artifactName))
     return this
 }
 
-fun toCompanionArtifactId(group: String?, artifactId: String): String {
-    return "${toCpkPrefix(group)}$artifactId$CPK_SUFFIX"
+fun toCompanionGroupId(group: String?, artifactId: String): String {
+    return "${toCpkPrefix(group)}$artifactId"
+}
+
+fun toCompanionArtifactId(artifactId: String): String {
+    return "$artifactId$CPK_SUFFIX"
 }

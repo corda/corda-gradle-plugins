@@ -28,7 +28,7 @@ open class DependencyCalculator @Inject constructor(objects: ObjectFactory) : De
         const val NON_CORDA = false
         const val CORDA = true
 
-        val CORDAPP_BUILD_CONFIGURATIONS: List<String> = unmodifiableList(listOf(
+        private val CORDAPP_BUILD_CONFIGURATIONS: List<String> = unmodifiableList(listOf(
             /**
              * Every CorDapp configuration is a super-configuration of at least one of these
              * configurations. Hence every [ProjectDependency][org.gradle.api.artifacts.ProjectDependency]

@@ -40,6 +40,7 @@ const val CORDAPP_CONTRACT_VERSION = "Cordapp-Contract-Version"
 const val CORDAPP_WORKFLOW_NAME = "Cordapp-Workflow-Name"
 const val CORDAPP_WORKFLOW_VERSION = "Cordapp-Workflow-Version"
 
+@JvmField
 val HARDCODED_EXCLUDES: Set<Pair<String, String>> = unmodifiableSet(setOf(
     "org.jetbrains.kotlin" to "*",
     "net.corda.kotlin" to "*",
@@ -50,6 +51,17 @@ val HARDCODED_EXCLUDES: Set<Pair<String, String>> = unmodifiableSet(setOf(
     "co.paralleluniverse" to "quasar-core",
     "co.paralleluniverse" to "quasar-core-osgi"
 ))
+
+@JvmField
+val SEPARATOR: String = System.lineSeparator() + "- "
+
+fun Dependency.toMaven(): String {
+    val builder = StringBuilder()
+    group?.also { builder.append(it).append(':') }
+    builder.append(name)
+    version?.also { builder.append(':').append(it) }
+    return builder.toString()
+}
 
 private fun ConfigurationContainer.createChildConfiguration(name: String, parent: Configuration): Configuration {
     return findByName(name) ?: run {
@@ -183,7 +195,7 @@ fun Element.appendElement(name: String): Element {
     return childElement
 }
 
-fun Element.appendElement(name: String, value: String): Element {
+fun Element.appendElement(name: String, value: String?): Element {
     return appendElement(name).also { child ->
         child.appendChild(ownerDocument.createTextNode(value))
     }

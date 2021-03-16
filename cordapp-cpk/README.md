@@ -135,7 +135,7 @@ the same repository as its associated "main" jar artifact. For a jar with Maven 
 ```
 the "companion"'s Maven coordinates will be:
 ```
-    <group>:<group>.<artifact>.corda.cpk:<version>
+    <group>.<artifact>:<artifact>.corda.cpk:<version>
 ```
 
 - `cordaEmbedded`: This configuration behaves similarly to `cordaProvided` in the sense that it

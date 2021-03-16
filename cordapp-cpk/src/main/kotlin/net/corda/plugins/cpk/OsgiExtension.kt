@@ -24,9 +24,9 @@ open class OsgiExtension(objects: ObjectFactory, project: Project, jar: Jar) {
         private const val CORDAPP_CONFIG_PLUGIN_ID = "net.corda.cordapp.cordapp-configuration"
         private const val CORDAPP_CONFIG_FILENAME = "cordapp-configuration.properties"
 
-        val CORDA_CLASSES = "^Corda-.+-Classes\$".toRegex()
+        private val CORDA_CLASSES = "^Corda-.+-Classes\$".toRegex()
 
-        val BASE_CORDA_CLASSES: Map<String, String> = unmodifiableMap(mapOf(
+        private val BASE_CORDA_CLASSES: Map<String, String> = unmodifiableMap(mapOf(
             CORDA_CONTRACT_CLASSES to "IMPLEMENTS;net.corda.v5.ledger.contracts.Contract",
             CORDA_WORKFLOW_CLASSES to "IMPLEMENTS;net.corda.core.flows.Flow",
             CORDA_MAPPED_SCHEMA_CLASSES to "EXTENDS;net.corda.core.node.services.persistence.MappedSchema",
@@ -41,7 +41,7 @@ open class OsgiExtension(objects: ObjectFactory, project: Project, jar: Jar) {
          * We DO NOT want to bind the CPK to use specific versions of
          * either Hibernate or Javassist here.
          */
-        val BASE_REQUIRED_PACKAGES: Set<String> = unmodifiableSet(setOf(
+        private val BASE_REQUIRED_PACKAGES: Set<String> = unmodifiableSet(setOf(
             "org.hibernate.annotations",
             "org.hibernate.proxy"
         ))
