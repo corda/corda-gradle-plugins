@@ -15,6 +15,7 @@ import java.io.File
 import java.util.Collections.unmodifiableSet
 import java.util.jar.JarFile
 
+const val CORDAPP_CPK_PLUGIN_ID = "net.corda.plugins.cordapp-cpk"
 const val GROUP_NAME = "Cordapp"
 
 const val CORDAPP_CONFIGURATION_NAME = "cordapp"

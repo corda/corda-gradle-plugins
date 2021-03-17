@@ -43,7 +43,12 @@ class PublishAfterEvaluationHandler(rootProject: Project) : Action<Gradle> {
 
     override fun execute(gradle: Gradle) {
         for (project in gradle.rootProject.allprojects) {
-            if (project.plugins.hasPlugin(CordappPlugin::class.java)) {
+            // The plugin ID is the only reliable way to check
+            // whether a particular plugin has been applied.
+            // Each sub-project can load its plugins into its
+            // own classloader, which makes all of the [Plugin]
+            // implementation classes different.
+            if (project.plugins.hasPlugin(CORDAPP_CPK_PLUGIN_ID)) {
                 publishCompanionFor(project)
             }
         }
@@ -55,6 +60,7 @@ class PublishAfterEvaluationHandler(rootProject: Project) : Action<Gradle> {
         publications.withType(MavenPublication::class.java)
             .matching { it.pom.packaging == "jar" && !it.groupId.isNullOrEmpty() }
             .all { pub ->
+                // Create a "companion" POM to support transitive CPK relationships.
                 val publicationProvider = publications.register("cpk-${pub.name}-companion", MavenPublication::class.java) { cpk ->
                     cpk.groupId = toCompanionGroupId(pub.groupId, pub.artifactId)
                     cpk.artifactId = toCompanionArtifactId(pub.artifactId)

@@ -3,6 +3,7 @@ package net.corda.plugins.cpk
 import aQute.bnd.gradle.BndBuilderPlugin
 import aQute.bnd.gradle.BundleTaskConvention
 import net.corda.plugins.cpk.SignJar.Companion.sign
+import org.gradle.api.Action
 import org.gradle.api.GradleException
 import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.InvalidUserDataException
@@ -12,7 +13,7 @@ import org.gradle.api.artifacts.Dependency.ARCHIVES_CONFIGURATION
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.java.archives.Attributes
-import org.gradle.api.plugins.JavaLibraryPlugin
+import org.gradle.api.plugins.AppliedPlugin
 import org.gradle.api.plugins.JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME
 import org.gradle.api.plugins.JavaPlugin.JAR_TASK_NAME
 import org.gradle.api.plugins.JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME
@@ -77,9 +78,9 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
             throw GradleException("Gradle version ${GradleVersion.current().version} is below the supported minimum version $MIN_GRADLE_VERSION. Please update Gradle or consider using Gradle wrapper if it is provided with the project. More information about CorDapp build system can be found here: https://docs.corda.net/cordapp-build-systems.html")
         }
 
-        // Apply the JavaLibrary plugin on the assumption that we're building a JAR.
+        // Apply the 'java-library' plugin on the assumption that we're building a JAR.
         // This will also create the "api", "implementation", "compileOnly" and "runtimeOnly" configurations.
-        project.pluginManager.apply(JavaLibraryPlugin::class.java)
+        project.pluginManager.apply("java-library")
 
         // Apply the Bnd "builder" plugin to generate OSGi metadata for the CorDapp.
         project.pluginManager.apply(BndBuilderPlugin::class.java)
@@ -138,11 +139,8 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
                 .extendsFrom(cordaEmbedded)
         }
 
-        project.pluginManager.withPlugin("maven-publish") {
-            // Always apply this plugin to the root project, to
-            // ensure that Gradle only executes its action once.
-            project.rootProject.pluginManager.apply(CordappPublishing::class.java)
-        }
+        // We need to perform some extra work on the root project to support publication.
+        project.pluginManager.withPlugin("maven-publish", CordappPublishing(project.rootProject))
 
         configureCordappTasks(project)
     }
@@ -358,12 +356,27 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
 }
 
 /**
- * Internal Gradle plugin which installs [PublishAfterEvaluationHandler].
- * Gradle only applies each plugin once, which ensures that this handler
- * cannot be installed multiple times.
+ * Ensure that we add the [PublishAfterEvaluationHandler]
+ * to the root project exactly once, regardless of how
+ * many times this [Action] is invoked.
  */
-private class CordappPublishing : Plugin<Project> {
-    override fun apply(rootProject: Project) {
-        rootProject.gradle.projectsEvaluated(PublishAfterEvaluationHandler(rootProject))
+private class CordappPublishing(private val rootProject: Project) : Action<AppliedPlugin> {
+    @Suppress("SameParameterValue")
+    private fun setExtraProperty(key: String): Boolean {
+        val rootProperties = rootProject.extensions.extraProperties
+        return synchronized(rootProperties) {
+            if (rootProperties.has(key)) {
+                false
+            } else {
+                rootProperties[key] = Any()
+                true
+            }
+        }
+    }
+
+    override fun execute(plugin: AppliedPlugin) {
+        if (setExtraProperty("_net_corda_cordapp_cpk_publish_")) {
+            rootProject.gradle.projectsEvaluated(PublishAfterEvaluationHandler(rootProject))
+        }
     }
 }
