@@ -44,7 +44,7 @@ class DeleteValPropertyTest {
                 }
                 assertTrue(getDeclaredField("unwantedVal").hasModifiers(ACC_PRIVATE))
                 assertThat("unwantedVal not found", kotlin.declaredMemberProperties, hasItem(unwantedVal))
-                assertThat("getUnwantedVal not found", kotlin.javaDeclaredMethods, hasItem(getUnwantedVal))
+                assertThat("getUnwantedVal not found", javaDeclaredMethods, hasItem(getUnwantedVal))
             }
         }
 
@@ -55,7 +55,7 @@ class DeleteValPropertyTest {
                 }
                 assertFailsWith<NoSuchFieldException> { getDeclaredField("unwantedVal") }
                 assertThat("unwantedVal still exists", kotlin.declaredMemberProperties, not(hasItem(unwantedVal)))
-                assertThat("getUnwantedVal still exists", kotlin.javaDeclaredMethods, not(hasItem(getUnwantedVal)))
+                assertThat("getUnwantedVal still exists", javaDeclaredMethods, not(hasItem(getUnwantedVal)))
             }
         }
     }
@@ -68,7 +68,7 @@ class DeleteValPropertyTest {
                     assertEquals(MESSAGE, obj.unwantedVal)
                 }
                 assertTrue(getDeclaredField("unwantedVal").hasModifiers(ACC_PRIVATE))
-                assertThat("getUnwantedVal not found", kotlin.javaDeclaredMethods, hasItem(getUnwantedVal))
+                assertThat("getUnwantedVal not found", javaDeclaredMethods, hasItem(getUnwantedVal))
             }
         }
 
@@ -78,7 +78,7 @@ class DeleteValPropertyTest {
                     assertFailsWith<AbstractMethodError> { obj.unwantedVal }
                 }
                 assertTrue(getDeclaredField("unwantedVal").hasModifiers(ACC_PRIVATE))
-                assertThat("getUnwantedVal still exists", kotlin.javaDeclaredMethods, not(hasItem(getUnwantedVal)))
+                assertThat("getUnwantedVal still exists", javaDeclaredMethods, not(hasItem(getUnwantedVal)))
             }
         }
     }

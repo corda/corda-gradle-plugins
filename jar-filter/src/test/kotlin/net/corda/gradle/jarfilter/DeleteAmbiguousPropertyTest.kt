@@ -44,10 +44,10 @@ class DeleteAmbiguousPropertyTest {
         classLoaderFor(testProject.sourceJar).use { cl ->
             cl.load<Any>(PROPERTY_CLASS).apply {
                 assertNotNull(getDeclaredConstructor().newInstance())
-                assertThat("nameIntToInt(Map) missing", kotlin.javaDeclaredMethods, hasItem(nameIntToInt))
-                assertThat("nameIntToByte(Map) missing", kotlin.javaDeclaredMethods, hasItem(nameIntToByte))
-                assertThat("nameString(Collection) missing", kotlin.javaDeclaredMethods, hasItem(nameString))
-                assertThat("nameLong(Collection) missing", kotlin.javaDeclaredMethods, hasItem(nameLong))
+                assertThat("nameIntToInt(Map) missing", javaDeclaredMethods, hasItem(nameIntToInt))
+                assertThat("nameIntToByte(Map) missing", javaDeclaredMethods, hasItem(nameIntToByte))
+                assertThat("nameString(Collection) missing", javaDeclaredMethods, hasItem(nameString))
+                assertThat("nameLong(Collection) missing", javaDeclaredMethods, hasItem(nameLong))
 
                 assertThat("Map<Int,Int>.name missing", kotlin.declaredMemberExtensionProperties, hasItem(mapIntToIntName))
                 assertThat("Map<Int,Byte>.name missing", kotlin.declaredMemberExtensionProperties, hasItem(mapIntToByteName))
@@ -59,10 +59,10 @@ class DeleteAmbiguousPropertyTest {
         classLoaderFor(testProject.filteredJar).use { cl ->
             cl.load<Any>(PROPERTY_CLASS).apply {
                 assertNotNull(getDeclaredConstructor().newInstance())
-                assertThat("nameIntToInt(Map) still exists", kotlin.javaDeclaredMethods, not(hasItem(nameIntToInt)))
-                assertThat("nameIntToByte(Map) does not exist", kotlin.javaDeclaredMethods, hasItem(nameIntToByte))
-                assertThat("nameString(Collection) does not exist", kotlin.javaDeclaredMethods, hasItem(nameString))
-                assertThat("nameLong(Collection) still exists", kotlin.javaDeclaredMethods, not(hasItem(nameLong)))
+                assertThat("nameIntToInt(Map) still exists", javaDeclaredMethods, not(hasItem(nameIntToInt)))
+                assertThat("nameIntToByte(Map) does not exist", javaDeclaredMethods, hasItem(nameIntToByte))
+                assertThat("nameString(Collection) does not exist", javaDeclaredMethods, hasItem(nameString))
+                assertThat("nameLong(Collection) still exists", javaDeclaredMethods, not(hasItem(nameLong)))
 
                 assertThat("Map<Int,Int>.name still exists", kotlin.declaredMemberExtensionProperties, not(hasItem(mapIntToIntName)))
                 assertThat("Map<Int,Byte>.name does not exist", kotlin.declaredMemberExtensionProperties, hasItem(mapIntToByteName))

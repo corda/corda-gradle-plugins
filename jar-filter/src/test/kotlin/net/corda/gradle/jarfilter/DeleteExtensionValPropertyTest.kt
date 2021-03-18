@@ -37,7 +37,7 @@ class DeleteExtensionValPropertyTest {
         classLoaderFor(testProject.sourceJar).use { cl ->
             cl.load<HasUnwantedVal>(PROPERTY_CLASS).apply {
                 assertThat("unwantedVal not found", kotlin.declaredMemberProperties, hasItem(unwantedVal))
-                assertThat("getUnwantedVal not found", kotlin.javaDeclaredMethods, hasItem(getUnwantedVal))
+                assertThat("getUnwantedVal not found", javaDeclaredMethods, hasItem(getUnwantedVal))
                 assertThat("List.unwantedVal not found", kotlin.declaredMemberExtensionProperties, hasItem(listUnwantedVal))
             }
         }
@@ -45,7 +45,7 @@ class DeleteExtensionValPropertyTest {
         classLoaderFor(testProject.filteredJar).use { cl ->
             cl.load<HasUnwantedVal>(PROPERTY_CLASS).apply {
                 assertThat("unwantedVal not found", kotlin.declaredMemberProperties, hasItem(unwantedVal))
-                assertThat("getUnwantedVal still exists", kotlin.javaDeclaredMethods, not(hasItem(getUnwantedVal)))
+                assertThat("getUnwantedVal still exists", javaDeclaredMethods, not(hasItem(getUnwantedVal)))
                 assertThat("List.unwantedVal still exists", kotlin.declaredMemberExtensionProperties, not(hasItem(listUnwantedVal)))
             }
         }

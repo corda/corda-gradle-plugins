@@ -75,7 +75,8 @@ abstract class MetadataTransformer<out T : KmDeclarationContainer>(
         return false
     }
 
-    protected fun filterProperties(): Int = ArrayList(deletedFields).count(::filterProperty)
+    protected fun filterProperties(): Int
+        = ArrayList(deletedFields).count(::filterProperty) + filterProperties(HashSet(deletedFunctions))
 
     private fun filterProperty(deleted: FieldElement): Boolean {
         val annotatedMethod = deleted.asKotlinAnnotationsMethod()
@@ -175,6 +176,37 @@ abstract class MetadataTransformer<out T : KmDeclarationContainer>(
             logger.info("-- identified extra field {},{} for deletion", field.name, field.descriptor)
             handleExtraField(field)
         }
+    }
+
+    /**
+     * Some properties have no backing field to be deleted, which means we cannot
+     * detect them by examining deleted [FieldElement]s. So instead filter out all
+     * such properties which have also lost all of their accessor functions.
+     */
+    private fun filterProperties(deleted: Set<MethodElement>): Int {
+        var deleteCount = 0
+        var idx = 0
+        while (idx < properties.size) {
+            val property = properties[idx]
+            if (property.fieldSignature == null) {
+                val getter = property.getterSignature
+                val setter = property.setterSignature
+
+                /**
+                 * Both `val` and `var` properties have a "getter" function,
+                 * but only `var` properties also have a "setter".
+                 */
+                if ((getter != null && deleted.contains(getter.toMethodElement()))
+                        && (setter == null || deleted.contains(setter.toMethodElement()))) {
+                    logger.info("-- removing property: {} (all accessors deleted)", property.name)
+                    properties.removeAt(idx)
+                    ++deleteCount
+                    continue
+                }
+            }
+            ++idx
+        }
+        return deleteCount
     }
 
     protected fun filterTypeAliases(): Int {

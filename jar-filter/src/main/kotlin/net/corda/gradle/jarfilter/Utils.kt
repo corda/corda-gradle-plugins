@@ -9,6 +9,7 @@ import org.objectweb.asm.ClassReader.SKIP_FRAMES
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.Opcodes.ASM9
+import org.objectweb.asm.Type
 import java.nio.file.attribute.FileTime
 import java.util.Calendar.FEBRUARY
 import java.util.GregorianCalendar
@@ -42,6 +43,13 @@ fun <T : Element> MutableCollection<T>.expire(element: T) {
     if (remove(element)) {
         element.kill()
         add(element)
+    }
+}
+
+val Type.underlyingType: Type get() {
+    return when (sort) {
+        Type.ARRAY -> elementType
+        else -> this
     }
 }
 

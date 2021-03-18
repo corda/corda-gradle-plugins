@@ -5,6 +5,7 @@ import net.corda.gradle.unwanted.HasUnwantedVal
 import net.corda.gradle.unwanted.HasUnwantedVar
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
@@ -22,19 +23,25 @@ class RemoveAnnotationsTest {
         fun setup(@TempDir testProjectDir: Path) {
             testProject = JarFilterProject(testProjectDir, "remove-annotations").build()
         }
+
+        fun ClassLoader.loadAnnotation(className: String): Class<out Annotation> {
+            return load<Annotation>(className).apply {
+                assertTrue(isAnnotation)
+            }
+        }
     }
 
     @Test
     fun deleteFromClass() {
         classLoaderFor(testProject.sourceJar).use { cl ->
-            val removeMe = cl.load<Annotation>(REMOVE_ME_CLASS)
+            val removeMe = cl.loadAnnotation(REMOVE_ME_CLASS)
             cl.load<Any>(ANNOTATED_CLASS).apply {
                 assertNotNull(getAnnotation(removeMe))
             }
         }
 
         classLoaderFor(testProject.filteredJar).use { cl ->
-            val removeMe = cl.load<Annotation>(REMOVE_ME_CLASS)
+            val removeMe = cl.loadAnnotation(REMOVE_ME_CLASS)
             cl.load<Any>(ANNOTATED_CLASS).apply {
                 assertNull(getAnnotation(removeMe))
             }
@@ -44,7 +51,7 @@ class RemoveAnnotationsTest {
     @Test
     fun deleteFromDefaultConstructor() {
         classLoaderFor(testProject.sourceJar).use { cl ->
-            val removeMe = cl.load<Annotation>(REMOVE_ME_CLASS)
+            val removeMe = cl.loadAnnotation(REMOVE_ME_CLASS)
             cl.load<Any>(ANNOTATED_CLASS).apply {
                 getDeclaredConstructor().also { con ->
                     assertNotNull(con.getAnnotation(removeMe))
@@ -53,7 +60,7 @@ class RemoveAnnotationsTest {
         }
 
         classLoaderFor(testProject.filteredJar).use { cl ->
-            val removeMe = cl.load<Annotation>(REMOVE_ME_CLASS)
+            val removeMe = cl.loadAnnotation(REMOVE_ME_CLASS)
             cl.load<Any>(ANNOTATED_CLASS).apply {
                 getDeclaredConstructor().also { con ->
                     assertNull(con.getAnnotation(removeMe))
@@ -65,7 +72,7 @@ class RemoveAnnotationsTest {
     @Test
     fun deleteFromPrimaryConstructor() {
         classLoaderFor(testProject.sourceJar).use { cl ->
-            val removeMe = cl.load<Annotation>(REMOVE_ME_CLASS)
+            val removeMe = cl.loadAnnotation(REMOVE_ME_CLASS)
             cl.load<Any>(ANNOTATED_CLASS).apply {
                 getDeclaredConstructor(Long::class.java, String::class.java).also { con ->
                     assertNotNull(con.getAnnotation(removeMe))
@@ -74,7 +81,7 @@ class RemoveAnnotationsTest {
         }
 
         classLoaderFor(testProject.filteredJar).use { cl ->
-            val removeMe = cl.load<Annotation>(REMOVE_ME_CLASS)
+            val removeMe = cl.loadAnnotation(REMOVE_ME_CLASS)
             cl.load<Any>(ANNOTATED_CLASS).apply {
                 getDeclaredConstructor(Long::class.java, String::class.java).also { con ->
                     assertNull(con.getAnnotation(removeMe))
@@ -86,7 +93,7 @@ class RemoveAnnotationsTest {
     @Test
     fun deleteFromField() {
         classLoaderFor(testProject.sourceJar).use { cl ->
-            val removeMe = cl.load<Annotation>(REMOVE_ME_CLASS)
+            val removeMe = cl.loadAnnotation(REMOVE_ME_CLASS)
             cl.load<Any>(ANNOTATED_CLASS).apply {
                 getField("longField").also { field ->
                     assertNotNull(field.getAnnotation(removeMe))
@@ -95,7 +102,7 @@ class RemoveAnnotationsTest {
         }
 
         classLoaderFor(testProject.filteredJar).use { cl ->
-            val removeMe = cl.load<Annotation>(REMOVE_ME_CLASS)
+            val removeMe = cl.loadAnnotation(REMOVE_ME_CLASS)
             cl.load<Any>(ANNOTATED_CLASS).apply {
                 getField("longField").also { field ->
                     assertNull(field.getAnnotation(removeMe))
@@ -107,7 +114,7 @@ class RemoveAnnotationsTest {
     @Test
     fun deleteFromMethod() {
         classLoaderFor(testProject.sourceJar).use { cl ->
-            val removeMe = cl.load<Annotation>(REMOVE_ME_CLASS)
+            val removeMe = cl.loadAnnotation(REMOVE_ME_CLASS)
             cl.load<HasUnwantedFun>(ANNOTATED_CLASS).apply {
                 getMethod("unwantedFun", String::class.java).also { method ->
                     assertNotNull(method.getAnnotation(removeMe))
@@ -116,7 +123,7 @@ class RemoveAnnotationsTest {
         }
 
         classLoaderFor(testProject.filteredJar).use { cl ->
-            val removeMe = cl.load<Annotation>(REMOVE_ME_CLASS)
+            val removeMe = cl.loadAnnotation(REMOVE_ME_CLASS)
             cl.load<HasUnwantedFun>(ANNOTATED_CLASS).apply {
                 getMethod("unwantedFun", String::class.java).also { method ->
                     assertNull(method.getAnnotation(removeMe))
@@ -128,7 +135,7 @@ class RemoveAnnotationsTest {
     @Test
     fun deleteFromValProperty() {
         classLoaderFor(testProject.sourceJar).use { cl ->
-            val removeMe = cl.load<Annotation>(REMOVE_ME_CLASS)
+            val removeMe = cl.loadAnnotation(REMOVE_ME_CLASS)
             cl.load<HasUnwantedVal>(ANNOTATED_CLASS).apply {
                 getMethod("getUnwantedVal").also { method ->
                     assertNotNull(method.getAnnotation(removeMe))
@@ -137,7 +144,7 @@ class RemoveAnnotationsTest {
         }
 
         classLoaderFor(testProject.filteredJar).use { cl ->
-            val removeMe = cl.load<Annotation>(REMOVE_ME_CLASS)
+            val removeMe = cl.loadAnnotation(REMOVE_ME_CLASS)
             cl.load<HasUnwantedVal>(ANNOTATED_CLASS).apply {
                 getMethod("getUnwantedVal").also { method ->
                     assertNull(method.getAnnotation(removeMe))
@@ -149,7 +156,7 @@ class RemoveAnnotationsTest {
     @Test
     fun deleteFromVarProperty() {
         classLoaderFor(testProject.sourceJar).use { cl ->
-            val removeMe = cl.load<Annotation>(REMOVE_ME_CLASS)
+            val removeMe = cl.loadAnnotation(REMOVE_ME_CLASS)
             cl.load<HasUnwantedVar>(ANNOTATED_CLASS).apply {
                 getMethod("getUnwantedVar").also { method ->
                     assertNotNull(method.getAnnotation(removeMe))
@@ -161,7 +168,7 @@ class RemoveAnnotationsTest {
         }
 
         classLoaderFor(testProject.filteredJar).use { cl ->
-            val removeMe = cl.load<Annotation>(REMOVE_ME_CLASS)
+            val removeMe = cl.loadAnnotation(REMOVE_ME_CLASS)
             cl.load<HasUnwantedVar>(ANNOTATED_CLASS).apply {
                 getMethod("getUnwantedVar").also { method ->
                     assertNull(method.getAnnotation(removeMe))
