@@ -6,8 +6,13 @@ import org.hamcrest.DiagnosingMatcher
 import org.hamcrest.Matcher
 import org.hamcrest.core.IsEqual.equalTo
 import java.lang.reflect.Constructor
+import java.lang.reflect.Field
 import java.lang.reflect.Method
-import kotlin.reflect.KClass
+
+val isVoid: Matcher<String> get() = equalTo(Void.TYPE.name)
+
+val Class<*>.javaDeclaredMethods: List<Method> get() = declaredMethods.toList()
+val Class<*>.javaDeclaredFields: List<Field> get() = declaredFields.toList()
 
 fun isMethod(name: Matcher<in String>, returnType: Matcher<in String>, vararg parameters: Matcher<in String>): Matcher<in Method> {
     return MethodMatcher(name, returnType, *parameters)
@@ -29,24 +34,26 @@ fun isConstructor(classType: String, vararg parameters: Class<*>): Matcher<in Co
     return isConstructor(equalTo(classType), *parameters.toMatchers())
 }
 
+fun isField(name: Matcher<in String>, type: Matcher<in String>): Matcher<in Field> {
+    return FieldMatcher(name, type)
+}
+
 fun matches(type: Class<*>): Matcher<in String> = equalTo(type.name)
 
 private fun Array<out Class<*>>.toMatchers() = map(::matches).toTypedArray()
-
-val KClass<*>.javaDeclaredMethods: List<Method> get() = java.declaredMethods.toList()
 
 /**
  * Matcher logic for a Java [Method] object.
  */
 private class MethodMatcher(
-    private val name: Matcher<in String>,
+    private val methodName: Matcher<in String>,
     private val returnType: Matcher<in String>,
     vararg parameters: Matcher<in String>
 ) : DiagnosingMatcher<Method>() {
     private val parameters = listOf(*parameters)
 
     override fun describeTo(description: Description) {
-        description.appendText("Method[name as ").appendDescriptionOf(name)
+        description.appendText("Method[name as ").appendDescriptionOf(methodName)
             .appendText(", returnType as ").appendDescriptionOf(returnType)
             .appendText(", parameters as (")
         if (parameters.isNotEmpty()) {
@@ -67,7 +74,7 @@ private class MethodMatcher(
 
         val method = obj as? Method ?: return false
         mismatch.appendText("name is ").appendValue(method.name)
-        if (!name.matches(method.name)) {
+        if (!methodName.matches(method.name)) {
             return false
         }
         method.returnType.apply {
@@ -140,6 +147,40 @@ private class ConstructorMatcher(
         for ((i, paramType) in constructor.parameterTypes.withIndex()) {
             if (!parameters[i].matches(paramType.name)) {
                 mismatch.appendText(" where parameter").appendValue(i).appendText(" has type ").appendValue(paramType.name)
+                return false
+            }
+        }
+        return true
+    }
+}
+
+/**
+ * Matcher logic for a Java [Field] object.
+ */
+private class FieldMatcher(
+    private val fieldName: Matcher<in String>,
+    private val fieldType: Matcher<in String>
+) : DiagnosingMatcher<Field>() {
+    override fun describeTo(description: Description) {
+        description.appendText("Field[name as ").appendDescriptionOf(fieldName)
+            .appendText(", type as ").appendDescriptionOf(fieldType)
+            .appendText("]")
+    }
+
+    override fun matches(obj: Any?, mismatch: Description): Boolean {
+        if (obj == null) {
+            mismatch.appendText("is null")
+            return false
+        }
+
+        val field = obj as? Field ?: return false
+        mismatch.appendText("name is ").appendValue(field.name)
+        if (!fieldName.matches(field.name)) {
+            return false
+        }
+        field.type.apply {
+            if (!fieldType.matches(name)) {
+                mismatch.appendText(" with type ").appendValue(name)
                 return false
             }
         }

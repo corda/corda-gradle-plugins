@@ -48,8 +48,8 @@ class DeleteVarPropertyTest {
                 }
                 assertTrue(getDeclaredField("unwantedVar").hasModifiers(ACC_PRIVATE))
                 assertThat("unwantedVar not found", kotlin.declaredMemberProperties, hasItem(unwantedVar))
-                assertThat("getUnwantedVar not found", kotlin.javaDeclaredMethods, hasItem(getUnwantedVar))
-                assertThat("setUnwantedVar not found", kotlin.javaDeclaredMethods, hasItem(setUnwantedVar))
+                assertThat("getUnwantedVar not found", javaDeclaredMethods, hasItem(getUnwantedVar))
+                assertThat("setUnwantedVar not found", javaDeclaredMethods, hasItem(setUnwantedVar))
             }
         }
 
@@ -61,8 +61,8 @@ class DeleteVarPropertyTest {
                 }
                 assertFailsWith<NoSuchFieldException> { getDeclaredField("unwantedVar") }
                 assertThat("unwantedVar still exists", kotlin.declaredMemberProperties, not(hasItem(unwantedVar)))
-                assertThat("getUnwantedVar still exists", kotlin.javaDeclaredMethods, not(hasItem(getUnwantedVar)))
-                assertThat("setUnwantedVar still exists", kotlin.javaDeclaredMethods, not(hasItem(setUnwantedVar)))
+                assertThat("getUnwantedVar still exists", javaDeclaredMethods, not(hasItem(getUnwantedVar)))
+                assertThat("setUnwantedVar still exists", javaDeclaredMethods, not(hasItem(setUnwantedVar)))
             }
         }
     }
@@ -75,7 +75,7 @@ class DeleteVarPropertyTest {
                     assertEquals(MESSAGE, obj.unwantedVar)
                 }
                 assertTrue(getDeclaredField("unwantedVar").hasModifiers(ACC_PRIVATE))
-                assertThat("getUnwantedVar not found", kotlin.javaDeclaredMethods, hasItem(getUnwantedVar))
+                assertThat("getUnwantedVar not found", javaDeclaredMethods, hasItem(getUnwantedVar))
             }
         }
 
@@ -85,7 +85,7 @@ class DeleteVarPropertyTest {
                     assertFailsWith<AbstractMethodError> { obj.unwantedVar }
                 }
                 assertTrue(getDeclaredField("unwantedVar").hasModifiers(ACC_PRIVATE))
-                assertThat("getUnwantedVar still exists", kotlin.javaDeclaredMethods, not(hasItem(getUnwantedVar)))
+                assertThat("getUnwantedVar still exists", javaDeclaredMethods, not(hasItem(getUnwantedVar)))
             }
         }
     }
@@ -102,7 +102,7 @@ class DeleteVarPropertyTest {
                 getDeclaredField("unwantedVar").also { field ->
                     assertTrue(field.hasModifiers(ACC_PRIVATE))
                 }
-                assertThat("setUnwantedVar not found", kotlin.javaDeclaredMethods, hasItem(setUnwantedVar))
+                assertThat("setUnwantedVar not found", javaDeclaredMethods, hasItem(setUnwantedVar))
             }
         }
 
@@ -115,7 +115,7 @@ class DeleteVarPropertyTest {
                 getDeclaredField("unwantedVar").also { field ->
                     assertTrue(field.hasModifiers(ACC_PRIVATE))
                 }
-                assertThat("setUnwantedVar still exists", kotlin.javaDeclaredMethods, not(hasItem(setUnwantedVar)))
+                assertThat("setUnwantedVar still exists", javaDeclaredMethods, not(hasItem(setUnwantedVar)))
             }
         }
     }
