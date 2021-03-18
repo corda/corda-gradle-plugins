@@ -63,7 +63,7 @@ class DeleteAndStubTests {
                     assertEquals(MESSAGE, obj.stringVal)
                 }
                 assertThat("stringVal not found", kotlin.declaredMemberProperties, hasItem(stringVal))
-                assertThat("getStringVal() not found", kotlin.javaDeclaredMethods, hasItem(getStringVal))
+                assertThat("getStringVal() not found", javaDeclaredMethods, hasItem(getStringVal))
             }
         }
 
@@ -71,7 +71,7 @@ class DeleteAndStubTests {
             cl.load<HasStringVal>(VAL_PROPERTY_CLASS).apply {
                 assertNotNull(getDeclaredConstructor(String::class.java).newInstance(MESSAGE))
                 assertThat("stringVal still exists", kotlin.declaredMemberProperties, not(hasItem(stringVal)))
-                assertThat("getStringVal() still exists", kotlin.javaDeclaredMethods, not(hasItem(getStringVal)))
+                assertThat("getStringVal() still exists", javaDeclaredMethods, not(hasItem(getStringVal)))
             }
         }
     }
@@ -84,8 +84,8 @@ class DeleteAndStubTests {
                     assertEquals(BIG_NUMBER, obj.longVar)
                 }
                 assertThat("longVar not found", kotlin.declaredMemberProperties, hasItem(longVar))
-                assertThat("getLongVar() not found", kotlin.javaDeclaredMethods, hasItem(getLongVar))
-                assertThat("setLongVar() not found", kotlin.javaDeclaredMethods, hasItem(setLongVar))
+                assertThat("getLongVar() not found", javaDeclaredMethods, hasItem(getLongVar))
+                assertThat("setLongVar() not found", javaDeclaredMethods, hasItem(setLongVar))
             }
         }
 
@@ -93,8 +93,8 @@ class DeleteAndStubTests {
             cl.load<HasLongVar>(VAR_PROPERTY_CLASS).apply {
                 assertNotNull(getDeclaredConstructor(Long::class.java).newInstance(BIG_NUMBER))
                 assertThat("longVar still exists", kotlin.declaredMemberProperties, not(hasItem(longVar)))
-                assertThat("getLongVar() still exists", kotlin.javaDeclaredMethods, not(hasItem(getLongVar)))
-                assertThat("setLongVar() still exists", kotlin.javaDeclaredMethods, not(hasItem(setLongVar)))
+                assertThat("getLongVar() still exists", javaDeclaredMethods, not(hasItem(getLongVar)))
+                assertThat("setLongVar() still exists", javaDeclaredMethods, not(hasItem(setLongVar)))
             }
         }
     }
@@ -139,8 +139,8 @@ class DeleteAndStubTests {
                     }
                 }
                 assertThat("unwantedVar not found", kotlin.declaredMemberProperties, hasItem(unwantedVar))
-                assertThat("getUnwantedVar() not found", kotlin.javaDeclaredMethods, hasItem(getUnwantedVar))
-                assertThat("setUnwantedVar() not found", kotlin.javaDeclaredMethods, hasItem(setUnwantedVar))
+                assertThat("getUnwantedVar() not found", javaDeclaredMethods, hasItem(getUnwantedVar))
+                assertThat("setUnwantedVar() not found", javaDeclaredMethods, hasItem(setUnwantedVar))
                 assertThat("stringData() not found", kotlin.declaredMemberFunctions, hasItem(stringData))
             }
         }
@@ -149,10 +149,10 @@ class DeleteAndStubTests {
             cl.load<HasString>(DELETED_VAR_CLASS).apply {
                 assertNotNull(getDeclaredConstructor(String::class.java).newInstance(MESSAGE))
                 assertThat("unwantedVar still exists", kotlin.declaredMemberProperties, not(hasItem(unwantedVar)))
-                assertThat("getUnwantedVar() still exists", kotlin.javaDeclaredMethods, not(hasItem(getUnwantedVar)))
-                assertThat("setUnwantedVar() still exists", kotlin.javaDeclaredMethods, not(hasItem(setUnwantedVar)))
+                assertThat("getUnwantedVar() still exists", javaDeclaredMethods, not(hasItem(getUnwantedVar)))
+                assertThat("setUnwantedVar() still exists", javaDeclaredMethods, not(hasItem(setUnwantedVar)))
                 assertThat("stringData() not found", kotlin.declaredMemberFunctions, hasItem(stringData))
-                assertThat("stringData() not found", kotlin.javaDeclaredMethods, hasItem(stringDataJava))
+                assertThat("stringData() not found", javaDeclaredMethods, hasItem(stringDataJava))
             }
         }
     }
@@ -166,7 +166,7 @@ class DeleteAndStubTests {
                     assertEquals(MESSAGE, (obj as HasUnwantedVal).unwantedVal)
                 }
                 assertThat("unwantedVal not found", kotlin.declaredMemberProperties, hasItem(unwantedVal))
-                assertThat("getUnwantedVal() not found", kotlin.javaDeclaredMethods, hasItem(getUnwantedVal))
+                assertThat("getUnwantedVal() not found", javaDeclaredMethods, hasItem(getUnwantedVal))
                 assertThat("stringData() not found", kotlin.declaredMemberFunctions, hasItem(stringData))
             }
         }
@@ -175,9 +175,9 @@ class DeleteAndStubTests {
             cl.load<HasString>(DELETED_VAL_CLASS).apply {
                 assertNotNull(getDeclaredConstructor(String::class.java).newInstance(MESSAGE))
                 assertThat("unwantedVal still exists", kotlin.declaredMemberProperties, not(hasItem(unwantedVal)))
-                assertThat("getUnwantedVal() still exists", kotlin.javaDeclaredMethods, not(hasItem(getUnwantedVal)))
+                assertThat("getUnwantedVal() still exists", javaDeclaredMethods, not(hasItem(getUnwantedVal)))
                 assertThat("stringData() not found", kotlin.declaredMemberFunctions, hasItem(stringData))
-                assertThat("stringData() not found", kotlin.javaDeclaredMethods, hasItem(stringDataJava))
+                assertThat("stringData() not found", javaDeclaredMethods, hasItem(stringDataJava))
             }
         }
     }

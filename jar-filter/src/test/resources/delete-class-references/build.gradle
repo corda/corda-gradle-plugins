@@ -1,0 +1,35 @@
+import net.corda.gradle.jarfilter.JarFilterTask
+
+plugins {
+    id 'org.jetbrains.kotlin.jvm'
+    id 'net.corda.plugins.jar-filter' apply false
+}
+apply from: 'repositories.gradle'
+apply from: 'kotlin.gradle'
+
+sourceSets {
+    main {
+        kotlin {
+            srcDir files(
+                '../resources/test/delete-class-references/kotlin',
+                '../resources/test/annotations/kotlin'
+            )
+        }
+    }
+}
+
+dependencies {
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
+    compileOnly files('../../unwanteds/build/libs/unwanteds.jar')
+}
+
+jar {
+    archiveBaseName = 'delete-class-references'
+}
+
+task jarFilter(type: JarFilterTask) {
+    jars jar
+    annotations {
+        forDelete = ["net.corda.gradle.jarfilter.DeleteMe"]
+    }
+}

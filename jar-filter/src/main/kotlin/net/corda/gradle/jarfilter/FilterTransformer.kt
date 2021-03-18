@@ -27,6 +27,7 @@ import org.objectweb.asm.Opcodes.POP2
 import org.objectweb.asm.Opcodes.PUTFIELD
 import org.objectweb.asm.Opcodes.PUTSTATIC
 import org.objectweb.asm.Opcodes.RETURN
+import org.objectweb.asm.Type
 
 /**
  * ASM [ClassVisitor] for the JarFilter task that deletes unwanted class elements.
@@ -84,6 +85,12 @@ class FilterTransformer private constructor (
                   || super.hasUnwantedElements
 
     private fun isUnwantedClass(name: String): Boolean = unwantedElements.containsClass(name)
+    private fun isUnwantedClass(type: Type): Boolean = isUnwantedClass(type.underlyingType.internalName)
+    private fun isUnwantedClassType(descriptor: String): Boolean = isUnwantedClass(Type.getType(descriptor))
+    private fun isUnwantedMethodType(descriptor: String): Boolean {
+        val type = Type.getMethodType(descriptor)
+        return listOf(type.returnType, *type.argumentTypes).any(::isUnwantedClass)
+    }
     private fun hasDeletedAnnotationsMethod(clsName: String): Boolean = deletedMethods.any { method ->
         clsName.startsWith("$className\$${method.visibleName}\$") && method.isKotlinSynthetic("annotations")
     }
@@ -127,6 +134,8 @@ class FilterTransformer private constructor (
             logger.info("- Deleted field {},{}", field.name, field.descriptor)
             unwantedFields.expire(field)
             return null
+        } else if (isUnwantedClassType(descriptor) && unwantedFields.add(field)) {
+            logger.info("- Identified field {},{} as unwanted", field.name, field.descriptor)
         }
         val fv = super.visitField(access, fieldName, descriptor, signature, value) ?: return null
         return if (isUnwantedClass) fv else UnwantedFieldAdapter(fv, field)
@@ -140,6 +149,8 @@ class FilterTransformer private constructor (
             unwantedElements.addMethod(className, method)
             deletedMethods.expire(method)
             return null
+        } else if (isUnwantedMethodType(descriptor) && deletedMethods.add(method)) {
+            logger.info("- Identified method {}{} for deletion", method.name, method.descriptor)
         }
 
         /**
