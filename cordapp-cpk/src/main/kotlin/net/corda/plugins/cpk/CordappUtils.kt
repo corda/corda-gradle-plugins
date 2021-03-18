@@ -27,6 +27,10 @@ const val CORDA_EMBEDDED_CONFIGURATION_NAME = "cordaEmbedded"
 const val ALL_CORDAPPS_CONFIGURATION_NAME = "allCordapps"
 const val CORDA_CPK_CONFIGURATION_NAME = "cordaCPK"
 
+const val CPK_CORDAPP_NAME = "Corda-CPK-Cordapp-Name"
+const val CPK_CORDAPP_VERSION = "Corda-CPK-Cordapp-Version"
+const val CPK_CORDAPP_LICENCE = "Corda-CPK-Cordapp-Licence"
+const val CPK_CORDAPP_VENDOR = "Corda-CPK-Cordapp-Vendor"
 const val CPK_FORMAT_TAG = "Corda-CPK-Format"
 const val CPK_FORMAT = "1.0"
 

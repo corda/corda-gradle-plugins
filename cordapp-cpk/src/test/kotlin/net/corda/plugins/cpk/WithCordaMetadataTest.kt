@@ -5,6 +5,9 @@ import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestReporter
 import org.junit.jupiter.api.io.TempDir
+import org.osgi.framework.Constants.BUNDLE_LICENSE
+import org.osgi.framework.Constants.BUNDLE_SYMBOLICNAME
+import org.osgi.framework.Constants.BUNDLE_VENDOR
 import org.osgi.framework.Constants.BUNDLE_VERSION
 import org.osgi.framework.Constants.DYNAMICIMPORT_PACKAGE
 import org.osgi.framework.Constants.IMPORT_PACKAGE
@@ -12,12 +15,18 @@ import java.nio.file.Path
 
 class WithCordaMetadataTest {
     companion object {
+        private const val CONTRACT_CORDAPP_NAME = "com.example.contracts"
         private const val CONTRACT_CORDAPP_VERSION = "1.1.1-SNAPSHOT"
+        private const val WORKFLOW_CORDAPP_NAME = "com.example.workflows"
         private const val WORKFLOW_CORDAPP_VERSION = "2.2.2-SNAPSHOT"
+        private const val SERVICE_CORDAPP_NAME = "com.example.services"
         private const val SERVICE_CORDAPP_VERSION = "3.3.3-SNAPSHOT"
         private const val HIBERNATE_ANNOTATIONS_PACKAGE = "org.hibernate.annotations"
         private const val HIBERNATE_PROXY_PACKAGE = "org.hibernate.proxy"
         private const val JAVAX_PERSISTENCE_PACKAGE = "javax.persistence"
+        private const val TEST_LICENCE = "Test-Licence"
+        private const val TEST_VENDOR = "R3"
+
         private lateinit var testProject: GradleProject
 
         @Suppress("unused")
@@ -75,8 +84,14 @@ class WithCordaMetadataTest {
                 .isEqualTo("With Contract Metadata")
             assertThat(getValue(CORDAPP_CONTRACT_VERSION))
                 .isEqualTo(expectedCordappContractVersion.toString())
+            assertThat(getValue(BUNDLE_SYMBOLICNAME))
+                .isEqualTo(CONTRACT_CORDAPP_NAME)
             assertThat(getValue(BUNDLE_VERSION))
                 .isEqualTo(toOSGi(CONTRACT_CORDAPP_VERSION))
+            assertThat(getValue(BUNDLE_LICENSE))
+                .isEqualTo(TEST_LICENCE)
+            assertThat(getValue(BUNDLE_VENDOR))
+                .isEqualTo(TEST_VENDOR)
             assertThatHeader(getValue(IMPORT_PACKAGE))
                 .doesNotContainPackage(HIBERNATE_ANNOTATIONS_PACKAGE, HIBERNATE_PROXY_PACKAGE)
                 .containsPackageWithAttributes(JAVAX_PERSISTENCE_PACKAGE, "version=${toOSGiRange(persistenceApiVersion)}")
@@ -90,8 +105,13 @@ class WithCordaMetadataTest {
     fun verifyContractCPKMetadata() {
         val contractCPK = testProject.artifacts.single { it.toString().endsWith("contracts-$CONTRACT_CORDAPP_VERSION-cordapp.cpk") }
         assertThat(contractCPK).isRegularFile()
-        val mainAttributes = contractCPK.manifest.mainAttributes
-        assertThat(mainAttributes.getValue(CPK_FORMAT_TAG)).isEqualTo(CPK_FORMAT)
+        with(contractCPK.manifest.mainAttributes) {
+            assertThat(getValue(CPK_FORMAT_TAG)).isEqualTo(CPK_FORMAT)
+            assertThat(getValue(CPK_CORDAPP_NAME)).isEqualTo(CONTRACT_CORDAPP_NAME)
+            assertThat(getValue(CPK_CORDAPP_VERSION)).isEqualTo(toOSGi(CONTRACT_CORDAPP_VERSION))
+            assertThat(getValue(CPK_CORDAPP_LICENCE)).isEqualTo(TEST_LICENCE)
+            assertThat(getValue(CPK_CORDAPP_VENDOR)).isEqualTo(TEST_VENDOR)
+        }
     }
 
     @Test
@@ -108,8 +128,14 @@ class WithCordaMetadataTest {
                 .isEqualTo("With Workflow Metadata")
             assertThat(getValue(CORDAPP_WORKFLOW_VERSION))
                 .isEqualTo(expectedCordappWorkflowVersion.toString())
+            assertThat(getValue(BUNDLE_SYMBOLICNAME))
+                .isEqualTo(WORKFLOW_CORDAPP_NAME)
             assertThat(getValue(BUNDLE_VERSION))
                 .isEqualTo(toOSGi(WORKFLOW_CORDAPP_VERSION))
+            assertThat(getValue(BUNDLE_LICENSE))
+                .isEqualTo(TEST_LICENCE)
+            assertThat(getValue(BUNDLE_VENDOR))
+                .isEqualTo(TEST_VENDOR)
             assertThatHeader(getValue(IMPORT_PACKAGE))
                 .doesNotContainPackage(HIBERNATE_ANNOTATIONS_PACKAGE, HIBERNATE_PROXY_PACKAGE)
             assertThatHeader(getValue(DYNAMICIMPORT_PACKAGE))
@@ -122,8 +148,13 @@ class WithCordaMetadataTest {
     fun verifyWorkflowCPKMetadata() {
         val workflowCPK = testProject.artifacts.single { it.toString().endsWith("workflows-$WORKFLOW_CORDAPP_VERSION-cordapp.cpk") }
         assertThat(workflowCPK).isRegularFile()
-        val mainAttributes = workflowCPK.manifest.mainAttributes
-        assertThat(mainAttributes.getValue(CPK_FORMAT_TAG)).isEqualTo(CPK_FORMAT)
+        with(workflowCPK.manifest.mainAttributes) {
+            assertThat(getValue(CPK_FORMAT_TAG)).isEqualTo(CPK_FORMAT)
+            assertThat(getValue(CPK_CORDAPP_NAME)).isEqualTo(WORKFLOW_CORDAPP_NAME)
+            assertThat(getValue(CPK_CORDAPP_VERSION)).isEqualTo(toOSGi(WORKFLOW_CORDAPP_VERSION))
+            assertThat(getValue(CPK_CORDAPP_LICENCE)).isEqualTo(TEST_LICENCE)
+            assertThat(getValue(CPK_CORDAPP_VENDOR)).isEqualTo(TEST_VENDOR)
+        }
     }
 
     @Test
@@ -140,8 +171,14 @@ class WithCordaMetadataTest {
                 .isEqualTo("With Service Metadata")
             assertThat(getValue(CORDAPP_WORKFLOW_VERSION))
                 .isEqualTo(expectedCordappServiceVersion.toString())
+            assertThat(getValue(BUNDLE_SYMBOLICNAME))
+                .isEqualTo(SERVICE_CORDAPP_NAME)
             assertThat(getValue(BUNDLE_VERSION))
                 .isEqualTo(toOSGi(SERVICE_CORDAPP_VERSION))
+            assertThat(getValue(BUNDLE_LICENSE))
+                .isEqualTo(TEST_LICENCE)
+            assertThat(getValue(BUNDLE_VENDOR))
+                .isEqualTo(TEST_VENDOR)
             assertThatHeader(getValue(IMPORT_PACKAGE))
                 .doesNotContainPackage(HIBERNATE_ANNOTATIONS_PACKAGE, HIBERNATE_PROXY_PACKAGE)
             assertThatHeader(getValue(DYNAMICIMPORT_PACKAGE))
@@ -154,7 +191,12 @@ class WithCordaMetadataTest {
     fun verifyServiceCPKMetadata() {
         val serviceCPK = testProject.artifacts.single { it.toString().endsWith("services-$SERVICE_CORDAPP_VERSION-cordapp.cpk") }
         assertThat(serviceCPK).isRegularFile()
-        val mainAttributes = serviceCPK.manifest.mainAttributes
-        assertThat(mainAttributes.getValue(CPK_FORMAT_TAG)).isEqualTo(CPK_FORMAT)
+        with(serviceCPK.manifest.mainAttributes) {
+            assertThat(getValue(CPK_FORMAT_TAG)).isEqualTo(CPK_FORMAT)
+            assertThat(getValue(CPK_CORDAPP_NAME)).isEqualTo(SERVICE_CORDAPP_NAME)
+            assertThat(getValue(CPK_CORDAPP_VERSION)).isEqualTo(toOSGi(SERVICE_CORDAPP_VERSION))
+            assertThat(getValue(CPK_CORDAPP_LICENCE)).isEqualTo(TEST_LICENCE)
+            assertThat(getValue(CPK_CORDAPP_VENDOR)).isEqualTo(TEST_VENDOR)
+        }
     }
 }

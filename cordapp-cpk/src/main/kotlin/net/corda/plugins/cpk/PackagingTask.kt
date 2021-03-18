@@ -7,6 +7,8 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.file.RegularFile
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.Property
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.PathSensitive
@@ -14,6 +16,12 @@ import org.gradle.api.tasks.PathSensitivity.RELATIVE
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.bundling.ZipEntryCompression.DEFLATED
+import org.osgi.framework.Constants.BUNDLE_LICENSE
+import org.osgi.framework.Constants.BUNDLE_SYMBOLICNAME
+import org.osgi.framework.Constants.BUNDLE_VENDOR
+import org.osgi.framework.Constants.BUNDLE_VERSION
+import java.util.jar.JarFile
+import java.util.jar.Manifest
 import javax.inject.Inject
 
 @Suppress("UnstableApiUsage", "MemberVisibilityCanBePrivate")
@@ -62,12 +70,26 @@ open class PackagingTask @Inject constructor(objects: ObjectFactory) : Jar() {
         }
     }
 
+    private val cpkManifest: Provider<Manifest> = objects.property(Manifest::class.java)
+        .value(cordapp.map { JarFile(it.asFile).use(JarFile::getManifest) })
+        .apply(Property<Manifest>::finalizeValueOnRead)
+
+    private fun getAttribute(name: String): Provider<String?> = cpkManifest.map { man ->
+        man.mainAttributes.getValue(name)
+    }
+
     init {
         description = "Builds the CorDapp CPK package."
         group = GROUP_NAME
 
         manifest {
-            it.attributes(mapOf(CPK_FORMAT_TAG to CPK_FORMAT))
+            it.attributes(linkedMapOf(
+                CPK_FORMAT_TAG to CPK_FORMAT,
+                CPK_CORDAPP_NAME to getAttribute(BUNDLE_SYMBOLICNAME),
+                CPK_CORDAPP_VERSION to getAttribute(BUNDLE_VERSION),
+                CPK_CORDAPP_LICENCE to getAttribute(BUNDLE_LICENSE),
+                CPK_CORDAPP_VENDOR to getAttribute(BUNDLE_VENDOR)
+            ))
         }
 
         mainSpec.from(cordapp) { spec ->
