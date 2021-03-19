@@ -7,7 +7,6 @@ import net.corda.flask.common.LockFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedOutputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -96,6 +95,8 @@ class JarCache {
     @Getter
     private final Path lockFile;
 
+    private final Path extractionLock;
+
     private final Map<String, Path> extractedLibraries;
 
 
@@ -105,6 +106,7 @@ class JarCache {
         libDir = path.resolve("lib");
         pidDir = path.resolve("pid");
         lockFile = path.resolve("flask.lock");
+        extractionLock = path.resolve("extract.lock");
         extractedLibraries = new TreeMap<>();
         Files.createDirectories(pidDir);
         pidFile = Files.createTempFile(pidDir, null, ".pid");
@@ -114,28 +116,30 @@ class JarCache {
     public Map<String, Path> extract(Manifest manifest) {
         byte[] buffer = new byte[Flask.Constants.BUFFER_SIZE];
         ClassLoader cl = Launcher.class.getClassLoader();
-        for (Map.Entry<String, Attributes> entry : manifest.getEntries().entrySet()) {
-            String jarEntryName = entry.getKey();
-            Attributes attributes = entry.getValue();
-            if (jarEntryName.startsWith(Flask.Constants.LIBRARIES_FOLDER + '/') && attributes.getValue(Flask.ManifestAttributes.ENTRY_HASH) != null) {
-                String jarName = jarEntryName.substring(jarEntryName.lastIndexOf('/') + 1);
-                String hash = Flask.bytes2Hex(Base64.getDecoder().decode(attributes.getValue(Flask.ManifestAttributes.ENTRY_HASH)));
-                Path destination = libDir.resolve(hash).resolve(jarName);
-                extractedLibraries.put(hash, destination);
-                if (!Files.exists(destination)) {
-                    Files.createDirectories(destination.getParent());
-                    InputStream is = cl.getResourceAsStream(jarEntryName);
-                    log.debug("Extracting '{}' to '{}'", jarEntryName, destination);
-                    if (is != null) {
-                        try {
-                            try (OutputStream os = new BufferedOutputStream(Files.newOutputStream(destination))) {
-                                Flask.write2Stream(is, os, buffer);
+        try (LockFile lf = LockFile.acquire(extractionLock, false)) {
+            for (Map.Entry<String, Attributes> entry : manifest.getEntries().entrySet()) {
+                String jarEntryName = entry.getKey();
+                Attributes attributes = entry.getValue();
+                if (jarEntryName.startsWith(Flask.Constants.LIBRARIES_FOLDER + '/') && attributes.getValue(Flask.ManifestAttributes.ENTRY_HASH) != null) {
+                    String jarName = jarEntryName.substring(jarEntryName.lastIndexOf('/') + 1);
+                    String hash = Flask.bytes2Hex(Base64.getDecoder().decode(attributes.getValue(Flask.ManifestAttributes.ENTRY_HASH)));
+                    Path destination = libDir.resolve(hash).resolve(jarName);
+                    extractedLibraries.put(hash, destination);
+                    if (!Files.exists(destination)) {
+                        Files.createDirectories(destination.getParent());
+                        InputStream is = cl.getResourceAsStream(jarEntryName);
+                        log.debug("Extracting '{}' to '{}'", jarEntryName, destination);
+                        if (is != null) {
+                            try {
+                                try (OutputStream os = Files.newOutputStream(destination)) {
+                                    Flask.write2Stream(is, os, buffer);
+                                }
+                            } finally {
+                                is.close();
                             }
-                        } finally {
-                            is.close();
+                        } else {
+                            throw new RuntimeException(String.format("Entry '%s' missing from flask jar", jarEntryName));
                         }
-                    } else {
-                        throw new RuntimeException(String.format("Entry '%s' missing from flask jar", jarEntryName));
                     }
                 }
             }
