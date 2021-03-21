@@ -1,4 +1,4 @@
-import static org.gradle.api.JavaVersion.*
+import static org.gradle.api.JavaVersion.VERSION_1_8
 
 tasks.named('compileKotlin', AbstractCompile) {
     kotlinOptions {

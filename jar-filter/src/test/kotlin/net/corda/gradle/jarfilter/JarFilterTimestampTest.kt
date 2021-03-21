@@ -3,6 +3,7 @@ package net.corda.gradle.jarfilter
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome.SUCCESS
+import org.gradle.util.GradleVersion.current
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.BeforeAll
@@ -39,21 +40,22 @@ class JarFilterTimestampTest {
         private fun createTestProject(testProjectDir: Path, source: URI): Path {
             testProjectDir.installResources("gradle.properties", "settings.gradle")
             testProjectDir.resolve("build.gradle").toFile().writeText("""
+                |import net.corda.gradle.jarfilter.JarFilterTask
+                |
                 |plugins {
                 |    id 'net.corda.plugins.jar-filter'
                 |}
                 |
-                |import net.corda.gradle.jarfilter.JarFilterTask
                 |task jarFilter(type: JarFilterTask) {
-                |    jars file("$source")
+                |    jars file('$source')
                 |    preserveTimestamps = false
                 |}
                 |""".trimMargin())
             val result = GradleRunner.create()
                 .withProjectDir(testProjectDir.toFile())
                 .withArguments(getGradleArgsForTasks("jarFilter"))
+                .withDebug(isDebuggable(current()))
                 .withPluginClasspath()
-                .withDebug(true)
                 .build()
             output = result.output
             println(output)

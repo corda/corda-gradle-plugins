@@ -1,0 +1,27 @@
+import net.corda.gradle.jarfilter.JarFilterTask
+
+plugins {
+    id 'net.corda.plugins.jar-filter' apply false
+    id 'java-library'
+}
+apply from: 'repositories.gradle'
+apply from: 'java16.gradle'
+
+sourceSets {
+    main {
+        java {
+            srcDir files('../resources/test/delete-java-record-component-method/java')
+        }
+    }
+}
+
+jar {
+    archiveBaseName = 'delete-java-record-component-method'
+}
+
+task jarFilter(type: JarFilterTask) {
+    jars jar
+    annotations {
+        forDelete = ['net.corda.gradle.DeleteMethod']
+    }
+}

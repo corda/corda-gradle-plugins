@@ -3,12 +3,21 @@ package net.corda.gradle.jarfilter
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome.SUCCESS
+import org.gradle.util.GradleVersion
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.fail
 import java.io.FileNotFoundException
 import java.nio.file.Path
 
+@Suppress("unused")
 class JarFilterProject(private val projectDir: Path, private val name: String) {
+    private var gradleVersion: GradleVersion = GradleVersion.current()
+
+    fun withGradleVersion(version: GradleVersion): JarFilterProject {
+        this.gradleVersion = version
+        return this
+    }
+
     private var _sourceJar: Path? = null
     val sourceJar: Path get() = _sourceJar ?: throw FileNotFoundException("Input not found")
 
@@ -24,14 +33,16 @@ class JarFilterProject(private val projectDir: Path, private val name: String) {
             "repositories.gradle",
             "gradle.properties",
             "settings.gradle",
-            "kotlin.gradle"
+            "kotlin.gradle",
+            "java16.gradle"
         )
 
         val result = GradleRunner.create()
             .withProjectDir(projectDir.toFile())
+            .withGradleVersion(gradleVersion.version)
             .withArguments(getGradleArgsForTasks("jarFilter"))
+            .withDebug(isDebuggable(gradleVersion))
             .withPluginClasspath()
-            .withDebug(true)
             .build()
         println(result.output)
         output = result.output.lines()

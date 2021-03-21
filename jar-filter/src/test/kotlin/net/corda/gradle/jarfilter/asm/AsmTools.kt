@@ -4,6 +4,7 @@ package net.corda.gradle.jarfilter.asm
 import net.corda.gradle.jarfilter.FILTER_FLAGS
 import net.corda.gradle.jarfilter.descriptor
 import net.corda.gradle.jarfilter.toPathFormat
+import org.assertj.core.api.Assertions.fail
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.ClassWriter
@@ -21,7 +22,9 @@ fun ByteArray.accept(visitor: (ClassVisitor) -> ClassVisitor): ByteArray {
 
 private val String.resourceName: String get() = "$toPathFormat.class"
 val Class<*>.resourceName get() = name.resourceName
-val Class<*>.bytecode: ByteArray get() = classLoader.getResourceAsStream(resourceName).use(InputStream::readBytes)
+val Class<*>.bytecode: ByteArray get() {
+    return classLoader.getResourceAsStream(resourceName)?.use(InputStream::readBytes) ?: fail("No byte-code for $resourceName")
+}
 val Class<*>.descriptor: String get() = name.descriptor
 
 /**
@@ -43,6 +46,10 @@ private class BytecodeClassLoader(
 
     // Ensure that the class we create also honours Class<*>.bytecode (above).
     override fun getResourceAsStream(name: String): InputStream? {
-        return if (name == className.resourceName) ByteArrayInputStream(bytecode) else super.getResourceAsStream(name)
+        return if (name == className.resourceName) {
+            ByteArrayInputStream(bytecode)
+        } else {
+            super.getResourceAsStream(name)
+        }
     }
 }
