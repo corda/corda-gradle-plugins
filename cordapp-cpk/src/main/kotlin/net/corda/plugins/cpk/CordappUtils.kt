@@ -87,7 +87,7 @@ fun ConfigurationContainer.createCompileConfiguration(name: String): Configurati
 
 private fun ConfigurationContainer.createCompileConfiguration(name: String, testSuffix: String): Configuration {
     return findByName(name) ?: run {
-        val configuration = create(name)
+        val configuration = maybeCreate(name)
         getByName(COMPILE_ONLY_CONFIGURATION_NAME).extendsFrom(configuration)
         matching { it.name.endsWith(testSuffix) }.configureEach { cfg ->
             cfg.extendsFrom(configuration)
@@ -124,7 +124,7 @@ private fun ResolvedConfiguration.resolve(dependencies: Collection<Dependency>, 
 /**
  * Extracts the package names from a [JarFile].
  */
-private val MULTI_RELEASE = "^META-INF/versions/\\d++/(.++)".toRegex()
+private val MULTI_RELEASE = "^META-INF/versions/\\d++/(.++)\$".toRegex()
 private const val DIRECTORY_SEPARATOR = '/'
 private const val PACKAGE_SEPARATOR = '.'
 
