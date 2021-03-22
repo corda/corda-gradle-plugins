@@ -3,6 +3,7 @@ package net.corda.plugins.cpk
 import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.Task
 import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.file.DuplicatesStrategy.FAIL
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.RegularFile
 import org.gradle.api.file.RegularFileProperty
@@ -106,6 +107,7 @@ open class PackagingTask @Inject constructor(objects: ObjectFactory) : Jar() {
         isPreserveFileTimestamps = false
         isReproducibleFileOrder = true
         entryCompression = DEFLATED
+        duplicatesStrategy = FAIL
         metadataCharset = "UTF-8"
         includeEmptyDirs = false
         isCaseSensitive = true

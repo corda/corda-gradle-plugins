@@ -11,6 +11,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Dependency.ARCHIVES_CONFIGURATION
 import org.gradle.api.artifacts.ModuleDependency
+import org.gradle.api.file.DuplicatesStrategy.FAIL
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.java.archives.Attributes
 import org.gradle.api.plugins.AppliedPlugin
@@ -237,6 +238,7 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
                 t.isPreserveFileTimestamps = false
                 t.isReproducibleFileOrder = true
                 t.entryCompression = DEFLATED
+                t.duplicatesStrategy = FAIL
                 t.includeEmptyDirs = false
                 t.isCaseSensitive = true
                 t.isZip64 = true
