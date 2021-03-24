@@ -64,34 +64,32 @@ cordapp {
         // These options presumably mirror Ant's signJar task options.
         options {
             alias = '??'
-            storepass = '??'
-            keystore = '??'
-            storetype= '??'
-            keypass = '??'
-            sigfile = '??'
+            storePassword = '??'
+            keyStore = '??'
+            storeType= '??'
+            keyPassword = '??'
+            signatureFileName = 'cordapp'
             signedJar = '??'
-            verbose = '??'
-            strict = '??'
-            internalsf = '??'
-            sectionsonly = '??'
-            lazy = '??'
-            maxmemory = '??'
-            preservelastmodified = '??'
-            tsaurl = '??'
-            tsacert = '??'
-            tsaproxyhost = '??'
-            tsaproxyport = '??'
+            verbose = (true | false)
+            strict = (true | false)
+            internalSF = (true | false)
+            sectionsOnly = (true | false)
+            lazy = (true | false)
+            maxMemory = '??'
+            preserveLastModified = (true | false)
+            tsaUrl = '??'
+            tsaCert = '??'
+            tsaProxyHost = '??'
+            tsaProxyPort = '??'
             executable = '??'
-            force = '??'
-            sigalg = '??'
-            digestalg = '??'
-            tsadigestalg = '??'
+            force = (true | false)
+            signatureAlgorithm = '??'
+            digestAlgorithm = '??'
+            tsaDigestAlgorithm = '??'
         }
     }
 
-    sealed {
-        enabled = (true | false)
-    }
+    sealing  = (true | false)
 }
 ```
 

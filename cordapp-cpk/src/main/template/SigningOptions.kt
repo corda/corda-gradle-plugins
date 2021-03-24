@@ -1,16 +1,25 @@
 package @root_package@.signing
 
+import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.Property
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Console
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.Optional
+import java.io.File
+import javax.inject.Inject
 
 /**
  * !!! GENERATED FILE - DO NOT EDIT !!!
- * See cordapp/src/main/template/SigningOptions.kt instead.
+ * See cordapp-cpk/src/main/template/SigningOptions.kt instead.
  */
 
 /** Options for ANT task "signjar". */
-open class SigningOptions {
+@Suppress("UnstableApiUsage")
+open class SigningOptions @Inject constructor(objects: ObjectFactory) {
     companion object {
         // Defaults to resource/certificates/cordadevcakeys.jks keystore with Corda development key
         private const val DEFAULT_ALIAS = "cordacodesign"
@@ -19,7 +28,7 @@ open class SigningOptions {
         private const val DEFAULT_KEYPASS = "cordacadevkeypass"
         const val DEFAULT_KEYSTORE = "certificates/cordadevcodesign.jks"
         const val DEFAULT_KEYSTORE_FILE = "cordadevcakeys"
-        const val DEFAULT_KEYSTORE_EXTENSION = "jks"
+        const val DEFAULT_KEYSTORE_EXTENSION = ".jks"
         const val SYSTEM_PROPERTY_PREFIX = "signing."
     }
 
@@ -54,115 +63,135 @@ open class SigningOptions {
     }
 
     @get:Input
-    var alias: String = System.getProperty(SYSTEM_PROPERTY_PREFIX + Key.ALIAS, DEFAULT_ALIAS)
+    val alias: Property<String> = objects.property(String::class.java)
+            .convention(System.getProperty(SYSTEM_PROPERTY_PREFIX + Key.ALIAS, DEFAULT_ALIAS))
 
     @get:Input
-    var storepass: String = System.getProperty(SYSTEM_PROPERTY_PREFIX + Key.STOREPASS, DEFAULT_STOREPASS)
+    val storePassword: Property<String> = objects.property(String::class.java)
+            .convention(System.getProperty(SYSTEM_PROPERTY_PREFIX + Key.STOREPASS, DEFAULT_STOREPASS))
+
+    @get:Optional
+    @get:InputFile
+    val keyStore: RegularFileProperty = objects.fileProperty().apply {
+        set(System.getProperty(SYSTEM_PROPERTY_PREFIX + Key.KEYSTORE)?.let(::File))
+    }
 
     @get:Input
-    var keystore: String = System.getProperty(SYSTEM_PROPERTY_PREFIX + Key.KEYSTORE, DEFAULT_KEYSTORE)
+    val storeType: Property<String> = objects.property(String::class.java)
+            .convention(System.getProperty(SYSTEM_PROPERTY_PREFIX + Key.STORETYPE, DEFAULT_STORETYPE))
 
     @get:Input
-    var storetype: String = System.getProperty(SYSTEM_PROPERTY_PREFIX + Key.STORETYPE, DEFAULT_STORETYPE)
+    val keyPassword: Property<String> = objects.property(String::class.java)
+            .convention(System.getProperty(SYSTEM_PROPERTY_PREFIX + Key.KEYPASS, DEFAULT_KEYPASS))
 
     @get:Input
-    var keypass: String = System.getProperty(SYSTEM_PROPERTY_PREFIX + Key.KEYPASS, DEFAULT_KEYPASS)
+    val signatureFileName: Property<String> = objects.property(String::class.java).convention("cordapp")
 
+    @get:Optional
     @get:Input
-    var sigfile: String = "cordapp"
-
-    @get:Input
-    var signedjar: String = ""
+    val signedJar: Property<String> = objects.property(String::class.java)
 
     @get:Console
-    var verbose: String = ""
-
-    fun verbose(value: Boolean) {
-        verbose = value.toString()
-    }
+    val verbose: Property<Boolean> = objects.property(Boolean::class.java).convention(false)
 
     @get:Input
-    var strict: String = ""
-
-    fun strict(value: Boolean) {
-        strict = value.toString()
-    }
+    val strict: Property<Boolean> = objects.property(Boolean::class.java).convention(false)
 
     @get:Input
-    var internalsf: String = ""
-
-    fun internalsf(value: Boolean) {
-        internalsf = value.toString()
-    }
+    val internalSF: Property<Boolean> = objects.property(Boolean::class.java).convention(false)
 
     @get:Input
-    var sectionsonly: String = ""
-
-    fun sectionsonly(value: Boolean) {
-        sectionsonly = value.toString()
-    }
+    val sectionsOnly: Property<Boolean> = objects.property(Boolean::class.java).convention(false)
 
     @get:Input
-    var lazy: String = ""
+    val lazy: Property<Boolean> = objects.property(Boolean::class.java).convention(false)
 
-    fun lazy(value: Boolean) {
-        lazy = value.toString()
-    }
-
+    @get:Optional
     @get:Internal
-    var maxmemory: String = ""
+    val maxMemory: Property<String> = objects.property(String::class.java)
 
     @get:Input
-    var preservelastmodified: String = ""
+    val preserveLastModified: Property<Boolean> = objects.property(Boolean::class.java).convention(false)
 
-    fun preservelastmodified(value: Boolean) {
-        preservelastmodified = value.toString()
+    @get:Optional
+    @get:Input
+    val tsaUrl: Property<String> = objects.property(String::class.java)
+
+    @get:Optional
+    @get:Input
+    val tsaCert: Property<String> = objects.property(String::class.java)
+
+    @get:Optional
+    @get:Input
+    val tsaProxyHost: Property<String> = objects.property(String::class.java)
+
+    @get:Optional
+    @get:Input
+    val tsaProxyPort: Property<Int> = objects.property(Int::class.java)
+
+    @get:Optional
+    @get:InputFile
+    val executable: RegularFileProperty = objects.fileProperty()
+
+    @get:Input
+    val force: Property<Boolean> = objects.property(Boolean::class.java).convention(false)
+
+    @get:Optional
+    @get:Input
+    val signatureAlgorithm: Property<String> = objects.property(String::class.java)
+
+    @get:Optional
+    @get:Input
+    val digestAlgorithm: Property<String> = objects.property(String::class.java)
+
+    @get:Optional
+    @get:Input
+    val tsaDigestAlgorithm: Property<String> = objects.property(String::class.java)
+
+    private val _signJarOptions = objects.mapProperty(String::class.java, String::class.java).apply {
+        put(Key.ALIAS, alias)
+        put(Key.STOREPASS, storePassword)
+        put(Key.STORETYPE, storeType)
+        put(Key.KEYPASS, keyPassword)
+        put(Key.SIGFILE, signatureFileName)
+        put(Key.VERBOSE, verbose.map(Boolean::toString))
+        put(Key.STRICT, strict.map(Boolean::toString))
+        put(Key.INTERNALSF, internalSF.map(Boolean::toString))
+        put(Key.SECTIONSONLY, sectionsOnly.map(Boolean::toString))
+        put(Key.LAZY, lazy.map(Boolean::toString))
+        put(Key.PRESERVELASTMODIFIED, preserveLastModified.map(Boolean::toString))
+        put(Key.FORCE, force.map(Boolean::toString))
     }
 
-    @get:Input
-    var tsaurl: String = ""
-
-    @get:Input
-    var tsacert: String = ""
-
-    @get:Input
-    var tsaproxyhost: String = ""
-
-    @get:Input
-    var tsaproxyport: String = ""
-
-    @get:Input
-    var executable: String = ""
-
-    @get:Input
-    var force: String = ""
-
-    fun force(value: Boolean) {
-        force = value.toString()
+    protected fun MutableMap<String, String>.setOptional(key: String, value: Property<*>) {
+        if (value.isPresent) {
+            this[key] = value.get().toString()
+        }
     }
 
-    @get:Input
-    var sigalg: String = ""
-
-    @get:Input
-    var digestalg: String = ""
-
-    @get:Input
-    var tsadigestalg: String = ""
+    protected fun MutableMap<String, String>.setOptional(key: String, value: RegularFileProperty) {
+        if (value.isPresent) {
+            this[key] = value.asFile.get().absolutePath
+        }
+    }
 
     /**
      * Returns options as map.
      */
-    fun toSignJarOptionsMap(): MutableMap<String, String> =
-            mapOf(Key.ALIAS to alias, Key.STOREPASS to storepass, Key.KEYSTORE to keystore,
-                    Key.STORETYPE to storetype, Key.KEYPASS to keypass, Key.SIGFILE to sigfile,
-                    Key.SIGNEDJAR to signedjar, Key.VERBOSE to verbose, Key.STRICT to strict,
-                    Key.INTERNALSF to internalsf, Key.SECTIONSONLY to sectionsonly, Key.LAZY to lazy,
-                    Key.MAXMEMORY to maxmemory, Key.PRESERVELASTMODIFIED to preservelastmodified,
-                    Key.TSAURL to tsacert, Key.TSACERT to tsaurl, Key.TSAPROXYHOST to tsaproxyhost,
-                    Key.TSAPROXYPORT to tsaproxyport, Key.EXECUTABLE to executable, Key.FORCE to force,
-                    Key.SIGALG to sigalg, Key.DIGESTALG to digestalg, Key.TSADIGESTALG to tsadigestalg)
-                    .filterTo(LinkedHashMap()) { it.value.isNotBlank() }
-
-    fun hasDefaultOptions() = keystore == DEFAULT_KEYSTORE
+    @get:Internal
+    val signJarOptions: Provider<out MutableMap<String, String>> = _signJarOptions.map { opts ->
+        val result = LinkedHashMap(opts)
+        result.setOptional(Key.KEYSTORE, keyStore)
+        result.setOptional(Key.SIGNEDJAR, signedJar)
+        result.setOptional(Key.MAXMEMORY, maxMemory)
+        result.setOptional(Key.TSAURL, tsaUrl)
+        result.setOptional(Key.TSACERT, tsaCert)
+        result.setOptional(Key.TSAPROXYHOST, tsaProxyHost)
+        result.setOptional(Key.TSAPROXYPORT, tsaProxyPort)
+        result.setOptional(Key.EXECUTABLE, executable)
+        result.setOptional(Key.SIGALG, signatureAlgorithm)
+        result.setOptional(Key.DIGESTALG, digestAlgorithm)
+        result.setOptional(Key.TSADIGESTALG, tsaDigestAlgorithm)
+        result
+    }
 }

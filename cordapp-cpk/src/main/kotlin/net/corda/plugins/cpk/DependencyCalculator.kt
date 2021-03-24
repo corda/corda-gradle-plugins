@@ -25,8 +25,8 @@ import javax.inject.Inject
 @Suppress("UnstableApiUsage")
 open class DependencyCalculator @Inject constructor(objects: ObjectFactory) : DefaultTask() {
     private companion object {
-        const val NON_CORDA = false
-        const val CORDA = true
+        private const val NON_CORDA = false
+        private const val CORDA = true
 
         private val CORDAPP_BUILD_CONFIGURATIONS: List<String> = unmodifiableList(listOf(
             /**

@@ -175,16 +175,17 @@ open class Baseform(private val objects: ObjectFactory) : DefaultTask() {
      * Optionally generate keyStore and sign the generated Cordapp/other Cordapps deployed to nodes.
      */
     protected fun generateKeystoreAndSignCordappJar() {
-        if (!signing.enabled)
+        if (!signing.enabled.get())
             return
 
-        require(!signing.generateKeystore || (signing.generateKeystore && !signing.options.hasDefaultOptions())) {
-            "Mis-configured keyStore generation to sign CorDapp JARs. When 'signing.generateKeystore' is true the following " +
-                    "'signing.options' need to be configured: keystore, alias, storepass, keypass."
+        val useDefaultKeyStore = !signing.options.keyStore.isPresent
+        require(!signing.generateKeyStore.get() || useDefaultKeyStore) {
+            "Mis-configured keyStore generation to sign CorDapp JARs. When 'signing.generateKeyStore' is true the following " +
+                    "'signing.options' need to be configured: keyStore, alias, storePassword, keyPassword."
         }
 
-        if (signing.generateKeystore && !signing.options.hasDefaultOptions()) {
-            val genKeyTaskOptions = signing.options.toGenKeyOptionsMap()
+        if (signing.generateKeyStore.get() && !useDefaultKeyStore) {
+            val genKeyTaskOptions = signing.options.genKeyOptions.get()
             if (Files.exists(Paths.get(genKeyTaskOptions[SigningOptions.Key.KEYSTORE]))) {
                 logger.warn("Skipping keystore generation to sign Cordapps, the keystore already exists at '${genKeyTaskOptions[SigningOptions.Key.KEYSTORE]}'.")
             } else {
@@ -193,14 +194,18 @@ open class Baseform(private val objects: ObjectFactory) : DefaultTask() {
             }
         }
 
-        val signJarOptions = signing.options.toSignJarOptionsMap()
-        if (signing.options.hasDefaultOptions()) {
-            val keyStorePath = createTempFileFromResource(SigningOptions.DEFAULT_KEYSTORE, DEFAULT_KEYSTORE_FILE, DEFAULT_KEYSTORE_EXTENSION)
+        val signJarOptions = signing.options.signJarOptions.get()
+        if (useDefaultKeyStore) {
+            val keyStorePath = File.createTempFile(DEFAULT_KEYSTORE_FILE, DEFAULT_KEYSTORE_EXTENSION, temporaryDir).let {
+                it.deleteOnExit()
+                it.toPath()
+            }
+            writeResourceToFile(SigningOptions.DEFAULT_KEYSTORE, keyStorePath)
             signJarOptions[SigningOptions.Key.KEYSTORE] = keyStorePath.toString()
         }
 
         val jarsToSign = mutableListOf(project.tasks.getByName(SigningOptions.Key.JAR).outputs.files.singleFile.toPath()) +
-                if (signing.all) nodes.flatMap(Node::getCordappList).map(Node.ResolvedCordapp::jarFile).distinct() else emptyList()
+                if (signing.all.get()) nodes.flatMap(Node::getCordappList).map(Node.ResolvedCordapp::jarFile).distinct() else emptyList()
         jarsToSign.forEach {
             signJarOptions[SigningOptions.Key.JAR] = it.toString()
             try{

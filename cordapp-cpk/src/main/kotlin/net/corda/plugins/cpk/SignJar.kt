@@ -29,20 +29,20 @@ open class SignJar @Inject constructor(objects: ObjectFactory) : DefaultTask() {
         private const val DUMMY_VALUE = "****"
 
         @Suppress("SameParameterValue")
-        private fun createTempFileFromResource(resourcePath: String, tempFileName: String, tempFileExtension: String): Path {
-            val path = Files.createTempFile(tempFileName, tempFileExtension)
+        private fun writeResourceToFile(resourcePath: String, path: Path) {
             this::class.java.classLoader.getResourceAsStream(resourcePath)?.use {
                 Files.copy(it, path, REPLACE_EXISTING)
             }
-            return path
         }
 
         fun Task.sign(signing: Signing, file: File) {
-            val options = signing.options.toSignJarOptionsMap()
-            if (signing.options.hasDefaultOptions()) {
+            val options = signing.options.signJarOptions.get()
+            val useDefaultKeyStore = !signing.options.keyStore.isPresent
+            if (useDefaultKeyStore) {
                 logger.info("CorDapp JAR signing with the default Corda development key, suitable for Corda running in development mode only.")
-                val keyStorePath = createTempFileFromResource(SigningOptions.DEFAULT_KEYSTORE, SigningOptions.DEFAULT_KEYSTORE_FILE, SigningOptions.DEFAULT_KEYSTORE_EXTENSION)
-                options[SigningOptions.Key.KEYSTORE] = keyStorePath.toString()
+                val keyStore = File.createTempFile(SigningOptions.DEFAULT_KEYSTORE_FILE, SigningOptions.DEFAULT_KEYSTORE_EXTENSION, temporaryDir).toPath()
+                writeResourceToFile(SigningOptions.DEFAULT_KEYSTORE, keyStore)
+                options[SigningOptions.Key.KEYSTORE] = keyStore.toString()
             }
 
             val path = file.toPath()
@@ -59,7 +59,7 @@ open class SignJar @Inject constructor(objects: ObjectFactory) : DefaultTask() {
                         if (logger.isInfoEnabled || logger.isDebugEnabled) "Search for 'ant:signjar' in log output."
                         else "Run with --info or --debug option and search for 'ant:signjar' in log output. ", e)
             } finally {
-                if (signing.options.hasDefaultOptions()) {
+                if (useDefaultKeyStore) {
                     options[SigningOptions.Key.KEYSTORE]?.apply {
                         Paths.get(this).toFile().delete()
                     }

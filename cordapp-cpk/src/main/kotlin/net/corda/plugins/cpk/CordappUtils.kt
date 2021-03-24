@@ -18,6 +18,8 @@ import java.util.jar.JarFile
 const val CORDAPP_CPK_PLUGIN_ID = "net.corda.plugins.cordapp-cpk"
 const val GROUP_NAME = "Cordapp"
 
+const val CORDAPP_SEALING_SYSTEM_PROPERTY_NAME = "net.corda.cordapp.sealing.enabled"
+
 const val CORDAPP_CONFIGURATION_NAME = "cordapp"
 const val CORDAPP_PACKAGING_CONFIGURATION_NAME = "cordappPackaging"
 const val CORDA_RUNTIME_ONLY_CONFIGURATION_NAME = "cordaRuntimeOnly"

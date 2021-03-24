@@ -28,11 +28,11 @@ import javax.inject.Inject
 @Suppress("UnstableApiUsage")
 open class DependencyConstraintsTask @Inject constructor(objects: ObjectFactory) : DefaultTask() {
     private companion object {
-        const val DEPENDENCY_CONSTRAINTS = "META-INF/DependencyConstraints"
-        const val CORDAPP_HASH_ALGORITHM = "SHA-256"
-        const val DELIMITER = ','
-        const val CRLF = "\r\n"
-        const val EOF = -1
+        private const val DEPENDENCY_CONSTRAINTS = "META-INF/DependencyConstraints"
+        private const val CORDAPP_HASH_ALGORITHM = "SHA-256"
+        private const val DELIMITER = ','
+        private const val CRLF = "\r\n"
+        private const val EOF = -1
     }
 
     init {

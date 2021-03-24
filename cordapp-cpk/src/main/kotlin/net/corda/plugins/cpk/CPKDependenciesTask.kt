@@ -24,9 +24,9 @@ import javax.inject.Inject
 @Suppress("UnstableApiUsage", "MemberVisibilityCanBePrivate")
 open class CPKDependenciesTask @Inject constructor(objects: ObjectFactory) : DefaultTask() {
     private companion object {
-        const val CPK_DEPENDENCIES = "META-INF/CPKDependencies"
-        const val DELIMITER = ','
-        const val CRLF = "\r\n"
+        private const val CPK_DEPENDENCIES = "META-INF/CPKDependencies"
+        private const val DELIMITER = ','
+        private const val CRLF = "\r\n"
     }
 
     init {

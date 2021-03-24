@@ -53,13 +53,10 @@ fun ConfigurationContainer.createRuntimeOnlyConfiguration(name: String): Configu
     return createChildConfiguration(name, getByName(RUNTIME_ONLY_CONFIGURATION_NAME))
 }
 
-fun createTempFileFromResource(resourcePath: String, tempFileName: String, tempFileExtension: String): Path {
-    val path = Files.createTempFile(tempFileName, tempFileExtension)
+fun writeResourceToFile(resourcePath: String, path: Path) {
     classLoader.getResourceAsStream(resourcePath)?.use {
         Files.copy(it, path, REPLACE_EXISTING)
     }
-    path.toFile().deleteOnExit()
-    return path
 }
 
 internal fun Config.copyTo(key: String, target: Config, targetKey: String = key): Config {

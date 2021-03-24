@@ -7,7 +7,7 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Nested
 import javax.inject.Inject
 
-@Suppress("UnstableApiUsage", "Unused")
+@Suppress("UnstableApiUsage", "Unused", "PlatformExtensionReceiverOfInline")
 open class CordappExtension @Inject constructor(objects: ObjectFactory, bndVersion: String)  {
 
     /**
@@ -40,8 +40,9 @@ open class CordappExtension @Inject constructor(objects: ObjectFactory, bndVersi
     /**
      * Optional marker to seal all packages in the JAR.
      */
-    @get:Nested
-    val sealing: Sealing = objects.newInstance(Sealing::class.java)
+    @get:Input
+    val sealing: Property<Boolean> = objects.property(Boolean::class.java)
+            .convention(System.getProperty( CORDAPP_SEALING_SYSTEM_PROPERTY_NAME, "true").toBoolean())
 
     @get:Input
     val bndVersion: Property<String> = objects.property(String::class.java).convention(bndVersion)
@@ -56,10 +57,6 @@ open class CordappExtension @Inject constructor(objects: ObjectFactory, bndVersi
 
     fun signing(action: Action<in Signing>) {
         action.execute(signing)
-    }
-
-    fun sealing(action: Action<in Sealing>) {
-        action.execute(sealing)
     }
 
     fun targetPlatformVersion(value: Int?) {

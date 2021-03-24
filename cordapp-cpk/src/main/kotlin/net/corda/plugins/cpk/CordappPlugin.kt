@@ -326,7 +326,7 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
         val (targetPlatformVersion, minimumPlatformVersion) = checkPlatformVersionInfo()
         attributes["Target-Platform-Version"] = targetPlatformVersion
         attributes["Min-Platform-Version"] = minimumPlatformVersion
-        if (cordapp.sealing.enabled.get()) {
+        if (cordapp.sealing.get()) {
             attributes["Sealed"] = true
         }
     }
