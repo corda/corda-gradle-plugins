@@ -30,7 +30,7 @@ open class OsgiExtension(objects: ObjectFactory, project: Project, jar: Jar) {
             CORDA_CONTRACT_CLASSES to "IMPLEMENTS;net.corda.v5.ledger.contracts.Contract",
             CORDA_WORKFLOW_CLASSES to "IMPLEMENTS;net.corda.core.flows.Flow",
             CORDA_MAPPED_SCHEMA_CLASSES to "EXTENDS;net.corda.core.node.services.persistence.MappedSchema",
-            CORDA_SERVICE_CLASSES to "IMPLEMENTS;net.corda.core.serialization.SerializeAsToken;HIERARCHY_INDIRECTLY_ANNOTATED;net.corda.core.node.services.CordaService"
+            CORDA_SERVICE_CLASSES to "IMPLEMENTS;net.corda.v5.serialization.SerializeAsToken;HIERARCHY_INDIRECTLY_ANNOTATED;net.corda.core.node.services.CordaService"
         ))
 
         /**

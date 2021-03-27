@@ -1,3 +1,4 @@
+@file:Suppress("PackageDirectoryMismatch")
 package net.corda.core.flows
 
 fun interface Flow<out T> {
