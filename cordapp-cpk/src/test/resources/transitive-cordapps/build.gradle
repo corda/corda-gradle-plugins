@@ -1,20 +1,14 @@
-import static org.gradle.api.JavaVersion.VERSION_1_8
-
 plugins {
     id 'net.corda.plugins.cordapp-cpk'
     id 'org.jetbrains.kotlin.jvm'
 }
 
 apply from: 'repositories.gradle'
+apply from: 'javaTarget.gradle'
 apply from: 'kotlin.gradle'
 
 allprojects {
     group = 'com.example'
-
-    tasks.withType(JavaCompile).configureEach {
-        sourceCompatibility = VERSION_1_8
-        targetCompatibility = VERSION_1_8
-    }
 }
 
 if (with_publishing.toBoolean()) {

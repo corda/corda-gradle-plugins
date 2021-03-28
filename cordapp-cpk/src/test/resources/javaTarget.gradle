@@ -1,0 +1,12 @@
+/*
+ * We only need to do this when GradleRunner is not
+ * running in "debug" mode. The Java language version
+ * should match the one used to launch the Test tasks.
+ */
+pluginManager.withPlugin('java') {
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(11)
+        }
+    }
+}

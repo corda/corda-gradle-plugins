@@ -33,6 +33,7 @@ class WithEmbeddedJarTest {
             testProject = GradleProject(testProjectDir, reporter)
                 .withTestName("with-embedded-jar")
                 .withSubResource("library/build.gradle")
+                .withSubResource("library/src/main/java/com/example/library/ExampleApi.java")
                 .build(
                     "-Pcordapp_version=$cordappVersion",
                     "-Pcordapp_contract_version=$expectedCordappContractVersion",
@@ -72,12 +73,15 @@ class WithEmbeddedJarTest {
             assertEquals("With Embedded Jar", getValue(BUNDLE_NAME))
             assertEquals("com.example.with-embedded-jar", getValue(BUNDLE_SYMBOLICNAME))
             assertEquals(toOSGi(cordappVersion), getValue(BUNDLE_VERSION))
-            assertEquals("osgi.ee;filter:=\"(&(osgi.ee=JavaSE)(version=1.8))\"", getValue(REQUIRE_CAPABILITY))
+            assertEquals("osgi.ee;filter:=\"(&(osgi.ee=JavaSE)(version=11))\"", getValue(REQUIRE_CAPABILITY))
             assertEquals("Test-Licence", getValue(BUNDLE_LICENSE))
             assertEquals("R3", getValue(BUNDLE_VENDOR))
             assertEquals("true", getValue("Sealed"))
 
-            assertThat(getValue(PRIVATE_PACKAGE)).isNotNull()
+            assertThatHeader(getValue(PRIVATE_PACKAGE))
+                .containsPackageWithAttributes("lib")
+                .containsPackageWithAttributes("com.example.library")
+                .containsPackageWithAttributes("com.google.common.base")
             assertThat(getValue(IMPORT_PACKAGE)).isNotNull()
             assertThat(getValue(EXPORT_PACKAGE)).isNull()
             assertThat(getValue(BUNDLE_CLASSPATH))

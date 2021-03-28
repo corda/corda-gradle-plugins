@@ -1,5 +1,5 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import static org.gradle.api.JavaVersion.VERSION_1_8
+import static org.gradle.api.JavaVersion.VERSION_11
 
 plugins {
     id 'net.corda.plugins.cordapp-cpk'
@@ -7,13 +7,14 @@ plugins {
 }
 
 apply from: 'repositories.gradle'
+apply from: 'javaTarget.gradle'
 
 allprojects {
     group = 'com.example'
 
     tasks.withType(KotlinCompile).configureEach {
         kotlinOptions {
-            jvmTarget = VERSION_1_8
+            jvmTarget = VERSION_11
             apiVersion = '1.3'
             languageVersion = '1.3'
             freeCompilerArgs = ['-Xjvm-default=enable']

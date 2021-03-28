@@ -55,12 +55,12 @@ class ComplexPackagesTest {
             assertEquals("Complex Packages", getValue(BUNDLE_NAME))
             assertEquals("com.example.complex-packages", getValue(BUNDLE_SYMBOLICNAME))
             assertEquals("1.0.1.SNAPSHOT", getValue(BUNDLE_VERSION))
-            assertNull(getValue(IMPORT_PACKAGE))
+            assertEquals("java.lang", getValue(IMPORT_PACKAGE))
             assertThatHeader(getValue(EXPORT_PACKAGE)).containsAll(
                 "com.example.cordapp;version=\"1.0.1\"",
                 "com.example.cordapp.sub2;version=\"1.0.1\""
             )
-            assertEquals("osgi.ee;filter:=\"(&(osgi.ee=JavaSE)(version=1.8))\"", getValue(REQUIRE_CAPABILITY))
+            assertEquals("osgi.ee;filter:=\"(&(osgi.ee=JavaSE)(version=11))\"", getValue(REQUIRE_CAPABILITY))
             assertEquals("Test-Licence", getValue(BUNDLE_LICENSE))
             assertEquals("R3", getValue(BUNDLE_VENDOR))
             assertEquals("true", getValue("Sealed"))

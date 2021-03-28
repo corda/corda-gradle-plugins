@@ -4,6 +4,7 @@ plugins {
 }
 
 apply from: 'repositories.gradle'
+apply from: 'javaTarget.gradle'
 apply from: 'kotlin.gradle'
 
 allprojects {

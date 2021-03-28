@@ -4,6 +4,7 @@ plugins {
 }
 
 apply from: '../repositories.gradle'
+apply from: '../javaTarget.gradle'
 
 version = cordapp_version
 

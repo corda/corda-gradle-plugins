@@ -4,12 +4,14 @@ package net.corda.plugins.cpk
 import aQute.bnd.version.MavenVersion.parseMavenString
 import aQute.bnd.version.VersionRange
 import org.assertj.core.api.Assertions.assertThat
+import org.gradle.api.JavaVersion.current
+import org.gradle.api.JavaVersion.VERSION_15
 import org.gradle.api.plugins.BasePlugin.ASSEMBLE_TASK_NAME
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.BuildTask
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
-import org.gradle.testkit.runner.TaskOutcome.*
+import org.gradle.testkit.runner.TaskOutcome.SUCCESS
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.TestReporter
 import java.io.IOException
@@ -41,6 +43,17 @@ fun toOSGiRange(version: String): String {
     return VersionRange(true, osgiVersion, osgiVersion.bumpMajor(), false)
         .toString().replace(".0","")
 }
+
+/**
+ * We must execute [GradleRunner][org.gradle.testkit.runner.GradleRunner]
+ * embedded in the existing Gradle instance in order to debug it. This
+ * requires our current JVM toolchain to be compatible with Gradle.
+ *
+ * Gradle 6.x is compatible with Java 8 <= x <= Java 15.
+ */
+val isDebuggable: Boolean
+    @Suppress("UnstableApiUsage")
+    get() = VERSION_15.isCompatibleWith(current())
 
 val Path.manifest: Manifest get() = JarFile(toFile()).use(JarFile::getManifest)
 
@@ -137,6 +150,7 @@ class GradleProject(private val projectDir: Path, private val reporter: TestRepo
 
     private fun configureGradle(builder: (GradleRunner) -> BuildResult, args: Array<out String>) {
         installResource(projectDir, "repositories.gradle")
+        installResource(projectDir, "javaTarget.gradle")
         installResource(projectDir, "kotlin.gradle")
         installResource(projectDir, "gradle.properties")
         if (!installResource(projectDir, "$testName/settings.gradle")) {
@@ -149,8 +163,8 @@ class GradleProject(private val projectDir: Path, private val reporter: TestRepo
         val runner = GradleRunner.create()
             .withProjectDir(projectDir.toFile())
             .withArguments(getGradleArgs(args))
+            .withDebug(isDebuggable)
             .withPluginClasspath()
-            .withDebug(true)
         result = builder(runner)
 
         output = result.output

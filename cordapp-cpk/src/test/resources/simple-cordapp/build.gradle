@@ -1,18 +1,12 @@
-import static org.gradle.api.JavaVersion.VERSION_1_8
-
 plugins {
     id 'net.corda.plugins.cordapp-cpk'
 }
 
 apply from: 'repositories.gradle'
+apply from: 'javaTarget.gradle'
 
 group = 'com.example'
 version = cordapp_version
-
-java {
-    sourceCompatibility = VERSION_1_8
-    targetCompatibility = VERSION_1_8
-}
 
 cordapp {
     targetPlatformVersion = platform_version.toInteger()

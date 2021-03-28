@@ -1,4 +1,4 @@
-import static org.gradle.api.JavaVersion.VERSION_1_8
+import static org.gradle.jvm.toolchain.JavaLanguageVersion.of
 
 plugins {
     id 'java-gradle-plugin'
@@ -6,6 +6,12 @@ plugins {
 }
 
 group = 'com.example'
+
+java {
+    toolchain {
+        languageVersion = of(8)
+    }
+}
 
 gradlePlugin {
     plugins {
@@ -15,9 +21,4 @@ gradlePlugin {
         }
     }
     automatedPublishing = false
-}
-
-java {
-    sourceCompatibility = VERSION_1_8
-    targetCompatibility = VERSION_1_8
 }

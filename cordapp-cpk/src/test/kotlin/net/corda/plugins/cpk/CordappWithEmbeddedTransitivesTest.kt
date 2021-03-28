@@ -89,7 +89,7 @@ class CordappWithEmbeddedTransitivesTest {
             assertEquals("CorDapp Embedded Transitives", getValue(BUNDLE_NAME))
             assertEquals("com.example.cordapp-embedded-transitives", getValue(BUNDLE_SYMBOLICNAME))
             assertEquals(toOSGi(hostVersion), getValue(BUNDLE_VERSION))
-            assertEquals("osgi.ee;filter:=\"(&(osgi.ee=JavaSE)(version=1.8))\"", getValue(REQUIRE_CAPABILITY))
+            assertEquals("osgi.ee;filter:=\"(&(osgi.ee=JavaSE)(version=11))\"", getValue(REQUIRE_CAPABILITY))
             assertEquals("true", getValue("Sealed"))
 
             assertThat(getValue(PRIVATE_PACKAGE)?.split(","))

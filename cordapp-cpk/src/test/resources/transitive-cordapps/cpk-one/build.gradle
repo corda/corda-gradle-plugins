@@ -3,6 +3,7 @@ plugins {
 }
 
 apply from: '../repositories.gradle'
+apply from: '../javaTarget.gradle'
 
 version = cpk1_version
 

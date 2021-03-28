@@ -74,7 +74,7 @@ class EmbedTransitiveDependenciesTest {
             assertEquals("Embed Transitive Dependencies", getValue(BUNDLE_NAME))
             assertEquals("com.example.embed-transitive-deps", getValue(BUNDLE_SYMBOLICNAME))
             assertEquals(toOSGi(cordappVersion), getValue(BUNDLE_VERSION))
-            assertEquals("osgi.ee;filter:=\"(&(osgi.ee=JavaSE)(version=1.8))\"", getValue(REQUIRE_CAPABILITY))
+            assertEquals("osgi.ee;filter:=\"(&(osgi.ee=JavaSE)(version=11))\"", getValue(REQUIRE_CAPABILITY))
             assertEquals("com.example.annotations;$annotationsOsgiVersion", getValue(EXPORT_PACKAGE))
             assertEquals("lib", getValue(PRIVATE_PACKAGE))
             assertEquals("true", getValue("Sealed"))

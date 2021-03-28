@@ -3,6 +3,7 @@ plugins {
 }
 
 apply from: '../repositories.gradle'
+apply from: '../javaTarget.gradle'
 
 cordapp {
     targetPlatformVersion = platform_version.toInteger()

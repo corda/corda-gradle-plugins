@@ -1,22 +1,16 @@
-import static org.gradle.api.JavaVersion.VERSION_1_8
-
 plugins {
     id 'biz.aQute.bnd.builder'
     id 'java-library'
 }
 
 apply from: '../repositories.gradle'
+apply from: '../javaTarget.gradle'
 
 group = 'com.example'
 version = annotations_version
 
 // Share the source files, but not the output files.
 buildDir = rootProject.file("annotationsBuild")
-
-java {
-    sourceCompatibility = VERSION_1_8
-    targetCompatibility = VERSION_1_8
-}
 
 dependencies {
     compileOnly "org.osgi:osgi.annotation:$osgi_version"
