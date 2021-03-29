@@ -52,11 +52,11 @@ class VerifyCordappDependencyTest {
     @Test
     fun verifyCordappDependency() {
         assertThat(testProject.dependencyConstraints)
-            .noneMatch { it.startsWith("cordapp-$cordappVersion.jar") }
-            .anyMatch { it.startsWith("commons-collections-$commonsCollectionsVersion.jar") }
+            .noneMatch { it.startsWith("cordapp-$cordappVersion.jar,") }
+            .anyMatch { it.startsWith("commons-collections-$commonsCollectionsVersion.jar,") }
             .hasSize(1)
         assertThat(testProject.cpkDependencies)
-            .contains("com.example.cordapp,${toOSGi(cordappVersion)}")
+            .anyMatch { it.name == "com.example.cordapp" && it.version == toOSGi(cordappVersion) }
             .hasSize(1)
         assertThat(testProject.outcomeOf("verifyBundle")).isEqualTo(SUCCESS)
 

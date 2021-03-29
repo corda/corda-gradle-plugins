@@ -1,7 +1,10 @@
 package net.corda.plugins.cpk
 
+import net.corda.plugins.cpk.xml.CPKDependencies
+import net.corda.plugins.cpk.xml.CPKDependency
+import net.corda.plugins.cpk.xml.HashValue
 import org.gradle.api.DefaultTask
-import org.gradle.api.InvalidUserCodeException
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileCollection
@@ -18,15 +21,43 @@ import org.gradle.api.tasks.TaskProvider
 import org.osgi.framework.Constants.BUNDLE_SYMBOLICNAME
 import org.osgi.framework.Constants.BUNDLE_VERSION
 import java.io.IOException
+import java.io.InputStream
+import java.nio.file.Paths
+import java.security.MessageDigest
+import java.security.NoSuchAlgorithmException
+import java.security.cert.Certificate
+import java.util.jar.JarEntry
 import java.util.jar.JarFile
 import javax.inject.Inject
+import javax.xml.bind.JAXBException
+import javax.xml.bind.Marshaller.JAXB_FORMATTED_OUTPUT
 
 @Suppress("UnstableApiUsage", "MemberVisibilityCanBePrivate")
 open class CPKDependenciesTask @Inject constructor(objects: ObjectFactory) : DefaultTask() {
     private companion object {
         private const val CPK_DEPENDENCIES = "META-INF/CPKDependencies"
-        private const val DELIMITER = ','
-        private const val CRLF = "\r\n"
+        private const val HASH_ALGORITHM = "SHA-256"
+        private const val EOF = -1
+
+        /**
+         * Additionally accepting *.EC as it's valid for [JarVerifier][java.util.jar.JarVerifier].
+         * Temporally treating `META-INF/INDEX.LIST` as unsignable entry because
+         * [JarVerifier][java.util.jar.JarVerifier] doesn't load its signers.
+         *
+         * @see [Jar](https://docs.oracle.com/javase/8/docs/technotes/guides/jar/jar.html#Signed_JAR_File)
+         * @see [JarSigner](https://docs.oracle.com/javase/8/docs/technotes/tools/windows/jarsigner.html)
+         */
+        private val UNSIGNED = "^META-INF/(?:(?:.+\\.(?:SF|DSA|RSA|EC)|SIG-.+)|INDEX\\.LIST)\$".toRegex()
+
+        @Throws(IOException::class)
+        private fun consume(input: InputStream, buffer: ByteArray) {
+            @Suppress("ControlFlowWithEmptyBody")
+            while (input.read(buffer) != EOF) {}
+        }
+
+        private val JarEntry.isSignable: Boolean get() {
+            return !isDirectory && !UNSIGNED.matches(name)
+        }
     }
 
     init {
@@ -58,21 +89,60 @@ open class CPKDependenciesTask @Inject constructor(objects: ObjectFactory) : Def
 
     @TaskAction
     fun generate() {
+        val digest = try {
+            MessageDigest.getInstance(HASH_ALGORITHM)
+        } catch (_ : NoSuchAlgorithmException) {
+            throw InvalidUserDataException("Hash algorithm $HASH_ALGORITHM not available")
+        }
+
         try {
-            cpkOutput.get().asFile.bufferedWriter().use { output ->
-                cpks.forEach { cpk ->
-                    logger.info("CorDapp CPK dependency: {}", cpk.name)
-                    val mainAttributes = JarFile(cpk).use(JarFile::getManifest).mainAttributes
-                    mainAttributes.getValue(BUNDLE_SYMBOLICNAME)?.also { bsn ->
-                        val bundleVersion = mainAttributes.getValue(BUNDLE_VERSION) ?: ""
-                        output.append(bsn).append(DELIMITER)
-                            .append(bundleVersion)
-                            .append(CRLF)
+            val dependencies = cpks.map { cpk ->
+                logger.info("CorDapp CPK dependency: {}", cpk.name)
+                JarFile(cpk).use { jar ->
+                    val certificates = certificatesFor(jar)
+                    if (certificates.size != 1) {
+                        logger.error("CPK {} signed by {} keys", cpk.name, certificates.size)
+                        throw InvalidUserDataException("CPK ${cpk.name} must be signed by exactly one key")
                     }
+
+                    val signingKeyHash = HashValue(
+                        digest.digest(certificates.single().publicKey.encoded),
+                        HASH_ALGORITHM
+                    )
+
+                    val mainAttributes = jar.manifest.mainAttributes
+                    CPKDependency(
+                        name = mainAttributes.getValue(BUNDLE_SYMBOLICNAME),
+                        version = mainAttributes.getValue(BUNDLE_VERSION),
+                        signedBy = signingKeyHash
+                    )
                 }
             }
+
+            // Write CPK dependency information as XML document.
+            val xmlMarshaller = xmlContext.createMarshaller().apply {
+                setProperty(JAXB_FORMATTED_OUTPUT, true)
+            }
+            cpkOutput.get().asFile.bufferedWriter().use { writer ->
+                xmlMarshaller.marshal(CPKDependencies(dependencies), writer)
+            }
         } catch (e: IOException) {
-            throw InvalidUserCodeException(e.message ?: "", e)
+            throw InvalidUserDataException(e.message ?: "", e)
+        } catch (e: JAXBException) {
+            throw InvalidUserDataException(e.message ?: "", e)
+        }
+    }
+
+    @Throws(IOException::class)
+    private fun certificatesFor(jar: JarFile): Set<Certificate> {
+        val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+        return jar.entries().asSequence().flatMapTo(HashSet()) { entry ->
+            consume(jar.getInputStream(entry), buffer)
+            val certificates = entry.certificates?.toList() ?: emptyList()
+            if (certificates.isEmpty() && entry.isSignable) {
+                logger.warn("{}:{} is unsigned", Paths.get(jar.name).fileName, entry.name)
+            }
+            certificates.asSequence()
         }
     }
 }

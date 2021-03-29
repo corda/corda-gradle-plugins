@@ -114,8 +114,16 @@ As with `cordaProvided`, the dependency is also added implicitly to Gradle's `co
 `*Implementation` configurations, and is excluded from the `runtimeClasspath` configuration, the
 published POM file, and the contents of the CPK file. The "main" jars of all `cordapp` dependencies
 are listed as lines in this "main" jar's `META-INF/CPKDependencies` file:
-```
-<Bundle-SymbolicName>,<Bundle-Version>
+```xml
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<cpkDependencies xmlns="corda-cpk">
+    <cpkDependency>
+        <name>$BUNDLE_SYMBOLIC_NAME</name>
+        <version>$BUNDLE_VERSION</version>
+        <signedBy algorithm="$HASH_ALGORITHM">$HASH_OF_PUBLIC_KEY</signedBy>
+    </cpkDependency>
+    ...
+</cpkDependencies>
 ```
 `cordapp` dependencies are transitive in the sense that if CorDapp `B` declares a `cordapp`
 dependency on CorDapp `A`, and then CorDapp `C` declares a `cordapp` dependency on CorDapp `B`,
@@ -129,11 +137,11 @@ that everyone expects.
 Note that in order for everything to work as intended, the "companion" POM must be published into
 the same repository as its associated "main" jar artifact. For a jar with Maven coordinates:
 ```
-    <group>:<artifact>:<version>
+    ${group}:${artifact}:${version}
 ```
 the "companion"'s Maven coordinates will be:
 ```
-    <group>.<artifact>:<artifact>.corda.cpk:<version>
+    ${group}.${artifact}:${artifact}.corda.cpk:${version}
 ```
 
 - `cordaEmbedded`: This configuration behaves similarly to `cordaProvided` in the sense that it

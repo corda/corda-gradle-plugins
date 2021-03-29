@@ -1,6 +1,7 @@
 @file:JvmName("CordappUtils")
 package net.corda.plugins.cpk
 
+import net.corda.plugins.cpk.xml.CPKDependencies
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.Dependency
@@ -14,6 +15,8 @@ import org.w3c.dom.Element
 import java.io.File
 import java.util.Collections.unmodifiableSet
 import java.util.jar.JarFile
+import javax.xml.bind.JAXBContext
+import javax.xml.bind.JAXBException
 
 const val CORDAPP_CPK_PLUGIN_ID = "net.corda.plugins.cordapp-cpk"
 const val GROUP_NAME = "Cordapp"
@@ -207,3 +210,7 @@ fun Element.appendElement(name: String, value: String?): Element {
         child.appendChild(ownerDocument.createTextNode(value))
     }
 }
+
+val xmlContext: JAXBContext
+    @Throws(JAXBException::class)
+    get() = JAXBContext.newInstance(CPKDependencies::class.java)

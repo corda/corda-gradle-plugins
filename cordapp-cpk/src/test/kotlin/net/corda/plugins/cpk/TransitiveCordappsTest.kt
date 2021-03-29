@@ -66,15 +66,15 @@ class TransitiveCordappsTest {
         val testProject = buildProject(withPublishing, testProjectDir, reporter)
 
         assertThat(testProject.dependencyConstraints)
-            .noneMatch { it.startsWith("cpk-one-${cpk1Version}.jar") }
-            .noneMatch { it.startsWith("cpk-two-${cpk2Version}.jar") }
-            .noneMatch { it.startsWith("cpk-three-${cpk3Version}.jar") }
-            .anyMatch { it.startsWith("commons-io-$commonsIoVersion.jar") }
+            .noneMatch { it.startsWith("cpk-one-${cpk1Version}.jar,") }
+            .noneMatch { it.startsWith("cpk-two-${cpk2Version}.jar,") }
+            .noneMatch { it.startsWith("cpk-three-${cpk3Version}.jar,") }
+            .anyMatch { it.startsWith("commons-io-$commonsIoVersion.jar,") }
             .hasSize(1)
         assertThat(testProject.cpkDependencies)
-            .contains("com.example.cpk-one,${toOSGi(cpk1Version)}")
-            .contains("com.example.cpk-two,${toOSGi(cpk2Version)}")
-            .contains("com.example.cpk-three,${toOSGi(cpk3Version)}")
+            .anyMatch { it.name == "com.example.cpk-one" && it.version == toOSGi(cpk1Version) }
+            .anyMatch { it.name == "com.example.cpk-two" && it.version == toOSGi(cpk2Version) }
+            .anyMatch { it.name == "com.example.cpk-three" && it.version == toOSGi(cpk3Version) }
             .hasSize(3)
 
         val artifacts = testProject.artifacts

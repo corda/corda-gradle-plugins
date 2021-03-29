@@ -22,7 +22,7 @@ import java.io.File
 import java.io.IOException
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
-import java.util.StringJoiner
+import java.util.Base64
 import javax.inject.Inject
 
 @Suppress("UnstableApiUsage")
@@ -75,17 +75,18 @@ open class DependencyConstraintsTask @Inject constructor(objects: ObjectFactory)
         }
 
         try {
+            val encoder = Base64.getEncoder()
             constraintsOutput.get().asFile.bufferedWriter().use { output ->
                 libraries.forEach { library ->
                     logger.info("CorDapp library dependency: {}", library.name)
                     output.append(library.name.replace(DELIMITER, '_')).append(DELIMITER)
                         .append(algorithmName).append(DELIMITER)
-                        .append(digest.hashFor(library).toHexString())
+                        .append(encoder.encodeToString(digest.hashFor(library)))
                         .append(CRLF)
                 }
             }
         } catch (e: IOException) {
-            throw InvalidUserCodeException(e.message ?: "", e)
+            throw InvalidUserDataException(e.message ?: "", e)
         }
     }
 
@@ -104,14 +105,5 @@ open class DependencyConstraintsTask @Inject constructor(objects: ObjectFactory)
             }
         }
         return digest()
-    }
-
-    private fun ByteArray.toHexString(): String {
-        return with(StringJoiner("")) {
-            for (b in this@toHexString) {
-                add(String.format("%02x", b))
-            }
-            toString()
-        }
     }
 }

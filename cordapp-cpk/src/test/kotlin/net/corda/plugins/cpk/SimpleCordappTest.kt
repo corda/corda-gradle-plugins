@@ -47,6 +47,7 @@ class SimpleCordappTest {
         assertThat(testProject.dependencyConstraints)
             .anyMatch { it.startsWith("commons-io-$commonsIoVersion.jar") }
             .hasSize(1)
+        assertThat(testProject.cpkDependencies).isEmpty()
 
         val artifacts = testProject.artifacts
         assertThat(artifacts).hasSize(2)

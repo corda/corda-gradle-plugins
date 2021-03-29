@@ -53,6 +53,7 @@ class SimpleKotlinCordappTest {
             .anyMatch { it.startsWith("commons-io-$commonsIoVersion.jar") }
             .anyMatch { it.startsWith("guava-$guavaVersion.jar") }
             .hasSizeGreaterThanOrEqualTo(2)
+        assertThat(testProject.cpkDependencies).isEmpty()
 
         val artifacts = testProject.artifacts
         assertThat(artifacts).hasSize(2)

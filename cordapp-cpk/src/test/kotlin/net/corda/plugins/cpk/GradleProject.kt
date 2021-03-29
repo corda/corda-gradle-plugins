@@ -3,6 +3,8 @@ package net.corda.plugins.cpk
 
 import aQute.bnd.version.MavenVersion.parseMavenString
 import aQute.bnd.version.VersionRange
+import net.corda.plugins.cpk.xml.CPKDependencies
+import net.corda.plugins.cpk.xml.CPKDependency
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.api.JavaVersion.current
 import org.gradle.api.JavaVersion.VERSION_15
@@ -22,6 +24,8 @@ import java.util.Properties
 import java.util.jar.JarFile
 import java.util.jar.Manifest
 import java.util.stream.Collectors.toList
+import javax.xml.bind.JAXBException
+import javax.xml.transform.stream.StreamSource
 import kotlin.test.fail
 
 const val expectedCordappContractVersion = 2
@@ -127,15 +131,24 @@ class GradleProject(private val projectDir: Path, private val reporter: TestRepo
 
     val buildDir: Path = projectDir.resolve("build")
     val artifactDir: Path = buildDir.resolve("libs")
-    val artifacts: List<Path> get() = Files.list(artifactDir).collect(toList())
+    val artifacts: List<Path>
+        @Throws(IOException::class)
+        get() = Files.list(artifactDir).collect(toList())
 
     val dependencyConstraintsFile: Path = buildDir.resolve("generated-constraints")
         .resolve(META_INF_DIR).resolve("DependencyConstraints")
-    val dependencyConstraints: List<String> get() = dependencyConstraintsFile.toFile().bufferedReader().readLines()
+    val dependencyConstraints: List<String>
+        @Throws(IOException::class)
+        get() = dependencyConstraintsFile.toFile().bufferedReader().readLines()
 
     val cpkDependenciesFile: Path = buildDir.resolve("cpk-dependencies")
         .resolve(META_INF_DIR).resolve("CPKDependencies")
-    val cpkDependencies: List<String> get() = cpkDependenciesFile.toFile().bufferedReader().readLines()
+    val cpkDependencies: List<CPKDependency>
+        @Throws(JAXBException::class, IOException::class)
+        get() = cpkDependenciesFile.toFile().bufferedReader().use { reader ->
+            val unmarshaller = xmlContext.createUnmarshaller()
+            unmarshaller.unmarshal(StreamSource(reader), CPKDependencies::class.java).value.cpkDependencies ?: emptyList()
+        }
 
     var output: String = ""
         private set

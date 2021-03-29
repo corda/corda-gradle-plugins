@@ -55,11 +55,11 @@ class CordappWithEmbeddedTransitivesTest {
     @Test
     fun testCordappWithEmbeddedTransitiveDependencies() {
         assertThat(testProject.dependencyConstraints)
-            .noneMatch { it.startsWith("cordapp-$cordappVersion.jar") }
-            .anyMatch { it.startsWith("commons-io-$commonsIoVersion.jar") }
+            .noneMatch { it.startsWith("cordapp-$cordappVersion.jar,") }
+            .anyMatch { it.startsWith("commons-io-$commonsIoVersion.jar,") }
             .hasSize(1)
         assertThat(testProject.cpkDependencies)
-            .contains("com.example.cordapp,${toOSGi(cordappVersion)}")
+            .anyMatch { it.name == "com.example.cordapp" && it.version == toOSGi(cordappVersion) }
             .hasSize(1)
 
         val artifacts = testProject.artifacts
