@@ -1,7 +1,6 @@
 package net.corda.plugins.cpk
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
@@ -19,9 +18,7 @@ import org.gradle.api.tasks.PathSensitivity.RELATIVE
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.TaskProvider
 import java.io.File
-import java.io.IOException
 import java.security.MessageDigest
-import java.security.NoSuchAlgorithmException
 import java.util.Base64
 import javax.inject.Inject
 
@@ -30,8 +27,6 @@ open class DependencyConstraintsTask @Inject constructor(objects: ObjectFactory)
     private companion object {
         private const val DEPENDENCY_CONSTRAINTS = "META-INF/DependencyConstraints"
         private const val CORDAPP_HASH_ALGORITHM = "SHA-256"
-        private const val DELIMITER = ','
-        private const val CRLF = "\r\n"
         private const val EOF = -1
     }
 
@@ -67,26 +62,27 @@ open class DependencyConstraintsTask @Inject constructor(objects: ObjectFactory)
 
     @TaskAction
     fun generate() {
-        val algorithmName = algorithm.get().toUpperCase()
-        val digest = try {
-            MessageDigest.getInstance(algorithmName)
-        } catch (_ : NoSuchAlgorithmException) {
-            throw InvalidUserDataException("Hash algorithm $algorithmName not available")
-        }
+        val digest = digestFor(algorithm.get().toUpperCase())
 
         try {
+            val xmlDocument = createXmlDocument()
+            val dependencyConstraints = xmlDocument.createRootElement(XML_NAMESPACE, "dependencyConstraints")
             val encoder = Base64.getEncoder()
-            constraintsOutput.get().asFile.bufferedWriter().use { output ->
-                libraries.forEach { library ->
-                    logger.info("CorDapp library dependency: {}", library.name)
-                    output.append(library.name.replace(DELIMITER, '_')).append(DELIMITER)
-                        .append(algorithmName).append(DELIMITER)
-                        .append(encoder.encodeToString(digest.hashFor(library)))
-                        .append(CRLF)
+
+            libraries.forEach { library ->
+                logger.info("CorDapp library dependency: {}", library.name)
+                dependencyConstraints.appendElement("dependencyConstraint").also { constraint ->
+                    constraint.appendElement("fileName", library.name)
+                    val jarHash = digest.hashFor(library)
+                    constraint.appendElement("hash", encoder.encodeToString(jarHash))
+                        .setAttribute("algorithm", digest.algorithm)
                 }
             }
-        } catch (e: IOException) {
-            throw InvalidUserDataException(e.message ?: "", e)
+
+            // Write dependency constraints as XML document.
+            constraintsOutput.get().asFile.bufferedWriter().use(xmlDocument::writeTo)
+        } catch (e: Exception) {
+            throw (e as? RuntimeException) ?: InvalidUserDataException(e.message ?: "", e)
         }
     }
 

@@ -72,10 +72,6 @@ dependencies {
     // we don't add Kotlin as a dependency in our published POM.
     compileOnly 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
 
-    implementation "javax.xml.bind:jaxb-api:$jaxb_version"
-    implementation "com.sun.xml.bind:jaxb-impl:$jaxb_version"
-    implementation "com.sun.xml.bind:jaxb-core:$jaxb_core_version"
-
     // Add the Bnd plugins to our classpath too, so that we can use them.
     implementation "biz.aQute.bnd:biz.aQute.bnd.gradle:$bnd_version"
     implementation "biz.aQute.bnd:biz.aQute.bndlib:$bnd_version"
@@ -115,8 +111,4 @@ tasks.withType(Test).configureEach {
             '--add-opens', 'java.base/java.util.jar=ALL-UNNAMED',
             '--add-opens', 'java.base/java.util.zip=ALL-UNNAMED',
             '--illegal-access=warn'
-}
-
-tasks.withType(Javadoc).configureEach {
-    enabled = false
 }

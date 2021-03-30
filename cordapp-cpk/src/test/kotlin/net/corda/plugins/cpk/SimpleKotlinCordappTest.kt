@@ -50,8 +50,9 @@ class SimpleKotlinCordappTest {
     @Test
     fun simpleTest() {
         assertThat(testProject.dependencyConstraints)
-            .anyMatch { it.startsWith("commons-io-$commonsIoVersion.jar") }
-            .anyMatch { it.startsWith("guava-$guavaVersion.jar") }
+            .anyMatch { it.fileName == "commons-io-$commonsIoVersion.jar" }
+            .anyMatch { it.fileName == "guava-$guavaVersion.jar" }
+            .allMatch { it.hash.isSHA256 }
             .hasSizeGreaterThanOrEqualTo(2)
         assertThat(testProject.cpkDependencies).isEmpty()
 

@@ -3,8 +3,10 @@ package net.corda.plugins.cpk
 
 import aQute.bnd.version.MavenVersion.parseMavenString
 import aQute.bnd.version.VersionRange
-import net.corda.plugins.cpk.xml.CPKDependencies
 import net.corda.plugins.cpk.xml.CPKDependency
+import net.corda.plugins.cpk.xml.DependencyConstraint
+import net.corda.plugins.cpk.xml.loadCPKDependencies
+import net.corda.plugins.cpk.xml.loadDependencyConstraints
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.api.JavaVersion.current
 import org.gradle.api.JavaVersion.VERSION_15
@@ -24,8 +26,6 @@ import java.util.Properties
 import java.util.jar.JarFile
 import java.util.jar.Manifest
 import java.util.stream.Collectors.toList
-import javax.xml.bind.JAXBException
-import javax.xml.transform.stream.StreamSource
 import kotlin.test.fail
 
 const val expectedCordappContractVersion = 2
@@ -137,18 +137,13 @@ class GradleProject(private val projectDir: Path, private val reporter: TestRepo
 
     val dependencyConstraintsFile: Path = buildDir.resolve("generated-constraints")
         .resolve(META_INF_DIR).resolve("DependencyConstraints")
-    val dependencyConstraints: List<String>
-        @Throws(IOException::class)
-        get() = dependencyConstraintsFile.toFile().bufferedReader().readLines()
+    val dependencyConstraints: List<DependencyConstraint>
+        get() = dependencyConstraintsFile.toFile().inputStream().buffered().use(::loadDependencyConstraints).constraints
 
     val cpkDependenciesFile: Path = buildDir.resolve("cpk-dependencies")
         .resolve(META_INF_DIR).resolve("CPKDependencies")
     val cpkDependencies: List<CPKDependency>
-        @Throws(JAXBException::class, IOException::class)
-        get() = cpkDependenciesFile.toFile().bufferedReader().use { reader ->
-            val unmarshaller = xmlContext.createUnmarshaller()
-            unmarshaller.unmarshal(StreamSource(reader), CPKDependencies::class.java).value.cpkDependencies ?: emptyList()
-        }
+        get() = cpkDependenciesFile.toFile().inputStream().buffered().use(::loadCPKDependencies).cpkDependencies
 
     var output: String = ""
         private set

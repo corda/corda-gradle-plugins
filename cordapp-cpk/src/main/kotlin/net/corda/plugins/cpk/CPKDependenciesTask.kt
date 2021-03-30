@@ -1,8 +1,5 @@
 package net.corda.plugins.cpk
 
-import net.corda.plugins.cpk.xml.CPKDependencies
-import net.corda.plugins.cpk.xml.CPKDependency
-import net.corda.plugins.cpk.xml.HashValue
 import org.gradle.api.DefaultTask
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.file.ConfigurableFileCollection
@@ -23,14 +20,12 @@ import org.osgi.framework.Constants.BUNDLE_VERSION
 import java.io.IOException
 import java.io.InputStream
 import java.nio.file.Paths
-import java.security.MessageDigest
-import java.security.NoSuchAlgorithmException
 import java.security.cert.Certificate
+import java.util.Base64
 import java.util.jar.JarEntry
 import java.util.jar.JarFile
 import javax.inject.Inject
-import javax.xml.bind.JAXBException
-import javax.xml.bind.Marshaller.JAXB_FORMATTED_OUTPUT
+import kotlin.collections.HashSet
 
 @Suppress("UnstableApiUsage", "MemberVisibilityCanBePrivate")
 open class CPKDependenciesTask @Inject constructor(objects: ObjectFactory) : DefaultTask() {
@@ -89,47 +84,36 @@ open class CPKDependenciesTask @Inject constructor(objects: ObjectFactory) : Def
 
     @TaskAction
     fun generate() {
-        val digest = try {
-            MessageDigest.getInstance(HASH_ALGORITHM)
-        } catch (_ : NoSuchAlgorithmException) {
-            throw InvalidUserDataException("Hash algorithm $HASH_ALGORITHM not available")
-        }
+        val digest = digestFor(HASH_ALGORITHM)
 
         try {
-            val dependencies = cpks.map { cpk ->
+            val xmlDocument = createXmlDocument()
+            val cpkDependencies = xmlDocument.createRootElement(XML_NAMESPACE, "cpkDependencies")
+            val encoder = Base64.getEncoder()
+
+            cpks.forEach { cpk ->
                 logger.info("CorDapp CPK dependency: {}", cpk.name)
                 JarFile(cpk).use { jar ->
+                    val mainAttributes = jar.manifest.mainAttributes
+                    val cpkDependency = cpkDependencies.appendElement("cpkDependency")
+                    cpkDependency.appendElement("name", mainAttributes.getValue(BUNDLE_SYMBOLICNAME))
+                    cpkDependency.appendElement("version", mainAttributes.getValue(BUNDLE_VERSION))
+
                     val certificates = certificatesFor(jar)
                     if (certificates.size != 1) {
                         logger.error("CPK {} signed by {} keys", cpk.name, certificates.size)
                         throw InvalidUserDataException("CPK ${cpk.name} must be signed by exactly one key")
                     }
-
-                    val signingKeyHash = HashValue(
-                        digest.digest(certificates.single().publicKey.encoded),
-                        HASH_ALGORITHM
-                    )
-
-                    val mainAttributes = jar.manifest.mainAttributes
-                    CPKDependency(
-                        name = mainAttributes.getValue(BUNDLE_SYMBOLICNAME),
-                        version = mainAttributes.getValue(BUNDLE_VERSION),
-                        signedBy = signingKeyHash
-                    )
+                    val signingKeyHash = digest.digest(certificates.single().publicKey.encoded)
+                    cpkDependency.appendElement("signedBy", encoder.encodeToString(signingKeyHash))
+                        .setAttribute("algorithm", digest.algorithm)
                 }
             }
 
             // Write CPK dependency information as XML document.
-            val xmlMarshaller = xmlContext.createMarshaller().apply {
-                setProperty(JAXB_FORMATTED_OUTPUT, true)
-            }
-            cpkOutput.get().asFile.bufferedWriter().use { writer ->
-                xmlMarshaller.marshal(CPKDependencies(dependencies), writer)
-            }
-        } catch (e: IOException) {
-            throw InvalidUserDataException(e.message ?: "", e)
-        } catch (e: JAXBException) {
-            throw InvalidUserDataException(e.message ?: "", e)
+            cpkOutput.get().asFile.bufferedWriter().use(xmlDocument::writeTo)
+        } catch (e: Exception) {
+            throw (e as? RuntimeException) ?: InvalidUserDataException(e.message ?: "", e)
         }
     }
 

@@ -66,15 +66,17 @@ class TransitiveCordappsTest {
         val testProject = buildProject(withPublishing, testProjectDir, reporter)
 
         assertThat(testProject.dependencyConstraints)
-            .noneMatch { it.startsWith("cpk-one-${cpk1Version}.jar,") }
-            .noneMatch { it.startsWith("cpk-two-${cpk2Version}.jar,") }
-            .noneMatch { it.startsWith("cpk-three-${cpk3Version}.jar,") }
-            .anyMatch { it.startsWith("commons-io-$commonsIoVersion.jar,") }
+            .noneMatch { it.fileName == "cpk-one-${cpk1Version}.jar" }
+            .noneMatch { it.fileName == "cpk-two-${cpk2Version}.jar" }
+            .noneMatch { it.fileName == "cpk-three-${cpk3Version}.jar" }
+            .anyMatch { it.fileName == "commons-io-$commonsIoVersion.jar" }
+            .allMatch { it.hash.isSHA256 }
             .hasSize(1)
         assertThat(testProject.cpkDependencies)
             .anyMatch { it.name == "com.example.cpk-one" && it.version == toOSGi(cpk1Version) }
             .anyMatch { it.name == "com.example.cpk-two" && it.version == toOSGi(cpk2Version) }
             .anyMatch { it.name == "com.example.cpk-three" && it.version == toOSGi(cpk3Version) }
+            .allMatch { it.signedBy.isSHA256 }
             .hasSize(3)
 
         val artifacts = testProject.artifacts

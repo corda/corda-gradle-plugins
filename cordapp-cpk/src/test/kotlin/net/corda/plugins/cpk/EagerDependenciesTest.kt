@@ -33,7 +33,8 @@ class EagerDependenciesTest {
         assertEquals(SUCCESS, result.outcome)
 
         assertThat(testProject.dependencyConstraints)
-            .anyMatch { it.startsWith("commons-io-$commonsIoVersion.jar,") }
+            .anyMatch { it.fileName == "commons-io-$commonsIoVersion.jar" }
+            .allMatch { it.hash.isSHA256 }
             .hasSize(1)
     }
 }

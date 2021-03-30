@@ -1,7 +1,7 @@
 @file:JvmName("CordappUtils")
 package net.corda.plugins.cpk
 
-import net.corda.plugins.cpk.xml.CPKDependencies
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.Dependency
@@ -11,15 +11,28 @@ import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.plugins.JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME
 import org.gradle.api.plugins.JavaPlugin.RUNTIME_ONLY_CONFIGURATION_NAME
 import org.gradle.api.specs.Spec
+import org.w3c.dom.Document
 import org.w3c.dom.Element
 import java.io.File
+import java.io.Writer
+import java.security.MessageDigest
+import java.security.NoSuchAlgorithmException
 import java.util.Collections.unmodifiableSet
 import java.util.jar.JarFile
-import javax.xml.bind.JAXBContext
-import javax.xml.bind.JAXBException
+import javax.xml.parsers.DocumentBuilderFactory
+import javax.xml.transform.OutputKeys.ENCODING
+import javax.xml.transform.OutputKeys.INDENT
+import javax.xml.transform.OutputKeys.METHOD
+import javax.xml.transform.OutputKeys.OMIT_XML_DECLARATION
+import javax.xml.transform.OutputKeys.STANDALONE
+import javax.xml.transform.TransformerException
+import javax.xml.transform.TransformerFactory
+import javax.xml.transform.dom.DOMSource
+import javax.xml.transform.stream.StreamResult
 
 const val CORDAPP_CPK_PLUGIN_ID = "net.corda.plugins.cordapp-cpk"
 const val GROUP_NAME = "Cordapp"
+const val XML_NAMESPACE = "corda-cpk"
 
 const val CORDAPP_SEALING_SYSTEM_PROPERTY_NAME = "net.corda.cordapp.sealing.enabled"
 
@@ -197,8 +210,43 @@ val String.isJavaIdentifier: Boolean get() {
 }
 
 /**
+ * Get a [MessageDigest] for [algorithmName], and handle
+ * any [NoSuchAlgorithmException].
+ */
+fun digestFor(algorithmName: String): MessageDigest {
+    return try {
+        MessageDigest.getInstance(algorithmName)
+    } catch (_ : NoSuchAlgorithmException) {
+        throw InvalidUserDataException("Hash algorithm $algorithmName not available")
+    }
+}
+
+/**
  * Helper functions for XML documents.
  */
+fun createXmlDocument(): Document {
+    return DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument().also { doc ->
+        doc.xmlStandalone = true
+    }
+}
+
+@Throws(TransformerException::class)
+fun Document.writeTo(writer: Writer) {
+    val transformer = TransformerFactory.newInstance().newTransformer()
+    transformer.setOutputProperty(METHOD, "xml")
+    transformer.setOutputProperty(ENCODING, "UTF-8")
+    transformer.setOutputProperty(INDENT, "yes")
+    transformer.setOutputProperty(STANDALONE, "yes")
+    transformer.setOutputProperty(OMIT_XML_DECLARATION, "no")
+    transformer.transform(DOMSource(this), StreamResult(writer))
+}
+
+fun Document.createRootElement(namespace: String, name: String): Element {
+    val rootElement = createElementNS(namespace, name)
+    appendChild(rootElement)
+    return rootElement
+}
+
 fun Element.appendElement(name: String): Element {
     val childElement = ownerDocument.createElement(name)
     appendChild(childElement)
@@ -210,7 +258,3 @@ fun Element.appendElement(name: String, value: String?): Element {
         child.appendChild(ownerDocument.createTextNode(value))
     }
 }
-
-val xmlContext: JAXBContext
-    @Throws(JAXBException::class)
-    get() = JAXBContext.newInstance(CPKDependencies::class.java)
