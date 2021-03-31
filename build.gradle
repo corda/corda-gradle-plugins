@@ -13,15 +13,16 @@ ext {
 }
 
 subprojects {
-    apply plugin: 'java-library'
     apply plugin: 'idea'
 
     version gradle_plugins_version
     group 'net.corda.plugins'
 
-    java {
-        toolchain {
-            languageVersion = of(8)
+    pluginManager.withPlugin('java') {
+        java {
+            toolchain {
+                languageVersion = of(8)
+            }
         }
     }
 
