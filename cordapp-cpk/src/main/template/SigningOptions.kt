@@ -4,6 +4,7 @@ import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
+import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.tasks.Console
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
@@ -19,7 +20,7 @@ import javax.inject.Inject
 
 /** Options for ANT task "signjar". */
 @Suppress("UnstableApiUsage")
-open class SigningOptions @Inject constructor(objects: ObjectFactory) {
+open class SigningOptions @Inject constructor(objects: ObjectFactory, providers: ProviderFactory) {
     companion object {
         // Defaults to resource/certificates/cordadevcakeys.jks keystore with Corda development key
         private const val DEFAULT_ALIAS = "cordacodesign"
@@ -63,26 +64,30 @@ open class SigningOptions @Inject constructor(objects: ObjectFactory) {
     }
 
     @get:Input
-    val alias: Property<String> = objects.property(String::class.java)
-            .convention(System.getProperty(SYSTEM_PROPERTY_PREFIX + Key.ALIAS, DEFAULT_ALIAS))
+    val alias: Property<String> = objects.property(String::class.java).convention(
+        providers.systemProperty(SYSTEM_PROPERTY_PREFIX + Key.ALIAS).orElse(DEFAULT_ALIAS)
+    )
 
     @get:Input
-    val storePassword: Property<String> = objects.property(String::class.java)
-            .convention(System.getProperty(SYSTEM_PROPERTY_PREFIX + Key.STOREPASS, DEFAULT_STOREPASS))
+    val storePassword: Property<String> = objects.property(String::class.java).convention(
+        providers.systemProperty(SYSTEM_PROPERTY_PREFIX + Key.STOREPASS).orElse(DEFAULT_STOREPASS)
+    )
 
     @get:Optional
     @get:InputFile
-    val keyStore: RegularFileProperty = objects.fileProperty().apply {
-        set(System.getProperty(SYSTEM_PROPERTY_PREFIX + Key.KEYSTORE)?.let(::File))
-    }
+    val keyStore: RegularFileProperty = objects.fileProperty().fileProvider(
+        providers.systemProperty(SYSTEM_PROPERTY_PREFIX + Key.KEYSTORE).map(::File)
+    )
 
     @get:Input
-    val storeType: Property<String> = objects.property(String::class.java)
-            .convention(System.getProperty(SYSTEM_PROPERTY_PREFIX + Key.STORETYPE, DEFAULT_STORETYPE))
+    val storeType: Property<String> = objects.property(String::class.java).convention(
+        providers.systemProperty(SYSTEM_PROPERTY_PREFIX + Key.STORETYPE).orElse(DEFAULT_STORETYPE)
+    )
 
     @get:Input
-    val keyPassword: Property<String> = objects.property(String::class.java)
-            .convention(System.getProperty(SYSTEM_PROPERTY_PREFIX + Key.KEYPASS, DEFAULT_KEYPASS))
+    val keyPassword: Property<String> = objects.property(String::class.java).convention(
+        providers.systemProperty(SYSTEM_PROPERTY_PREFIX + Key.KEYPASS).orElse(DEFAULT_KEYPASS)
+    )
 
     @get:Input
     val signatureFileName: Property<String> = objects.property(String::class.java).convention("cordapp")

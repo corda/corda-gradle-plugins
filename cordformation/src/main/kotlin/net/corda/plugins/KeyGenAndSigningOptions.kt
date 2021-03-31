@@ -4,6 +4,7 @@ import net.corda.plugins.cordformation.signing.SigningOptions
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
+import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Optional
@@ -11,7 +12,10 @@ import javax.inject.Inject
 
 /** Options for ANT tasks "genkey" and "signjar". */
 @Suppress("UnstableApiUsage")
-open class KeyGenAndSigningOptions @Inject constructor(objects: ObjectFactory) : SigningOptions(objects) {
+open class KeyGenAndSigningOptions @Inject constructor(
+    objects: ObjectFactory,
+    providers: ProviderFactory
+) : SigningOptions(objects, providers) {
     /** Additional option keys for ANT task. */
     class Key {
         companion object {

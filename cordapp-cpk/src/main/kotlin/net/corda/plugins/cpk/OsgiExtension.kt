@@ -19,7 +19,7 @@ import java.util.Properties
 import java.util.StringJoiner
 
 @Suppress("UnstableApiUsage", "MemberVisibilityCanBePrivate", "unused")
-open class OsgiExtension(objects: ObjectFactory, project: Project, jar: Jar) {
+open class OsgiExtension(objects: ObjectFactory, jar: Jar) {
     private companion object {
         private const val CORDAPP_CONFIG_PLUGIN_ID = "net.corda.cordapp.cordapp-configuration"
         private const val CORDAPP_CONFIG_FILENAME = "cordapp-configuration.properties"
@@ -209,6 +209,7 @@ open class OsgiExtension(objects: ObjectFactory, project: Project, jar: Jar) {
     val symbolicName: Provider<String>
 
     init {
+        val project = jar.project
         val groupName = project.provider { project.group.toString() }
         val archiveName = createArchiveName(jar)
         symbolicName = groupName.zip(archiveName) { group, name ->

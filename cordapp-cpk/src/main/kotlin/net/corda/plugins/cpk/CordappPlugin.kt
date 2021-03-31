@@ -181,13 +181,14 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
             }
         }
 
+        val objects = project.objects
         val jarTask = project.tasks.named(JAR_TASK_NAME, Jar::class.java) { jar ->
-            val osgi = jar.extensions.create(OSGI_EXTENSION_NAME, OsgiExtension::class.java, project.objects, project, jar)
+            val osgi = jar.extensions.create(OSGI_EXTENSION_NAME, OsgiExtension::class.java, objects, jar)
             osgi.embed(calculatorTask.flatMap(DependencyCalculator::embeddedJars))
 
-            val noPackages = project.objects.setProperty(String::class.java)
+            val noPackages = objects.setProperty(String::class.java)
                 .apply(SetProperty<String>::disallowChanges)
-            val autoPackages = project.objects.setProperty(String::class.java)
+            val autoPackages = objects.setProperty(String::class.java)
             osgi.exportPackages(osgi.autoExport.flatMap { isAuto ->
                 if (isAuto) {
                     autoPackages

@@ -3,13 +3,17 @@ package net.corda.plugins.cpk
 import org.gradle.api.Action
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
+import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Nested
 import javax.inject.Inject
 
 @Suppress("UnstableApiUsage", "Unused", "PlatformExtensionReceiverOfInline")
-open class CordappExtension @Inject constructor(objects: ObjectFactory, bndVersion: String)  {
-
+open class CordappExtension @Inject constructor(
+    objects: ObjectFactory,
+    providers: ProviderFactory,
+    bndVersion: String
+) {
     /**
      * Top-level CorDapp attributes
      */
@@ -41,8 +45,9 @@ open class CordappExtension @Inject constructor(objects: ObjectFactory, bndVersi
      * Optional marker to seal all packages in the JAR.
      */
     @get:Input
-    val sealing: Property<Boolean> = objects.property(Boolean::class.java)
-            .convention(System.getProperty( CORDAPP_SEALING_SYSTEM_PROPERTY_NAME, "true").toBoolean())
+    val sealing: Property<Boolean> = objects.property(Boolean::class.java).convention(
+        providers.systemProperty(CORDAPP_SEALING_SYSTEM_PROPERTY_NAME).orElse("true").map(String::toBoolean)
+    )
 
     @get:Input
     val bndVersion: Property<String> = objects.property(String::class.java).convention(bndVersion)

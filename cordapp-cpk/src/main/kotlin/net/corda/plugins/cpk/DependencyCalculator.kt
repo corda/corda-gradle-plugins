@@ -47,6 +47,14 @@ open class DependencyCalculator @Inject constructor(objects: ObjectFactory) : De
         outputs.upToDateWhen(satisfyNone())
     }
 
+    /**
+     * Gradle's configuration cache forbids invoking [org.gradle.api.Task.getProject]
+     * during the task execution phase. Although to be blunt, Gradle cannot serialise
+     * a [ConfigurationContainer][org.gradle.api.artifacts.ConfigurationContainer]
+     * field either!
+     */
+    private val configurations = project.configurations
+
     private val _libraries: ConfigurableFileCollection = objects.fileCollection()
     val libraries: Provider<Set<FileSystemLocation>>
         @OutputFiles
@@ -82,7 +90,7 @@ open class DependencyCalculator @Inject constructor(objects: ObjectFactory) : De
     }
 
     private fun calculateTaskDependencies(): Set<TaskDependency> {
-        return with(project.configurations) {
+        return with(configurations) {
             CORDAPP_BUILD_CONFIGURATIONS.map(::getByName)
                 .mapTo(LinkedHashSet(), Configuration::getBuildDependencies)
         }
@@ -90,8 +98,6 @@ open class DependencyCalculator @Inject constructor(objects: ObjectFactory) : De
 
     @TaskAction
     fun calculate() {
-        val configurations = project.configurations
-
         // Compute the (unresolved) dependencies on the runtime classpath
         // that the user has selected for this CPK archive. We ignore any
         // dependencies from the cordaRuntimeOnly configuration because
