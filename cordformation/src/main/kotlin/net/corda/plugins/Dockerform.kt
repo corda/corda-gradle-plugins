@@ -6,7 +6,12 @@ import org.gradle.api.Action
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
-import org.gradle.api.tasks.*
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.Nested
+import org.gradle.api.tasks.Optional
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.PathSensitivity.RELATIVE
 import org.yaml.snakeyaml.DumperOptions
 import org.yaml.snakeyaml.Yaml
@@ -24,7 +29,7 @@ import javax.inject.Inject
  *
  * See documentation for examples.
  */
-@Suppress("unused")
+@Suppress("unused", "UnstableApiUsage")
 open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(objects) {
 
     private companion object {
@@ -85,7 +90,7 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
      */
     @TaskAction
     fun build() {
-        project.logger.lifecycle("Running DockerForm task")
+        logger.lifecycle("Running DockerForm task")
         initializeConfiguration()
         nodes.forEach { it.installDockerConfig(DEFAULT_SSH_PORT) }
         installCordaJar()
@@ -212,7 +217,7 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
             services[it.containerName] = service
         }
 
-        if (external.containerImage.isPresent()) {
+        if (external.containerImage.isPresent) {
 
             val extra = mutableMapOf(
                     "container_name" to external.containerName.get(),
@@ -228,10 +233,10 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
             if(external.privileged.get() == true) {
                 extra["privileged"] = external.privileged.get()
             }
-            if(external.commands.isPresent()){
+            if(external.commands.isPresent){
                 extra["command"] = external.commands.get()
             }
-            services["${external.containerName.get()}"] = extra
+            services[external.containerName.get()] = extra
         }
 
         val dockerComposeObject = mutableMapOf(

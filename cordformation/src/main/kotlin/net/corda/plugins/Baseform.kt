@@ -14,8 +14,8 @@ import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
-import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.SourceSet.MAIN_SOURCE_SET_NAME
+import org.gradle.util.ConfigureUtil.configureUsing
 import java.io.File
 import java.lang.reflect.InvocationTargetException
 import java.net.URLClassLoader
@@ -29,8 +29,8 @@ import java.security.Security
  *
  * See documentation for examples.
  */
-@Suppress("unused")
-open class Baseform(objects: ObjectFactory) : DefaultTask() {
+@Suppress("unused", "UnstableApiUsage")
+open class Baseform(private val objects: ObjectFactory) : DefaultTask() {
 
     private companion object {
         const val nodeJarName = "corda.jar"
@@ -47,7 +47,6 @@ open class Baseform(objects: ObjectFactory) : DefaultTask() {
     @get:Nested
     protected val nodes = mutableListOf<Node>()
 
-    @get:Optional
     @get:Nested
     protected val networkParameterOverrides: NetworkParameterOverrides = objects.newInstance(NetworkParameterOverrides::class.java, project)
 
@@ -76,13 +75,21 @@ open class Baseform(objects: ObjectFactory) : DefaultTask() {
 
     /**
      * Default configuration values that are applied to every node.
-     * This should ideally be a [Nested] property, but Gradle doesn't
-     * support this for a [Closure]. However, these defaults are
-     * applied to every node anyway so [Internal] should be fine.
      */
-    @get:Internal
-    var nodeDefaults: Closure<in Node>? = null
-        protected set
+    @Deprecated("For backwards compatibility from Groovy DSL")
+    var nodeDefaults: Closure<in Node>?
+        @Internal
+        get() = null
+
+        protected set(value) {
+            _nodeDefaults = configureUsing(value)
+        }
+
+    private var _nodeDefaults: Action<in Node>? = null
+
+    fun nodeDefaults(action: Action<in Node>) {
+        _nodeDefaults = action
+    }
 
     /**
      * Configuration for keystore generation and JAR signing.
@@ -104,30 +111,16 @@ open class Baseform(objects: ObjectFactory) : DefaultTask() {
         excludeWhitelist = map
     }
 
-    /**
-     * Add a node configuration.
-     *
-     * @param configureClosure A node configuration that will be deployed.
-     */
-    @Suppress("MemberVisibilityCanPrivate")
-    fun node(configureClosure: Closure<in Node>) {
-        val newNode = configureDefaults(Node(project))
-        (project.configure(newNode, configureClosure) as Node).also { node ->
-            nodes += node
-        }
+    fun node(action: Action<in Node>) {
+        val newNode = objects.newInstance(Node::class.java, project)
+        _nodeDefaults?.execute(newNode)
+        action.execute(newNode)
+        nodes += newNode
     }
 
-    /**
-     * Add a node configuration
-     *
-     * @param configureFunc A node configuration that will be deployed
-     */
-    @Suppress("MemberVisibilityCanPrivate")
-    fun node(configureFunc: Node.() -> Any?): Node {
-        return configureDefaults(Node(project)).also { node ->
-            node.configureFunc()
-            nodes += node
-        }
+    @Deprecated("For backwards compatibility from Kotlin DSL")
+    fun node(configureClosure: Closure<in Node>) {
+        node(configureUsing(configureClosure))
     }
 
     /**
@@ -170,10 +163,6 @@ open class Baseform(objects: ObjectFactory) : DefaultTask() {
         nodes.forEach {
             it.rootDir(directory)
         }
-    }
-
-    private fun configureDefaults(node: Node): Node {
-        return nodeDefaults?.let { project.configure(node, it) as Node } ?: node
     }
 
     private fun deleteRootDir() {
@@ -297,7 +286,7 @@ open class Baseform(objects: ObjectFactory) : DefaultTask() {
 
     private fun ClassLoader.loadNetworkBootstrapper(): Class<*> {
         return try {
-            loadClass("net.corda.nodeapi.internal.network.NetworkBootstrapper")
+            Class.forName("net.corda.nodeapi.internal.network.NetworkBootstrapper", true, this)
         } catch (e: ClassNotFoundException) {
             throw InvalidUserCodeException("Cannot find the NetworkBootstrapper class. Please ensure that 'corda-node-api' is available on Gradle's runtime classpath, "
                     + "e.g. by adding it to Gradle's 'runtimeOnly' configuration.", e)
@@ -322,6 +311,6 @@ open class Baseform(objects: ObjectFactory) : DefaultTask() {
     }
 
     private fun ClassLoader.invoke(className: String, methodName: String, obj: Any?): Any? {
-        return loadClass(className).getDeclaredMethod(methodName).invoke(obj)
+        return Class.forName(className, true, this).getDeclaredMethod(methodName).invoke(obj)
     }
 }

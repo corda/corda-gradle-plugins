@@ -2,16 +2,19 @@ package net.corda.plugins
 
 import org.gradle.api.Project
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Optional
 import java.io.File
 import javax.inject.Inject
 
+@Suppress("unused")
 open class Cordapp @Inject constructor(
-        @get:[Optional Input] val coordinates: String?,
-        @get:[Optional Input] val project: Project?
+    @get:Input val coordinates: String,
+    @get:Internal val project: Project
 ) {
-    constructor(coordinates: String) : this(coordinates, null)
-    constructor(cordappProject: Project) : this(null, cordappProject)
+    @get:Optional
+    @get:Input
+    internal val projectPath: String? = project.path
 
     // The configuration text that will be written
     @get:Optional
