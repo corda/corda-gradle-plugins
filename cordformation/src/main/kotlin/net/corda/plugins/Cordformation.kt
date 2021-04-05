@@ -19,6 +19,7 @@ class Cordformation : Plugin<Project> {
         const val CORDA_RUNTIME_ONLY_CONFIGURATION_NAME = "cordaRuntimeOnly"
         const val CORDA_DRIVER_CONFIGURATION_NAME = "cordaDriver"
         const val CORDAPP_CONFIGURATION_NAME = "cordapp"
+        const val DEPLOY_CORDAPP_CONFIGURATION_NAME = "deployCordapp"
         const val CORDFORMATION_TYPE = "cordformationInternal"
         const val MINIMUM_GRADLE_VERSION = "5.1"
 
@@ -76,10 +77,14 @@ class Cordformation : Plugin<Project> {
         project.pluginManager.apply(JavaPlugin::class.java)
 
         project.configurations.apply {
-            createCompileConfiguration(CORDAPP_CONFIGURATION_NAME)
+            val cordapp = createCompileConfiguration(CORDAPP_CONFIGURATION_NAME)
             val cordaRuntimeOnly = createRuntimeOnlyConfiguration(CORDA_RUNTIME_ONLY_CONFIGURATION_NAME)
             createChildConfiguration(CORDFORMATION_TYPE, cordaRuntimeOnly)
-            maybeCreate(CORDA_DRIVER_CONFIGURATION_NAME)
+            maybeCreate(CORDA_DRIVER_CONFIGURATION_NAME).setCanBeConsumed(false)
+            maybeCreate(DEPLOY_CORDAPP_CONFIGURATION_NAME)
+                .setVisible(false)
+                .extendsFrom(cordapp)
+                .setCanBeConsumed(false)
         }
         // TODO: improve how we re-use existing declared external variables from root gradle.build
         val jolokiaVersion = project.findRootProperty("jolokia_version") ?: "1.6.0"

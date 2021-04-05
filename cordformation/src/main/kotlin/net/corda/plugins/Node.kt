@@ -1,8 +1,8 @@
 package net.corda.plugins
 
 import com.typesafe.config.*
-import net.corda.plugins.Cordformation.Companion.CORDAPP_CONFIGURATION_NAME
 import net.corda.plugins.Cordformation.Companion.CORDA_DRIVER_CONFIGURATION_NAME
+import net.corda.plugins.Cordformation.Companion.DEPLOY_CORDAPP_CONFIGURATION_NAME
 import org.gradle.api.Action
 import org.gradle.api.GradleException
 import org.gradle.api.Project
@@ -724,7 +724,7 @@ open class Node @Inject constructor(private val project: Project) {
             return null
         }
 
-        val cordappConfiguration = project.configuration(CORDAPP_CONFIGURATION_NAME)
+        val cordappConfiguration = project.configuration(DEPLOY_CORDAPP_CONFIGURATION_NAME)
         val cordappName = if (cordapp.project !is CordaMock) cordapp.project.name else cordapp.coordinates
         val cordappFile = cordappConfiguration.files {
             when {

@@ -27,11 +27,17 @@ fun Project.configuration(name: String): Configuration = configurations.getByNam
 fun ConfigurationContainer.createChildConfiguration(name: String, parent: Configuration): Configuration {
     return findByName(name) ?: run {
         val configuration = create(name) {
+            it.isCanBeConsumed = false
+            it.isCanBeResolved = false
             it.isTransitive = false
         }
         parent.extendsFrom(configuration)
         configuration
     }
+}
+
+fun ConfigurationContainer.createRuntimeOnlyConfiguration(name: String): Configuration {
+    return createChildConfiguration(name, getByName(RUNTIME_ONLY_CONFIGURATION_NAME))
 }
 
 fun ConfigurationContainer.createCompileConfiguration(name: String): Configuration {
@@ -40,17 +46,16 @@ fun ConfigurationContainer.createCompileConfiguration(name: String): Configurati
 
 private fun ConfigurationContainer.createCompileConfiguration(name: String, testSuffix: String): Configuration {
     return findByName(name) ?: run {
-        val configuration = create(name)
+        val configuration = create(name).apply {
+            isCanBeConsumed = false
+            isCanBeResolved = false
+        }
         getByName(COMPILE_ONLY_CONFIGURATION_NAME).extendsFrom(configuration)
         matching { it.name.endsWith(testSuffix) }.configureEach { cfg ->
             cfg.extendsFrom(configuration)
         }
         configuration
     }
-}
-
-fun ConfigurationContainer.createRuntimeOnlyConfiguration(name: String): Configuration {
-    return createChildConfiguration(name, getByName(RUNTIME_ONLY_CONFIGURATION_NAME))
 }
 
 fun writeResourceToFile(resourcePath: String, path: Path) {

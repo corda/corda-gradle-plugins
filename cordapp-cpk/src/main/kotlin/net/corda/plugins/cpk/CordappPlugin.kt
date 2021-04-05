@@ -17,7 +17,7 @@ import org.gradle.api.java.archives.Attributes
 import org.gradle.api.plugins.AppliedPlugin
 import org.gradle.api.plugins.JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME
 import org.gradle.api.plugins.JavaPlugin.JAR_TASK_NAME
-import org.gradle.api.plugins.JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME
+import org.gradle.api.plugins.JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.SetProperty
@@ -101,7 +101,7 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
             }
             val cordaProvided = createCompileConfiguration(CORDA_PROVIDED_CONFIGURATION_NAME)
             createRuntimeOnlyConfiguration(CORDA_RUNTIME_ONLY_CONFIGURATION_NAME)
-            maybeCreate(CORDA_CPK_CONFIGURATION_NAME)
+            maybeCreate(CORDA_CPK_CONFIGURATION_NAME).isCanBeResolved = false
 
             getByName(COMPILE_ONLY_CONFIGURATION_NAME).withDependencies { dependencies ->
                 val bndDependency = project.dependencies.create("biz.aQute.bnd:biz.aQute.bnd.annotation:" + cordapp.bndVersion.get())
@@ -132,12 +132,13 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
                 }
 
             // We need to resolve the contents of our CPK file based on
-            // both the runtimeClasspath and cordaEmbedded configurations.
+            // both the runtimeElements and cordaEmbedded configurations.
             // This won't happen by default because cordaEmbedded is a
             // "compile only" configuration.
             create(CORDAPP_PACKAGING_CONFIGURATION_NAME).setVisible(false)
-                .extendsFrom(getByName(RUNTIME_CLASSPATH_CONFIGURATION_NAME))
+                .extendsFrom(getByName(RUNTIME_ELEMENTS_CONFIGURATION_NAME))
                 .extendsFrom(cordaEmbedded)
+                .isCanBeConsumed = false
         }
 
         // We need to perform some extra work on the root project to support publication.
