@@ -1,13 +1,10 @@
 package net.corda.plugins
 
-import com.typesafe.config.ConfigFactory
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.testkit.runner.TaskOutcome
 import org.junit.jupiter.api.Test
 import org.yaml.snakeyaml.Yaml
 import java.nio.file.Path
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 class DockerformTest : BaseformTest() {
 
@@ -45,7 +42,6 @@ class DockerformTest : BaseformTest() {
                 "DeployThreeNodeCordappWithExternalDBSettingsWithDocker.gradle",
                 "prepareDockerNodes")
 
-        val bankOfCordaNodeName = "BankOfCorda"
         val bigCorporationNodeName = "BigCorporation"
 
         val result = runner.build()
@@ -54,9 +50,9 @@ class DockerformTest : BaseformTest() {
         assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceWorkflowsJarName)).isRegularFile()
         assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceContractsJarName)).isRegularFile()
         assertThat(getNetworkParameterOverrides(notaryNodeName)).isRegularFile()
-        assertThat(getNodeCordappJar(bankOfCordaNodeName, cordaFinanceWorkflowsJarName)).isRegularFile()
-        assertThat(getNodeCordappJar(bankOfCordaNodeName, cordaFinanceContractsJarName)).isRegularFile()
-        assertThat(getNetworkParameterOverrides(bankOfCordaNodeName)).isRegularFile()
+        assertThat(getNodeCordappJar(bankNodeName, cordaFinanceWorkflowsJarName)).isRegularFile()
+        assertThat(getNodeCordappJar(bankNodeName, cordaFinanceContractsJarName)).isRegularFile()
+        assertThat(getNetworkParameterOverrides(bankNodeName)).isRegularFile()
         assertThat(getNodeCordappJar(bigCorporationNodeName, cordaFinanceWorkflowsJarName)).isRegularFile()
         assertThat(getNodeCordappJar(bigCorporationNodeName, cordaFinanceContractsJarName)).isRegularFile()
         assertThat(getNetworkParameterOverrides(bigCorporationNodeName)).isRegularFile()
@@ -68,7 +64,6 @@ class DockerformTest : BaseformTest() {
                 "DeployThreeNodeCordappWithExternalDBSettingsWithNetworkConfigWithDocker.gradle",
                 "prepareDockerNodes")
 
-        val bankOfCordaNodeName = "BankOfCorda"
         val bigCorporationNodeName = "BigCorporation"
 
         val result = runner.build()
@@ -77,9 +72,9 @@ class DockerformTest : BaseformTest() {
         assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceWorkflowsJarName)).isRegularFile()
         assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceContractsJarName)).isRegularFile()
         assertThat(getNetworkParameterOverrides(notaryNodeName)).isRegularFile()
-        assertThat(getNodeCordappJar(bankOfCordaNodeName, cordaFinanceWorkflowsJarName)).isRegularFile()
-        assertThat(getNodeCordappJar(bankOfCordaNodeName, cordaFinanceContractsJarName)).isRegularFile()
-        assertThat(getNetworkParameterOverrides(bankOfCordaNodeName)).isRegularFile()
+        assertThat(getNodeCordappJar(bankNodeName, cordaFinanceWorkflowsJarName)).isRegularFile()
+        assertThat(getNodeCordappJar(bankNodeName, cordaFinanceContractsJarName)).isRegularFile()
+        assertThat(getNetworkParameterOverrides(bankNodeName)).isRegularFile()
         assertThat(getNodeCordappJar(bigCorporationNodeName, cordaFinanceWorkflowsJarName)).isRegularFile()
         assertThat(getNodeCordappJar(bigCorporationNodeName, cordaFinanceContractsJarName)).isRegularFile()
         assertThat(getNetworkParameterOverrides(bigCorporationNodeName)).isRegularFile()
@@ -108,33 +103,21 @@ class DockerformTest : BaseformTest() {
 
         val result = runner.build()
 
-        val bankOfCordaNodeName = "BankOfCorda"
-
         assertThat(result.task(":prepareDockerNodes")!!.outcome).isEqualTo(TaskOutcome.SUCCESS)
         assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceWorkflowsJarName)).isRegularFile()
         assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceContractsJarName)).isRegularFile()
         assertThat(getNetworkParameterOverrides(notaryNodeName)).isRegularFile()
-        assertThat(getNodeCordappJar(bankOfCordaNodeName, cordaFinanceWorkflowsJarName)).isRegularFile()
-        assertThat(getNodeCordappJar(bankOfCordaNodeName, cordaFinanceContractsJarName)).isRegularFile()
-        assertThat(getNetworkParameterOverrides(bankOfCordaNodeName)).isRegularFile()
+        assertThat(getNodeCordappJar(bankNodeName, cordaFinanceWorkflowsJarName)).isRegularFile()
+        assertThat(getNodeCordappJar(bankNodeName, cordaFinanceContractsJarName)).isRegularFile()
+        assertThat(getNetworkParameterOverrides(bankNodeName)).isRegularFile()
 
-        val notaryConfigPath = getNodeConfig(notaryNodeName)
-        assertThat(notaryConfigPath).isRegularFile()
+        assertThatConfig(getNodeConfig(notaryNodeName))
+            .hasPath("rpcSettings.address", "notary-service:10003")
+            .hasPath("rpcSettings.adminAddress", "notary-service:10043")
 
-        val notaryConfig = ConfigFactory.parseFile(notaryConfigPath.toFile())
-        assertTrue(notaryConfig.hasPath("rpcSettings.address"))
-        assertTrue(notaryConfig.hasPath("rpcSettings.adminAddress"))
-        assertEquals(10003, ConfigurationUtils.parsePort(notaryConfig.getString("rpcSettings.address")))
-        assertEquals(10043, ConfigurationUtils.parsePort(notaryConfig.getString("rpcSettings.adminAddress")))
-
-        val bankOfCordaConfigPath = getNodeConfig(bankOfCordaNodeName)
-        assertThat(bankOfCordaConfigPath).isRegularFile()
-
-        val bankOfCordaConfig = ConfigFactory.parseFile(bankOfCordaConfigPath.toFile())
-        assertTrue(bankOfCordaConfig.hasPath("rpcSettings.address"))
-        assertTrue(bankOfCordaConfig.hasPath("rpcSettings.adminAddress"))
-        assertEquals(10006, ConfigurationUtils.parsePort(bankOfCordaConfig.getString("rpcSettings.address")))
-        assertEquals(10046, ConfigurationUtils.parsePort(bankOfCordaConfig.getString("rpcSettings.adminAddress")))
+        assertThatConfig(getNodeConfig(bankNodeName))
+            .hasPath("rpcSettings.address", "bankofcorda:10006")
+            .hasPath("rpcSettings.adminAddress", "bankofcorda:10046")
 
         val dockerComposePath = getDockerCompose()
 

@@ -66,7 +66,7 @@ class CordformTest : BaseformTest() {
 
     @Test
     fun `a node that requires an extra command to create schema`() {
-        val cordaReleaseVersion = "4.6-20200608_123659-1da174c"
+        val cordaReleaseVersion = "4.6"
 
         val runner = getStandardGradleRunnerFor(
             "DeploySingleNodeWithExtraCommandForDbSchema.gradle",
