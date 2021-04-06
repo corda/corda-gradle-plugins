@@ -2,14 +2,17 @@ package net.corda.plugins
 
 import com.typesafe.config.*
 import groovy.lang.Closure
+import org.gradle.api.Action
 import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ProjectDependency
+import org.gradle.api.plugins.JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.Optional
+import org.gradle.util.ConfigureUtil.configureUsing
 import java.io.File
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
@@ -21,6 +24,7 @@ import javax.inject.Inject
 /**
  * Represents a node that will be installed.
  */
+@Suppress("UnstableApiUsage")
 open class Node @Inject constructor(private val project: Project) {
     internal data class ResolvedCordapp(val jarFile: Path, val config: String?)
 
@@ -28,6 +32,13 @@ open class Node @Inject constructor(private val project: Project) {
         const val webJarName = "corda-testserver.jar"
         const val configFileProperty = "configFile"
         const val DEFAULT_HOST = "localhost"
+
+        /**
+         * [ObjectFactory][org.gradle.api.model.ObjectFactory] refuses
+         * to inject `null`, and so we need to inject a mock [Project]
+         * object instead for those cases.
+         */
+        private val NO_PROJECT = cordaMock<Project>()
     }
 
     /**
@@ -47,7 +58,6 @@ open class Node @Inject constructor(private val project: Project) {
         }
 
     private val internalCordapps = mutableListOf<Cordapp>()
-    @get:Optional
     @get:Nested
     val projectCordapp: Cordapp = project.objects.newInstance(Cordapp::class.java, "", project)
     internal lateinit var nodeDir: File
@@ -57,7 +67,7 @@ open class Node @Inject constructor(private val project: Project) {
     internal lateinit var containerName: String
         @Internal get
         private set
-    private var rpcSettings: RpcSettings = RpcSettings()
+    private val rpcSettings: RpcSettings = RpcSettings()
     private var webserverJar: String? = null
     private var p2pPort = 10002
     @get:Input
@@ -203,7 +213,7 @@ open class Node @Inject constructor(private val project: Project) {
      */
     @Deprecated("Use {@link CordformNode#rpcSettings(RpcSettings)} instead. Will be removed by Corda V5.0.")
     fun rpcPort(rpcPort: Int) {
-        rpcAddress(DEFAULT_HOST + ':'.toString() + rpcPort)
+        rpcAddress("$DEFAULT_HOST:$rpcPort")
     }
 
     /**
@@ -221,7 +231,7 @@ open class Node @Inject constructor(private val project: Project) {
      * must have an RPC address configured.
      */
     fun webPort(webPort: Int) {
-        webAddress(DEFAULT_HOST + ':'.toString() + webPort)
+        webAddress("$DEFAULT_HOST:$webPort")
     }
 
     /**
@@ -271,9 +281,14 @@ open class Node @Inject constructor(private val project: Project) {
     /**
      * Specifies RPC settings for the node.
      */
-    fun rpcSettings(configureClosure: Closure<in RpcSettings>) {
-        rpcSettings = project.configure(RpcSettings(), configureClosure) as RpcSettings
+    fun rpcSettings(action: Action<in RpcSettings>) {
+        action.execute(rpcSettings)
         config = rpcSettings.addTo("rpcSettings", config)
+    }
+
+    @Deprecated("For backwards compatibility from Kotlin DSL")
+    fun rpcSettings(configureClosure: Closure<in RpcSettings>) {
+        rpcSettings(configureUsing(configureClosure))
     }
 
     /**
@@ -297,26 +312,38 @@ open class Node @Inject constructor(private val project: Project) {
      * Install a cordapp to this node
      *
      * @param coordinates The coordinates of the [Cordapp]
-     * @param configureClosure A groovy closure to configure a [Cordapp] object
+     * @param action An [Action] to configure a [Cordapp] object
      * @return The created and inserted [Cordapp]
      */
+    fun cordapp(coordinates: String, action: Action<in Cordapp>): Cordapp {
+        return project.objects.newInstance(Cordapp::class.java, coordinates, NO_PROJECT).also { cordapp ->
+            action.execute(cordapp)
+            internalCordapps += cordapp
+        }
+    }
+
+    @Deprecated("For backwards compatibility from Kotlin DSL")
     fun cordapp(coordinates: String, configureClosure: Closure<in Cordapp>): Cordapp {
-        val cordapp = project.configure(Cordapp(coordinates, project), configureClosure) as Cordapp
-        internalCordapps += cordapp
-        return cordapp
+        return cordapp(coordinates, configureUsing(configureClosure))
     }
 
     /**
      * Install a cordapp to this node
      *
      * @param cordappProject A project that produces a cordapp JAR
-     * @param configureClosure A groovy closure to configure a [Cordapp] object
+     * @param action An [Action] to configure a [Cordapp] object
      * @return The created and inserted [Cordapp]
      */
+    fun cordapp(cordappProject: Project, action: Action<in Cordapp>): Cordapp {
+        return project.objects.newInstance(Cordapp::class.java, "", cordappProject).also { cordapp ->
+            action.execute(cordapp)
+            internalCordapps += cordapp
+        }
+    }
+
+    @Deprecated("For backwards compatibility from Kotlin DSL")
     fun cordapp(cordappProject: Project, configureClosure: Closure<in Cordapp>): Cordapp {
-        val cordapp = project.configure(Cordapp(cordappProject), configureClosure) as Cordapp
-        internalCordapps += cordapp
-        return cordapp
+        return cordapp(cordappProject, configureUsing(configureClosure))
     }
 
     /**
@@ -326,8 +353,8 @@ open class Node @Inject constructor(private val project: Project) {
      * @return The created and inserted [Cordapp]
      */
     fun cordapp(cordappProject: Project): Cordapp {
-        return Cordapp(cordappProject).apply {
-            internalCordapps += this
+        return project.objects.newInstance(Cordapp::class.java, "", cordappProject).also { cordapp ->
+            internalCordapps += cordapp
         }
     }
 
@@ -338,39 +365,36 @@ open class Node @Inject constructor(private val project: Project) {
      * @return The created and inserted [Cordapp]
      */
     fun cordapp(coordinates: String): Cordapp {
-        return Cordapp(coordinates).apply {
-            internalCordapps += this
+        return project.objects.newInstance(Cordapp::class.java, coordinates, NO_PROJECT).also { cordapp ->
+            internalCordapps += cordapp
         }
     }
 
-    /**
-     * Install a cordapp to this node
-     *
-     * @param configureFunc A lambda to configure a [Cordapp] object
-     * @return The created and inserted [Cordapp]
-     */
-    fun cordapp(coordinates: String, configureFunc: Cordapp.() -> Unit): Cordapp {
-        return Cordapp(coordinates).apply {
-            configureFunc()
-            internalCordapps += this
-        }
+    fun cordapp(action: Action<in Cordapp>): Cordapp {
+        return projectCordapp(action)
     }
 
+    @Deprecated("For backwards compatibility from Kotlin DSL",
+        replaceWith = ReplaceWith("projectCordapp {}"))
+    @Suppress("deprecation")
     fun cordapp(configureClosure: Closure<in Cordapp>): Cordapp {
-        val cordapp = project.configure(Cordapp(project), configureClosure) as Cordapp
-        internalCordapps += cordapp
-        return cordapp
+        return projectCordapp(configureClosure)
     }
 
     /**
      * Configures the default cordapp automatically added to this node from this project
      *
-     * @param configureClosure A groovy closure to configure a [Cordapp] object
+     * @param action An [Action] to configure a [Cordapp] object
      * @return The created and inserted [Cordapp]
      */
-    fun projectCordapp(configureClosure: Closure<in Cordapp>): Cordapp {
-        project.configure(projectCordapp, configureClosure) as Cordapp
+    fun projectCordapp(action: Action<in Cordapp>): Cordapp {
+        action.execute(projectCordapp)
         return projectCordapp
+    }
+
+    @Deprecated("For backwards compatibility from Kotlin DSL")
+    fun projectCordapp(configureClosure: Closure<in Cordapp>): Cordapp {
+        return projectCordapp(configureUsing(configureClosure))
     }
 
     /**
@@ -554,7 +578,7 @@ open class Node @Inject constructor(private val project: Project) {
         // TODO: improve how we re-use existing declared external variables from root gradle.build
         val jolokiaVersion = project.findRootProperty("jolokia_version") ?: "1.6.0"
 
-        val agentJar = project.configuration("runtime").files {
+        val agentJar = project.configuration(RUNTIME_CLASSPATH_CONFIGURATION_NAME).files {
             (it.group == "org.jolokia") &&
                     (it.name == "jolokia-jvm") &&
                     (it.version == jolokiaVersion)
@@ -750,11 +774,11 @@ open class Node @Inject constructor(private val project: Project) {
         }
 
         val cordappConfiguration = project.configuration("cordapp")
-        val cordappName = if (cordapp.project != null) cordapp.project.name else cordapp.coordinates
+        val cordappName = if (cordapp.project !is CordaMock) cordapp.project.name else cordapp.coordinates
         val cordappFile = cordappConfiguration.files {
             when {
-                (it is ProjectDependency) && (cordapp.project != null) -> it.dependencyProject == cordapp.project
-                cordapp.coordinates != null -> {
+                (it is ProjectDependency) && (cordapp.project !is CordaMock) -> it.dependencyProject == cordapp.project
+                cordapp.coordinates.isNotEmpty() -> {
                     // Cordapps can sometimes contain a GString instance which fails the equality test with the Java string
                     @Suppress("RemoveRedundantCallsOfConversionMethods")
                     val coordinates = cordapp.coordinates.toString()

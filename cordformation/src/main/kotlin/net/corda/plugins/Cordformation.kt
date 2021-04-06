@@ -3,8 +3,10 @@ package net.corda.plugins
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.Task
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.plugins.JavaPlugin
+import org.gradle.api.plugins.JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME
 import org.gradle.util.GradleVersion
 import java.io.File
 
@@ -23,10 +25,8 @@ class Cordformation : Plugin<Project> {
          * @param filePathInJar The file in the JAR, relative to root, you wish to access.
          * @return A file handle to the file in the JAR.
          */
-        fun getPluginFile(project: Project, filePathInJar: String): File {
-            val tmpDir = File(project.buildDir, "tmp")
-            val outputFile = File(tmpDir, filePathInJar)
-            tmpDir.mkdir()
+        fun getPluginFile(task: Task, filePathInJar: String): File {
+            val outputFile = File(task.temporaryDir, filePathInJar)
             outputFile.outputStream().use { output ->
                 Cordformation::class.java.getResourceAsStream(filePathInJar)?.use { input ->
                     input.copyTo(output)
@@ -47,7 +47,7 @@ class Cordformation : Plugin<Project> {
                     ?: throw IllegalStateException("Could not find a valid declaration of \"corda_release_version\"")
             // need to cater for optional classifier (eg. corda-4.3-jdk11.jar)
             val pattern = "\\Q$jarName\\E(-enterprise)?-\\Q$releaseVersion\\E(-.+)?\\.jar\$".toRegex()
-            val maybeJar = project.configuration("runtime").filter {
+            val maybeJar = project.configuration(RUNTIME_CLASSPATH_CONFIGURATION_NAME).filter {
                 it.toString().contains(pattern)
             }
             if (maybeJar.isEmpty) {

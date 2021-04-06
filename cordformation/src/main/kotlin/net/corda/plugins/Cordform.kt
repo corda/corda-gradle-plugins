@@ -10,7 +10,7 @@ import javax.inject.Inject
  *
  * See documentation for examples.
  */
-@Suppress("unused")
+@Suppress("unused", "UnstableApiUsage")
 open class Cordform @Inject constructor(objects: ObjectFactory) : Baseform(objects) {
     init {
         description = "Creates and configures a deployment of Corda Node directories."
@@ -30,7 +30,7 @@ open class Cordform @Inject constructor(objects: ObjectFactory) : Baseform(objec
     private fun installRunScript() {
         project.copy {
             it.apply {
-                from(Cordformation.getPluginFile(project, "runnodes.jar"))
+                from(Cordformation.getPluginFile(this@Cordform, "runnodes.jar"))
                 fileMode = Cordformation.executableFileMode
                 into("$directory/")
             }
@@ -38,7 +38,7 @@ open class Cordform @Inject constructor(objects: ObjectFactory) : Baseform(objec
 
         project.copy {
             it.apply {
-                from(Cordformation.getPluginFile(project, "runnodes"))
+                from(Cordformation.getPluginFile(this@Cordform, "runnodes"))
                 // Replaces end of line with lf to avoid issues with the bash interpreter and Windows style line endings.
                 filter(mapOf("eol" to FixCrLfFilter.CrLf.newInstance("lf")), FixCrLfFilter::class.java)
                 fileMode = Cordformation.executableFileMode
@@ -48,7 +48,7 @@ open class Cordform @Inject constructor(objects: ObjectFactory) : Baseform(objec
 
         project.copy {
             it.apply {
-                from(Cordformation.getPluginFile(project, "runnodes.bat"))
+                from(Cordformation.getPluginFile(this@Cordform, "runnodes.bat"))
                 into("$directory/")
             }
         }
@@ -59,7 +59,7 @@ open class Cordform @Inject constructor(objects: ObjectFactory) : Baseform(objec
      */
     @TaskAction
     fun build() {
-        project.logger.lifecycle("Running Cordform task")
+        logger.lifecycle("Running Cordform task")
         initializeConfiguration()
         nodes.forEach {
             if (it.p2pAddress == null) {

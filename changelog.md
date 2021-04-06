@@ -4,6 +4,8 @@
 
 ### Version 5.0.14
 
+* `cordformation`: Replace `Closure` with `Action` in the DSL.
+
 ### Version 5.0.13
 
 * `cordformation`: Parsing for adding external service to docker-compose
