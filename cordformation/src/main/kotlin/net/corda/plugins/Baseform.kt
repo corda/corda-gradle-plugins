@@ -111,6 +111,11 @@ open class Baseform(private val objects: ObjectFactory) : DefaultTask() {
         excludeWhitelist = map
     }
 
+    /**
+     * Add a node configuration.
+     *
+     * @param action A node configuration that will be deployed.
+     */
     fun node(action: Action<in Node>) {
         val newNode = objects.newInstance(Node::class.java, project)
         _nodeDefaults?.execute(newNode)

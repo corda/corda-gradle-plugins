@@ -24,7 +24,7 @@ import javax.inject.Inject
 /**
  * Represents a node that will be installed.
  */
-@Suppress("UnstableApiUsage")
+@Suppress("unused", "UnstableApiUsage")
 open class Node @Inject constructor(private val project: Project) {
     internal data class ResolvedCordapp(val jarFile: Path, val config: String?)
 
@@ -370,6 +370,12 @@ open class Node @Inject constructor(private val project: Project) {
         }
     }
 
+    /**
+     * Configures the default cordapp automatically added to this node from this project.
+     *
+     * @param action A lambda to configure the default [Cordapp].
+     * @return The default [Cordapp].
+     */
     fun cordapp(action: Action<in Cordapp>): Cordapp {
         return projectCordapp(action)
     }
@@ -382,10 +388,10 @@ open class Node @Inject constructor(private val project: Project) {
     }
 
     /**
-     * Configures the default cordapp automatically added to this node from this project
+     * Configures the default cordapp automatically added to this node from this project.
      *
-     * @param action An [Action] to configure a [Cordapp] object
-     * @return The created and inserted [Cordapp]
+     * @param action An [Action] to configure the default [Cordapp].
+     * @return The default [Cordapp].
      */
     fun projectCordapp(action: Action<in Cordapp>): Cordapp {
         action.execute(projectCordapp)
