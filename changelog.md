@@ -7,8 +7,13 @@
 * Compatible with Gradle 6.6+.
 * `quasar-utils`: Upgrade to use Quasar 0.8.5_r3 OSGi bundles.
 * `quasar-utils`: Support configurable `@Suspendable` annotation.
+* `cordformation`: Replace `Closure` with `Action` in the DSL.
 
 ## Version 5
+
+### Version 5.0.14
+
+* `cordformation`: Replace `Closure` with `Action` in the DSL.
 
 ### Version 5.0.13
 

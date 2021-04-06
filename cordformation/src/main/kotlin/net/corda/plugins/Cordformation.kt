@@ -3,6 +3,7 @@ package net.corda.plugins
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.Task
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME
@@ -27,10 +28,8 @@ class Cordformation : Plugin<Project> {
          * @param filePathInJar The file in the JAR, relative to root, you wish to access.
          * @return A file handle to the file in the JAR.
          */
-        fun getPluginFile(project: Project, filePathInJar: String): File {
-            val tmpDir = File(project.buildDir, "tmp")
-            val outputFile = File(tmpDir, filePathInJar)
-            tmpDir.mkdir()
+        fun getPluginFile(task: Task, filePathInJar: String): File {
+            val outputFile = File(task.temporaryDir, filePathInJar)
             outputFile.outputStream().use { output ->
                 Cordformation::class.java.getResourceAsStream(filePathInJar)?.use { input ->
                     // The copyTo() function uses its own buffer.
