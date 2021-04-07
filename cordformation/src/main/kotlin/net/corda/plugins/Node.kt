@@ -18,6 +18,7 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.util.Collections.unmodifiableList
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
@@ -42,23 +43,15 @@ open class Node @Inject constructor(private val project: Project) {
         private val NO_PROJECT = cordaMock<Project>()
     }
 
-    /**
-     * Set the list of CorDapps to install to the plugins directory. Each cordapp is a fully qualified Maven
-     * dependency name, eg: com.example:product-name:0.1
-     *
-     * @note Your app will be installed by default and does not need to be included here.
-     * @note Type is any due to gradle's use of "GStrings" - each value will have "toString" called on it
-     */
-    var cordapps: MutableList<out Any>
-        @Nested get() = internalCordapps
-        @Deprecated("Use cordapp instead - setter will be removed by Corda V4.0")
-        set(value) {
-            value.forEach {
-                cordapp(it.toString())
-            }
-        }
-
     private val internalCordapps = mutableListOf<Cordapp>()
+
+    /**
+     * The list of CorDapps to install to the plugins directory.
+     */
+    val cordapps: List<Cordapp>
+        @Nested
+        get() = unmodifiableList(internalCordapps)
+
     @get:Nested
     val projectCordapp: Cordapp = project.objects.newInstance(Cordapp::class.java, "", project)
     internal lateinit var nodeDir: File
