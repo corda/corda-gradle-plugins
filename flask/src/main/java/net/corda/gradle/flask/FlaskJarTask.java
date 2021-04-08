@@ -39,6 +39,7 @@ import java.util.jar.Manifest;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
+
 import static java.util.zip.Deflater.BEST_COMPRESSION;
 import static java.util.zip.Deflater.NO_COMPRESSION;
 import static net.corda.flask.common.Flask.Constants.BUFFER_SIZE;
@@ -244,8 +245,13 @@ public class FlaskJarTask extends AbstractArchiveTask {
                 mainAttributes.put(Attributes.Name.MAIN_CLASS, DEFAULT_LAUNCHER_NAME);
                 mainAttributes.putValue(Flask.ManifestAttributes.LAUNCHER_CLASS, launcherClassName.get());
                 mainAttributes.putValue(Flask.ManifestAttributes.PREMAIN_CLASS, DEFAULT_LAUNCHER_NAME);
-                Optional.ofNullable(mainClassName.getOrNull()).ifPresent(it ->
-                        mainAttributes.putValue(Flask.ManifestAttributes.APPLICATION_CLASS, it));
+
+                /**
+                 * {@link mainClassName} can never be null as its getter is annotated with @Input and
+                 * task invocation fails if a non {@link org.gradle.api.tasks.Optional} annotated task input is null
+                 */
+                String mainClass = mainClassName.getOrNull();
+                mainAttributes.putValue(Flask.ManifestAttributes.APPLICATION_CLASS, mainClass);
                 MessageDigest md = MessageDigest.getInstance("SHA-256");
                 byte[] buffer = new byte[BUFFER_SIZE];
                 mainAttributes.putValue(Flask.ManifestAttributes.HEARTBEAT_AGENT_HASH,

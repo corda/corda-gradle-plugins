@@ -14,6 +14,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 import java.util.stream.Collectors;
@@ -152,18 +153,40 @@ public class Launcher {
             }
             builder.getCliArgs().addAll(args);
             beforeChildJvmStart(builder);
-            try(LockFile processLock = LockFile.acquire(cache.getPidFile(), false)) {
-                builder.getProperties().put(Flask.JvmProperties.PID_FILE, cache.getPidFile());
-                Path heartbeatAgentPath = extractedLibraries.get(
-                        manifest.getMainAttributes().getValue(Flask.ManifestAttributes.HEARTBEAT_AGENT_HASH));
-                builder.getJvmArgs().add("-javaagent:" + heartbeatAgentPath);
-                int returnCode = builder.exec();
-                afterChildJvmExit(returnCode);
+            builder.getProperties().put(Flask.JvmProperties.PID_FILE, cache.getPidFile());
+            Path heartbeatAgentPath = extractedLibraries.get(
+                    manifest.getMainAttributes().getValue(Flask.ManifestAttributes.HEARTBEAT_AGENT_HASH));
+            builder.getJvmArgs().add("-javaagent:" + heartbeatAgentPath);
+            LockFile processLock = LockFile.acquire(cache.getPidFile(), false);
+            Process process = builder.build().inheritIO().start();
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                if(process.isAlive()) {
+                    process.destroy();
+                    try {
+                        long timeout = Long.parseLong(
+                                System.getProperty(
+                                        Flask.JvmProperties.KILL_TIMEOUT_MILLIS,
+                                        Flask.Constants.DEFAULT_KILL_TIMEOUT_MILLIS));
+                        process.waitFor(timeout, TimeUnit.MILLISECONDS);
+                    } catch (InterruptedException ie) {
+                        ie.printStackTrace();
+                    } finally {
+                        if (process.isAlive()) {
+                            process.destroyForcibly();
+                        }
+                        processLock.close();
+                    }
+                }
+                try {
+                    Files.delete(cache.getPidFile());
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
                 cache.touchLibraries();
-                return returnCode;
-            } finally {
-                Files.delete(cache.getPidFile());
-            }
+            }));
+            int returnCode = process.waitFor();
+            afterChildJvmExit(returnCode);
+            return returnCode;
         }
     }
 

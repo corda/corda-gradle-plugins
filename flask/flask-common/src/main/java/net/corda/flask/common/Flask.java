@@ -23,6 +23,7 @@ public class Flask {
         public static final String CLI_JVM_PARAMETERS_PREFIX = "-flaskJvmArg=";
         public static final int BUFFER_SIZE = 0x10000;
         public static final String GRADLE_TASK_GROUP = "Flask";
+        public static final String DEFAULT_KILL_TIMEOUT_MILLIS = "10000";
 
         /**
          * This value is used as a default file timestamp for all the zip entries when
@@ -65,6 +66,12 @@ public class Flask {
          * This property will contain the name of the main class the child process Launcher will start
          */
         public static final String MAIN_CLASS = "net.corda.flask.main.class";
+
+        /**
+         * This property will contain the amount of time the parent process will wait
+         * for the child process termination before killing it forcibly
+         */
+        public static final String KILL_TIMEOUT_MILLIS = "net.corda.flask.kill.timeout.millis";
     }
 
     @SneakyThrows

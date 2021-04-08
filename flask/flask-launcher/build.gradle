@@ -71,4 +71,3 @@ test {
         systemProperty("lockFileTest.executable.jar", lockFileTestExecutableJar.get().outputs.files.singleFile.toString())
     }
 }
-

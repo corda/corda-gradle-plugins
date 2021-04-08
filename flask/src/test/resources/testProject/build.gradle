@@ -50,3 +50,10 @@ tasks.register("flaskRunMainClassOverride", JavaExec) {
         'net.corda.flask.main.class' : "net.corda.gradle.flask.test.AlternativeMain",
     ])
 }
+
+tasks.register("shutdownHookTestJar", FlaskJarTask) {
+    Provider<Jar> jarTaskProvider = project.tasks.named('jar', Jar)
+    mainClassName = "net.corda.gradle.flask.test.HangingMain"
+    archiveFileName = "shutdownHookTest.jar"
+    includeLibraries(jarTaskProvider.map {it.outputs })
+}
