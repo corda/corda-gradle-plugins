@@ -5,6 +5,7 @@
 ### Version 5.0.14
 
 * `cordformation`: Replace `Closure` with `Action` in the DSL.
+* `cordformation`; Annotate `Baseform.signing` as `@Nested` instead of `@Input`.
 
 ### Version 5.0.13
 

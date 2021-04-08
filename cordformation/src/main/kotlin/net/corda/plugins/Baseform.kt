@@ -94,7 +94,7 @@ open class Baseform(private val objects: ObjectFactory) : DefaultTask() {
     /**
      * Configuration for keystore generation and JAR signing.
      */
-    @get:Input
+    @get:Nested
     val signing: KeyGenAndSigning = objects.newInstance(KeyGenAndSigning::class.java)
 
     fun signing(action: Action<in KeyGenAndSigning>) {
