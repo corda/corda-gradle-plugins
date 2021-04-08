@@ -1,16 +1,20 @@
 package net.corda.gradle.flask
 
+
 import groovy.transform.CompileStatic
 import net.corda.flask.common.Flask
 import org.gradle.testkit.runner.GradleRunner
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.Timeout
 import org.junit.jupiter.api.io.TempDir
 
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardCopyOption
 import java.security.MessageDigest
+import java.util.concurrent.TimeUnit
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 
@@ -19,6 +23,8 @@ import static net.corda.flask.common.Flask.Constants.ZIP_ENTRIES_DEFAULT_TIMESTA
 import static org.assertj.core.api.Assertions.assertThat
 import static org.junit.jupiter.api.Assertions.assertArrayEquals
 import static org.junit.jupiter.api.Assertions.assertEquals
+import static org.junit.jupiter.api.Assertions.assertNotEquals
+import static org.junit.jupiter.api.Assertions.assertTrue
 
 @CompileStatic
 class FlaskPluginTest {
@@ -70,6 +76,7 @@ class FlaskPluginTest {
         installResource("testProject", "settings.gradle", testProjectDir)
         installResource("testProject","src/main/java/net/corda/gradle/flask/test/Main.java", testProjectDir)
         installResource("testProject","src/main/java/net/corda/gradle/flask/test/AlternativeMain.java", testProjectDir)
+        installResource("testProject","src/main/java/net/corda/gradle/flask/test/HangingMain.java", testProjectDir)
         installResource("testProject","src/flask/java/net/corda/gradle/flask/test/TestLauncher.java", testProjectDir)
         installResource("testProject", "testAgent/build.gradle", testProjectDir)
         installResource("testProject", "testAgent/src/main/java/net/corda/gradle/flask/test/agent/JavaAgent.java", testProjectDir)
@@ -166,5 +173,32 @@ class FlaskPluginTest {
             }
         }
         assertEquals("net.corda.gradle.flask.test.AlternativeMain", prop.mainClassName)
+    }
+
+    @Test
+    @Timeout(value = 10L, unit = TimeUnit.SECONDS)
+    @DisplayName("Check that shutdown hooks are executed on flask jars")
+    void shutdownHookTest() {
+        invokeGradle("shutdownHookTestJar")
+        String javaHome = System.getProperty("java.home")
+        String javaExecutable = javaHome + File.separator + "bin" + File.separator + "java"
+        Path jarFile = testProjectDir.resolve("build/libs/shutdownHookTest.jar")
+        Process process = new ProcessBuilder(Arrays.asList(javaExecutable, '-jar', jarFile.toString()))
+            .directory(testProjectDir.toFile())
+            .inheritIO()
+            .start()
+        Path testFile = testProjectDir.resolve("shutdown-hook-executed")
+        int totalWait = 0
+        final int timeoutMillis = 5000
+        while(!Files.exists(testFile)) {
+            int loopWait = 100
+            totalWait += loopWait
+            assertTrue(totalWait < timeoutMillis, "Failed to create test file '$testFile'")
+            Thread.sleep(loopWait)
+        }
+        process.destroy()
+        int returnCode = process.waitFor()
+        assertNotEquals(0, returnCode)
+        assertThat(testProjectDir.resolve("shutdown-hook-executed")).doesNotExist()
     }
 }

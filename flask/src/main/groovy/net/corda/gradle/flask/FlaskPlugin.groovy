@@ -1,11 +1,9 @@
 package net.corda.gradle.flask
 
 import net.corda.flask.common.Flask
-import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.file.Directory
-import org.gradle.api.plugins.JavaApplication
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.provider.Provider
@@ -19,6 +17,7 @@ class FlaskPlugin implements Plugin<Project> {
     @Override
     void apply(Project project) {
         project.getPluginManager().apply(JavaPlugin.class)
+        project.ext['FlaskJarTask'] = FlaskJarTask.class
         Provider<Directory> flaskDir = project.layout.buildDirectory.dir("classes/flask-launcher")
         Provider<Copy> extractLauncherTarProvider = project.tasks.register("extractLauncherTar", Copy) {
             group = Flask.Constants.GRADLE_TASK_GROUP
@@ -50,12 +49,6 @@ class FlaskPlugin implements Plugin<Project> {
             }
             includeLibraries(project.tasks.named(JavaPlugin.JAR_TASK_NAME, Jar).map {it.outputs })
             includeLibraries(project.configurations.named(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME))
-
-            project.pluginManager.withPlugin('application') {
-                String result = project.extensions.findByType(JavaApplication.class)?.mainClassName
-                if(!result) throw new GradleException("mainClassName property from \"${JavaApplication.class.name}\" extension is not set")
-                mainClassName = result
-            }
         }
         project.tasks.register('flaskRun', JavaExec) {
             group = Flask.Constants.GRADLE_TASK_GROUP
