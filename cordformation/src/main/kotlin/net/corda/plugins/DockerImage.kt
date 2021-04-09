@@ -23,7 +23,7 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import javax.inject.Inject
 
-@Suppress("UnstableApiUsage", "unused")
+@Suppress("UnstableApiUsage", "unused", "LeakingThis")
 open class DockerImage @Inject constructor(objects: ObjectFactory, layouts: ProjectLayout) : DefaultTask() {
 
     private companion object{
@@ -33,6 +33,10 @@ open class DockerImage @Inject constructor(objects: ObjectFactory, layouts: Proj
     init {
         description = "Creates a docker file and immediately builds that image to the local repository."
         group = "CordaDockerDeployment"
+
+        // Ensure everything in the cordapp configuration that needs
+        // to be built is available before this task executes.
+        dependsOn(project.configurations.getByName(DEPLOY_CORDAPP_CONFIGURATION_NAME).buildDependencies)
     }
 
     @get:Input

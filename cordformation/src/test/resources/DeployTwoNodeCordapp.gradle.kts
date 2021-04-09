@@ -10,31 +10,38 @@ plugins {
 apply(from = "repositories.gradle")
 
 val corda_group: String by project
+val corda_bundle_version: String by project
 val corda_release_version: String by project
-val slf4j_version: String by project
+
+val cordaCPK by configurations.creating
 
 dependencies {
-    cordapp("$corda_group:corda-finance-contracts:$corda_release_version")
-    cordapp("$corda_group:corda-finance-workflows:$corda_release_version")
+    cordapp("$corda_group:corda-finance-contracts:$corda_bundle_version")
+    cordapp("$corda_group:corda-finance-workflows:$corda_bundle_version")
+    cordaRuntimeOnly("$corda_group:corda-node-api:$corda_bundle_version")
     cordaRuntimeOnly("$corda_group:corda:$corda_release_version")
-    cordaRuntimeOnly("$corda_group:corda-node-api:$corda_release_version")
-    cordaRuntimeOnly("org.slf4j:slf4j-simple:$slf4j_version")
 }
 
-tasks.named<Jar>("jar") {
-    archiveBaseName.set("locally-built-cordapp")
+val cpk = tasks.register<Jar>("cpk") {
+    archiveBaseName.set("locally-built")
+    archiveClassifier.set("cordapp")
+    archiveExtension.set("cpk")
+}
+
+artifacts {
+    add("cordaCPK", cpk)
 }
 
 tasks.register<Cordform>("deployNodes") {
-    dependsOn.add("jar")
+    dependsOn.add("cpk")
 
     nodeDefaults {
         projectCordapp {
             deploy = false
         }
 
-        cordapp("$corda_group:corda-finance-contracts:$corda_release_version")
-        cordapp("$corda_group:corda-finance-workflows:$corda_release_version") {
+        cordapp("$corda_group:corda-finance-contracts:$corda_bundle_version")
+        cordapp("$corda_group:corda-finance-workflows:$corda_bundle_version") {
             config("a=b")
         }
         runSchemaMigration = false

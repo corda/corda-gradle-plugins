@@ -1,3 +1,4 @@
+@file:JvmName("CordappProperties")
 package net.corda.plugins.cpk
 
 import org.gradle.api.Action
@@ -6,7 +7,22 @@ import org.gradle.api.provider.Property
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Nested
+import org.gradle.api.tasks.TaskInputs
 import javax.inject.Inject
+
+/**
+ * Registers these [CordappExtension] properties as task inputs,
+ * because Gradle cannot "see" their `@Input` annotations yet.
+ */
+fun TaskInputs.nested(nestName: String, cordapp: CordappExtension) {
+    property("${nestName}.targetPlatformVersion", cordapp.targetPlatformVersion)
+    property("${nestName}.minimumPlatformVersion", cordapp.minimumPlatformVersion)
+    nested("${nestName}.contract", cordapp.contract)
+    nested("${nestName}.workflow", cordapp.workflow)
+    nested("${nestName}.signing", cordapp.signing)
+    property("${nestName}.sealing", cordapp.sealing)
+    property("${nestName}.bndVersion", cordapp.bndVersion)
+}
 
 @Suppress("UnstableApiUsage", "Unused", "PlatformExtensionReceiverOfInline")
 open class CordappExtension @Inject constructor(
@@ -22,6 +38,7 @@ open class CordappExtension @Inject constructor(
 
     @get:Input
     val minimumPlatformVersion: Property<Int> = objects.property(Int::class.java)
+            .convention(PLATFORM_VERSION_X)
 
     /**
      * CorDapp Contract distribution information.

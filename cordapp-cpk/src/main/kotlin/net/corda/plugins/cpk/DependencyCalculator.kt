@@ -90,10 +90,8 @@ open class DependencyCalculator @Inject constructor(objects: ObjectFactory) : De
     }
 
     private fun calculateTaskDependencies(): Set<TaskDependency> {
-        return with(configurations) {
-            CORDAPP_BUILD_CONFIGURATIONS.map(::getByName)
-                .mapTo(LinkedHashSet(), Configuration::getBuildDependencies)
-        }
+        return CORDAPP_BUILD_CONFIGURATIONS.map(configurations::getByName)
+            .mapTo(LinkedHashSet(), Configuration::getBuildDependencies)
     }
 
     @TaskAction

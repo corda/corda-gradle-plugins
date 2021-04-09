@@ -52,6 +52,7 @@ const val CPK_CORDAPP_VENDOR = "Corda-CPK-Cordapp-Vendor"
 const val CPK_FORMAT_TAG = "Corda-CPK-Format"
 const val CPK_FORMAT = "1.0"
 
+const val PLATFORM_VERSION_X = 999
 const val CORDA_CONTRACT_CLASSES = "Corda-Contract-Classes"
 const val CORDA_WORKFLOW_CLASSES = "Corda-Flow-Classes"
 const val CORDA_MAPPED_SCHEMA_CLASSES = "Corda-MappedSchema-Classes"

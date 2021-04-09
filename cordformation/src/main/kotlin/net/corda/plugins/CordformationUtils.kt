@@ -6,13 +6,17 @@ import com.typesafe.config.ConfigValueFactory
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
+import org.gradle.api.file.FileSystemLocationProperty
 import org.gradle.api.plugins.JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME
 import org.gradle.api.plugins.JavaPlugin.RUNTIME_ONLY_CONFIGURATION_NAME
+import org.gradle.api.tasks.bundling.Jar
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardCopyOption.REPLACE_EXISTING
 
 private val classLoader = object {}::class.java.classLoader
+
+private const val CORDA_CPK_TASK_NAME = "cpk"
 
 /**
  * Mimics the "project.ext" functionality in groovy which provides a direct
@@ -56,6 +60,14 @@ private fun ConfigurationContainer.createCompileConfiguration(name: String, test
         }
         configuration
     }
+}
+
+val FileSystemLocationProperty<*>.asPath: Path get() {
+    return asFile.get().toPath()
+}
+
+internal val Project.cpkTasks get() = tasks.withType(Jar::class.java).matching { task ->
+    task.name == CORDA_CPK_TASK_NAME
 }
 
 fun writeResourceToFile(resourcePath: String, path: Path) {

@@ -1,0 +1,26 @@
+plugins {
+    id 'net.corda.plugins.cordformation'
+}
+
+apply from: 'repositories.gradle'
+
+dependencies {
+    cordaRuntimeOnly "$corda_group:corda:$corda_release_version"
+    cordaRuntimeOnly "$corda_group:corda-node-api:$corda_bundle_version"
+    cordapp "$corda_group:corda-finance-contracts:$corda_bundle_version"
+    cordapp "$corda_group:corda-finance-workflows:$corda_bundle_version"
+}
+
+task deployNodes(type: net.corda.plugins.Cordform) {
+    node {
+        name 'O=Notary Service,L=Zurich,C=CH'
+        notary = [validating : true]
+        p2pPort 10002
+        rpcSettings {
+            port 10003
+            adminAddress "localhost:10004"
+        }
+        cordapp "$corda_group:corda-finance-contracts:$corda_bundle_version"
+        cordapp "$corda_group:corda-finance-workflows:$corda_bundle_version"
+    }
+}

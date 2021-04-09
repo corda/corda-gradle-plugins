@@ -1,0 +1,20 @@
+plugins {
+    id 'net.corda.plugins.cordformation'
+}
+
+apply from: 'repositories.gradle'
+
+dependencies {
+    cordaRuntimeOnly "$corda_group:corda:$corda_release_version"
+    cordaRuntimeOnly "$corda_group:corda-node-api:$corda_bundle_version"
+    cordapp "$corda_group:corda-finance-contracts:$corda_bundle_version"
+    cordapp "$corda_group:corda-finance-workflows:$corda_bundle_version"
+}
+
+task prepareDockerNodes(type: net.corda.plugins.Dockerform) {
+    node {
+        name 'O=Notary Service,L=Zurich,C=CH'
+        cordapp "$corda_group:corda-finance-contracts:$corda_bundle_version"
+        cordapp "$corda_group:corda-finance-workflows:$corda_bundle_version"
+    }
+}

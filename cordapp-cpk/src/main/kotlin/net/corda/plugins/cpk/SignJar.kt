@@ -75,12 +75,13 @@ open class SignJar @Inject constructor(objects: ObjectFactory) : DefaultTask() {
         }
     }
 
+    private val signing: Signing = project.extensions.getByType(CordappExtension::class.java).signing
+
     init {
         description = "Signs the given jars using the configuration from cordapp.signing.options."
         group = GROUP_NAME
+        inputs.nested("signing", signing)
     }
-
-    private val signing: Signing = project.extensions.getByType(CordappExtension::class.java).signing
 
     @get:Input
     val postfix: Property<String> = objects.property(String::class.java).convention("-signed")

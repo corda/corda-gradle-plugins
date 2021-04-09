@@ -1,3 +1,4 @@
+@file:JvmName("SigningOptionsProperties")
 package @root_package@.signing
 
 import org.gradle.api.file.RegularFileProperty
@@ -10,6 +11,9 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Optional
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity.RELATIVE
+import org.gradle.api.tasks.TaskInputs
 import java.io.File
 import javax.inject.Inject
 
@@ -17,6 +21,37 @@ import javax.inject.Inject
  * !!! GENERATED FILE - DO NOT EDIT !!!
  * See cordapp-cpk/src/main/template/SigningOptions.kt instead.
  */
+
+/**
+ * Registers the [SigningOptions] properties as task inputs,
+ * because Gradle cannot "see" the `@Input` annotations yet.
+ */
+fun TaskInputs.nested(nestName: String, options: SigningOptions) {
+    property("${nestName}.alias", options.alias)
+    property("${nestName}.storePassword", options.storePassword)
+    property("${nestName}.storeType", options.storeType)
+    file(options.keyStore).withPropertyName("${nestName}.keyStore")
+        .withPathSensitivity(RELATIVE)
+        .optional()
+    property("${nestName}.signatureFileName", options.signatureFileName)
+    property("${nestName}.signedJar", options.signedJar).optional(true)
+    property("${nestName}.strict", options.strict)
+    property("${nestName}.internalSF", options.internalSF)
+    property("${nestName}.sectionsOnly", options.sectionsOnly)
+    property("${nestName}.lazy", options.lazy)
+    property("${nestName}.preserveLastModified", options.preserveLastModified)
+    property("${nestName}.tsaCert", options.tsaCert).optional(true)
+    property("${nestName}.tsaUrl", options.tsaUrl).optional(true)
+    property("${nestName}.tsaProxyHost", options.tsaProxyHost).optional(true)
+    property("${nestName}.tsaProxyPort", options.tsaProxyPort).optional(true)
+    file(options.executable).withPropertyName("${nestName}.executable")
+        .withPathSensitivity(RELATIVE)
+        .optional()
+    property("${nestName}.force", options.force)
+    property("${nestName}.signatureAlgorithm", options.signatureAlgorithm).optional(true)
+    property("${nestName}.digestAlgorithm", options.digestAlgorithm).optional(true)
+    property("${nestName}.tsaDigestAlgorithm", options.tsaDigestAlgorithm).optional(true)
+}
 
 /** Options for ANT task "signjar". */
 @Suppress("UnstableApiUsage")
@@ -75,8 +110,9 @@ open class SigningOptions @Inject constructor(objects: ObjectFactory, providers:
 
     @get:Optional
     @get:InputFile
+    @get:PathSensitive(RELATIVE)
     val keyStore: RegularFileProperty = objects.fileProperty().fileProvider(
-        providers.systemProperty(SYSTEM_PROPERTY_PREFIX + Key.KEYSTORE).map(::File)
+        providers.systemProperty(SYSTEM_PROPERTY_PREFIX + Key.KEYSTORE).forUseAtConfigurationTime().map(::File)
     )
 
     @get:Input
@@ -111,7 +147,6 @@ open class SigningOptions @Inject constructor(objects: ObjectFactory, providers:
     @get:Input
     val lazy: Property<Boolean> = objects.property(Boolean::class.java).convention(false)
 
-    @get:Optional
     @get:Internal
     val maxMemory: Property<String> = objects.property(String::class.java)
 
@@ -136,6 +171,7 @@ open class SigningOptions @Inject constructor(objects: ObjectFactory, providers:
 
     @get:Optional
     @get:InputFile
+    @get:PathSensitive(RELATIVE)
     val executable: RegularFileProperty = objects.fileProperty()
 
     @get:Input

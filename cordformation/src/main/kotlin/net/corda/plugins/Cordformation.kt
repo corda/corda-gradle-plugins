@@ -4,6 +4,7 @@ import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.artifacts.ExternalDependency
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME
@@ -21,6 +22,9 @@ class Cordformation : Plugin<Project> {
         const val CORDAPP_CONFIGURATION_NAME = "cordapp"
         const val DEPLOY_CORDAPP_CONFIGURATION_NAME = "deployCordapp"
         const val CORDFORMATION_TYPE = "cordformationInternal"
+        const val CORDA_CPK_CONFIGURATION_NAME = "cordaCPK"
+        const val CPK_CLASSIFIER = "cordapp"
+        const val CORDA_CPK_PLUGIN_ID = "net.corda.plugins.cordapp-cpk"
         const val MINIMUM_GRADLE_VERSION = "5.1"
 
         /**
@@ -77,14 +81,31 @@ class Cordformation : Plugin<Project> {
         project.pluginManager.apply(JavaPlugin::class.java)
 
         project.configurations.apply {
-            val cordapp = createCompileConfiguration(CORDAPP_CONFIGURATION_NAME)
+            val deployCordapps = maybeCreate(DEPLOY_CORDAPP_CONFIGURATION_NAME).setVisible(false)
+            val cordapp = createCompileConfiguration(CORDAPP_CONFIGURATION_NAME).withDependencies { deps ->
+                deps.filterIsInstance(ModuleDependency::class.java).forEach { dep ->
+                    val cpk = dep.copy()
+                    when (dep) {
+                        is ExternalDependency -> {
+                            cpk.artifact {
+                                it.name = dep.name
+                                it.classifier = CPK_CLASSIFIER
+                                it.type = "cpk"
+                            }
+                        } else -> {
+                            cpk.targetConfiguration = CORDA_CPK_CONFIGURATION_NAME
+                        }
+                    }
+                    deployCordapps.dependencies.add(cpk)
+                }
+            }
+            deployCordapps.extendsFrom(cordapp).isCanBeConsumed = false
+
             val cordaRuntimeOnly = createRuntimeOnlyConfiguration(CORDA_RUNTIME_ONLY_CONFIGURATION_NAME)
             createChildConfiguration(CORDFORMATION_TYPE, cordaRuntimeOnly)
-            maybeCreate(CORDA_DRIVER_CONFIGURATION_NAME).setCanBeConsumed(false)
-            maybeCreate(DEPLOY_CORDAPP_CONFIGURATION_NAME)
+            maybeCreate(CORDA_DRIVER_CONFIGURATION_NAME)
                 .setVisible(false)
-                .extendsFrom(cordapp)
-                .setCanBeConsumed(false)
+                .isCanBeConsumed = false
         }
         // TODO: improve how we re-use existing declared external variables from root gradle.build
         val jolokiaVersion = project.findRootProperty("jolokia_version") ?: "1.6.0"

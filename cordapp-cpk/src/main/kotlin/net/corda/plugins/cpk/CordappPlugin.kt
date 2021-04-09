@@ -48,7 +48,6 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
         private const val MIN_GRADLE_VERSION = "6.6"
         private const val CPK_TASK_NAME = "cpk"
         private const val UNKNOWN = "Unknown"
-        private const val VERSION_X = 999
 
         val Array<String>.packageRange: IntRange get() {
             val firstIdx = if (size > 2 && this[0] == "META-INF" && this[1] == "versions") { 3 } else { 0 }
@@ -184,7 +183,10 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
 
         val objects = project.objects
         val jarTask = project.tasks.named(JAR_TASK_NAME, Jar::class.java) { jar ->
+            jar.inputs.nested(CORDAPP_EXTENSION_NAME, cordapp)
+
             val osgi = jar.extensions.create(OSGI_EXTENSION_NAME, OsgiExtension::class.java, objects, jar)
+            jar.inputs.nested(OSGI_EXTENSION_NAME, osgi)
             osgi.embed(calculatorTask.flatMap(DependencyCalculator::embeddedJars))
 
             val noPackages = objects.setProperty(String::class.java)
@@ -277,6 +279,7 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
          * The CPK artifact should have the same base-name and appendix as the CorDapp's [Jar] task.
          */
         val cpkTask = project.tasks.register(CPK_TASK_NAME, PackagingTask::class.java) { task ->
+            task.inputs.nested("signing", cordapp.signing)
             task.mustRunAfter(verifyBundle)
 
             // Basic configuration of the packaging task.
@@ -334,12 +337,11 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
     }
 
     private fun checkPlatformVersionInfo(): Pair<Int, Int> {
-        // If the minimum platform version is not set, default to X.
-        val minimumPlatformVersion: Int = cordapp.minimumPlatformVersion.getOrElse(VERSION_X)
-        val targetPlatformVersion = cordapp.targetPlatformVersion.orNull
-                ?: throw InvalidUserDataException("CorDapp `targetPlatformVersion` was not specified in the `cordapp` metadata section.")
-        if (targetPlatformVersion < VERSION_X) {
-            throw InvalidUserDataException("CorDapp `targetPlatformVersion` must not be smaller than $VERSION_X.")
+        // If the minimum platform version is not set, it defaults to X.
+        val minimumPlatformVersion: Int = cordapp.minimumPlatformVersion.get()
+        val targetPlatformVersion: Int = cordapp.targetPlatformVersion.get()
+        if (targetPlatformVersion < PLATFORM_VERSION_X) {
+            throw InvalidUserDataException("CorDapp `targetPlatformVersion` must not be smaller than $PLATFORM_VERSION_X.")
         }
         if (targetPlatformVersion < minimumPlatformVersion) {
             throw InvalidUserDataException("CorDapp `targetPlatformVersion` must not be smaller than the `minimumPlatformVersion` ($minimumPlatformVersion)")

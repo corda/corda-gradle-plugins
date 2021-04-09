@@ -7,7 +7,12 @@ import org.junit.jupiter.api.Test
 class KotlinCordformTest : BaseformTest() {
     @Test
     fun `two nodes with cordapp dependency`() {
-        val runner = getStandardGradleRunnerFor("DeployTwoNodeCordapp.gradle.kts")
+        val runner = getStandardGradleRunnerFor(
+            "DeployTwoNodeCordapp.gradle.kts",
+            "deployNodes",
+            "-Pcorda_release_version=$cordaReleaseVersion",
+            "-Pcorda_bundle_version=$cordaBundleVersion"
+        )
 
         val result = runner.build()
 
@@ -16,30 +21,30 @@ class KotlinCordformTest : BaseformTest() {
             .isEqualTo(SUCCESS)
 
         // Check Notary node deployment
-        assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceContractsJarName))
+        assertThat(getNodeCordappCpk(notaryNodeName, cordaFinanceContractsCpkName))
             .isRegularFile()
-        assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceWorkflowsJarName))
+        assertThat(getNodeCordappCpk(notaryNodeName, cordaFinanceWorkflowsCpkName))
             .isRegularFile()
-        assertThat(getNodeCordappConfig(notaryNodeName, cordaFinanceWorkflowsJarName))
+        assertThat(getNodeCordappConfig(notaryNodeName, cordaFinanceWorkflowsCpkName))
             .isRegularFile()
-        assertThat(getNodeCordappJar(notaryNodeName, localCordappJarName))
+        assertThat(getNodeCordappCpk(notaryNodeName, localCordappCpkName))
             .doesNotExist()
-        assertThat(getNodeCordappConfig(notaryNodeName, localCordappJarName))
+        assertThat(getNodeCordappConfig(notaryNodeName, localCordappCpkName))
             .doesNotExist()
         assertThatConfig(getNodeConfig(notaryNodeName))
             .hasPath("rpcSettings.address", "localhost:60001")
             .hasPath("rpcSettings.adminAddress", "localhost:60002")
 
         // Check Bank node deployment
-        assertThat(getNodeCordappJar(bankNodeName, cordaFinanceContractsJarName))
+        assertThat(getNodeCordappCpk(bankNodeName, cordaFinanceContractsCpkName))
             .isRegularFile()
-        assertThat(getNodeCordappJar(bankNodeName, cordaFinanceWorkflowsJarName))
+        assertThat(getNodeCordappCpk(bankNodeName, cordaFinanceWorkflowsCpkName))
             .isRegularFile()
-        assertThat(getNodeCordappConfig(bankNodeName, cordaFinanceWorkflowsJarName))
+        assertThat(getNodeCordappConfig(bankNodeName, cordaFinanceWorkflowsCpkName))
             .isRegularFile()
-        assertThat(getNodeCordappJar(bankNodeName, localCordappJarName))
+        assertThat(getNodeCordappCpk(bankNodeName, localCordappCpkName))
             .isRegularFile()
-        assertThat(getNodeCordappConfig(bankNodeName, localCordappJarName))
+        assertThat(getNodeCordappConfig(bankNodeName, localCordappCpkName))
             .isRegularFile()
         assertThatConfig(getNodeConfig(bankNodeName))
             .hasPath("rpcSettings.address", "localhost:10001")

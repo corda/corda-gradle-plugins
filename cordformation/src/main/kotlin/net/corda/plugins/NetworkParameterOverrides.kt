@@ -50,7 +50,7 @@ open class NetworkParameterOverrides @Inject constructor(project: Project) {
             "eventHorizon" to eventHorizon.orNull,
             "packageOwnership" to packageOwnership
                     .takeIf (NamedDomainObjectContainer<PackageOwnership>::isNotEmpty)
-                    ?.let { po -> ConfigValueFactory.fromIterable(po.map { it.toConfigObject() }) },
+                    ?.let { po -> ConfigValueFactory.fromIterable(po.map(PackageOwnership::toConfigObject)) },
             "minimumPlatformVersion" to minimumPlatformVersion.orNull,
             "maxMessageSize" to maxMessageSize.orNull,
             "maxTransactionSize" to maxTransactionSize.orNull

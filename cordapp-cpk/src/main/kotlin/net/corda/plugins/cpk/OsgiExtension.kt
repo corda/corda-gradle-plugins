@@ -1,3 +1,4 @@
+@file:JvmName("OsgiProperties")
 package net.corda.plugins.cpk
 
 import org.gradle.api.Project
@@ -8,6 +9,7 @@ import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.SetProperty
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.TaskInputs
 import org.gradle.api.tasks.bundling.Jar
 import org.osgi.framework.Constants.BUNDLE_CLASSPATH
 import org.osgi.framework.Constants.IMPORT_PACKAGE
@@ -17,6 +19,19 @@ import java.util.Collections.unmodifiableMap
 import java.util.Collections.unmodifiableSet
 import java.util.Properties
 import java.util.StringJoiner
+
+/**
+ * Registers these [OsgiExtension] properties as task inputs,
+ * because Gradle cannot "see" their `@Input` annotations yet.
+ */
+fun TaskInputs.nested(nestName: String, osgi: OsgiExtension) {
+    property("${nestName}.autoExport", osgi.autoExport)
+    property("${nestName}.exports", osgi.exports)
+    property("${nestName}.embeddedJars", osgi.embeddedJars)
+    property("${nestName}.imports", osgi.imports)
+    property("${nestName}.scanCordaClasses", osgi.scanCordaClasses)
+    property("${nestName}.symbolicName", osgi.symbolicName)
+}
 
 @Suppress("UnstableApiUsage", "MemberVisibilityCanBePrivate", "unused")
 open class OsgiExtension(objects: ObjectFactory, jar: Jar) {
