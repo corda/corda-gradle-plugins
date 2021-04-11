@@ -27,7 +27,7 @@ configurations {
  */
 def generatedSourceDir = file("$buildDir/generated-source")
 def generateSource = tasks.register('generateSource', Copy) {
-    from "${project(':cordapp').projectDir}/src/main/template"
+    from project(':cordapp').file('src/main/template')
     filter(ReplaceTokens, tokens: [root_package: 'net.corda.plugins.cordformation'])
     into generatedSourceDir
 }
