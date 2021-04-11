@@ -19,10 +19,23 @@ configurations {
     noderunner
 }
 
+/**
+ * The cordformation plugin needs to share the SigningOption
+ * class with the cordapp plugin, but we don't want the plugin
+ * jars to depend upon each other. And so we share source code
+ * rather than resort to shading!
+ */
+def generatedSourceDir = file("$buildDir/generated-source")
+def generateSource = tasks.register('generateSource', Copy) {
+    from "${project(':cordapp').projectDir}/src/main/template"
+    filter(ReplaceTokens, tokens: [root_package: 'net.corda.plugins.cordformation'])
+    into generatedSourceDir
+}
+
 sourceSets {
     main {
         kotlin {
-            srcDirs files('src/main/kotlin', "$buildDir/generated-source")
+            srcDirs files('src/main/kotlin', generatedSourceDir).builtBy(generateSource)
         }
     }
     runnodes {
@@ -79,22 +92,6 @@ dependencies {
     implementation "com.spotify:docker-client:$docker_client_version"
 }
 
-/**
- * The cordformation plugin needs to share the SigningOption
- * class with the cordapp plugin, but we don't want the plugin
- * jars to depend upon each other. And so we share source code
- * rather than resort to shading!
- */
-def generateSource = tasks.register('generateSource', Copy) {
-    from "${project(':cordapp').projectDir}/src/main/template"
-    filter(ReplaceTokens, tokens: [root_package: 'net.corda.plugins.cordformation'])
-    into file("$buildDir/generated-source")
-}
-
-tasks.named('compileKotlin') { Task task ->
-    task.dependsOn generateSource
-}
-
 tasks.named('validateTaskProperties', ValidateTaskProperties) {
     // The official advice is to annotate Path inputs
     // as @Input instead of @InputDirectory if we don't
@@ -111,6 +108,7 @@ task createNodeRunner(type: Jar) {
     archiveClassifier = 'fatjar'
     from { configurations.noderunner.collect { it.isDirectory() ? it : zipTree(it) } }
     from sourceSets.runnodes.output
+    exclude '**/module-info.class'
 }
 
 processResources {
