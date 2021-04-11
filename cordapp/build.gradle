@@ -52,5 +52,5 @@ dependencies {
 }
 
 processResources {
-    from("${project(':cordapp-cpk').projectDir}/src/main/resources")
+    from project(':cordapp-cpk').file('src/main/resources')
 }
