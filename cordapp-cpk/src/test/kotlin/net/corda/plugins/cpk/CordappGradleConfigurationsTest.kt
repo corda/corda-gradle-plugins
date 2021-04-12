@@ -1,6 +1,7 @@
 package net.corda.plugins.cpk
 
 import org.assertj.core.api.Assertions.assertThat
+import org.gradle.util.GradleVersion
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestReporter
@@ -12,6 +13,7 @@ import java.util.zip.ZipFile
 
 class CordappGradleConfigurationsTest {
     companion object {
+        private val GRADLE_6_8 = GradleVersion.version("6.8.3")
         private lateinit var testProject: GradleProject
         private lateinit var dependencies: List<ZipEntry>
 
@@ -20,6 +22,7 @@ class CordappGradleConfigurationsTest {
         @JvmStatic
         fun setup(@TempDir testProjectDir: Path, reporter: TestReporter) {
             testProject = GradleProject(testProjectDir, reporter)
+                .withGradleVersion(GRADLE_6_8)
                 .withBuildScript("""\
                     |plugins {
                     |    id 'net.corda.plugins.cordapp-cpk'

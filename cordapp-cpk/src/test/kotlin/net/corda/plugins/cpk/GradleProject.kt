@@ -16,6 +16,7 @@ import org.gradle.testkit.runner.BuildTask
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
 import org.gradle.testkit.runner.TaskOutcome.SUCCESS
+import org.gradle.util.GradleVersion
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.TestReporter
 import java.io.IOException
@@ -38,6 +39,8 @@ const val commonsCodecVersion = "1.15"
 const val commonsIoVersion = "2.8.0"
 const val slf4jVersion = "1.7.30"
 
+private val GRADLE_7 = GradleVersion.version("7.0")
+
 fun toOSGi(version: String): String {
     return parseMavenString(version).osGiVersion.toString()
 }
@@ -47,17 +50,6 @@ fun toOSGiRange(version: String): String {
     return VersionRange(true, osgiVersion, osgiVersion.bumpMajor(), false)
         .toString().replace(".0","")
 }
-
-/**
- * We must execute [GradleRunner][org.gradle.testkit.runner.GradleRunner]
- * embedded in the existing Gradle instance in order to debug it. This
- * requires our current JVM toolchain to be compatible with Gradle.
- *
- * Gradle 6.x is compatible with Java 8 <= x <= Java 15.
- */
-val isDebuggable: Boolean
-    @Suppress("UnstableApiUsage")
-    get() = VERSION_15.isCompatibleWith(current())
 
 val Path.manifest: Manifest get() = JarFile(toFile()).use(JarFile::getManifest)
 
@@ -89,9 +81,27 @@ class GradleProject(private val projectDir: Path, private val reporter: TestRepo
     }
 
     private lateinit var result: BuildResult
+    private var gradleVersion: GradleVersion = GradleVersion.current()
     private var buildScript: String = ""
     private var taskName: String = DEFAULT_TASK_NAME
     private var testName: String = "."
+
+    /**
+     * We must execute [GradleRunner][org.gradle.testkit.runner.GradleRunner]
+     * embedded in the existing Gradle instance in order to debug it. This
+     * requires our current JVM toolchain to be compatible with Gradle.
+     *
+     * Gradle 6.x is compatible with Java 8 <= x <= Java 15.
+     * Gradle 7.0 is compatible with Java 8 <= x <= Java 16.
+     */
+    private val isDebuggable: Boolean
+        @Suppress("UnstableApiUsage")
+        get() = VERSION_15.isCompatibleWith(current()) || gradleVersion >= GRADLE_7
+
+    fun withGradleVersion(version: GradleVersion): GradleProject {
+        this.gradleVersion = version
+        return this
+    }
 
     fun withTestName(testName: String): GradleProject {
         this.testName = testName
@@ -127,7 +137,7 @@ class GradleProject(private val projectDir: Path, private val reporter: TestRepo
         return this
     }
 
-    val properties: Properties = testProperties
+    val properties: Properties get() = testProperties
 
     val buildDir: Path = projectDir.resolve("build")
     val artifactDir: Path = buildDir.resolve("libs")
@@ -169,6 +179,7 @@ class GradleProject(private val projectDir: Path, private val reporter: TestRepo
         }
 
         val runner = GradleRunner.create()
+            .withGradleVersion(gradleVersion.version)
             .withProjectDir(projectDir.toFile())
             .withArguments(getGradleArgs(args))
             .withDebug(isDebuggable)
