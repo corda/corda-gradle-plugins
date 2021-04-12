@@ -48,6 +48,7 @@ tasks.register("tar", Tar) {
 }
 
 Provider<Jar> lockFileTestExecutableJar = tasks.register("lockFileTestExecutableJar", Jar) {
+    dependsOn tasks.named('jar', Jar)
     manifest {
         attributes "Main-Class": "net.corda.flask.launcher.LockFileTestMain"
     }

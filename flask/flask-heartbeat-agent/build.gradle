@@ -8,7 +8,8 @@ dependencies {
     implementation project(":flask:flask-common")
 }
 
-jar {
+tasks.named('jar', Jar) {
+    dependsOn project(':flask:flask-common').tasks.named('jar', Jar)
     manifest {
         attributes([
             (Attributes.Name.IMPLEMENTATION_TITLE.toString()) : (project.name),
