@@ -134,9 +134,9 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
             // both the runtimeElements and cordaEmbedded configurations.
             // This won't happen by default because cordaEmbedded is a
             // "compile only" configuration.
-            create(CORDAPP_PACKAGING_CONFIGURATION_NAME).setVisible(false)
-                .extendsFrom(getByName(RUNTIME_ELEMENTS_CONFIGURATION_NAME))
-                .extendsFrom(cordaEmbedded)
+            create(CORDAPP_PACKAGING_CONFIGURATION_NAME)
+                .setVisible(false)
+                .extendsFrom(cordaEmbedded, getByName(RUNTIME_ELEMENTS_CONFIGURATION_NAME))
                 .isCanBeConsumed = false
         }
 

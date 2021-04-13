@@ -2,6 +2,7 @@ package net.corda.plugins.cpk
 
 import net.corda.plugins.cpk.signing.SigningOptions
 import org.gradle.api.DefaultTask
+import org.gradle.api.GradleException
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
@@ -75,7 +76,8 @@ open class SignJar @Inject constructor(objects: ObjectFactory) : DefaultTask() {
         }
     }
 
-    private val signing: Signing = project.extensions.getByType(CordappExtension::class.java).signing
+    private val signing: Signing = project.extensions.findByType(CordappExtension::class.java)?.signing
+            ?: throw GradleException("Please apply cordapp-cpk plugin to create cordapp DSL extension.")
 
     init {
         description = "Signs the given jars using the configuration from cordapp.signing.options."

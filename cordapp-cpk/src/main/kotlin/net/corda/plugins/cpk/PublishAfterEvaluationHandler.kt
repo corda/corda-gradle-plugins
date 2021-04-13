@@ -160,7 +160,7 @@ private class ArtifactoryPublisher(plugin: Plugin<*>, logger: Logger) {
         @Suppress("unchecked_cast")
         Class.forName(ARTIFACTORY_TASK_NAME, true, plugin::class.java.classLoader) as Class<out Task>
     } catch (e: ClassNotFoundException) {
-        logger.info("Task {} from Gradle com.jfrog.artifactory plugin is not available.", ARTIFACTORY_TASK_NAME)
+        logger.warn("Task {} from Gradle com.jfrog.artifactory plugin is not available.", ARTIFACTORY_TASK_NAME)
         throw e
     }
 

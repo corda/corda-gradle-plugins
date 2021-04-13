@@ -55,26 +55,48 @@ open class DependencyCalculator @Inject constructor(objects: ObjectFactory) : De
      */
     private val configurations = project.configurations
 
+    /**
+     * These jars are added to the CPK's lib/ folder.
+     */
     private val _libraries: ConfigurableFileCollection = objects.fileCollection()
     val libraries: Provider<Set<FileSystemLocation>>
         @OutputFiles
         get() = _libraries.elements
 
+    /**
+     * These are the "main" jars from all of our dependent CorDapp CPKs,
+     * including any transitive CPK dependencies.
+     */
     private val _cordapps: ConfigurableFileCollection = objects.fileCollection()
     val cordapps: Provider<Set<FileSystemLocation>>
         @OutputFiles
         get() = _cordapps.elements
 
+    /**
+     * These jars are embedded into the "main" jar and
+     * then added to its Bundle-Classpath. Used for jars
+     * whose OSGi metadata is either broken or missing.
+     */
     private val _embeddedJars: ConfigurableFileCollection = objects.fileCollection()
     val embeddedJars: Provider<Set<FileSystemLocation>>
         @OutputFiles
         get() = _embeddedJars.elements
 
+    /**
+     * These jars have been migrated off the Bundle-Classpath
+     * and restored to Bnd's regular classpath. (We only use
+     * this property internally.)
+     */
     private val _unbundledJars: ConfigurableFileCollection = objects.fileCollection()
     val unbundledJars: Provider<Set<FileSystemLocation>>
         @OutputFiles
         get() = _unbundledJars.elements
 
+    /**
+     * These jars do not belong to this CPK, but provide
+     * packages that the CPK will need at runtime.
+     * We use them to verify our bundle's OSGi metadata.
+     */
     private val _externalJars: ConfigurableFileCollection = objects.fileCollection()
     val externalJars: Provider<Set<FileSystemLocation>>
         @OutputFiles

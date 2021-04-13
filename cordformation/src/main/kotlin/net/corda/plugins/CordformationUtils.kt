@@ -10,11 +10,17 @@ import org.gradle.api.file.FileSystemLocationProperty
 import org.gradle.api.plugins.JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME
 import org.gradle.api.plugins.JavaPlugin.RUNTIME_ONLY_CONFIGURATION_NAME
 import org.gradle.api.tasks.bundling.Jar
+import java.lang.invoke.MethodHandles
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardCopyOption.REPLACE_EXISTING
 
-private val classLoader = object {}::class.java.classLoader
+/**
+ * [ClassLoader] for this CordformationUtils class. This is
+ * currently the best way I've found to get the [Class] for
+ * a Kotlin file from within Kotlin.
+ */
+private val classLoader = MethodHandles.lookup().lookupClass().classLoader
 
 private const val CORDA_CPK_TASK_NAME = "cpk"
 
@@ -84,7 +90,7 @@ internal fun Config.copyTo(key: String, target: Config, targetKey: String = key)
     }
 }
 
-internal fun Config.copyKeysTo(target: Config, keys: Iterable<String>) = this + keys.filter { target.hasPath(it) }.map { it to target.getAnyRef(it) }.toMap()
+internal fun Config.copyKeysTo(target: Config, keys: Iterable<String>) = this + keys.filter { target.hasPath(it) }.associateWith { target.getAnyRef(it) }
 internal operator fun Config.plus(property: Pair<String, Any>): Config = withValue(property.first, ConfigValueFactory.fromAnyRef(property.second))
 internal operator fun Config.plus(properties: Map<String, Any>): Config {
     var out = this
