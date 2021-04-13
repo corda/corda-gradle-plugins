@@ -63,7 +63,7 @@ class MetaFixTimestampTest {
             assertEquals(SUCCESS, metafix.outcome)
 
             val metaFixed = testProjectDir.pathOf("build", "metafixer-libs", "timestamps-metafixed.jar")
-            assertThat(metaFixed).isRegularFile()
+            assertThat(metaFixed).isRegularFile
             return metaFixed
         }
 

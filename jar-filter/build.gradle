@@ -13,8 +13,9 @@ repositories {
 }
 
 ext {
-    kotlin_metadata_version = '0.1.0'
-    test_kotlin_api_version = '1.3'
+    kotlin_metadata_version = '0.2.0'
+    test_kotlin_api_version = '1.4'
+    test_kotlin_version = '1.4.32'
 }
 
 gradlePlugin {
@@ -66,12 +67,19 @@ dependencies {
     jacocoRuntime "org.jacoco:org.jacoco.agent:${jacoco.toolVersion}:runtime"
 }
 
+tasks.named('compileTestKotlin') {
+    kotlinOptions {
+        apiVersion = test_kotlin_api_version
+        languageVersion = test_kotlin_api_version
+    }
+}
+
 processTestResources {
     filesMatching('gradle.properties') {
         expand(['jacocoAgent': configurations.jacocoRuntime.asPath.replace('\\', '/'),
                 'javax_annotations_version': javax_annotations_version,
                 'kotlin_api_version': test_kotlin_api_version,
-                'kotlin_version': kotlin_version,
+                'kotlin_version': test_kotlin_version,
                 'buildDir': buildDir])
     }
 }

@@ -44,7 +44,7 @@ subprojects {
             jvmTarget = VERSION_1_8
             apiVersion = '1.3'
             languageVersion = '1.3'
-            freeCompilerArgs = ['-Xjvm-default=enable']
+            freeCompilerArgs = ['-Xjvm-default=all']
         }
     }
 
@@ -223,6 +223,6 @@ artifactory {
 }
 
 wrapper {
-    gradleVersion = '6.7.1'
+    gradleVersion = '6.8.3'
     distributionType = Wrapper.DistributionType.ALL
 }

@@ -25,6 +25,7 @@ class KotlinConstantTest {
             .containsSequence(
                 "public final class net.corda.example.HasConstantField extends java.lang.Object",
                 "  public <init>()",
+                "  @NotNull",
                 "  public static final net.corda.example.HasConstantField$Companion Companion",
                 "  @NotNull",
                 "  public static final String stringValue = \"Goodbye, Cruel World\"",
