@@ -89,7 +89,7 @@ class DummyJar(
             jar.putNextEntry(uncompressed("comment.txt", text))
             jar.write(text)
         }
-        assertThat(_path).isRegularFile()
+        assertThat(_path).isRegularFile
         return this
     }
 }

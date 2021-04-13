@@ -40,10 +40,10 @@ class JarFilterProject(private val projectDir: Path, private val name: String) {
         assertEquals(SUCCESS, jarFilter.outcome)
 
         _sourceJar = projectDir.pathOf("build", "libs", "$name.jar")
-        assertThat(sourceJar).isRegularFile()
+        assertThat(sourceJar).isRegularFile
 
         _filteredJar = projectDir.pathOf("build", "filtered-libs", "$name-filtered.jar")
-        assertThat(filteredJar).isRegularFile()
+        assertThat(filteredJar).isRegularFile
 
         return this
     }

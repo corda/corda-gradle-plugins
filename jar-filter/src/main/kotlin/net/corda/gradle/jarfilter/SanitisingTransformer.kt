@@ -1,7 +1,7 @@
 package net.corda.gradle.jarfilter
 
 import kotlinx.metadata.ClassName
-import kotlinx.metadata.Flag.Constructor.IS_PRIMARY
+import kotlinx.metadata.Flag.Constructor.IS_SECONDARY
 import kotlinx.metadata.KmClass
 import kotlinx.metadata.KmPackage
 import kotlinx.metadata.jvm.signature
@@ -41,7 +41,7 @@ class SanitisingTransformer(
 
     override fun processClassMetadata(kmClass: KmClass): KmClass? {
         for (constructor in kmClass.constructors) {
-            if (IS_PRIMARY(constructor.flags)) {
+            if (!IS_SECONDARY(constructor.flags)) {
                 val signature = constructor.signature ?: break
                 primaryConstructor = signature.toMethodElement()
                 hasDefaultValues = constructor.valueParameters.hasAnyDefaultValues

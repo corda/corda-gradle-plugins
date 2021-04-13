@@ -1,7 +1,7 @@
 package net.corda.gradle.jarfilter
 
 import kotlinx.metadata.ClassName
-import kotlinx.metadata.Flag.Constructor.IS_PRIMARY
+import kotlinx.metadata.Flag.Constructor.IS_SECONDARY
 import kotlinx.metadata.KmClass
 import kotlinx.metadata.KmDeclarationContainer
 import kotlinx.metadata.KmFunction
@@ -296,10 +296,10 @@ class ClassMetadataTransformer(
             val constructor = constructors[idx]
             val signature = (constructor.signature ?: continue).toMethodElement()
             if (signature == deleted) {
-                if (IS_PRIMARY(constructor.flags)) {
-                    logger.warn("Removing primary constructor: {}{}", className, deleted.descriptor)
-                } else {
+                if (IS_SECONDARY(constructor.flags)) {
                     logger.info("-- removing constructor: {}", deleted.signature)
+                } else {
+                    logger.warn("Removing primary constructor: {}{}", className, deleted.descriptor)
                 }
                 constructors.removeAt(idx)
                 return true

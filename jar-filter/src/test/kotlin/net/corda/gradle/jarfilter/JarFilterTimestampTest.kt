@@ -62,7 +62,7 @@ class JarFilterTimestampTest {
             assertEquals(SUCCESS, jarFilter.outcome)
 
             val filtered = testProjectDir.pathOf("build", "filtered-libs", "timestamps-filtered.jar")
-            assertThat(filtered).isRegularFile()
+            assertThat(filtered).isRegularFile
             return filtered
         }
 

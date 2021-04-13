@@ -5,6 +5,6 @@ tasks.named('compileKotlin', AbstractCompile) {
         jvmTarget = VERSION_1_8
         apiVersion = kotlin_api_version
         languageVersion = kotlin_api_version
-        freeCompilerArgs = ['-Xjvm-default=enable']
+        freeCompilerArgs = ['-Xjvm-default=all']
     }
 }

@@ -41,10 +41,10 @@ class MetaFixProject(private val projectDir: Path, private val name: String) {
         assertEquals(SUCCESS, metafix.outcome)
 
         _sourceJar = projectDir.pathOf("build", "libs", "$name.jar")
-        assertThat(sourceJar).isRegularFile()
+        assertThat(sourceJar).isRegularFile
 
         _metafixedJar = projectDir.pathOf("build", "metafixer-libs", "$name-metafixed.jar")
-        assertThat(metafixedJar).isRegularFile()
+        assertThat(metafixedJar).isRegularFile
 
         return this
     }

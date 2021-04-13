@@ -96,9 +96,9 @@ fields from the compiled byte-code inside a jar file. It can also rewrite
 Kotlin classes' `@kotlin.Metadata` annotations to make them consistent 
 again with their revised byte-code. It is currently used in Corda's
 `core-deterministic` and `serialization-deterministic` modules, and has
-been successfully tested with Kotlin 1.2.x - 1.3.72.
+been successfully tested with Kotlin 1.2.x - 1.4.32.
 
-    <sup>Requires Gradle 5.6</sup>
+    <sup>Requires Gradle 6.8</sup>
 
 - [`net.corda.plugins.publish-utils`](publish-utils/README.rst)\
 **_Here be Dragons!_**
