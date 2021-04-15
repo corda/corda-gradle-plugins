@@ -20,6 +20,7 @@ import org.osgi.framework.Constants.BUNDLE_VERSION
 import java.io.IOException
 import java.io.InputStream
 import java.nio.file.Paths
+import java.security.CodeSigner
 import java.security.cert.Certificate
 import java.util.Base64
 import java.util.jar.JarEntry
@@ -52,6 +53,10 @@ open class CPKDependenciesTask @Inject constructor(objects: ObjectFactory) : Def
 
         private val JarEntry.isSignable: Boolean get() {
             return !isDirectory && !UNSIGNED.matches(name)
+        }
+
+        private fun signerCertificate(codeSigner: CodeSigner): Certificate? {
+            return codeSigner.signerCertPath.certificates.firstOrNull()
         }
     }
 
@@ -99,14 +104,24 @@ open class CPKDependenciesTask @Inject constructor(objects: ObjectFactory) : Def
                     cpkDependency.appendElement("name", mainAttributes.getValue(BUNDLE_SYMBOLICNAME))
                     cpkDependency.appendElement("version", mainAttributes.getValue(BUNDLE_VERSION))
 
-                    val certificates = certificatesFor(jar)
-                    if (certificates.size != 1) {
-                        logger.error("CPK {} signed by {} keys", cpk.name, certificates.size)
-                        throw InvalidUserDataException("CPK ${cpk.name} must be signed by exactly one key")
+                    val signerCertificates = signerCertificatesFor(jar)
+                    if (signerCertificates.size != 1) {
+                        logger.error("CPK {} signed by {} sets of signers:{}",
+                            cpk.name, signerCertificates.size,
+                            signerCertificates.joinToString(
+                                separator = System.lineSeparator(),
+                                prefix = System.lineSeparator(),
+                                transform = ::formatCertificates
+                            )
+                        )
+                        throw InvalidUserDataException("CPK ${cpk.name} must be signed by exactly one set of signers")
                     }
-                    val signingKeyHash = digest.digest(certificates.single().publicKey.encoded)
-                    cpkDependency.appendElement("signedBy", encoder.encodeToString(signingKeyHash))
-                        .setAttribute("algorithm", digest.algorithm)
+                    val signers = cpkDependency.appendElement("signers")
+                    signerCertificates.single().sortedWith(CompareCertificates()).forEach { certificate ->
+                        val signingKeyHash = digest.digest(certificate.publicKey.encoded)
+                        signers.appendElement("signer", encoder.encodeToString(signingKeyHash))
+                            .setAttribute("algorithm", digest.algorithm)
+                    }
                 }
             }
 
@@ -117,16 +132,56 @@ open class CPKDependenciesTask @Inject constructor(objects: ObjectFactory) : Def
         }
     }
 
+    private fun formatCertificates(certificates: Set<Certificate>): String {
+        return certificates.joinToString(
+            separator = System.lineSeparator(),
+            prefix = "CERTIFICATE SET (size=${certificates.size}):${System.lineSeparator()}"
+        )
+    }
+
     @Throws(IOException::class)
-    private fun certificatesFor(jar: JarFile): Set<Certificate> {
+    private fun signerCertificatesFor(jar: JarFile): Set<Set<Certificate>> {
         val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
-        return jar.entries().asSequence().flatMapTo(HashSet()) { entry ->
+        return jar.entries().asSequence().mapNotNullTo(HashSet()) { entry ->
             consume(jar.getInputStream(entry), buffer)
-            val certificates = entry.certificates?.toList() ?: emptyList()
-            if (certificates.isEmpty() && entry.isSignable) {
-                logger.warn("{}:{} is unsigned", Paths.get(jar.name).fileName, entry.name)
+            val certificates = entry.codeSigners?.mapNotNullTo(HashSet(), ::signerCertificate)
+            if (certificates.isNullOrEmpty()) {
+                if (entry.isSignable) {
+                    logger.warn("{}:{} is unsigned", Paths.get(jar.name).fileName, entry.name)
+                    emptySet<Certificate>()
+                } else {
+                    null
+                }
+            } else {
+                certificates
             }
-            certificates.asSequence()
+        }
+    }
+
+    private class CompareCertificates : Comparator<Certificate> {
+        // This can be replaced by
+        //    Arrays.compare(cert1.encoded, cert2.encoded)
+        // when Gradle drops support for Java 8.
+        override fun compare(cert1: Certificate, cert2: Certificate): Int {
+            val encoded1 = cert1.encoded
+            val encoded2 = cert2.encoded
+            return when {
+                encoded1 === encoded2 -> 0
+                else -> when (val lengthDiff = encoded1.size - encoded2.size) {
+                    0 -> compare(encoded1, encoded2)
+                    else -> lengthDiff
+                }
+            }
+        }
+
+        private fun compare(b1: ByteArray, b2: ByteArray): Int {
+            b1.forEachIndexed { index, value ->
+                val cmp = value.toInt() - b2[index].toInt()
+                if (cmp != 0) {
+                    return cmp
+                }
+            }
+            return 0
         }
     }
 }

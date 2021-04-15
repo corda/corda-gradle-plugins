@@ -5,6 +5,7 @@ import aQute.bnd.version.MavenVersion.parseMavenString
 import aQute.bnd.version.VersionRange
 import net.corda.plugins.cpk.xml.CPKDependency
 import net.corda.plugins.cpk.xml.DependencyConstraint
+import net.corda.plugins.cpk.xml.HashValue
 import net.corda.plugins.cpk.xml.loadCPKDependencies
 import net.corda.plugins.cpk.xml.loadDependencyConstraints
 import org.assertj.core.api.Assertions.assertThat
@@ -53,6 +54,8 @@ fun toOSGiRange(version: String): String {
 }
 
 val Path.manifest: Manifest get() = JarFile(toFile()).use(JarFile::getManifest)
+
+val List<HashValue>.allSHA256: Boolean get() = isNotEmpty() && all(HashValue::isSHA256)
 
 @Suppress("unused", "MemberVisibilityCanBePrivate")
 class GradleProject(private val projectDir: Path, private val reporter: TestReporter) {
@@ -149,12 +152,12 @@ class GradleProject(private val projectDir: Path, private val reporter: TestRepo
     val dependencyConstraintsFile: Path = buildDir.resolve("generated-constraints")
         .resolve(META_INF_DIR).resolve("DependencyConstraints")
     val dependencyConstraints: List<DependencyConstraint>
-        get() = dependencyConstraintsFile.toFile().inputStream().buffered().use(::loadDependencyConstraints).constraints
+        get() = dependencyConstraintsFile.toFile().inputStream().buffered().use(::loadDependencyConstraints)
 
     val cpkDependenciesFile: Path = buildDir.resolve("cpk-dependencies")
         .resolve(META_INF_DIR).resolve("CPKDependencies")
     val cpkDependencies: List<CPKDependency>
-        get() = cpkDependenciesFile.toFile().inputStream().buffered().use(::loadCPKDependencies).cpkDependencies
+        get() = cpkDependenciesFile.toFile().inputStream().buffered().use(::loadCPKDependencies)
 
     var output: String = ""
         private set

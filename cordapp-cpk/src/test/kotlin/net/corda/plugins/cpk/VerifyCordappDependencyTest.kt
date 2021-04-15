@@ -59,7 +59,7 @@ class VerifyCordappDependencyTest {
             .hasSize(1)
         assertThat(testProject.cpkDependencies)
             .anyMatch { it.name == "com.example.cordapp" && it.version == toOSGi(cordappVersion) }
-            .allMatch { it.signedBy.isSHA256 }
+            .allMatch { it.signers.allSHA256 }
             .hasSize(1)
         assertThat(testProject.outcomeOf("verifyBundle")).isEqualTo(SUCCESS)
 

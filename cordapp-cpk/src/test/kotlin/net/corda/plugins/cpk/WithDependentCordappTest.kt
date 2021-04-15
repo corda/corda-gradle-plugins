@@ -57,7 +57,7 @@ class WithDependentCordappTest {
             .hasSizeGreaterThanOrEqualTo(1)
         assertThat(testProject.cpkDependencies)
             .anyMatch { it.name == "com.example.cordapp" && it.version == toOSGi("0") }
-            .allMatch { it.signedBy.isSHA256 }
+            .allMatch { it.signers.allSHA256 }
             .hasSize(1)
 
         if (libraryGuavaVersion != guavaVersion) {

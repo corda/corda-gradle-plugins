@@ -77,7 +77,7 @@ class TransitiveCordappsTest {
             .anyMatch { it.name == "com.example.cpk-one" && it.version == toOSGi(cpk1Version) }
             .anyMatch { it.name == "com.example.cpk-two" && it.version == toOSGi(cpk2Version) }
             .anyMatch { it.name == "com.example.cpk-three" && it.version == toOSGi(cpk3Version) }
-            .allMatch { it.signedBy.isSHA256 }
+            .allMatch { it.signers.allSHA256 }
             .hasSize(3)
 
         val artifacts = testProject.artifacts

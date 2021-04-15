@@ -40,7 +40,7 @@ class CordappPrivateDependencyTest {
             .isEmpty()
         assertThat(testProject.cpkDependencies)
             .anyMatch { it.name == "com.example.cordapp" && it.version == toOSGi(cordappVersion) }
-            .allMatch { it.signedBy.isSHA256 }
+            .allMatch { it.signers.allSHA256 }
             .hasSize(1)
 
         val artifacts = testProject.artifacts

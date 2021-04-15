@@ -125,7 +125,9 @@ are listed as lines in this "main" jar's `META-INF/CPKDependencies` file:
     <cpkDependency>
         <name>$BUNDLE_SYMBOLIC_NAME</name>
         <version>$BUNDLE_VERSION</version>
-        <signedBy algorithm="$HASH_ALGORITHM">$BASE64_HASH_OF_PUBLIC_KEY</signedBy>
+        <signers>
+            <signer algorithm="$HASH_ALGORITHM">$BASE64_HASH_OF_PUBLIC_KEY</signer>
+        </signers>
     </cpkDependency>
     ...
 </cpkDependencies>
