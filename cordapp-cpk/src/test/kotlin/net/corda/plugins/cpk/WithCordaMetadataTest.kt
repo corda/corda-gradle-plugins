@@ -43,6 +43,7 @@ class WithCordaMetadataTest {
                 .withSubResource("services/build.gradle")
                 .withSubResource("services/src/main/kotlin/com/example/metadata/services/ExampleService.kt")
                 .build(
+                    "-Pcorda_api_version=$cordaApiVersion",
                     "-Pcontract_name=With Contract Metadata",
                     "-Pcordapp_contract_version=$expectedCordappContractVersion",
                     "-Pcontract_cordapp_version=$CONTRACT_CORDAPP_VERSION",

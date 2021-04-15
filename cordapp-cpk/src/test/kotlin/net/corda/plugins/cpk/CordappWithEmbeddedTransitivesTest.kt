@@ -45,6 +45,7 @@ class CordappWithEmbeddedTransitivesTest {
                     "-Pcordapp_contract_version=$expectedCordappContractVersion",
                     "-Pcommons_collections_version=$commonsCollectionsVersion",
                     "-Pcommons_io_version=$commonsIoVersion",
+                    "-Pcorda_api_version=$cordaApiVersion",
                     "-Pslf4j_version=$slf4jVersion",
                     "-Pcordapp_version=$cordappVersion",
                     "-Phost_version=$hostVersion"

@@ -25,6 +25,7 @@ class WithDependentCordappTest {
                     "-Pcordapp_workflow_version=$expectedCordappWorkflowVersion",
                     "-Pcordapp_contract_version=$expectedCordappContractVersion",
                     "-Pcommons_io_version=$commonsIoVersion",
+                    "-Pcorda_api_version=$cordaApiVersion",
                     "-Plibrary_guava_version=$libraryGuavaVersion",
                     "-Pguava_version=$guavaVersion"
                 )

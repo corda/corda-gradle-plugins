@@ -1,4 +1,5 @@
 # Cordapp CPK Gradle Plugin.
+<sup>Requires Gradle 6.6</sup>
 
 ## Purpose.
 Applying this plugin to a project declares that the project should create a CPK-format CorDapp. The CPK-format
@@ -107,7 +108,11 @@ This effectively replaces the legacy `cordaCompile` configuration. Any `cordaPro
 is also implicitly added to Gradle's `compileOnly` and `*Implementation` configurations, and consequently
 is not included either in the `runtimeClasspath` configuration, as a dependency in the published POM
 file, or packaged inside the CPK file. However, it will be included in the `testRuntimeClasspath`
-configuration.
+configuration, and will also become a transitive `cordaProvided` dependency of any CorDapp which depends
+on this CorDapp.
+
+- `cordaPrivateProvided`: This configuration is like `cordaProvided`, except that its contents do
+not become transitive `cordaProvided` dependencies of CorDapps which depend on this one.
 
 - `cordapp`: This declares a compile-time dependency against the "main" jar of another CPK CorDapp.
 As with `cordaProvided`, the dependency is also added implicitly to Gradle's `compileOnly` and
@@ -120,7 +125,7 @@ are listed as lines in this "main" jar's `META-INF/CPKDependencies` file:
     <cpkDependency>
         <name>$BUNDLE_SYMBOLIC_NAME</name>
         <version>$BUNDLE_VERSION</version>
-        <signedBy algorithm="$HASH_ALGORITHM">$HASH_OF_PUBLIC_KEY</signedBy>
+        <signedBy algorithm="$HASH_ALGORITHM">$BASE64_HASH_OF_PUBLIC_KEY</signedBy>
     </cpkDependency>
     ...
 </cpkDependencies>
@@ -160,8 +165,7 @@ which the CorDapp doesn't need to compile against and must not be packaged into 
 It replaces the legacy `cordaRuntime` configuration.
 
 The legacy `cordaCompile` and `cordaRuntime` configurations are built upon Gradle's deprecated
-`compile` and `runtime` configurations, which will likely be removed in later versions of Gradle.
-We need to replace both `cordaCompile` and `cordaRuntime` before this happens.
+`compile` and `runtime` configurations, which have finally been removed in Gradle 7.0.
 
 # Tasks.
 
@@ -260,8 +264,6 @@ tasks.named('jar', Jar) {
 Bundles that use `java.util.ServiceLoader` require special handling to support their `META-INF/services/` files.
 Bnd provides [`@ServiceProvider` and `@ServiceConsumer` annotations](https://bnd.bndtools.org/chapters/240-spi-annotations.html)
 to ensure that the bundle respects OSGi's [Service Loader Mediator Specification](https://docs.osgi.org/specification/osgi.cmpn/7.0.0/service.loader.html).
-
-    <sup>Requires Gradle 6.6</sup>
 
 ## Corda Metadata
 

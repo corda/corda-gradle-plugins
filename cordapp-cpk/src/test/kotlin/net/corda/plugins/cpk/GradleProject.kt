@@ -33,6 +33,7 @@ const val expectedCordappContractVersion = 2
 const val expectedCordappWorkflowVersion = 3
 const val expectedCordappServiceVersion = 4
 const val cordaReleaseVersion = "4.6"
+const val cordaApiVersion = "5.0.0"
 const val annotationsVersion = "1.0.1"
 const val commonsCollectionsVersion = "3.2.2"
 const val commonsCodecVersion = "1.15"

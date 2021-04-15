@@ -109,6 +109,13 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
 
             // Embedded dependencies should not appear in the CorDapp's published POM.
             val cordaEmbedded = createCompileConfiguration(CORDA_EMBEDDED_CONFIGURATION_NAME)
+                .setVisible(false)
+
+            // Unlike cordaProvided dependencies, cordaPrivateProvided ones will not be
+            // added to the compile classpath of any CPKs that will depend on this CPK.
+            // In other words, they will not included in this CPK's companion POM.
+            val cordaPrivate = createCompileConfiguration(CORDA_PRIVATE_CONFIGURATION_NAME)
+                .setVisible(false)
 
             // The "cordapp" and "cordaProvided" configurations are "compile only",
             // which causes their dependencies to be excluded from the published
@@ -124,7 +131,7 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
                 }
             createCompileConfiguration(CORDA_ALL_PROVIDED_CONFIGURATION_NAME)
                 .setVisible(false)
-                .extendsFrom(cordaProvided)
+                .extendsFrom(cordaProvided, cordaPrivate)
                 .withDependencies { dependencies ->
                     collector.collect()
                     dependencies.addAll(collector.providedDependencies)

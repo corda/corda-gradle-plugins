@@ -36,6 +36,7 @@ class WithEmbeddedJarTest {
                 .withSubResource("library/src/main/java/com/example/library/ExampleApi.java")
                 .build(
                     "-Pcordapp_version=$cordappVersion",
+                    "-Pcorda_api_version=$cordaApiVersion",
                     "-Pcordapp_contract_version=$expectedCordappContractVersion",
                     "-Pguava_version=$guavaVersion"
                 )

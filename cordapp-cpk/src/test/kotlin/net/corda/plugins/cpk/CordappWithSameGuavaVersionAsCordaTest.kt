@@ -36,6 +36,7 @@ class CordappWithSameGuavaVersionAsCordaTest {
                 .withTestName("cordapp-with-guava")
                 .withSubResource("src/main/java/com/example/contract/GuavaContract.java")
                 .build(
+                    "-Pcorda_api_version=$cordaApiVersion",
                     "-Pcordapp_contract_version=$expectedCordappContractVersion",
                     "-Pcorda_guava_version=$cordaGuavaVersion",
                     "-Pguava_version=$cordaGuavaVersion",

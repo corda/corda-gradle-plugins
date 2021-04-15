@@ -39,6 +39,7 @@ class CordappWithOwnGuavaVersionTest {
                 .build(
                     "-Pcordapp_version=$cordappVersion",
                     "-Pcordapp_contract_version=$expectedCordappContractVersion",
+                    "-Pcorda_api_version=$cordaApiVersion",
                     "-Pcorda_guava_version=$cordaGuavaVersion",
                     "-Pguava_version=$guavaVersion"
                 )

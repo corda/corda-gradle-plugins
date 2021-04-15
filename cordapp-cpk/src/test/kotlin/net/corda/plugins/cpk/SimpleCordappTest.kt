@@ -37,6 +37,7 @@ class SimpleCordappTest {
                 .build(
                     "-Pcordapp_contract_version=$expectedCordappContractVersion",
                     "-Pcommons_io_version=$commonsIoVersion",
+                    "-Pcorda_api_version=$cordaApiVersion",
                     "-Pcordapp_version=$cordappVersion"
                 )
         }

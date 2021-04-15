@@ -27,6 +27,7 @@ class ConfigureCordaMetadataTest {
                 .build(
                     "-Pcontract_name=Configure Contract Metadata",
                     "-Pcordapp_contract_version=$expectedCordappContractVersion",
+                    "-Pcorda_api_version=$cordaApiVersion",
                     "-Pcordapp_version=$CORDAPP_VERSION"
                 )
         }
