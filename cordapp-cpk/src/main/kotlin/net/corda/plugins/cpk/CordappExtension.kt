@@ -69,6 +69,13 @@ open class CordappExtension @Inject constructor(
     @get:Input
     val bndVersion: Property<String> = objects.property(String::class.java).convention(bndVersion)
 
+    /**
+     * This property only provides the default value for [CPKDependenciesTask.hashAlgorithm]
+     * and [DependencyConstraintsTask.hashAlgorithm], which are themselves annotated with
+     * @Input. Hence this is not a task input itself.
+     */
+    val hashAlgorithm: Property<String> = objects.property(String::class.java).convention("SHA-256")
+
     fun contract(action: Action<in CordappData>) {
         action.execute(contract)
     }

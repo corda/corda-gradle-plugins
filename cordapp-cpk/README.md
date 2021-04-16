@@ -91,6 +91,8 @@ cordapp {
     }
 
     sealing  = (true | false)
+
+    hashAlgorithm = 'SHA-256'
 }
 ```
 

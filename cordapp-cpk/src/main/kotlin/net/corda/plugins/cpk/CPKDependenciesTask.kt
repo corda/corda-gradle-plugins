@@ -27,12 +27,13 @@ import java.util.jar.JarEntry
 import java.util.jar.JarFile
 import javax.inject.Inject
 import kotlin.collections.HashSet
+import org.gradle.api.provider.Property
+import org.gradle.api.tasks.Input
 
 @Suppress("UnstableApiUsage", "MemberVisibilityCanBePrivate")
 open class CPKDependenciesTask @Inject constructor(objects: ObjectFactory) : DefaultTask() {
     private companion object {
         private const val CPK_DEPENDENCIES = "META-INF/CPKDependencies"
-        private const val HASH_ALGORITHM = "SHA-256"
         private const val EOF = -1
 
         /**
@@ -65,6 +66,9 @@ open class CPKDependenciesTask @Inject constructor(objects: ObjectFactory) : Def
         group = GROUP_NAME
     }
 
+    @get:Input
+    val hashAlgorithm: Property<String> = objects.property(String::class.java)
+
     private val _cpks: ConfigurableFileCollection = objects.fileCollection()
     val cpks: FileCollection
         @PathSensitive(RELATIVE)
@@ -89,7 +93,7 @@ open class CPKDependenciesTask @Inject constructor(objects: ObjectFactory) : Def
 
     @TaskAction
     fun generate() {
-        val digest = digestFor(HASH_ALGORITHM)
+        val digest = digestFor(hashAlgorithm.get().toUpperCase())
 
         try {
             val xmlDocument = createXmlDocument()

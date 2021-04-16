@@ -154,8 +154,8 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
     }
 
     /**
-     * Configures this project's JAR as a Cordapp JAR. Ensure that the
-     * JAR is reproducible, i.e. that its SHA-256 hash is stable!
+     * Configures this project's JAR as a CorDapp JAR. Ensure that the
+     * JAR is reproducible, i.e. that its hash is stable!
      */
     private fun configureCordappTasks(project: Project) {
         val calculatorTask = project.tasks.register(DEPENDENCY_CALCULATOR_TASK_NAME, DependencyCalculator::class.java) { task ->
@@ -169,6 +169,7 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
         val constraintsTask = project.tasks.register(DEPENDENCY_CONSTRAINTS_TASK_NAME, DependencyConstraintsTask::class.java) { task ->
             task.setLibrariesFrom(calculatorTask)
             task.constraintsDir.set(constraintsDir)
+            task.hashAlgorithm.set(cordapp.hashAlgorithm)
         }
 
         /**
@@ -178,6 +179,7 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
         val cpkDependenciesTask = project.tasks.register(CPK_DEPENDENCIES_TASK_NAME, CPKDependenciesTask::class.java) { task ->
             task.setCPKsFrom(calculatorTask)
             task.outputDir.set(cpkDependenciesDir)
+            task.hashAlgorithm.set(cordapp.hashAlgorithm)
         }
 
         val sourceSets = project.convention.getPlugin(JavaPluginConvention::class.java).sourceSets

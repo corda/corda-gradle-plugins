@@ -26,7 +26,6 @@ import javax.inject.Inject
 open class DependencyConstraintsTask @Inject constructor(objects: ObjectFactory) : DefaultTask() {
     private companion object {
         private const val DEPENDENCY_CONSTRAINTS = "META-INF/DependencyConstraints"
-        private const val CORDAPP_HASH_ALGORITHM = "SHA-256"
         private const val EOF = -1
     }
 
@@ -42,7 +41,7 @@ open class DependencyConstraintsTask @Inject constructor(objects: ObjectFactory)
         get() = _libraries
 
     @get:Input
-    val algorithm: Property<String> = objects.property(String::class.java).convention(CORDAPP_HASH_ALGORITHM)
+    val hashAlgorithm: Property<String> = objects.property(String::class.java)
 
     @get:Internal
     val constraintsDir: DirectoryProperty = objects.directoryProperty()
@@ -62,7 +61,7 @@ open class DependencyConstraintsTask @Inject constructor(objects: ObjectFactory)
 
     @TaskAction
     fun generate() {
-        val digest = digestFor(algorithm.get().toUpperCase())
+        val digest = digestFor(hashAlgorithm.get().toUpperCase())
 
         try {
             val xmlDocument = createXmlDocument()
