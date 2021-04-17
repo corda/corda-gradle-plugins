@@ -62,6 +62,7 @@ open class SigningOptions @Inject constructor(objects: ObjectFactory, providers:
         private const val DEFAULT_STOREPASS = "cordacadevpass"
         private const val DEFAULT_STORETYPE = "JKS"
         private const val DEFAULT_KEYPASS = "cordacadevkeypass"
+        private const val DEFAULT_SIGFILE = "cordapp"
         const val DEFAULT_KEYSTORE = "certificates/cordadevcodesign.jks"
         const val DEFAULT_KEYSTORE_FILE = "cordadevcakeys"
         const val DEFAULT_KEYSTORE_EXTENSION = ".jks"
@@ -112,7 +113,9 @@ open class SigningOptions @Inject constructor(objects: ObjectFactory, providers:
     @get:InputFile
     @get:PathSensitive(RELATIVE)
     val keyStore: RegularFileProperty = objects.fileProperty().fileProvider(
-        providers.systemProperty(SYSTEM_PROPERTY_PREFIX + Key.KEYSTORE).forUseAtConfigurationTime().map(::File)
+        providers.systemProperty(SYSTEM_PROPERTY_PREFIX + Key.KEYSTORE)
+            .forUseAtConfigurationTime()
+            .map(::File)
     )
 
     @get:Input
@@ -126,7 +129,17 @@ open class SigningOptions @Inject constructor(objects: ObjectFactory, providers:
     )
 
     @get:Input
-    val signatureFileName: Property<String> = objects.property(String::class.java).convention("cordapp")
+    val signatureFileName: Property<String> = objects.property(String::class.java).convention(
+        providers.systemProperty(SYSTEM_PROPERTY_PREFIX + Key.SIGFILE)
+            .forUseAtConfigurationTime()
+            .orElse(alias.map { aliasValue ->
+                if (aliasValue == DEFAULT_ALIAS) {
+                    DEFAULT_SIGFILE
+                } else {
+                    aliasValue
+                }
+            })
+    )
 
     @get:Optional
     @get:Input

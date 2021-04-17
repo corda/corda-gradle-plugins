@@ -18,7 +18,7 @@ keytool -keystore ${KEYSTORE} \
         -genkey \
         -dname 'CN=Corda Dev Code Signer, OU=R3, O=Corda, L=London, C=GB' \
         -keyalg EC \
-        -keysize 256 \
+        -groupname secp256r1 \
         -alias ${ALIAS} \
         -validity 3650 \
         -ext KU=DigitalSignature \
