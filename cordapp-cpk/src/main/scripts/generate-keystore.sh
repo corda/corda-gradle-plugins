@@ -5,10 +5,10 @@
 #
 # Note: It generates the keystore from scratch with a brand new key.
 
-KEYSTORE=cordadevcodesign.jks
-KEYPASS=cordacadevkeypass
+KEYSTORE=cordadevcodesign.p12
 STOREPASS=cordacadevpass
-STORETYPE=jks
+STORETYPE=pkcs12
+KEYPASS=${STOREPASS}
 ALIAS=cordacodesign
 
 rm -f ${KEYSTORE}

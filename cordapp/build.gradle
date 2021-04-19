@@ -50,7 +50,3 @@ dependencies {
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junit_jupiter_version"
     testImplementation "org.assertj:assertj-core:$assertj_version"
 }
-
-processResources {
-    from project(':cordapp-cpk').file('src/main/resources')
-}

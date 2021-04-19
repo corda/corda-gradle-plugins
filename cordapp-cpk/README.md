@@ -67,9 +67,9 @@ cordapp {
             alias = '??'
             storePassword = '??'
             keyStore = '??'
-            storeType= '??'
-            keyPassword = '??'
-            signatureFileName = 'cordapp'
+            storeType= 'PKCS12'
+            keyPassword = '$storePassword'
+            signatureFileName = '$alias'
             signedJar = '??'
             verbose = (true | false)
             strict = (true | false)

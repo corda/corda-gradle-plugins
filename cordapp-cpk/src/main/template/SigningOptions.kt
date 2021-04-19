@@ -28,8 +28,6 @@ import javax.inject.Inject
  */
 fun TaskInputs.nested(nestName: String, options: SigningOptions) {
     property("${nestName}.alias", options.alias)
-    property("${nestName}.storePassword", options.storePassword)
-    property("${nestName}.storeType", options.storeType)
     file(options.keyStore).withPropertyName("${nestName}.keyStore")
         .withPathSensitivity(RELATIVE)
         .optional()
@@ -57,15 +55,14 @@ fun TaskInputs.nested(nestName: String, options: SigningOptions) {
 @Suppress("UnstableApiUsage")
 open class SigningOptions @Inject constructor(objects: ObjectFactory, providers: ProviderFactory) {
     companion object {
-        // Defaults to resource/certificates/cordadevcakeys.jks keystore with Corda development key
+        // Defaults to resources/certificates/cordadevcodesign.p12 keystore with Corda development key
         private const val DEFAULT_ALIAS = "cordacodesign"
         private const val DEFAULT_STOREPASS = "cordacadevpass"
-        private const val DEFAULT_STORETYPE = "JKS"
-        private const val DEFAULT_KEYPASS = "cordacadevkeypass"
+        private const val DEFAULT_STORETYPE = "PKCS12"
         private const val DEFAULT_SIGFILE = "cordapp"
-        const val DEFAULT_KEYSTORE = "certificates/cordadevcodesign.jks"
+        const val DEFAULT_KEYSTORE = "certificates/cordadevcodesign.p12"
         const val DEFAULT_KEYSTORE_FILE = "cordadevcakeys"
-        const val DEFAULT_KEYSTORE_EXTENSION = ".jks"
+        const val DEFAULT_KEYSTORE_EXTENSION = ".p12"
         const val SYSTEM_PROPERTY_PREFIX = "signing."
     }
 
@@ -104,7 +101,7 @@ open class SigningOptions @Inject constructor(objects: ObjectFactory, providers:
         providers.systemProperty(SYSTEM_PROPERTY_PREFIX + Key.ALIAS).orElse(DEFAULT_ALIAS)
     )
 
-    @get:Input
+    @get:Internal
     val storePassword: Property<String> = objects.property(String::class.java).convention(
         providers.systemProperty(SYSTEM_PROPERTY_PREFIX + Key.STOREPASS).orElse(DEFAULT_STOREPASS)
     )
@@ -118,14 +115,16 @@ open class SigningOptions @Inject constructor(objects: ObjectFactory, providers:
             .map(::File)
     )
 
-    @get:Input
+    @get:Internal
     val storeType: Property<String> = objects.property(String::class.java).convention(
         providers.systemProperty(SYSTEM_PROPERTY_PREFIX + Key.STORETYPE).orElse(DEFAULT_STORETYPE)
     )
 
-    @get:Input
+    @get:Internal
     val keyPassword: Property<String> = objects.property(String::class.java).convention(
-        providers.systemProperty(SYSTEM_PROPERTY_PREFIX + Key.KEYPASS).orElse(DEFAULT_KEYPASS)
+        providers.systemProperty(SYSTEM_PROPERTY_PREFIX + Key.KEYPASS)
+            .forUseAtConfigurationTime()
+            .orElse(storePassword)
     )
 
     @get:Input

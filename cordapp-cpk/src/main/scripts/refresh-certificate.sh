@@ -3,10 +3,10 @@
 # This script refreshes the certificate for the development
 # CorDapp signing key in src/main/resources/certificates.
 
-KEYSTORE=cordadevcodesign.jks
-KEYPASS=cordacadevkeypass
+KEYSTORE=cordadevcodesign.p12
 STOREPASS=cordacadevpass
-STORETYPE=jks
+STORETYPE=pkcs12
+KEYPASS=${STOREPASS}
 ALIAS=cordacodesign
 
 REQUEST=request.csr
