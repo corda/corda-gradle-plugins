@@ -4,24 +4,50 @@ package net.corda.plugins.cpk.xml
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.fail
 import org.w3c.dom.Document
+import org.w3c.dom.Element
 import org.w3c.dom.Node
+import org.w3c.dom.NodeList
 import java.io.InputStream
 import java.util.Base64
+import java.util.Collections.emptyIterator
 import java.util.Collections.unmodifiableList
 import javax.xml.parsers.DocumentBuilderFactory
 
-interface AbstractBuilder<T> {
-    fun build(): T
+private class ElementIterator(private val nodes: NodeList) : Iterator<Element> {
+    private var index = 0
 
-    @JvmDefault
-    fun getTextValue(node: Node): String? {
-        val valueNode = node.firstChild
-        return if (valueNode.nodeType == Node.TEXT_NODE) {
-            valueNode.nodeValue
-        } else {
-            null
+    private val next: Element? get() {
+        while (index < nodes.length) {
+            val element = nodes.item(index) as? Element
+            if (element != null) {
+                return element
+            }
+            ++index
+        }
+        return null
+    }
+
+    override fun hasNext(): Boolean {
+        return next != null
+    }
+
+    override fun next(): Element {
+        return (next ?: throw NoSuchElementException()).also {
+            ++index
         }
     }
+}
+
+val Node.childElements: Iterator<Element> get() {
+    return if (hasChildNodes()) {
+        ElementIterator(childNodes)
+    } else {
+        emptyIterator()
+    }
+}
+
+interface AbstractBuilder<T> {
+    fun build(): T
 }
 
 class HashValue(val value: ByteArray, val algorithm: String) {
@@ -32,16 +58,10 @@ class HashValue(val value: ByteArray, val algorithm: String) {
         return Base64.getEncoder().encodeToString(value)
     }
 
-    class Builder(private val node: Node) : AbstractBuilder<HashValue> {
-        private var value: ByteArray? = null
-        private var algorithm: String? = null
-
+    class Builder(private val element: Element) : AbstractBuilder<HashValue> {
         override fun build(): HashValue {
-            if (node.hasAttributes()) {
-                val algorithmNode = node.attributes.getNamedItem("algorithm")
-                algorithm = algorithmNode.nodeValue
-            }
-            value = Base64.getDecoder().decode(getTextValue(node))
+            val algorithm = element.getAttribute("algorithm")
+            val value = Base64.getDecoder().decode(element.textContent)
             return HashValue(
                 value = value ?: fail("hash.value missing"),
                 algorithm = algorithm ?: fail("hash.algorithm missing")
@@ -54,13 +74,10 @@ class SignersBuilder(private val node: Node) : AbstractBuilder<List<HashValue>> 
     private val signers = mutableListOf<HashValue>()
 
     override fun build(): List<HashValue> {
-        if (node.hasChildNodes()) {
-            val childNodes = node.childNodes
-            for (idx in 0 until childNodes.length) {
-                val childNode = childNodes.item(idx)
-                when (childNode.nodeName) {
-                    "signer" -> signers.add(HashValue.Builder(childNode).build())
-                }
+        for (childElement in node.childElements) {
+            when (val tagName = childElement.tagName) {
+                "signer" -> signers.add(HashValue.Builder(childElement).build())
+                else -> fail("Unknown XML element <$tagName>")
             }
         }
         return unmodifiableList(signers)
@@ -102,15 +119,12 @@ class CPKDependency(
         private var signers: List<HashValue>? = null
 
         override fun build(): CPKDependency {
-            if (node.hasChildNodes()) {
-                val childNodes = node.childNodes
-                for (idx in 0 until childNodes.length) {
-                    val childNode = childNodes.item(idx)
-                    when (childNode.nodeName) {
-                        "name" -> name = getTextValue(childNode)
-                        "version" -> version = getTextValue(childNode)
-                        "signers" -> signers = SignersBuilder(childNode).build()
-                    }
+            for (childElement in node.childElements) {
+                when (val tagName = childElement.tagName) {
+                    "name" -> name = childElement.textContent
+                    "version" -> version = childElement.textContent
+                    "signers" -> signers = SignersBuilder(childElement).build()
+                    else -> fail("Unknown XML element <$tagName>")
                 }
             }
             return CPKDependency(
@@ -126,14 +140,11 @@ class CPKDependenciesBuilder(private val node: Node) : AbstractBuilder<List<CPKD
     private val dependencies = mutableListOf<CPKDependency>()
 
     override fun build(): List<CPKDependency> {
-        if (node.hasChildNodes()) {
-            val childNodes = node.childNodes
-            for (idx in 0 until childNodes.length) {
-                val childNode = childNodes.item(idx)
-                when (childNode.nodeName) {
-                    "cpkDependency" ->
-                        dependencies.add(CPKDependency.Builder(childNode).build())
-                }
+        for (childElement in node.childElements) {
+            when (val tagName = childElement.tagName) {
+                "cpkDependency" ->
+                    dependencies.add(CPKDependency.Builder(childElement).build())
+                else -> fail("Unknown XML element <$tagName>")
             }
         }
         return unmodifiableList(dependencies)
@@ -153,14 +164,11 @@ class DependencyConstraint(val fileName: String, val hash: HashValue) {
         private var hash: HashValue? = null
 
         override fun build(): DependencyConstraint {
-            if (node.hasChildNodes()) {
-                val childNodes = node.childNodes
-                for (idx in 0 until childNodes.length) {
-                    val childNode = childNodes.item(idx)
-                    when (childNode.nodeName) {
-                        "fileName" -> fileName = getTextValue(childNode)
-                        "hash" -> hash = HashValue.Builder(childNode).build()
-                    }
+            for (childElement in node.childElements) {
+                when (val tagName = childElement.tagName) {
+                    "fileName" -> fileName = childElement.textContent
+                    "hash" -> hash = HashValue.Builder(childElement).build()
+                    else -> fail("Unknown XML element <$tagName>")
                 }
             }
             return DependencyConstraint(
@@ -175,14 +183,11 @@ class DependencyConstraintsBuilder(private val node: Node): AbstractBuilder<List
     private val constraints = mutableListOf<DependencyConstraint>()
 
     override fun build(): List<DependencyConstraint> {
-        if (node.hasChildNodes()) {
-            val childNodes = node.childNodes
-            for (idx in 0 until childNodes.length) {
-                val childNode = childNodes.item(idx)
-                when (childNode.nodeName) {
-                    "dependencyConstraint" ->
-                        constraints.add(DependencyConstraint.Builder(childNode).build())
-                }
+        for (childElement in node.childElements) {
+            when (val tagName = childElement.tagName) {
+                "dependencyConstraint" ->
+                    constraints.add(DependencyConstraint.Builder(childElement).build())
+                else -> fail("Unknown XML element <$tagName>")
             }
         }
         return unmodifiableList(constraints)

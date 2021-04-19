@@ -7,7 +7,9 @@ import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.RegularFile
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
+import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputFile
@@ -26,9 +28,6 @@ import java.util.Base64
 import java.util.jar.JarEntry
 import java.util.jar.JarFile
 import javax.inject.Inject
-import kotlin.collections.HashSet
-import org.gradle.api.provider.Property
-import org.gradle.api.tasks.Input
 
 @Suppress("UnstableApiUsage", "MemberVisibilityCanBePrivate")
 open class CPKDependenciesTask @Inject constructor(objects: ObjectFactory) : DefaultTask() {
