@@ -221,19 +221,19 @@ open class OsgiExtension(objects: ObjectFactory, jar: Jar) {
     }
 
     @get:Input
-    val symbolicName: Provider<String>
+    val symbolicName: Property<String> = objects.property(String::class.java)
 
     init {
         val project = jar.project
-        val groupName = project.provider { project.group.toString() }
+        val groupName = project.provider { project.group.toString().trim() }
         val archiveName = createArchiveName(jar)
-        symbolicName = groupName.zip(archiveName) { group, name ->
+        symbolicName.convention(groupName.zip(archiveName) { group, name ->
             if (group.isEmpty()) {
                 name
             } else {
                 "$group.$name"
             }
-        }
+        })
 
         _cordaClasses.putAll(BASE_CORDA_CLASSES)
 
