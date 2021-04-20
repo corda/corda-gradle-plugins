@@ -2,7 +2,7 @@
 package com.example.metadata.workflows
 
 import com.example.metadata.contracts.ExampleState
-import net.corda.core.flows.Flow
+import net.corda.v5.application.flows.Flow
 
 class ExampleFlow(private val state: ExampleState) : Flow<String> {
     private companion object {
