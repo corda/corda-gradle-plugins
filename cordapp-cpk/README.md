@@ -66,8 +66,8 @@ cordapp {
         options {
             alias = '??'
             storePassword = '??'
-            keyStore = '??'
-            storeType= 'PKCS12'
+            keyStore = file('/path/to/keystore')
+            storeType= ('PKCS12' | 'JKS')
             keyPassword = '$storePassword'
             signatureFileName = '$alias'
             signedJar = '??'
@@ -82,7 +82,7 @@ cordapp {
             tsaCert = '??'
             tsaProxyHost = '??'
             tsaProxyPort = '??'
-            executable = '??'
+            executable = file('/path/to/alternate/jarsigner')
             force = (true | false)
             signatureAlgorithm = '??'
             digestAlgorithm = '??'
