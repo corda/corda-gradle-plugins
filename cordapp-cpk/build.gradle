@@ -10,7 +10,6 @@ plugins {
 description 'Configures this project to create a CPK CorDapp'
 
 ext {
-    test_quasar_utils_version = '5.0.13'
     test_persistence_api_version = '2.2'
     test_hibernate_version = '5.4.30.Final'
     test_kotlin_version = '1.4.32'
@@ -86,7 +85,6 @@ dependencies {
 processTestResources {
     filesMatching('gradle.properties') {
         expand([
-            'quasar_utils_version': test_quasar_utils_version,
             'persistence_api_version': test_persistence_api_version,
             'hibernate_version': test_hibernate_version,
             'corda_guava_version': corda_guava_version,
