@@ -1,0 +1,39 @@
+plugins {
+    id 'net.corda.plugins.cordformation'
+}
+
+apply from: 'repositories.gradle'
+
+configurations {
+    cordaCPK
+}
+
+dependencies {
+    cordaRuntimeOnly "$corda_group:corda:$corda_release_version"
+    cordaRuntimeOnly "$corda_group:corda-node-api:$corda_bundle_version"
+}
+
+def cpk = tasks.register('cpk', Jar) {
+    archiveBaseName = 'locally-built'
+    archiveClassifier = 'cordapp'
+    archiveExtension = 'cpk'
+}
+
+artifacts {
+    cordaCPK cpk
+}
+
+task deployNodes(type: net.corda.plugins.Cordform, dependsOn: ['cpk']) {
+    node {
+        name 'O=Notary Service,L=Zurich,C=CH'
+        notary = [validating : true]
+        p2pPort 10002
+        rpcSettings {
+            port 10003
+            adminAddress "localhost:10004"
+        }
+        projectCordapp {
+            config "a=b"
+        }
+    }
+}

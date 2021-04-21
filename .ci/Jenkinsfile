@@ -39,6 +39,9 @@ pipeline {
         ARTIFACTORY_BUILD_NAME = "Corda Gradle Plugins / Publish To Artifactory"
             .replaceAll("/", " :: ")
         ARTIFACTORY_REPO = "${isRelease ? "corda-releases" : "corda-dev"}"
+        ARTIFACTORY_CREDENTIALS = credentials('artifactory-credentials')
+        CORDA_ARTIFACTORY_USERNAME = "${env.ARTIFACTORY_CREDENTIALS_USR}"
+        CORDA_ARTIFACTORY_PASSWORD = "${env.ARTIFACTORY_CREDENTIALS_PSW}"
     }
     stages {
         stage('Build') {

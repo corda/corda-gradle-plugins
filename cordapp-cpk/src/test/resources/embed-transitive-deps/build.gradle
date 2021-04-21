@@ -1,0 +1,33 @@
+plugins {
+    id 'net.corda.plugins.cordapp-cpk'
+}
+
+apply from: 'repositories.gradle'
+apply from: 'javaTarget.gradle'
+
+allprojects {
+    group = 'com.example'
+}
+
+version = cordapp_version
+
+cordapp {
+    targetPlatformVersion = platform_version.toInteger()
+    minimumPlatformVersion = platform_version.toInteger()
+
+    contract {
+        name = 'Embed Transitive Dependencies'
+        versionId = cordapp_contract_version.toInteger()
+        licence = 'Test-Licence'
+        vendor = 'R3'
+    }
+}
+
+dependencies {
+    implementation project(':library')
+    cordaEmbedded project(':annotations')
+}
+
+jar {
+    archiveBaseName = 'embed-transitive-deps'
+}

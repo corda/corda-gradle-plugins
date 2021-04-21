@@ -41,6 +41,19 @@ The plugins themselves fall into two categories: those intended for developing C
 
 ### Plugins for CorDapp development.
 
+- [`net.corda.plugins.cordapp-cpk`](cordapp-cpk/README.md)\
+This plugin generates CPK-format CorDapps that are compatible with Corda 5,
+and supercedes Corda's original `cordapp` plugin. It will package your
+CorDapp classes into an OSGi bundle (a jar whose manifest contains OSGi
+metadata), and then package that bundle together with its dependencies into
+a `.cpk` archive. Dependencies which are added to Gradle's `cordaProvided`,
+`cordaRuntimeOnly` and `cordapp` configurations are excluded from the `.cpk`
+file. Both the OSGi bundle and the CPK archive are signed. The plugin also
+provides a `cordapp` Gradle extension so that you can configure your CorDapp's
+metadata.
+
+    <sup>Requires Gradle 6.6</sup>
+
 - [`net.corda.plugins.cordapp`](cordapp/README.md)\
 This plugin packages your CorDapp classes into a single jar file, along with
 the contents of all of the jar's dependent jars. Dependencies which are added

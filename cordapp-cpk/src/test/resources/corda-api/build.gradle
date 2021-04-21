@@ -1,0 +1,31 @@
+plugins {
+    id 'org.jetbrains.kotlin.jvm'
+    id 'biz.aQute.bnd.builder'
+    id 'java-library'
+}
+apply from: '../javaTarget.gradle'
+apply from: '../kotlin.gradle'
+
+group = 'net.corda'
+version = corda_api_version
+
+// Share the source files, but not the output files.
+buildDir = rootProject.file("cordaBuild")
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compileOnly "org.osgi:osgi.annotation:$osgi_version"
+    implementation "org.jetbrains.kotlin:kotlin-osgi-bundle:$kotlin_version"
+    api "javax.persistence:javax.persistence-api:$persistence_api_version"
+    runtimeOnly "com.google.guava:guava:$corda_guava_version"
+}
+
+tasks.named('jar', Jar) {
+    bnd """\
+Bundle-SymbolicName: net.corda.api
+Bundle-Name: Fake Corda APIs
+"""
+}

@@ -1,0 +1,54 @@
+plugins {
+    id 'net.corda.plugins.cordformation'
+}
+
+apply from: 'repositories.gradle'
+apply from: 'postgres.gradle'
+
+dependencies {
+    cordaRuntimeOnly "$corda_group:corda:$corda_release_version"
+    cordaRuntimeOnly "$corda_group:corda-node-api:$corda_bundle_version"
+    cordapp "$corda_group:corda-finance-contracts:$corda_bundle_version"
+    cordapp "$corda_group:corda-finance-workflows:$corda_bundle_version"
+}
+
+task prepareDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: ['generateInitScripts', 'jar']) {
+    nodeDefaults {
+        cordapp "$corda_group:corda-finance-contracts:$corda_bundle_version"
+        cordapp "$corda_group:corda-finance-workflows:$corda_bundle_version"
+    }
+
+    node {
+        name "O=Notary Service,L=Zurich,C=CH"
+        notary = [validating: true]
+        p2pPort 10002
+        rpcSettings {
+            address "localhost:10003"
+            adminAddress "localhost:10004"
+        }
+    }
+    node {
+        name "O=BankOfCorda,L=London,C=GB"
+        p2pPort 10005
+        rpcSettings {
+            address "localhost:10006"
+            adminAddress "localhost:10015"
+        }
+
+        rpcUsers = [[user: "bankUser", password: "test", permissions: ["ALL"]]]
+    }
+    node {
+        name "O=BigCorporation,L=New York,C=US"
+        p2pPort 10008
+        rpcSettings {
+            address "localhost:10009"
+            adminAddress "localhost:10011"
+        }
+
+        rpcUsers = [[user: "bigCorpUser", password: "test", permissions: ["ALL"]]]
+    }
+
+    dockerConfig = postgres
+
+    dockerImage = docker_image_name
+}

@@ -3,7 +3,7 @@ package net.corda.plugins
 import org.gradle.api.DefaultTask
 import com.spotify.docker.client.DefaultDockerClient
 import com.spotify.docker.client.LoggingBuildHandler
-import net.corda.plugins.Cordformation.Companion.CORDAPP_CONFIGURATION_NAME
+import net.corda.plugins.Cordformation.Companion.DEPLOY_CORDAPP_CONFIGURATION_NAME
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileCollection
@@ -23,7 +23,7 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import javax.inject.Inject
 
-@Suppress("UnstableApiUsage", "unused")
+@Suppress("UnstableApiUsage", "unused", "LeakingThis")
 open class DockerImage @Inject constructor(objects: ObjectFactory, layouts: ProjectLayout) : DefaultTask() {
 
     private companion object{
@@ -33,6 +33,10 @@ open class DockerImage @Inject constructor(objects: ObjectFactory, layouts: Proj
     init {
         description = "Creates a docker file and immediately builds that image to the local repository."
         group = "CordaDockerDeployment"
+
+        // Ensure everything in the cordapp configuration that needs
+        // to be built is available before this task executes.
+        dependsOn(project.configurations.getByName(DEPLOY_CORDAPP_CONFIGURATION_NAME).buildDependencies)
     }
 
     @get:Input
@@ -66,7 +70,7 @@ open class DockerImage @Inject constructor(objects: ObjectFactory, layouts: Proj
         dockerImageTag = tag
     }
 
-    private val _jars: ConfigurableFileCollection = project.files(project.configuration(CORDAPP_CONFIGURATION_NAME))
+    private val _jars: ConfigurableFileCollection = project.files(project.configuration(DEPLOY_CORDAPP_CONFIGURATION_NAME))
 
     @get:InputFiles
     @get:SkipWhenEmpty

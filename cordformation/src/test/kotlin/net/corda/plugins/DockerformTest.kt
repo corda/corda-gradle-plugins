@@ -13,8 +13,11 @@ class DockerformTest : BaseformTest() {
     @Test
     fun `fail to deploy a node with cordapp dependency with missing dockerImage tag`() {
         val runner = getStandardGradleRunnerFor(
-                "DeploySingleNodeWithCordappWithDocker.gradle",
-                "prepareDockerNodes")
+            "DeploySingleNodeWithCordappWithDocker.gradle",
+            "prepareDockerNodes",
+            "-Pcorda_release_version=$cordaReleaseVersion",
+            "-Pcorda_bundle_version=$cordaBundleVersion"
+        )
 
         val result = runner.buildAndFail()
 
@@ -25,72 +28,84 @@ class DockerformTest : BaseformTest() {
     @Test
     fun `deploy a node with cordapp dependency and network configuration` () {
         val runner = getStandardGradleRunnerFor(
-                "DeploySingleNodeWithCordappWithNetworkConfigWithDocker.gradle",
-                "prepareDockerNodes")
+            "DeploySingleNodeWithCordappWithNetworkConfigWithDocker.gradle",
+            "prepareDockerNodes",
+            "-Pcorda_release_version=$cordaReleaseVersion",
+            "-Pcorda_bundle_version=$cordaBundleVersion"
+        )
 
         val result = runner.build()
 
         assertThat(result.task(":prepareDockerNodes")!!.outcome).isEqualTo(TaskOutcome.SUCCESS)
-        assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceWorkflowsJarName)).isRegularFile()
-        assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceContractsJarName)).isRegularFile()
+        assertThat(getNodeCordappCpk(notaryNodeName, cordaFinanceWorkflowsCpkName)).isRegularFile()
+        assertThat(getNodeCordappCpk(notaryNodeName, cordaFinanceContractsCpkName)).isRegularFile()
         assertThat(getNetworkParameterOverrides(notaryNodeName)).isRegularFile()
     }
 
     @Test
     fun `deploy a three node cordapp` () {
         val runner = getStandardGradleRunnerFor(
-                "DeployThreeNodeCordappWithExternalDBSettingsWithDocker.gradle",
-                "prepareDockerNodes")
+            "DeployThreeNodeCordappWithExternalDBSettingsWithDocker.gradle",
+            "prepareDockerNodes",
+            "-Pcorda_release_version=$cordaReleaseVersion",
+            "-Pcorda_bundle_version=$cordaBundleVersion"
+        )
 
         val bigCorporationNodeName = "BigCorporation"
 
         val result = runner.build()
 
         assertThat(result.task(":prepareDockerNodes")!!.outcome).isEqualTo(TaskOutcome.SUCCESS)
-        assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceWorkflowsJarName)).isRegularFile()
-        assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceContractsJarName)).isRegularFile()
+        assertThat(getNodeCordappCpk(notaryNodeName, cordaFinanceWorkflowsCpkName)).isRegularFile()
+        assertThat(getNodeCordappCpk(notaryNodeName, cordaFinanceContractsCpkName)).isRegularFile()
         assertThat(getNetworkParameterOverrides(notaryNodeName)).isRegularFile()
-        assertThat(getNodeCordappJar(bankNodeName, cordaFinanceWorkflowsJarName)).isRegularFile()
-        assertThat(getNodeCordappJar(bankNodeName, cordaFinanceContractsJarName)).isRegularFile()
+        assertThat(getNodeCordappCpk(bankNodeName, cordaFinanceWorkflowsCpkName)).isRegularFile()
+        assertThat(getNodeCordappCpk(bankNodeName, cordaFinanceContractsCpkName)).isRegularFile()
         assertThat(getNetworkParameterOverrides(bankNodeName)).isRegularFile()
-        assertThat(getNodeCordappJar(bigCorporationNodeName, cordaFinanceWorkflowsJarName)).isRegularFile()
-        assertThat(getNodeCordappJar(bigCorporationNodeName, cordaFinanceContractsJarName)).isRegularFile()
+        assertThat(getNodeCordappCpk(bigCorporationNodeName, cordaFinanceWorkflowsCpkName)).isRegularFile()
+        assertThat(getNodeCordappCpk(bigCorporationNodeName, cordaFinanceContractsCpkName)).isRegularFile()
         assertThat(getNetworkParameterOverrides(bigCorporationNodeName)).isRegularFile()
     }
 
     @Test
     fun `deploy a three node cordapp with network configuration` () {
         val runner = getStandardGradleRunnerFor(
-                "DeployThreeNodeCordappWithExternalDBSettingsWithNetworkConfigWithDocker.gradle",
-                "prepareDockerNodes")
+            "DeployThreeNodeCordappWithExternalDBSettingsWithNetworkConfigWithDocker.gradle",
+            "prepareDockerNodes",
+            "-Pcorda_release_version=$cordaReleaseVersion",
+            "-Pcorda_bundle_version=$cordaBundleVersion"
+        )
 
         val bigCorporationNodeName = "BigCorporation"
 
         val result = runner.build()
 
         assertThat(result.task(":prepareDockerNodes")!!.outcome).isEqualTo(TaskOutcome.SUCCESS)
-        assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceWorkflowsJarName)).isRegularFile()
-        assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceContractsJarName)).isRegularFile()
+        assertThat(getNodeCordappCpk(notaryNodeName, cordaFinanceWorkflowsCpkName)).isRegularFile()
+        assertThat(getNodeCordappCpk(notaryNodeName, cordaFinanceContractsCpkName)).isRegularFile()
         assertThat(getNetworkParameterOverrides(notaryNodeName)).isRegularFile()
-        assertThat(getNodeCordappJar(bankNodeName, cordaFinanceWorkflowsJarName)).isRegularFile()
-        assertThat(getNodeCordappJar(bankNodeName, cordaFinanceContractsJarName)).isRegularFile()
+        assertThat(getNodeCordappCpk(bankNodeName, cordaFinanceWorkflowsCpkName)).isRegularFile()
+        assertThat(getNodeCordappCpk(bankNodeName, cordaFinanceContractsCpkName)).isRegularFile()
         assertThat(getNetworkParameterOverrides(bankNodeName)).isRegularFile()
-        assertThat(getNodeCordappJar(bigCorporationNodeName, cordaFinanceWorkflowsJarName)).isRegularFile()
-        assertThat(getNodeCordappJar(bigCorporationNodeName, cordaFinanceContractsJarName)).isRegularFile()
+        assertThat(getNodeCordappCpk(bigCorporationNodeName, cordaFinanceWorkflowsCpkName)).isRegularFile()
+        assertThat(getNodeCordappCpk(bigCorporationNodeName, cordaFinanceContractsCpkName)).isRegularFile()
         assertThat(getNetworkParameterOverrides(bigCorporationNodeName)).isRegularFile()
     }
 
     @Test
     fun `deploy a node with cordapp dependency with db settings`() {
         val runner = getStandardGradleRunnerFor(
-                "DeploySingleNodeWithExternalDBSettingsWithDocker.gradle",
-                "prepareDockerNodes")
+            "DeploySingleNodeWithExternalDBSettingsWithDocker.gradle",
+            "prepareDockerNodes",
+            "-Pcorda_release_version=$cordaReleaseVersion",
+            "-Pcorda_bundle_version=$cordaBundleVersion"
+        )
 
         val result = runner.build()
 
         assertThat(result.task(":prepareDockerNodes")!!.outcome).isEqualTo(TaskOutcome.SUCCESS)
-        assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceWorkflowsJarName)).isRegularFile()
-        assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceContractsJarName)).isRegularFile()
+        assertThat(getNodeCordappCpk(notaryNodeName, cordaFinanceWorkflowsCpkName)).isRegularFile()
+        assertThat(getNodeCordappCpk(notaryNodeName, cordaFinanceContractsCpkName)).isRegularFile()
         assertThat(getNetworkParameterOverrides(notaryNodeName)).isRegularFile()
     }
 
@@ -98,17 +113,20 @@ class DockerformTest : BaseformTest() {
     @Test
     fun `deploy two nodes with cordapp dependencies`() {
         val runner = getStandardGradleRunnerFor(
-                "DeployTwoNodeCordappWithDocker.gradle",
-                "prepareDockerNodes")
+            "DeployTwoNodeCordappWithDocker.gradle",
+            "prepareDockerNodes",
+            "-Pcorda_release_version=$cordaReleaseVersion",
+            "-Pcorda_bundle_version=$cordaBundleVersion"
+        )
 
         val result = runner.build()
 
         assertThat(result.task(":prepareDockerNodes")!!.outcome).isEqualTo(TaskOutcome.SUCCESS)
-        assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceWorkflowsJarName)).isRegularFile()
-        assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceContractsJarName)).isRegularFile()
+        assertThat(getNodeCordappCpk(notaryNodeName, cordaFinanceWorkflowsCpkName)).isRegularFile()
+        assertThat(getNodeCordappCpk(notaryNodeName, cordaFinanceContractsCpkName)).isRegularFile()
         assertThat(getNetworkParameterOverrides(notaryNodeName)).isRegularFile()
-        assertThat(getNodeCordappJar(bankNodeName, cordaFinanceWorkflowsJarName)).isRegularFile()
-        assertThat(getNodeCordappJar(bankNodeName, cordaFinanceContractsJarName)).isRegularFile()
+        assertThat(getNodeCordappCpk(bankNodeName, cordaFinanceWorkflowsCpkName)).isRegularFile()
+        assertThat(getNodeCordappCpk(bankNodeName, cordaFinanceContractsCpkName)).isRegularFile()
         assertThat(getNetworkParameterOverrides(bankNodeName)).isRegularFile()
 
         assertThatConfig(getNodeConfig(notaryNodeName))
@@ -145,8 +163,11 @@ class DockerformTest : BaseformTest() {
     @Test
     fun `deploy two nodes with Docker and external service`() {
         val runner = getStandardGradleRunnerFor(
-                "DeployTwoNodeCordappWithExternalService.gradle",
-                "prepareDockerNodes")
+            "DeployTwoNodeCordappWithExternalService.gradle",
+            "prepareDockerNodes",
+            "-Pcorda_release_version=$cordaReleaseVersion",
+            "-Pcorda_bundle_version=$cordaBundleVersion"
+        )
 
         val result = runner.build()
         assertThat(result.task(":prepareDockerNodes")!!.outcome).isEqualTo(TaskOutcome.SUCCESS)
@@ -190,8 +211,11 @@ class DockerformTest : BaseformTest() {
     @Test
     fun `deploy two nodes with Docker and external service (minimal options)`() {
         val runner = getStandardGradleRunnerFor(
-                "DeployTwoNodeCordappWithExternalServiceNoOption.gradle",
-                "prepareDockerNodes")
+            "DeployTwoNodeCordappWithExternalServiceNoOption.gradle",
+            "prepareDockerNodes",
+            "-Pcorda_release_version=$cordaReleaseVersion",
+            "-Pcorda_bundle_version=$cordaBundleVersion"
+        )
 
         val result = runner.build()
         assertThat(result.task(":prepareDockerNodes")!!.outcome).isEqualTo(TaskOutcome.SUCCESS)

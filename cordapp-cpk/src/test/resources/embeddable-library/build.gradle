@@ -1,0 +1,22 @@
+plugins {
+    // We are DELIBERATELY NOT creating an OSGi bundle.
+    id 'java-library'
+}
+
+apply from: '../repositories.gradle'
+apply from: '../javaTarget.gradle'
+
+group = 'com.example'
+
+// Share the source files, but not the output files.
+buildDir = rootProject.file("embeddableLibraryBuild")
+
+dependencies {
+    implementation "commons-collections:commons-collections:$commons_collections_version"
+    implementation "commons-io:commons-io:$commons_io_version"
+    implementation "org.slf4j:slf4j-api:$slf4j_version"
+}
+
+jar {
+    archiveBaseName = 'embeddable-library'
+}

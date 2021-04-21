@@ -1,0 +1,62 @@
+plugins {
+    id 'net.corda.plugins.cordformation'
+}
+
+apply from: 'repositories.gradle'
+
+dependencies {
+    cordaRuntimeOnly "$corda_group:corda:$corda_release_version"
+    cordaRuntimeOnly "$corda_group:corda-node-api:$corda_bundle_version"
+    cordapp "$corda_group:corda-finance-contracts:$corda_bundle_version"
+    cordapp "$corda_group:corda-finance-workflows:$corda_bundle_version"
+}
+
+task prepareDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: ['jar']) {
+    nodeDefaults {
+        cordapp "$corda_group:corda-finance-contracts:$corda_bundle_version"
+        cordapp "$corda_group:corda-finance-workflows:$corda_bundle_version"
+    }
+
+    node {
+        name "O=Notary Service,L=London,C=GB"
+        notary = [validating : false]
+        p2pPort 10002
+        rpcSettings {
+            address("localhost:10003")
+            adminAddress("localhost:10043")
+        }
+        sshdPort 22234
+    }
+    node {
+        name "O=BankOfCorda,L=London,C=GB"
+        p2pPort 10005
+        rpcSettings {
+            address("localhost:10006")
+            adminAddress("localhost:10046")
+        }
+        rpcUsers = [[ user: "user1", "password": "test", "permissions": ["ALL"]]]
+        sshdPort 22235
+    }
+
+    external {
+        containerName = "example-service"
+        containerImage = "docker.io/bitnami/java:latest"
+        servicePorts = [8080,8000]
+        volumes =
+        [
+                [
+                        "sourceFile"    : "C:\\Projects\\gs-rest-service\\target\\CordaDevTestAPI-0.0.1-SNAPSHOT.jar",
+                        "deploymentPath": "/home/CordaDevTestAPI.jar"
+                ]
+        ]
+        environment =
+        [
+                "rpcUsername": "user1",
+                "rpcPassword": "pass2"
+        ]
+        commands = "bash -c \"cd home && java -jar CordaDevTestAPI.jar\""
+        privileged = true
+    }
+
+    dockerImage = docker_image_name
+}

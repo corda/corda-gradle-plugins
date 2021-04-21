@@ -1,14 +1,22 @@
 package net.corda.plugins
 
 import com.typesafe.config.*
-import net.corda.plugins.Cordformation.Companion.CORDAPP_CONFIGURATION_NAME
+import net.corda.plugins.Cordformation.Companion.CORDA_CPK_CONFIGURATION_NAME
 import net.corda.plugins.Cordformation.Companion.CORDA_DRIVER_CONFIGURATION_NAME
+import net.corda.plugins.Cordformation.Companion.CORDA_RUNTIME_ONLY_CONFIGURATION_NAME
+import net.corda.plugins.Cordformation.Companion.CPK_CLASSIFIER
+import net.corda.plugins.Cordformation.Companion.DEPLOY_CORDAPP_CONFIGURATION_NAME
 import org.gradle.api.Action
 import org.gradle.api.GradleException
 import org.gradle.api.Project
-import org.gradle.api.artifacts.ProjectDependency
+import org.gradle.api.artifacts.ResolvedArtifact
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier
+import org.gradle.api.file.FileSystemOperations
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME
+import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
+import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
@@ -19,6 +27,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.Collections.unmodifiableList
+import java.util.LinkedList
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
@@ -26,14 +35,20 @@ import javax.inject.Inject
  * Represents a node that will be installed.
  */
 @Suppress("unused", "UnstableApiUsage")
-open class Node @Inject constructor(private val project: Project) {
+open class Node @Inject constructor(
+    private val objects: ObjectFactory,
+    private val fs: FileSystemOperations,
+    private val providers: ProviderFactory,
+    private val task: Baseform
+) {
     internal data class ResolvedCordapp(val jarFile: Path, val config: String?)
 
     private companion object {
-        const val webJarName = "corda-testserver.jar"
-        const val configFileProperty = "configFile"
-        const val DEFAULT_HOST = "localhost"
-        const val LOGS_DIR_NAME = "logs"
+        private const val webJarName = "corda-testserver.jar"
+        private const val configFileProperty = "configFile"
+        private const val DEFAULT_HOST = "localhost"
+        private const val LOGS_DIR_NAME = "logs"
+        private const val CPK_TASK_NAME = "cpk"
 
         /**
          * [ObjectFactory][org.gradle.api.model.ObjectFactory] refuses
@@ -53,7 +68,7 @@ open class Node @Inject constructor(private val project: Project) {
         get() = unmodifiableList(internalCordapps)
 
     @get:Nested
-    val projectCordapp: Cordapp = project.objects.newInstance(Cordapp::class.java, "", project)
+    val projectCordapp: Cordapp = objects.newInstance(Cordapp::class.java, "", task.project)
     internal lateinit var nodeDir: File
         @Internal get
         private set
@@ -61,12 +76,12 @@ open class Node @Inject constructor(private val project: Project) {
     internal lateinit var containerName: String
         @Internal get
         private set
-    private val rpcSettings: RpcSettings = project.objects.newInstance(RpcSettings::class.java)
+    private val rpcSettings: RpcSettings = objects.newInstance(RpcSettings::class.java)
     private var webserverJar: String? = null
     private var p2pPort = 10002
     @get:Input
-    val rpcPort: Provider<Int> = project.objects.property(Int::class.java).apply {
-        set(project.provider { rpcSettings.port })
+    val rpcPort: Provider<Int> = objects.property(Int::class.java).apply {
+        set(providers.provider { rpcSettings.port })
     }
 
     internal var config = ConfigFactory.empty()
@@ -145,9 +160,8 @@ open class Node @Inject constructor(private val project: Project) {
         @Input
         get() = getOptionalString("webAddress")
 
-    var configFile: String? = null
+    val configFile: Property<String> = objects.property(String::class.java)
         @Optional @Input get
-        private set
 
     // Should the cordform set up run data base migration scripts after installation - defaults to false for compatibility
     // with current and previous Corda versions
@@ -229,7 +243,7 @@ open class Node @Inject constructor(private val project: Project) {
      * @param configFile The file path.
      */
     fun configFile(configFile: String) {
-        this.configFile = configFile
+        this.configFile.set(configFile)
     }
 
     /**
@@ -285,7 +299,7 @@ open class Node @Inject constructor(private val project: Project) {
      * @return The created and inserted [Cordapp]
      */
     fun cordapp(coordinates: String, action: Action<in Cordapp>): Cordapp {
-        return project.objects.newInstance(Cordapp::class.java, coordinates, NO_PROJECT).also { cordapp ->
+        return objects.newInstance(Cordapp::class.java, coordinates.trim(), NO_PROJECT).also { cordapp ->
             action.execute(cordapp)
             internalCordapps += cordapp
         }
@@ -299,7 +313,7 @@ open class Node @Inject constructor(private val project: Project) {
      * @return The created and inserted [Cordapp]
      */
     fun cordapp(cordappProject: Project, action: Action<in Cordapp>): Cordapp {
-        return project.objects.newInstance(Cordapp::class.java, "", cordappProject).also { cordapp ->
+        return objects.newInstance(Cordapp::class.java, "", cordappProject).also { cordapp ->
             action.execute(cordapp)
             internalCordapps += cordapp
         }
@@ -312,7 +326,7 @@ open class Node @Inject constructor(private val project: Project) {
      * @return The created and inserted [Cordapp]
      */
     fun cordapp(cordappProject: Project): Cordapp {
-        return project.objects.newInstance(Cordapp::class.java, "", cordappProject).also { cordapp ->
+        return objects.newInstance(Cordapp::class.java, "", cordappProject).also { cordapp ->
             internalCordapps += cordapp
         }
     }
@@ -324,7 +338,7 @@ open class Node @Inject constructor(private val project: Project) {
      * @return The created and inserted [Cordapp]
      */
     fun cordapp(coordinates: String): Cordapp {
-        return project.objects.newInstance(Cordapp::class.java, coordinates, NO_PROJECT).also { cordapp ->
+        return objects.newInstance(Cordapp::class.java, coordinates.trim(), NO_PROJECT).also { cordapp ->
             internalCordapps += cordapp
         }
     }
@@ -382,9 +396,9 @@ open class Node @Inject constructor(private val project: Project) {
 
     internal fun installCordapps() {
         val cordappsDir = nodeDir.toPath().resolve("cordapps")
-        val nodeCordapps = getCordappList().map(Node.ResolvedCordapp::jarFile).distinct()
+        val nodeCordapps = getCordappList().map(ResolvedCordapp::jarFile).distinct()
         nodeCordapps.map { nodeCordapp ->
-            project.copy {
+            fs.copy {
                 it.apply {
                     from(nodeCordapp)
                     into(cordappsDir)
@@ -393,9 +407,9 @@ open class Node @Inject constructor(private val project: Project) {
         }
     }
 
-    internal fun rootDir(rootDir: Path) {
+    internal fun rootDir(rootDir: File) {
         if (name == null) {
-            project.logger.error("Node has a null name - cannot create node")
+            task.logger.error("Node has a null name - cannot create node")
             throw IllegalStateException("Node has a null name - cannot create node")
         }
         // Parsing O= & OU= part directly because importing BouncyCastle provider in Cordformation causes problems
@@ -410,13 +424,13 @@ open class Node @Inject constructor(private val project: Project) {
         }
 
         containerName = dirName!!.replace("\\s++".toRegex(), "-").toLowerCase()
-        this.rootDir = rootDir.toFile()
-        nodeDir = File(this.rootDir, dirName.replace("\\s++".toRegex(), ""))
+        this.rootDir = rootDir
+        nodeDir = File(rootDir, dirName.replace("\\s++".toRegex(), ""))
         Files.createDirectories(nodeDir.toPath())
     }
 
     private fun configureProperties() {
-        if (!rpcUsers.isEmpty()) {
+        if (rpcUsers.isNotEmpty()) {
             config = config.withValue("security", ConfigValueFactory.fromMap(mapOf(
                     "authService" to mapOf(
                             "dataSource" to mapOf(
@@ -424,10 +438,10 @@ open class Node @Inject constructor(private val project: Project) {
                                     "users" to rpcUsers)))))
         }
 
-        if (!notary.isEmpty()) {
+        if (notary.isNotEmpty()) {
             config = config.withValue("notary", ConfigValueFactory.fromMap(notary))
         }
-        if (!extraConfig.isEmpty()) {
+        if (extraConfig.isNotEmpty()) {
             config = config.withFallback(ConfigFactory.parseMap(extraConfig))
         }
         if (!config.hasPath("devMode")) {
@@ -445,21 +459,21 @@ open class Node @Inject constructor(private val project: Project) {
      * Installs the corda webserver JAR to the node directory
      */
     private fun installWebserverJar() {
-        // If no webserver JAR is provided, the default development webserver is used.
-        val webJar = if (webserverJar == null) {
-            project.logger.lifecycle("Using default development webserver.")
+        val webJar = webserverJar?.let { web ->
+            task.logger.lifecycle("Using custom webserver: $web.")
+            File(web)
+        } ?: run {
+            // If no webserver JAR is provided, the default development webserver is used.
+            task.logger.lifecycle("Using default development webserver.")
             try {
-                Cordformation.verifyAndGetRuntimeJar(project, "corda-testserver")
+                Cordformation.verifyAndGetRuntimeJar(task.project, "corda-testserver")
             } catch (e: IllegalStateException) {
-                project.logger.lifecycle("Detecting older version of corda. Falling back to the old webserver.")
-                Cordformation.verifyAndGetRuntimeJar(project, "corda-webserver")
+                task.logger.lifecycle("Detecting older version of corda. Falling back to the old webserver.")
+                Cordformation.verifyAndGetRuntimeJar(task.project, "corda-webserver")
             }
-        } else {
-            project.logger.lifecycle("Using custom webserver: $webserverJar.")
-            File(webserverJar)
         }
 
-        project.copy {
+        fs.copy {
             it.apply {
                 from(webJar)
                 into(nodeDir)
@@ -470,7 +484,7 @@ open class Node @Inject constructor(private val project: Project) {
 
 
     private fun createSchemasCmd() = listOfNotNull(
-            Paths.get(System.getProperty("java.home"), "bin", "java").toString(),
+            Paths.get(providers.systemProperty("java.home").get(), "bin", "java").toString(),
             "-jar",
             "corda.jar",
             "run-migration-scripts",
@@ -480,10 +494,11 @@ open class Node @Inject constructor(private val project: Project) {
 
     private fun runSchemaMigration(){
         if (!runSchemaMigration) return
-        project.logger.lifecycle("Run database schema migration scripts${if(allowHibernateToManageAppSchema) " - managing CorDapp schemas with hibernate" else ""}")
+        task.logger.lifecycle("Run database schema migration scripts${if(allowHibernateToManageAppSchema) " - managing CorDapp schemas with hibernate" else ""}")
         runNodeJob(createSchemasCmd(), "node-schema-cordform.log")
     }
 
+    @Suppress("SameParameterValue")
     private fun runNodeJob(command: List<String>, logfileName: String) {
         val logsDir = Files.createDirectories(nodeDir.toPath().resolve(LOGS_DIR_NAME))
         val nodeRedirectFile = logsDir.resolve(logfileName).toFile()
@@ -507,14 +522,15 @@ open class Node @Inject constructor(private val project: Project) {
     }
 
     private fun printNodeOutputAndThrow(stdoutFile: File): Nothing {
-        project.logger.error("#### Error while generating node info file $name ####")
-        project.logger.error(stdoutFile.readText())
+        task.logger.error("#### Error while generating node info file $name ####")
+        task.logger.error(stdoutFile.readText())
         throw IllegalStateException("Error while generating node info file. Please check the logs in ${stdoutFile.parent}.")
     }
 
     fun runtimeVersion(): String {
+        val project = task.project
         val releaseVersion = project.findRootProperty("corda_release_version")
-        val runtimeJarVersion = project.configuration("cordaRuntime").dependencies.filterNot { it.name.contains("web") }.singleOrNull()?.version
+        val runtimeJarVersion = project.configuration(CORDA_RUNTIME_ONLY_CONFIGURATION_NAME).dependencies.filterNot { it.name.contains("web") }.singleOrNull()?.version
         if (releaseVersion == null && runtimeJarVersion == null) {
             throw IllegalStateException("Could not find a valid definition of corda version to use")
         } else {
@@ -527,28 +543,28 @@ open class Node @Inject constructor(private val project: Project) {
      */
     private fun installAgentJar() {
         // TODO: improve how we re-use existing declared external variables from root gradle.build
-        val jolokiaVersion = project.findRootProperty("jolokia_version") ?: "1.6.0"
+        val jolokiaVersion = task.project.findRootProperty("jolokia_version") ?: "1.6.0"
 
-        val agentJar = project.configuration(RUNTIME_CLASSPATH_CONFIGURATION_NAME).files {
+        val agentJar = task.project.configuration(RUNTIME_CLASSPATH_CONFIGURATION_NAME).files {
             (it.group == "org.jolokia") &&
                     (it.name == "jolokia-jvm") &&
                     (it.version == jolokiaVersion)
             // TODO: revisit when classifier attribute is added. eg && (it.classifier = "agent")
         }.firstOrNull()
         agentJar?.let {
-            project.logger.info("Jolokia agent jar: $it")
+            task.logger.info("Jolokia agent jar: $it")
             copyToDriversDir(it)
         }
     }
 
     internal fun installDrivers() {
-        project.configuration(CORDA_DRIVER_CONFIGURATION_NAME).files.forEach {
-            project.logger.lifecycle("Copy ${it.name} to './drivers' directory")
+        task.project.configuration(CORDA_DRIVER_CONFIGURATION_NAME).files.forEach {
+            task.logger.lifecycle("Copy ${it.name} to './drivers' directory")
             copyToDriversDir(it)
         }
 
         drivers?.let {
-            project.logger.lifecycle("Copy $it to './drivers' directory")
+            task.logger.lifecycle("Copy $it to './drivers' directory")
             it.forEach { path -> copyToDriversDir(File(path)) }
         }
     }
@@ -556,7 +572,7 @@ open class Node @Inject constructor(private val project: Project) {
     private fun copyToDriversDir(file: File) {
         if (file.isFile) {
             val driversDir = File(nodeDir, "drivers")
-            project.copy {
+            fs.copy {
                 it.apply {
                     from(file)
                     into(driversDir)
@@ -573,11 +589,9 @@ open class Node @Inject constructor(private val project: Project) {
                 .setFormatted(true)
                 .setJson(false)
         val configFileText = configObject.render(options).split("\n").toList()
-        // Need to write a temporary file first to use the project.copy, which resolves directories correctly.
-        val tmpDir = File(project.buildDir, "tmp")
-        Files.createDirectories(tmpDir.toPath())
+        // Need to write a temporary file first to use the fs.copy, which resolves directories correctly.
         val fileName = "${nodeDir.name}_$fileNameTrail"
-        val tmpConfFile = File(tmpDir, fileName)
+        val tmpConfFile = File(task.temporaryDir, fileName)
         Files.write(tmpConfFile.toPath(), configFileText, StandardCharsets.UTF_8)
         return tmpConfFile
     }
@@ -585,8 +599,7 @@ open class Node @Inject constructor(private val project: Project) {
     private fun installCordappConfigs() {
         val cordappsDir = nodeDir.toPath().resolve("cordapps")
         val cordapps = getCordappList()
-        val configDir = project.file(cordappsDir.resolve("config")).toPath()
-        Files.createDirectories(configDir)
+        val configDir = cordappsDir.resolve("config")
         for ((jarFile, config) in cordapps) {
             if (config == null) continue
             val fileNameWithoutExtension = jarFile.fileName.toString().let {
@@ -656,7 +669,7 @@ open class Node @Inject constructor(private val project: Project) {
     private fun createNodeAndWebServerConfigFiles(config: Config) {
         val tmpConfFile = createTempConfigFile(createNodeConfig(config).root(), "node.conf")
         appendOptionalConfig(tmpConfFile)
-        project.copy {
+        fs.copy {
             it.apply {
                 from(tmpConfFile)
                 into(rootDir)
@@ -664,7 +677,7 @@ open class Node @Inject constructor(private val project: Project) {
         }
         if (config.hasPath("webAddress")) {
             val webServerConfigFile = createTempConfigFile(createWebserverConfig().root(), "web-server.conf")
-            project.copy {
+            fs.copy {
                 it.apply {
                     from(webServerConfigFile)
                     into(rootDir)
@@ -693,14 +706,15 @@ open class Node @Inject constructor(private val project: Project) {
      * Appends installed config file with properties from an optional file.
      */
     private fun appendOptionalConfig(confFile: File) {
-        val optionalConfig = project.findProperty(configFileProperty)?.let {
-            //provided by -PconfigFile command line property when running Gradle task
-            File(it.toString())
-        } ?: configFile?.let(::File)
+        //provided by -PconfigFile command line property when running Gradle task
+        val optionalConfig = providers.gradleProperty(configFileProperty)
+            .orElse(configFile)
+            .map { File(it.toString()) }
+            .orNull
 
         if (optionalConfig != null) {
             if (!optionalConfig.exists()) {
-                project.logger.error("$configFileProperty '$optionalConfig' not found")
+                task.logger.error("$configFileProperty '$optionalConfig' not found")
             } else {
                 confFile.appendBytes(optionalConfig.readBytes())
             }
@@ -714,8 +728,8 @@ open class Node @Inject constructor(private val project: Project) {
      */
     @Internal
     internal fun getCordappList(): List<ResolvedCordapp> {
-        return internalCordapps.mapNotNull(::resolveCordapp).let {
-            if (projectCordapp.deploy) (it + resolveBuiltCordapp()) else it
+        return internalCordapps.mapNotNullTo(LinkedList(), ::resolveCordapp).also { resolved ->
+            resolveBuiltCordapp()?.also { resolved.add(it) }
         }
     }
 
@@ -724,31 +738,50 @@ open class Node @Inject constructor(private val project: Project) {
             return null
         }
 
-        val cordappConfiguration = project.configuration(CORDAPP_CONFIGURATION_NAME)
-        val cordappName = if (cordapp.project !is CordaMock) cordapp.project.name else cordapp.coordinates
-        val cordappFile = cordappConfiguration.files {
+        val cordappConfiguration = task.project.configuration(DEPLOY_CORDAPP_CONFIGURATION_NAME).resolvedConfiguration
+        val cordappFile = cordappConfiguration.firstLevelModuleDependencies.flatMapTo(LinkedHashSet<File>()) { dep ->
             when {
-                (it is ProjectDependency) && (cordapp.project !is CordaMock) -> it.dependencyProject == cordapp.project
+                cordapp.projectPath != null ->
+                    if (dep.configuration == CORDA_CPK_CONFIGURATION_NAME) {
+                        dep.moduleArtifacts.filter { artifact ->
+                            val componentId = artifact.id.componentIdentifier
+                            componentId is ProjectComponentIdentifier && componentId.projectPath == cordapp.projectPath
+                        }.map(ResolvedArtifact::getFile)
+                    } else {
+                        emptyList()
+                    }
                 cordapp.coordinates.isNotEmpty() -> {
-                    // Cordapps can sometimes contain a GString instance which fails the equality test with the Java string
-                    @Suppress("RemoveRedundantCallsOfConversionMethods")
-                    val coordinates = cordapp.coordinates.toString()
-                    coordinates == (it.group + ':' + it.name + ':' + it.version)
+                    val moduleCoordinates = with(dep) {
+                        "$moduleGroup:$moduleName:$moduleVersion"
+                    }
+                    if (cordapp.coordinates == moduleCoordinates) {
+                        dep.moduleArtifacts.filter { artifact ->
+                            artifact.classifier == CPK_CLASSIFIER
+                        }.map(ResolvedArtifact::getFile)
+                    } else {
+                        emptyList()
+                    }
                 }
-                else -> false
+                else -> emptyList()
             }
         }
 
+        val cordappName = cordapp.projectPath ?: cordapp.coordinates
         return when {
-            cordappFile.size == 0 -> throw GradleException("Cordapp $cordappName not found in cordapps configuration.")
+            cordappFile.isEmpty() -> throw GradleException("CorDapp $cordappName not found in cordapp configuration.")
             cordappFile.size > 1 -> throw GradleException("Multiple files found for $cordappName")
             else -> ResolvedCordapp(cordappFile.single().toPath(), cordapp.config)
         }
     }
 
-    private fun resolveBuiltCordapp(): ResolvedCordapp {
-        val projectCordappFile = project.tasks.getByName("jar").outputs.files.singleFile.toPath()
-        return ResolvedCordapp(projectCordappFile, projectCordapp.config)
+    private fun resolveBuiltCordapp(): ResolvedCordapp? {
+        val cpks = projectCordapp.project.configurations.findByName(CORDA_CPK_CONFIGURATION_NAME) ?: return null
+        val cpkFile = cpks.artifacts.files.singleFile.toPath()
+        return if (projectCordapp.deploy) {
+            ResolvedCordapp(cpkFile, projectCordapp.config)
+        } else {
+            null
+        }
     }
 
     private fun getOptionalString(path: String): String? {

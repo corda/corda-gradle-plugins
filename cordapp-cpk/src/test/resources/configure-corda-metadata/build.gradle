@@ -1,0 +1,27 @@
+plugins {
+    id 'net.corda.cordapp.cordapp-configuration'
+    id 'base'
+}
+
+subprojects {
+    group 'com.example'
+}
+
+configurations {
+    testArtifacts {
+        transitive = false
+    }
+}
+
+dependencies {
+    testArtifacts project(':cordapp')
+}
+
+def copy = tasks.register('copy', Copy) {
+    into(layout.buildDirectory.dir("libs"))
+    from(configurations.testArtifacts)
+}
+
+tasks.named('assemble') {
+    dependsOn copy
+}
