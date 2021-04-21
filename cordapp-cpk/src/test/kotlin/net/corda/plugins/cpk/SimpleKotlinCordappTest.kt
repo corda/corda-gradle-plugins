@@ -79,14 +79,14 @@ class SimpleKotlinCordappTest {
                 "kotlin.io;$kotlinOsgiVersion",
                 "kotlin.jvm.internal;$kotlinOsgiVersion",
                 "kotlin.text;$kotlinOsgiVersion",
-                "net.corda.core.identity;$cordaOsgiVersion",
+                "net.corda.v5.application.identity;$cordaOsgiVersion",
                 "net.corda.v5.ledger.contracts;$cordaOsgiVersion",
                 "net.corda.v5.ledger.transactions;$cordaOsgiVersion",
                 "org.apache.commons.io;$ioOsgiVersion"
             )
             assertThatHeader(getValue(EXPORT_PACKAGE)).containsAll(
                 "com.example.contract;uses:=\"kotlin,net.corda.v5.ledger.contracts,net.corda.v5.ledger.transactions\";$cordappOsgiVersion",
-                "com.example.contract.states;uses:=\"kotlin,net.corda.core.identity,net.corda.v5.ledger.contracts\";$cordappOsgiVersion"
+                "com.example.contract.states;uses:=\"kotlin,net.corda.v5.application.identity,net.corda.v5.ledger.contracts\";$cordappOsgiVersion"
             )
             assertEquals("osgi.ee;filter:=\"(&(osgi.ee=JavaSE)(version=11))\"", getValue(REQUIRE_CAPABILITY))
             assertEquals("Test-Licence", getValue(BUNDLE_LICENSE))
