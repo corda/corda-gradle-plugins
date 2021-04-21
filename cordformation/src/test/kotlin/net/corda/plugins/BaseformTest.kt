@@ -17,7 +17,7 @@ open class BaseformTest {
     private lateinit var testRoot: String
 
     companion object {
-        private const val cordaVersion = "1618234704308-rc"
+        private const val cordaVersion = "1619013208814-rc"
         const val cordaBundleVersion = "1.0.$cordaVersion"
         const val cordaReleaseVersion = "5.0.$cordaVersion"
         const val cordaFinanceWorkflowsCpkName = "corda-finance-workflows-$cordaBundleVersion-cordapp"
