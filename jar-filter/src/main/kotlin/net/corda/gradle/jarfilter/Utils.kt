@@ -90,14 +90,14 @@ fun toDescriptors(classNames: Iterable<String>): Set<String> {
 }
 
 val String.toPathFormat: String get() = replace('.', '/')
-val String.descriptor: String get() = "L$toPathFormat;"
+val String.descriptor: String get() = "L${toPathFormat};"
 
 
 /**
  * Performs the given number of passes of the repeatable visitor over the byte-code.
  * Used by [MetaFixerVisitor], but also by some of the test visitors.
  */
-fun <T> ByteArray.execute(visitor: (ClassVisitor) -> T, flags: Int = 0, passes: Int = 2): ByteArray
+fun <T> ByteArray.execute(flags: Int, passes: Int = 2, visitor: (ClassVisitor) -> T): ByteArray
     where T : ClassVisitor,
           T : Repeatable<T> {
     var bytecode = this
@@ -121,4 +121,4 @@ fun <T> ByteArray.execute(visitor: (ClassVisitor) -> T, flags: Int = 0, passes: 
 }
 
 fun ByteArray.fixMetadata(logger: Logger, classNames: Set<String>): ByteArray
-        = execute({ writer -> MetaFixerVisitor(writer, logger, classNames) })
+        = execute(0) { writer -> MetaFixerVisitor(writer, logger, classNames) }

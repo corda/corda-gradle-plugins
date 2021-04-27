@@ -27,6 +27,7 @@ import org.objectweb.asm.Opcodes.POP2
 import org.objectweb.asm.Opcodes.PUTFIELD
 import org.objectweb.asm.Opcodes.PUTSTATIC
 import org.objectweb.asm.Opcodes.RETURN
+import org.objectweb.asm.RecordComponentVisitor
 import org.objectweb.asm.Type
 
 /**
@@ -125,6 +126,18 @@ class FilterTransformer private constructor (
             }
         }
         return super.visitAnnotation(descriptor, visible)
+    }
+
+    override fun visitRecordComponent(name: String, descriptor: String, signature: String?): RecordComponentVisitor? {
+        val component = FieldElement(name, descriptor)
+        logger.debug("--- record component ---> {},{}", name, descriptor)
+        if (unwantedFields.contains(component) || isUnwantedClassType(descriptor)) {
+            if (unwantedElements.addClass(className)) {
+                logger.info("- Identified record {} as unwanted by component {},{}", className, name, descriptor)
+            }
+        }
+        val rcv = super.visitRecordComponent(name, descriptor, signature) ?: return null
+        return if (isUnwantedClass) rcv else UnwantedRecordComponentAdapter(rcv, component)
     }
 
     override fun visitField(access: Int, fieldName: String, descriptor: String, signature: String?, value: Any?): FieldVisitor? {
@@ -341,6 +354,28 @@ class FilterTransformer private constructor (
     private fun stubExtra(target: MethodElement) {
         if (stubbedMethods.add(target)) {
             logger.info("-- also identified method {}{} for stubbing out", target.name, target.descriptor)
+        }
+    }
+
+    /**
+     * Analyses the record component to decide whether it should be deleted.
+     */
+    private inner class UnwantedRecordComponentAdapter(
+        rcv: RecordComponentVisitor,
+        private val component: FieldElement
+    ) : RecordComponentVisitor(api, rcv) {
+        override fun visitAnnotation(descriptor: String, visible: Boolean): AnnotationVisitor? {
+            if (removeAnnotations.contains(descriptor)) {
+                logger.info("- Removing annotation {} from record component {},{}",
+                            descriptor, component.name, component.descriptor)
+                return null
+            } else if (deleteAnnotations.contains(descriptor)) {
+                if (unwantedElements.addClass(className)) {
+                    logger.info("- Identified record {} as unwanted by component {},{}",
+                                className, component.name, component.descriptor)
+                }
+            }
+            return super.visitAnnotation(descriptor, visible)
         }
     }
 

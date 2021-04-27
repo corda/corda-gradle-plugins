@@ -45,7 +45,7 @@ class FieldRemovalTest {
     private inline fun <reified T: R, reified R: Any> transform(): Class<out R> = transform(T::class.java, R::class.java)
 
     private fun <T: R, R: Any> transform(type: Class<in T>, asType: Class<out R>): Class<out R> {
-        val bytecode = type.bytecode.execute({ writer ->
+        val bytecode = type.bytecode.execute(COMPUTE_MAXS) { writer ->
             FilterTransformer(
                 visitor = writer,
                 logger = logger,
@@ -55,7 +55,7 @@ class FieldRemovalTest {
                 stubAnnotations = emptySet(),
                 unwantedElements = UnwantedCache()
             )
-        }, COMPUTE_MAXS)
+        }
         return bytecode.toClass(type, asType)
     }
 

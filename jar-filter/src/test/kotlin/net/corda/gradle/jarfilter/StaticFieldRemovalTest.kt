@@ -27,7 +27,7 @@ class StaticFieldRemovalTest {
         private lateinit var targetClass: Class<out Any>
 
         private fun <T : R, R : Any> transform(type: Class<in T>, asType: Class<out R>): Class<out R> {
-            val bytecode = type.bytecode.execute({ writer ->
+            val bytecode = type.bytecode.execute(COMPUTE_MAXS) { writer ->
                 FilterTransformer(
                     visitor = writer,
                     logger = logger,
@@ -37,7 +37,7 @@ class StaticFieldRemovalTest {
                     stubAnnotations = emptySet(),
                     unwantedElements = UnwantedCache()
                 )
-            }, COMPUTE_MAXS)
+            }
             return bytecode.toClass(type, asType)
         }
 

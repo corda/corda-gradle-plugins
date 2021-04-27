@@ -3,13 +3,13 @@ package net.corda.gradle.jarfilter
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.EnabledForJreRange
-import org.junit.jupiter.api.condition.JRE.JAVA_15
+import org.junit.jupiter.api.condition.JRE.JAVA_16
 import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Path
 import kotlin.test.assertFailsWith
 
-@EnabledForJreRange(min = JAVA_15)
-class DeleteJava15SealedClassTest {
+@EnabledForJreRange(min = JAVA_16)
+class DeleteJavaSealedClassTest {
     companion object {
         private const val SEALED_CLASS = "net.corda.gradle.DeletableSealedClass"
         private const val SUBCLASS = "net.corda.gradle.SealedSubclass"
@@ -19,7 +19,7 @@ class DeleteJava15SealedClassTest {
         @BeforeAll
         @JvmStatic
         fun setup(@TempDir testProjectDir: Path) {
-            testProject = JarFilterProject(testProjectDir, "delete-java15-sealed-class").build()
+            testProject = JarFilterProject(testProjectDir, "delete-java-sealed-class").build()
         }
     }
 

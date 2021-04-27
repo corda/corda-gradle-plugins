@@ -30,6 +30,6 @@ jar {
 task jarFilter(type: JarFilterTask) {
     jars jar
     annotations {
-        forRemove = ["net.corda.gradle.jarfilter.RemoveMe"]
+        forRemove = ['net.corda.gradle.jarfilter.RemoveMe']
     }
 }
