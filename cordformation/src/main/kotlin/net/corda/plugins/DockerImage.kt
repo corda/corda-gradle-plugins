@@ -7,6 +7,7 @@ import net.corda.plugins.Cordformation.Companion.DEPLOY_CORDAPP_CONFIGURATION_NA
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileCollection
+import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.Input
@@ -24,7 +25,11 @@ import java.nio.file.Paths
 import javax.inject.Inject
 
 @Suppress("UnstableApiUsage", "unused", "LeakingThis")
-open class DockerImage @Inject constructor(objects: ObjectFactory, layouts: ProjectLayout) : DefaultTask() {
+open class DockerImage @Inject constructor(
+    objects: ObjectFactory,
+    private val layouts: ProjectLayout,
+    private val fs: FileSystemOperations
+) : DefaultTask() {
 
     private companion object{
         private const val DOCKER_FILE_NAME = "Dockerfile"
@@ -70,12 +75,13 @@ open class DockerImage @Inject constructor(objects: ObjectFactory, layouts: Proj
         dockerImageTag = tag
     }
 
-    private val _jars: ConfigurableFileCollection = project.files(project.configuration(DEPLOY_CORDAPP_CONFIGURATION_NAME))
+    private val _jars: ConfigurableFileCollection = objects.fileCollection().from(project.configuration(DEPLOY_CORDAPP_CONFIGURATION_NAME))
 
-    @get:InputFiles
-    @get:SkipWhenEmpty
-    @get:PathSensitive(RELATIVE)
-    val cordaJars: FileCollection get() = _jars
+    val cordaJars: FileCollection
+        @PathSensitive(RELATIVE)
+        @SkipWhenEmpty
+        @InputFiles
+        get() = _jars
 
     @Suppress("MemberVisibilityCanBePrivate")
     fun setCordaJars(inputs: Any?) {
@@ -114,11 +120,11 @@ open class DockerImage @Inject constructor(objects: ObjectFactory, layouts: Proj
             |$copyTrustRootStore""".trimMargin()
 
         logger.lifecycle("Writing $DOCKER_FILE_NAME to ${outputDir.get()}")
-        project.file(outputDir.file(DOCKER_FILE_NAME)).writeText(dockerFileContents)
+        outputDir.file(DOCKER_FILE_NAME).get().asFile.writeText(dockerFileContents)
     }
 
     private fun copyJarsToBuildDir() {
-        project.copy {
+        fs.copy {
             it.apply {
                 from(cordaJars)
                 into(outputDir)
@@ -126,7 +132,7 @@ open class DockerImage @Inject constructor(objects: ObjectFactory, layouts: Proj
         }
     }
 
-    private fun buildDockerFile(docker:DefaultDockerClient):  String{
+    private fun buildDockerFile(docker: DefaultDockerClient):  String{
         val path: Path = Paths.get(outputDir.get().toString())
         return docker.build(path,null, DOCKER_FILE_NAME, LoggingBuildHandler())
     }
@@ -135,9 +141,9 @@ open class DockerImage @Inject constructor(objects: ObjectFactory, layouts: Proj
         val trustRootStore = trustRootStoreFile ?: return ""
 
         logger.lifecycle("Copying Trust Store: $trustRootStore")
-        logger.lifecycle("Copying From: ${project.projectDir}")
+        logger.lifecycle("Copying From: ${layouts.projectDirectory}")
 
-        project.copy {
+        fs.copy {
             it.apply {
                 from(trustRootStore)
                 into(outputDir)
