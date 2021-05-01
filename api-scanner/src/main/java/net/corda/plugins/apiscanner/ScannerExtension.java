@@ -20,12 +20,12 @@ public class ScannerExtension {
     private final Property<String> targetClassifier;
 
     @Inject
-    public ScannerExtension(@Nonnull ObjectFactory objectFactory, String defaultClassifier) {
-        verbose = objectFactory.property(Boolean.class).convention(false);
-        excludeClasses = objectFactory.setProperty(String.class);
-        excludePackages = objectFactory.setProperty(String.class);
-        excludeMethods = objectFactory.mapProperty(String.class, List.class);
-        targetClassifier = objectFactory.property(String.class).convention(defaultClassifier);
+    public ScannerExtension(@Nonnull ObjectFactory objects, String defaultClassifier) {
+        verbose = objects.property(Boolean.class).convention(false);
+        excludeClasses = objects.setProperty(String.class);
+        excludePackages = objects.setProperty(String.class);
+        excludeMethods = objects.mapProperty(String.class, List.class);
+        targetClassifier = objects.property(String.class).convention(defaultClassifier);
     }
 
     public Property<Boolean> getVerbose() {
