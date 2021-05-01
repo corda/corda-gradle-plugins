@@ -3,9 +3,16 @@ package net.corda.plugins.apiscanner;
 import io.github.classgraph.*;
 import nonapi.io.github.classgraph.types.TypeUtils;
 
-import java.io.*;
+import javax.annotation.Nonnull;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Modifier;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.LinkedList;
 
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toCollection;
@@ -19,7 +26,7 @@ class ApiPrintWriter extends PrintWriter {
         super(file, encoding);
     }
 
-    void println(ClassInfo classInfo, int modifierMask, List<String> filteredAnnotations) {
+    void println(@Nonnull ClassInfo classInfo, int modifierMask, List<String> filteredAnnotations) {
         append(asAnnotations(filteredAnnotations, ""));
         append(Modifier.toString(classInfo.loadClass().getModifiers() & modifierMask));
         if (classInfo.isAnnotation()) {

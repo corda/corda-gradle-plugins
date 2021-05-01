@@ -10,10 +10,18 @@ import org.gradle.api.file.RegularFile;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.tasks.*;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.OutputFile;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.TaskAction;
 
 import javax.annotation.Nonnull;
-import java.io.*;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,11 +44,11 @@ public class GenerateApi extends DefaultTask {
         setDescription("Aggregates API scan results found in any sub-projects into a single output.");
 
         Project project = getProject();
-        ObjectFactory objectFactory = project.getObjects();
-        baseName = objectFactory.property(String.class).convention("api-" + project.getName());
-        version = objectFactory.property(String.class).convention(project.getVersion().toString());
+        ObjectFactory objects = project.getObjects();
+        baseName = objects.property(String.class).convention("api-" + project.getName());
+        version = objects.property(String.class).convention(project.getVersion().toString());
 
-        DirectoryProperty outputDir = objectFactory.directoryProperty().convention(
+        DirectoryProperty outputDir = objects.directoryProperty().convention(
             project.getLayout().getBuildDirectory().dir("api")
         );
         target = outputDir.file(version.flatMap(v -> baseName.map(n -> createFileName(n, v))));

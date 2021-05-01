@@ -90,9 +90,11 @@ fun Dependency.toMaven(): String {
 
 private fun ConfigurationContainer.createChildConfiguration(name: String, parent: Configuration): Configuration {
     return findByName(name) ?: run {
-        val configuration = create(name).setTransitive(false).apply {
-            isCanBeConsumed = false
-            isCanBeResolved = false
+        val configuration = create(name) {
+            it.isCanBeConsumed = false
+            it.isCanBeResolved = false
+            it.isTransitive = false
+            it.isVisible = false
         }
         parent.extendsFrom(configuration)
         configuration
@@ -114,7 +116,7 @@ fun ConfigurationContainer.createCompileConfiguration(name: String): Configurati
 
 private fun ConfigurationContainer.createCompileConfiguration(name: String, testSuffix: String): Configuration {
     return findByName(name) ?: run {
-        val configuration = maybeCreate(name).apply {
+        val configuration = maybeCreate(name).setVisible(false).apply {
             isCanBeConsumed = false
             isCanBeResolved = false
         }

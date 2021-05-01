@@ -16,6 +16,7 @@ class DockerImageTest :BaseformTest() {
         )
 
         val result = runner.build()
+        println(result.output)
         assertThat(result.task(":dockerImage")!!.outcome).isEqualTo(SUCCESS)
         assertThat(Paths.get(testProjectDir.toAbsolutePath().toString(), "build", "docker", "Dockerfile")).isRegularFile()
 
@@ -35,6 +36,7 @@ class DockerImageTest :BaseformTest() {
         )
         installResource("dummyJar.jar")
         val result = runner.build()
+        println(result.output)
 
         assertThat(result.task(":dockerImage")!!.outcome).isEqualTo(SUCCESS)
         assertThat(Paths.get(testProjectDir.toAbsolutePath().toString(), "build", "docker", "$cordaFinanceContractsCpkName.cpk")).isRegularFile()

@@ -40,6 +40,7 @@ fun ConfigurationContainer.createChildConfiguration(name: String, parent: Config
             it.isCanBeConsumed = false
             it.isCanBeResolved = false
             it.isTransitive = false
+            it.isVisible = false
         }
         parent.extendsFrom(configuration)
         configuration
@@ -56,7 +57,7 @@ fun ConfigurationContainer.createCompileConfiguration(name: String): Configurati
 
 private fun ConfigurationContainer.createCompileConfiguration(name: String, testSuffix: String): Configuration {
     return findByName(name) ?: run {
-        val configuration = create(name).apply {
+        val configuration = create(name).setVisible(false).apply {
             isCanBeConsumed = false
             isCanBeResolved = false
         }

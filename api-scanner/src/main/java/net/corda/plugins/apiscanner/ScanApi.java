@@ -7,18 +7,27 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileSystemLocation;
+import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.SetProperty;
-import org.gradle.api.tasks.*;
+import org.gradle.api.tasks.CompileClasspath;
 import org.gradle.api.tasks.Console;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.OutputFiles;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.SkipWhenEmpty;
+import org.gradle.api.tasks.TaskAction;
 
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
-import java.io.*;
+import java.io.Closeable;
+import java.io.File;
+import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Inherited;
 import java.lang.reflect.InvocationTargetException;
@@ -27,9 +36,22 @@ import java.lang.reflect.Modifier;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-import static java.util.Collections.*;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.emptySet;
+import static java.util.Collections.sort;
+import static java.util.Collections.swap;
+import static java.util.Collections.unmodifiableList;
+import static java.util.Collections.unmodifiableSet;
 import static java.util.stream.Collectors.partitioningBy;
 import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Collectors.toList;
@@ -93,15 +115,15 @@ class ScanApi extends DefaultTask {
     private final Property<Boolean> verbose;
 
     @Inject
-    public ScanApi(@Nonnull ObjectFactory objectFactory) {
-        sources = objectFactory.fileCollection();
-        classpath = objectFactory.fileCollection();
-        excludePackages = objectFactory.setProperty(String.class);
-        excludeClasses = objectFactory.setProperty(String.class);
-        excludeMethods = objectFactory.mapProperty(String.class, Set.class);
-        verbose = objectFactory.property(Boolean.class).convention(false);
+    public ScanApi(@Nonnull ObjectFactory objects, @Nonnull ProjectLayout layout) {
+        sources = objects.fileCollection();
+        classpath = objects.fileCollection();
+        excludePackages = objects.setProperty(String.class);
+        excludeClasses = objects.setProperty(String.class);
+        excludeMethods = objects.mapProperty(String.class, Set.class);
+        verbose = objects.property(Boolean.class).convention(false);
 
-        outputDir = getProject().getLayout().getBuildDirectory().dir("api");
+        outputDir = layout.getBuildDirectory().dir("api");
         targets = outputDir.flatMap(dir ->
             sources.getElements().map(files ->
                 files.stream().map(file -> toTarget(dir, file)).collect(toSet())
