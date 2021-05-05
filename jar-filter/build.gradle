@@ -41,6 +41,11 @@ pluginBundle {
     }
 }
 
+jacoco {
+    // Upgrade to a version that is compatible with Java 16.
+    toolVersion = '0.8.7'
+}
+
 configurations {
     jacocoRuntime
 }
