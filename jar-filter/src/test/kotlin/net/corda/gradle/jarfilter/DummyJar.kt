@@ -21,7 +21,7 @@ import java.util.zip.ZipEntry.*
  * - An uncompressed text file
  * - A directory entry
  *
- * The compression level is set to NO_COMPRESSION
+ * The compression level is set to [NO_COMPRESSION]
  * in order to force the Gradle task to compress
  * the entries properly.
  */
@@ -33,10 +33,11 @@ class DummyJar(
     private companion object {
         private const val DATA_SIZE = 512
 
+        @Suppress("SameParameterValue")
         private fun uncompressed(name: String, data: ByteArray) = ZipEntry(name).apply {
-            method = STORED
-            compressedSize = data.size.toLong()
             size = data.size.toLong()
+            compressedSize = size
+            method = STORED
             crc = CRC32().let { crc ->
                 crc.update(data)
                 crc.value
@@ -65,7 +66,7 @@ class DummyJar(
                 main[MANIFEST_VERSION] = "1.0"
             }
         }
-        _path = projectDir.pathOf("$name.jar")
+        _path = projectDir.pathOf("${name}.jar")
         JarOutputStream(Files.newOutputStream(_path).buffered(), manifest).use { jar ->
             jar.setComment(testClass.name)
             jar.setLevel(NO_COMPRESSION)
