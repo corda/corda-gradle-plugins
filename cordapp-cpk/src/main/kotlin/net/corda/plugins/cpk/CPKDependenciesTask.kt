@@ -47,8 +47,9 @@ open class CPKDependenciesTask @Inject constructor(objects: ObjectFactory) : Def
 
         @Throws(IOException::class)
         private fun consume(input: InputStream, buffer: ByteArray) {
-            @Suppress("ControlFlowWithEmptyBody")
-            while (input.read(buffer) != EOF) {}
+            while (input.read(buffer) != EOF) {
+                continue
+            }
         }
 
         private val JarEntry.isSignable: Boolean get() {
