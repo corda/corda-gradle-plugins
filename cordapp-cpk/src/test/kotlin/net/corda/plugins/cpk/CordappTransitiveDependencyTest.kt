@@ -45,14 +45,19 @@ class CordappTransitiveDependencyTest {
             .anyMatch { it.name == "com.example.cordapp" && it.version == toOSGi(cordappVersion) }
             .allMatch { it.signers.allSHA256 }
             .hasSize(1)
+        val cpkDependenciesHash = testProject.cpkDependenciesHash
 
         val artifacts = testProject.artifacts
         assertThat(artifacts).hasSize(2)
 
         val cpk = artifacts.single { it.toString().endsWith(".cpk") }
         assertThat(cpk).isRegularFile()
+        assertThat(cpk.hashOfEntry(CPK_DEPENDENCIES))
+            .isEqualTo(cpkDependenciesHash)
 
         val cordapp = artifacts.single { it.toString().endsWith(".jar") }
         assertThat(cordapp).isRegularFile()
+        assertThat(cordapp.hashOfEntry(CPK_DEPENDENCIES))
+            .isEqualTo(cpkDependenciesHash)
     }
 }

@@ -2,6 +2,7 @@ package net.corda.plugins.cpk
 
 import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.Task
+import org.gradle.api.file.ArchiveOperations
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DuplicatesStrategy.FAIL
 import org.gradle.api.file.FileCollection
@@ -26,7 +27,7 @@ import java.util.jar.Manifest
 import javax.inject.Inject
 
 @Suppress("UnstableApiUsage", "MemberVisibilityCanBePrivate")
-open class PackagingTask @Inject constructor(objects: ObjectFactory) : Jar() {
+open class PackagingTask @Inject constructor(objects: ObjectFactory, archiveOps: ArchiveOperations) : Jar() {
     private companion object {
         private const val CORDAPP_CLASSIFIER = "cordapp"
         private const val CORDAPP_EXTENSION = "cpk"
@@ -95,6 +96,21 @@ open class PackagingTask @Inject constructor(objects: ObjectFactory) : Jar() {
 
         mainSpec.from(cordapp).from(libraries) { libs ->
             libs.into("lib")
+        }
+
+        /**
+         * Extract the CPKDependencies file from the CorDapp "main" jar.
+         * Ensure that this file is correctly listed with all the other
+         * META-INF artifacts inside the CPK archive, rather than being
+         * added after the libraries.
+         */
+        metaInf.from(project.provider {
+            archiveOps.zipTree(cordapp).matching { it.include(CPK_DEPENDENCIES) }
+        }) { spec ->
+            spec.includeEmptyDirs = false
+            spec.eachFile { file ->
+                file.path = file.path.removePrefix("META-INF/")
+            }
         }
 
         archiveExtension.set(CORDAPP_EXTENSION)

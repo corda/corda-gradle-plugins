@@ -79,15 +79,20 @@ class TransitiveCordappsTest {
             .anyMatch { it.name == "com.example.cpk-three" && it.version == toOSGi(cpk3Version) }
             .allMatch { it.signers.allSHA256 }
             .hasSize(3)
+        val cpkDependenciesHash = testProject.cpkDependenciesHash
 
         val artifacts = testProject.artifacts
         assertThat(artifacts).hasSize(2)
 
         val cpk = artifacts.single { it.toString().endsWith(".cpk") }
         assertThat(cpk).isRegularFile()
+        assertThat(cpk.hashOfEntry(CPK_DEPENDENCIES))
+            .isEqualTo(cpkDependenciesHash)
 
         val cordapp = artifacts.single { it.toString().endsWith(".jar") }
         assertThat(cordapp).isRegularFile()
+        assertThat(cordapp.hashOfEntry(CPK_DEPENDENCIES))
+            .isEqualTo(cpkDependenciesHash)
 
         val jarManifest = cordapp.manifest
         println(jarManifest.mainAttributes.entries)

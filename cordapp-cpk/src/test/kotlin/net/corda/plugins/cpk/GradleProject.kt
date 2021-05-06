@@ -21,6 +21,7 @@ import org.gradle.util.GradleVersion
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.TestReporter
 import java.io.IOException
+import java.io.InputStream
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardCopyOption.REPLACE_EXISTING
@@ -33,7 +34,7 @@ import kotlin.test.fail
 const val expectedCordappContractVersion = 2
 const val expectedCordappWorkflowVersion = 3
 const val expectedCordappServiceVersion = 4
-const val cordaReleaseVersion = "4.6"
+const val cordaReleaseVersion = "4.8"
 const val cordaApiVersion = "5.0.0"
 const val annotationsVersion = "1.0.1"
 const val commonsCollectionsVersion = "3.2.2"
@@ -57,6 +58,15 @@ val Path.manifest: Manifest get() = JarFile(toFile()).use(JarFile::getManifest)
 
 val List<HashValue>.allSHA256: Boolean get() = isNotEmpty() && all(HashValue::isSHA256)
 
+private const val HASH_ALGORITHM = "SHA-256"
+
+@Throws(IOException::class)
+fun Path.hashOfEntry(entryName: String): ByteArray {
+    return JarFile(toFile()).use { jar ->
+        jar.getInputStream(jar.getJarEntry(entryName)).use(digestFor(HASH_ALGORITHM)::hashFor)
+    }
+}
+
 @Suppress("unused", "MemberVisibilityCanBePrivate")
 class GradleProject(private val projectDir: Path, private val reporter: TestReporter) {
     private companion object {
@@ -64,7 +74,8 @@ class GradleProject(private val projectDir: Path, private val reporter: TestRepo
         private const val META_INF_DIR = "META-INF"
         private val testGradleUserHome = systemProperty("test.gradle.user.home")
 
-        private val testProperties: Properties = Properties().also { props ->
+        // Load these properties once, and then use them for all tests.
+        private val testProperties = Properties().also { props ->
             this::class.java.classLoader.getResourceAsStream("gradle.properties")?.use(props::load)
         }
 
@@ -152,12 +163,26 @@ class GradleProject(private val projectDir: Path, private val reporter: TestRepo
     val dependencyConstraintsFile: Path = buildDir.resolve("generated-constraints")
         .resolve(META_INF_DIR).resolve("DependencyConstraints")
     val dependencyConstraints: List<DependencyConstraint>
-        get() = dependencyConstraintsFile.toFile().inputStream().buffered().use(::loadDependencyConstraints)
+        @Throws(IOException::class)
+        get() = dependencyConstraintsStream.buffered().use(::loadDependencyConstraints)
+    val dependencyConstraintsHash: ByteArray
+        @Throws(IOException::class)
+        get() = dependencyConstraintsStream.use(digestFor(HASH_ALGORITHM)::hashFor)
+    private val dependencyConstraintsStream: InputStream
+        @Throws(IOException::class)
+        get() = dependencyConstraintsFile.toFile().inputStream()
 
     val cpkDependenciesFile: Path = buildDir.resolve("cpk-dependencies")
         .resolve(META_INF_DIR).resolve("CPKDependencies")
     val cpkDependencies: List<CPKDependency>
-        get() = cpkDependenciesFile.toFile().inputStream().buffered().use(::loadCPKDependencies)
+        @Throws(IOException::class)
+        get() = cpkDependenciesStream.buffered().use(::loadCPKDependencies)
+    val cpkDependenciesHash: ByteArray
+        @Throws(IOException::class)
+        get() = cpkDependenciesStream.use(digestFor(HASH_ALGORITHM)::hashFor)
+    private val cpkDependenciesStream: InputStream
+        @Throws(IOException::class)
+        get() = cpkDependenciesFile.toFile().inputStream()
 
     var output: String = ""
         private set

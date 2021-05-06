@@ -24,11 +24,6 @@ import javax.inject.Inject
 
 @Suppress("UnstableApiUsage")
 open class DependencyConstraintsTask @Inject constructor(objects: ObjectFactory) : DefaultTask() {
-    private companion object {
-        private const val DEPENDENCY_CONSTRAINTS = "META-INF/DependencyConstraints"
-        private const val EOF = -1
-    }
-
     init {
         description = "Computes the constraints for this CorDapp's library dependencies."
         group = GROUP_NAME
@@ -72,7 +67,7 @@ open class DependencyConstraintsTask @Inject constructor(objects: ObjectFactory)
                 logger.info("CorDapp library dependency: {}", library.name)
                 dependencyConstraints.appendElement("dependencyConstraint").also { constraint ->
                     constraint.appendElement("fileName", library.name)
-                    val jarHash = digest.hashFor(library)
+                    val jarHash = digest.hashOf(library)
                     constraint.appendElement("hash", encoder.encodeToString(jarHash))
                         .setAttribute("algorithm", digest.algorithm)
                 }
@@ -88,17 +83,7 @@ open class DependencyConstraintsTask @Inject constructor(objects: ObjectFactory)
     /**
      * For computing file hashes.
      */
-    private fun MessageDigest.hashFor(file: File): ByteArray {
-        file.inputStream().use {
-            val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
-            while (true) {
-                val length = it.read(buffer)
-                if (length == EOF) {
-                    break
-                }
-                update(buffer, 0, length)
-            }
-        }
-        return digest()
+    private fun MessageDigest.hashOf(file: File): ByteArray {
+        return file.inputStream().use(::hashFor)
     }
 }

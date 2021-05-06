@@ -32,7 +32,6 @@ import javax.inject.Inject
 @Suppress("UnstableApiUsage", "MemberVisibilityCanBePrivate")
 open class CPKDependenciesTask @Inject constructor(objects: ObjectFactory) : DefaultTask() {
     private companion object {
-        private const val CPK_DEPENDENCIES = "META-INF/CPKDependencies"
         private const val EOF = -1
 
         /**
