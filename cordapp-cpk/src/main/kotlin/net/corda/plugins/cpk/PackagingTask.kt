@@ -63,7 +63,7 @@ open class PackagingTask @Inject constructor(objects: ObjectFactory) : Jar() {
             }
             is TaskProvider<*> -> {
                 dependsOn(item)
-                cordapp.set(item.map { RegularFile(it.outputs.files::getSingleFile) })
+                cordapp.set(item.map { task -> RegularFile(task.outputs.files::getSingleFile) })
             }
             else -> {
                 throw InvalidUserCodeException("cordapp() requires a task that creates a Jar.")
@@ -93,10 +93,8 @@ open class PackagingTask @Inject constructor(objects: ObjectFactory) : Jar() {
             ))
         }
 
-        mainSpec.from(cordapp) { spec ->
-            spec.from(libraries) { libs ->
-                libs.into("lib")
-            }
+        mainSpec.from(cordapp).from(libraries) { libs ->
+            libs.into("lib")
         }
 
         archiveExtension.set(CORDAPP_EXTENSION)
