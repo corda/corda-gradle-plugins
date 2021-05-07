@@ -14,6 +14,8 @@ import org.gradle.api.specs.Spec
 import org.w3c.dom.Document
 import org.w3c.dom.Element
 import java.io.File
+import java.io.IOException
+import java.io.InputStream
 import java.io.Writer
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
@@ -45,6 +47,9 @@ const val CORDA_PROVIDED_CONFIGURATION_NAME = "cordaProvided"
 const val CORDA_EMBEDDED_CONFIGURATION_NAME = "cordaEmbedded"
 const val ALL_CORDAPPS_CONFIGURATION_NAME = "allCordapps"
 const val CORDA_CPK_CONFIGURATION_NAME = "cordaCPK"
+
+const val DEPENDENCY_CONSTRAINTS = "META-INF/DependencyConstraints"
+const val CPK_DEPENDENCIES = "META-INF/CPKDependencies"
 
 const val CPK_CORDAPP_NAME = "Corda-CPK-Cordapp-Name"
 const val CPK_CORDAPP_VERSION = "Corda-CPK-Cordapp-Version"
@@ -229,6 +234,24 @@ fun digestFor(algorithmName: String): MessageDigest {
     } catch (_ : NoSuchAlgorithmException) {
         throw InvalidUserDataException("Hash algorithm $algorithmName not available")
     }
+}
+
+private const val EOF = -1
+
+/**
+ * Compute hash for contents of [InputStream].
+ */
+@Throws(IOException::class)
+fun MessageDigest.hashFor(input: InputStream): ByteArray {
+    val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+    while (true) {
+        val length = input.read(buffer)
+        if (length == EOF) {
+            break
+        }
+        update(buffer, 0, length)
+    }
+    return digest()
 }
 
 /**
