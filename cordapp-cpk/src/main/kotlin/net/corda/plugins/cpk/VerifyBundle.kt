@@ -30,7 +30,7 @@ import javax.inject.Inject
 open class VerifyBundle @Inject constructor(objects: ObjectFactory) : DefaultTask() {
     init {
         description = "Verifies that a bundle's OSGi meta-data is consistent."
-        group = GROUP_NAME
+        group = CORDAPP_TASK_GROUP
     }
 
     @get:PathSensitive(RELATIVE)

@@ -62,7 +62,7 @@ open class CPKDependenciesTask @Inject constructor(objects: ObjectFactory) : Def
 
     init {
         description = "Records this CorDapp's CPK dependencies."
-        group = GROUP_NAME
+        group = CORDAPP_TASK_GROUP
     }
 
     @get:Input
@@ -96,7 +96,7 @@ open class CPKDependenciesTask @Inject constructor(objects: ObjectFactory) : Def
 
         try {
             val xmlDocument = createXmlDocument()
-            val cpkDependencies = xmlDocument.createRootElement(XML_NAMESPACE, "cpkDependencies")
+            val cpkDependencies = xmlDocument.createRootElement(CPK_XML_NAMESPACE, "cpkDependencies")
             val encoder = Base64.getEncoder()
 
             cpks.forEach { cpk ->

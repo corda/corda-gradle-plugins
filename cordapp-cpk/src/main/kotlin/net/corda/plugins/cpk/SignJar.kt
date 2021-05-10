@@ -81,7 +81,7 @@ open class SignJar @Inject constructor(objects: ObjectFactory) : DefaultTask() {
 
     init {
         description = "Signs the given jars using the configuration from cordapp.signing.options."
-        group = GROUP_NAME
+        group = CORDAPP_TASK_GROUP
         inputs.nested("signing", signing)
     }
 

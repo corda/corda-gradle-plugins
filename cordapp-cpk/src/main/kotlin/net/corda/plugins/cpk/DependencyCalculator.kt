@@ -41,7 +41,7 @@ open class DependencyCalculator @Inject constructor(objects: ObjectFactory) : De
 
     init {
         description = "Computes this CorDapp's dependencies."
-        group = GROUP_NAME
+        group = CORDAPP_TASK_GROUP
 
         // Force this task to execute!
         outputs.upToDateWhen(satisfyNone())
