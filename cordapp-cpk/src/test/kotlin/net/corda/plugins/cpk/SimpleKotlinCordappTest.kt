@@ -56,20 +56,17 @@ class SimpleKotlinCordappTest {
             .allMatch { it.hash.isSHA256 }
             .hasSizeGreaterThanOrEqualTo(2)
         assertThat(testProject.cpkDependencies).isEmpty()
-        val cpkDependenciesHash = testProject.cpkDependenciesHash
 
         val artifacts = testProject.artifacts
         assertThat(artifacts).hasSize(2)
 
         val cpk = artifacts.single { it.toString().endsWith(".cpk") }
         assertThat(cpk).isRegularFile()
-        assertThat(cpk.hashOfEntry(CPK_DEPENDENCIES))
-            .isEqualTo(cpkDependenciesHash)
 
         val cordapp = artifacts.single { it.toString().endsWith(".jar") }
         assertThat(cordapp).isRegularFile()
         assertThat(cordapp.hashOfEntry(CPK_DEPENDENCIES))
-            .isEqualTo(cpkDependenciesHash)
+            .isEqualTo(testProject.cpkDependenciesHash)
         assertThat(cordapp.hashOfEntry(DEPENDENCY_CONSTRAINTS))
             .isEqualTo(testProject.dependencyConstraintsHash)
 
