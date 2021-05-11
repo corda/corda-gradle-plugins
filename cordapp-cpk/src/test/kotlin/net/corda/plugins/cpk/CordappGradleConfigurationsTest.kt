@@ -13,7 +13,7 @@ import java.util.zip.ZipFile
 
 class CordappGradleConfigurationsTest {
     companion object {
-        private val GRADLE_6_8 = GradleVersion.version("6.8.3")
+        private val GRADLE_6_9 = GradleVersion.version("6.9")
         private lateinit var testProject: GradleProject
         private lateinit var dependencies: List<ZipEntry>
 
@@ -22,7 +22,7 @@ class CordappGradleConfigurationsTest {
         @JvmStatic
         fun setup(@TempDir testProjectDir: Path, reporter: TestReporter) {
             testProject = GradleProject(testProjectDir, reporter)
-                .withGradleVersion(GRADLE_6_8)
+                .withGradleVersion(GRADLE_6_9)
                 .withBuildScript("""\
                     |plugins {
                     |    id 'net.corda.plugins.cordapp-cpk'
