@@ -21,20 +21,16 @@ import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
 import java.util.Collections.unmodifiableSet
 import java.util.jar.JarFile
-import javax.xml.XMLConstants.ACCESS_EXTERNAL_DTD
-import javax.xml.XMLConstants.ACCESS_EXTERNAL_SCHEMA
-import javax.xml.XMLConstants.ACCESS_EXTERNAL_STYLESHEET
-import javax.xml.XMLConstants.FEATURE_SECURE_PROCESSING
-import javax.xml.parsers.DocumentBuilderFactory
 import javax.xml.transform.OutputKeys.ENCODING
 import javax.xml.transform.OutputKeys.INDENT
 import javax.xml.transform.OutputKeys.METHOD
 import javax.xml.transform.OutputKeys.OMIT_XML_DECLARATION
 import javax.xml.transform.OutputKeys.STANDALONE
 import javax.xml.transform.TransformerException
-import javax.xml.transform.TransformerFactory
 import javax.xml.transform.dom.DOMSource
 import javax.xml.transform.stream.StreamResult
+import net.corda.plugins.cpk.XMLFactory.createDocumentBuilderFactory
+import net.corda.plugins.cpk.XMLFactory.createTransformerFactory
 
 const val CORDAPP_CPK_PLUGIN_ID = "net.corda.plugins.cordapp-cpk"
 const val CORDAPP_TASK_GROUP = "Cordapp"
@@ -261,22 +257,8 @@ fun MessageDigest.hashFor(input: InputStream): ByteArray {
 /**
  * Helper functions for XML documents.
  * Note that creating factories is EXPENSIVE.
- * Disable any JAXP features that may be flagged by a security audit.
  */
-private val documentBuilderFactory = DocumentBuilderFactory.newInstance().apply {
-    setFeature(FEATURE_SECURE_PROCESSING, true)
-    disableProperty(ACCESS_EXTERNAL_SCHEMA)
-    disableProperty(ACCESS_EXTERNAL_DTD)
-    isNamespaceAware = true
-}
-
-fun DocumentBuilderFactory.disableProperty(propertyName: String) {
-    try {
-        setAttribute(propertyName, "")
-    } catch (_: IllegalArgumentException) {
-        // Property not supported.
-    }
-}
+private val documentBuilderFactory = createDocumentBuilderFactory()
 
 fun createXmlDocument(): Document {
     return documentBuilderFactory.newDocumentBuilder().newDocument().apply {
@@ -284,19 +266,7 @@ fun createXmlDocument(): Document {
     }
 }
 
-private val transformerFactory = TransformerFactory.newInstance().apply {
-    setFeature(FEATURE_SECURE_PROCESSING, true)
-    disableProperty(ACCESS_EXTERNAL_STYLESHEET)
-    disableProperty(ACCESS_EXTERNAL_DTD)
-}
-
-private fun TransformerFactory.disableProperty(propertyName: String) {
-    try {
-        setAttribute(propertyName, "")
-    } catch (_: IllegalArgumentException) {
-        // Property not supported.
-    }
-}
+private val transformerFactory = createTransformerFactory()
 
 @Throws(TransformerException::class)
 fun Document.writeTo(writer: Writer) {

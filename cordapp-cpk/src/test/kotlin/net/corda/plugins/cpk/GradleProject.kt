@@ -54,6 +54,8 @@ fun toOSGiRange(version: String): String {
         .toString().replace(".0","")
 }
 
+fun createDocumentBuilderFactory() = XMLFactory.createDocumentBuilderFactory()
+
 val Path.manifest: Manifest get() = JarFile(toFile()).use(JarFile::getManifest)
 
 val List<HashValue>.allSHA256: Boolean get() = isNotEmpty() && all(HashValue::isSHA256)

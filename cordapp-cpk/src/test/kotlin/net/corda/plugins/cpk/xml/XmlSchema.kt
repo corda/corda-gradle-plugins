@@ -1,7 +1,8 @@
 @file:JvmName("XmlSchema")
 package net.corda.plugins.cpk.xml
 
-import net.corda.plugins.cpk.disableProperty
+import net.corda.plugins.cpk.createDocumentBuilderFactory
+import net.corda.plugins.cpk.xml.XMLFactory.createSchemaFactory
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.fail
 import org.w3c.dom.Document
@@ -9,50 +10,24 @@ import org.w3c.dom.Element
 import org.w3c.dom.Node
 import org.w3c.dom.NodeList
 import org.xml.sax.ErrorHandler
-import org.xml.sax.SAXNotRecognizedException
 import org.xml.sax.SAXParseException
 import java.io.InputStream
 import java.lang.invoke.MethodHandles
 import java.util.Base64
 import java.util.Collections.emptyIterator
 import java.util.Collections.unmodifiableList
-import javax.xml.XMLConstants.ACCESS_EXTERNAL_DTD
-import javax.xml.XMLConstants.ACCESS_EXTERNAL_SCHEMA
-import javax.xml.XMLConstants.FEATURE_SECURE_PROCESSING
-import javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI
 import javax.xml.parsers.DocumentBuilderFactory
-import javax.xml.validation.SchemaFactory
 
 private const val CORDA_CPK_V1 = "/xml/corda-cpk-1.0.xsd"
 
 /**
  * Create expensive [DocumentBuilderFactory] once, for all tests.
- * Disable any JAXP features that may be flagged by a security audit.
  */
-private val documentBuilderFactory = DocumentBuilderFactory.newInstance().also { dbf ->
-    dbf.setFeature(FEATURE_SECURE_PROCESSING, true)
-    dbf.disableProperty(ACCESS_EXTERNAL_SCHEMA)
-    dbf.disableProperty(ACCESS_EXTERNAL_DTD)
-    dbf.isExpandEntityReferences = false
-    dbf.isIgnoringComments = true
-    dbf.isNamespaceAware = true
-
-    val cpkSchema = SchemaFactory.newInstance(W3C_XML_SCHEMA_NS_URI).also { sf ->
-        sf.setFeature(FEATURE_SECURE_PROCESSING, true)
-        sf.disableProperty(ACCESS_EXTERNAL_SCHEMA)
-        sf.disableProperty(ACCESS_EXTERNAL_DTD)
-    }.newSchema(
+private val documentBuilderFactory = createDocumentBuilderFactory().also { dbf ->
+    val cpkSchema = createSchemaFactory().newSchema(
         MethodHandles.lookup().lookupClass().getResource(CORDA_CPK_V1) ?: fail("Corda CPK schema missing")
     )
     dbf.schema = cpkSchema
-}
-
-private fun SchemaFactory.disableProperty(propertyName: String) {
-    try {
-        setProperty(propertyName, "")
-    } catch(_: SAXNotRecognizedException) {
-        // Property not supported.
-    }
 }
 
 private class ElementIterator(private val nodes: NodeList) : Iterator<Element> {
