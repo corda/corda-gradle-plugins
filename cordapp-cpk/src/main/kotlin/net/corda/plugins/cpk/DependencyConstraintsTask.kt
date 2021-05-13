@@ -26,7 +26,7 @@ import javax.inject.Inject
 open class DependencyConstraintsTask @Inject constructor(objects: ObjectFactory) : DefaultTask() {
     init {
         description = "Computes the constraints for this CorDapp's library dependencies."
-        group = GROUP_NAME
+        group = CORDAPP_TASK_GROUP
     }
 
     private val _libraries: ConfigurableFileCollection = objects.fileCollection()
@@ -60,7 +60,7 @@ open class DependencyConstraintsTask @Inject constructor(objects: ObjectFactory)
 
         try {
             val xmlDocument = createXmlDocument()
-            val dependencyConstraints = xmlDocument.createRootElement(XML_NAMESPACE, "dependencyConstraints")
+            val dependencyConstraints = xmlDocument.createRootElement(CPK_XML_NAMESPACE, "dependencyConstraints")
             val encoder = Base64.getEncoder()
 
             libraries.forEach { library ->

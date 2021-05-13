@@ -81,7 +81,7 @@ open class PackagingTask @Inject constructor(objects: ObjectFactory) : Jar() {
 
     init {
         description = "Builds the CorDapp CPK package."
-        group = GROUP_NAME
+        group = CORDAPP_TASK_GROUP
 
         manifest {
             it.attributes(linkedMapOf(

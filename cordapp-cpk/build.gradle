@@ -96,6 +96,10 @@ processTestResources {
     }
 }
 
+tasks.withType(Javadoc).configureEach {
+    options.showFromPackage()
+}
+
 tasks.withType(Test).configureEach {
     javaLauncher = javaToolchains.launcherFor {
         languageVersion = of(11)

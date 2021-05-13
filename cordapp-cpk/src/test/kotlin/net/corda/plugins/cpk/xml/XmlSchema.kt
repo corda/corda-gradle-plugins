@@ -1,17 +1,34 @@
 @file:JvmName("XmlSchema")
 package net.corda.plugins.cpk.xml
 
+import net.corda.plugins.cpk.createDocumentBuilderFactory
+import net.corda.plugins.cpk.xml.XMLFactory.createSchemaFactory
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.fail
 import org.w3c.dom.Document
 import org.w3c.dom.Element
 import org.w3c.dom.Node
 import org.w3c.dom.NodeList
+import org.xml.sax.ErrorHandler
+import org.xml.sax.SAXParseException
 import java.io.InputStream
+import java.lang.invoke.MethodHandles
 import java.util.Base64
 import java.util.Collections.emptyIterator
 import java.util.Collections.unmodifiableList
 import javax.xml.parsers.DocumentBuilderFactory
+
+private const val CORDA_CPK_V1 = "/xml/corda-cpk-1.0.xsd"
+
+/**
+ * Create expensive [DocumentBuilderFactory] once, for all tests.
+ */
+private val documentBuilderFactory = createDocumentBuilderFactory().also { dbf ->
+    val cpkSchema = createSchemaFactory().newSchema(
+        MethodHandles.lookup().lookupClass().getResource(CORDA_CPK_V1) ?: fail("Corda CPK schema missing")
+    )
+    dbf.schema = cpkSchema
+}
 
 private class ElementIterator(private val nodes: NodeList) : Iterator<Element> {
     private var index = 0
@@ -195,7 +212,23 @@ class DependencyConstraintsBuilder(private val node: Node): AbstractBuilder<List
 }
 
 private fun loadDocumentFrom(input: InputStream): Document {
-    return DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(input)
+    return documentBuilderFactory.newDocumentBuilder().apply {
+        setErrorHandler(UnforgivingErrorHandler())
+    }.parse(input)
+}
+
+private class UnforgivingErrorHandler : ErrorHandler {
+    override fun warning(ex: SAXParseException) {
+        fail(ex.message)
+    }
+
+    override fun error(ex: SAXParseException) {
+        fail(ex.message)
+    }
+
+    override fun fatalError(ex: SAXParseException) {
+        fail(ex.message)
+    }
 }
 
 fun loadCPKDependencies(input: InputStream): List<CPKDependency> {
