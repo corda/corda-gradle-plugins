@@ -5,12 +5,14 @@ plugins {
 apply from: '../repositories.gradle'
 apply from: '../javaTarget.gradle'
 
+version = contract_cordapp_version
+
 cordapp {
     targetPlatformVersion = platform_version.toInteger()
     minimumPlatformVersion = platform_version.toInteger()
 
     contract {
-        name = 'Cordapp'
+        name = 'Contract Cordapp'
         versionId = cordapp_contract_version.toInteger()
         licence = 'Test-Licence'
         vendor = 'R3'
@@ -19,15 +21,9 @@ cordapp {
 
 jar {
     archiveBaseName = 'cordapp'
-    doFirst {
-        configurations.compileClasspath.forEach { dep ->
-            println "COMPILE-CONTRACT> ${dep.name}"
-        }
-    }
 }
 
 dependencies {
     cordaProvided project(':corda-api')
-    implementation "commons-io:commons-io:$commons_io_version"
-    implementation project(':library')
+    api "com.google.guava:guava:$contract_guava_version"
 }

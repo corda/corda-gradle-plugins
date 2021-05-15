@@ -8,11 +8,10 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.file.RegularFile
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.model.ObjectFactory
-import org.gradle.api.provider.Property
-import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.PathSensitivity.RELATIVE
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.Jar
@@ -21,8 +20,7 @@ import org.osgi.framework.Constants.BUNDLE_LICENSE
 import org.osgi.framework.Constants.BUNDLE_SYMBOLICNAME
 import org.osgi.framework.Constants.BUNDLE_VENDOR
 import org.osgi.framework.Constants.BUNDLE_VERSION
-import java.util.jar.JarFile
-import java.util.jar.Manifest
+import java.util.Collections.unmodifiableList
 import javax.inject.Inject
 
 @Suppress("UnstableApiUsage", "MemberVisibilityCanBePrivate")
@@ -30,6 +28,14 @@ open class PackagingTask @Inject constructor(objects: ObjectFactory) : Jar() {
     private companion object {
         private const val CORDAPP_CLASSIFIER = "cordapp"
         private const val CORDAPP_EXTENSION = "cpk"
+
+        private val MANIFEST_MAPPING = unmodifiableList(listOf(
+            BUNDLE_SYMBOLICNAME to CPK_CORDAPP_NAME,
+            BUNDLE_VERSION to CPK_CORDAPP_VERSION,
+            BUNDLE_LICENSE to CPK_CORDAPP_LICENCE,
+            BUNDLE_VENDOR to CPK_CORDAPP_VENDOR,
+            CORDAPP_PLATFORM_VERSION to CPK_PLATFORM_VERSION
+        ))
     }
 
     private val _libraries: ConfigurableFileCollection = objects.fileCollection()
@@ -71,27 +77,9 @@ open class PackagingTask @Inject constructor(objects: ObjectFactory) : Jar() {
         }
     }
 
-    private val cpkManifest: Provider<Manifest> = objects.property(Manifest::class.java)
-        .value(cordapp.map { JarFile(it.asFile).use(JarFile::getManifest) })
-        .apply(Property<Manifest>::finalizeValueOnRead)
-
-    private fun getAttribute(name: String): Provider<String?> = cpkManifest.map { man ->
-        man.mainAttributes.getValue(name)
-    }
-
     init {
         description = "Builds the CorDapp CPK package."
         group = CORDAPP_TASK_GROUP
-
-        manifest {
-            it.attributes(linkedMapOf(
-                CPK_FORMAT_TAG to CPK_FORMAT,
-                CPK_CORDAPP_NAME to getAttribute(BUNDLE_SYMBOLICNAME),
-                CPK_CORDAPP_VERSION to getAttribute(BUNDLE_VERSION),
-                CPK_CORDAPP_LICENCE to getAttribute(BUNDLE_LICENSE),
-                CPK_CORDAPP_VENDOR to getAttribute(BUNDLE_VENDOR)
-            ))
-        }
 
         mainSpec.from(cordapp).from(libraries) { libs ->
             libs.into("lib")
@@ -110,5 +98,29 @@ open class PackagingTask @Inject constructor(objects: ObjectFactory) : Jar() {
         includeEmptyDirs = false
         isCaseSensitive = true
         isZip64 = true
+    }
+
+    @TaskAction
+    override fun copy() {
+        /**
+         * Any [Task.doFirst] action defined from the [PackagingTask] constructor would
+         * actually be executed after [TaskAction], which would obviously be too late.
+         * This seems to be a long-standing issue with Gradle, see:
+         * - [GRADLE-2064](https://issues.gradle.org/browse/GRADLE-2064)
+         * - [#9142](https://github.com/gradle/gradle/issues/9142)
+         * Update the CPK manifest as the first step of [TaskAction] instead.
+         */
+        val jarAttributes = cordapp.asFile.get().manifest.mainAttributes
+        val cpkAttributes = linkedMapOf(CPK_FORMAT_TAG to CPK_FORMAT)
+
+        MANIFEST_MAPPING.forEach { mapping ->
+            jarAttributes.getValue(mapping.first)?.let { value ->
+                cpkAttributes[mapping.second] = value
+            }
+        }
+
+        manifest.attributes(cpkAttributes)
+
+        super.copy()
     }
 }

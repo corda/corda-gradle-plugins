@@ -31,6 +31,7 @@ import org.osgi.framework.Constants.BUNDLE_SYMBOLICNAME
 import org.osgi.framework.Constants.BUNDLE_VENDOR
 import java.util.Properties
 import javax.inject.Inject
+import kotlin.math.max
 
 /**
  * Generate a new CPK format CorDapp for use in Corda.
@@ -38,6 +39,8 @@ import javax.inject.Inject
 @Suppress("Unused", "UnstableApiUsage")
 class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plugin<Project> {
     private companion object {
+        private const val UNKNOWN_PLATFORM_VERSION = -1
+        private const val CORDA_PLATFORM_VERSION = "Corda-Platform-Version"
         private const val BNDLIB_PROPERTIES = "META-INF/maven/biz.aQute.bnd/biz.aQute.bndlib/pom.properties"
         private const val DEPENDENCY_CONSTRAINTS_TASK_NAME = "cordappDependencyConstraints"
         private const val DEPENDENCY_CALCULATOR_TASK_NAME = "cordappDependencyCalculator"
@@ -89,16 +92,6 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
         cordapp = project.extensions.create(CORDAPP_EXTENSION_NAME, CordappExtension::class.java, bndVersion)
 
         project.configurations.apply {
-            // Strip unwanted transitive dependencies from incoming CorDapps.
-            val cordappCfg = createCompileConfiguration(CORDAPP_CONFIGURATION_NAME).withDependencies { dependencies ->
-                val excludeRules = HARDCODED_EXCLUDES.map { exclude ->
-                    mapOf("group" to exclude.first, "module" to exclude.second)
-                }
-                dependencies.filterIsInstance(ModuleDependency::class.java).forEach { dep ->
-                    excludeRules.forEach { rule -> dep.exclude(rule) }
-                }
-            }
-            val cordaProvided = createCompileConfiguration(CORDA_PROVIDED_CONFIGURATION_NAME)
             createRuntimeOnlyConfiguration(CORDA_RUNTIME_ONLY_CONFIGURATION_NAME)
             maybeCreate(CORDA_CPK_CONFIGURATION_NAME).isCanBeResolved = false
 
@@ -107,13 +100,7 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
                 dependencies.add(bndDependency)
             }
 
-            // Embedded dependencies should not appear in the CorDapp's published POM.
-            val cordaEmbedded = createCompileConfiguration(CORDA_EMBEDDED_CONFIGURATION_NAME)
-
-            // Unlike cordaProvided dependencies, cordaPrivateProvided ones will not be
-            // added to the compile classpath of any CPKs that will depend on this CPK.
-            // In other words, they will not included in this CPK's companion POM.
-            val cordaPrivate = createCompileConfiguration(CORDA_PRIVATE_CONFIGURATION_NAME)
+            val cordappCfg = createCompileConfiguration(CORDAPP_CONFIGURATION_NAME)
 
             // The "cordapp" and "cordaProvided" configurations are "compile only",
             // which causes their dependencies to be excluded from the published
@@ -125,13 +112,31 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
                 .withDependencies { dependencies ->
                     collector.collect()
                     dependencies.addAll(collector.cordappDependencies)
+                    dependencies.filterIsInstance(ModuleDependency::class.java).forEach { dep ->
+                        // Ensure that none of these dependencies is transitive. This will prevent
+                        // Gradle from adding any of these CorDapps' private library dependencies
+                        // to our own compile classpath.
+                        // WE ARE MUTATING THESE DEPENDENCIES FOR EVERY CONFIGURATION THEY APPEAR IN!
+                        dep.isTransitive = false
+                    }
                 }
+
+            val cordaProvided = createCompileConfiguration(CORDA_PROVIDED_CONFIGURATION_NAME)
+
+            // Unlike cordaProvided dependencies, cordaPrivateProvided ones will not be
+            // added to the compile classpath of any CPKs that will depend on this CPK.
+            // In other words, they will not included in this CPK's companion POM.
+            val cordaPrivate = createCompileConfiguration(CORDA_PRIVATE_CONFIGURATION_NAME)
+
             createCompileConfiguration(CORDA_ALL_PROVIDED_CONFIGURATION_NAME)
                 .extendsFrom(cordaProvided, cordaPrivate)
                 .withDependencies { dependencies ->
                     collector.collect()
                     dependencies.addAll(collector.providedDependencies)
                 }
+
+            // Embedded dependencies should not appear in the CorDapp's published POM.
+            val cordaEmbedded = createCompileConfiguration(CORDA_EMBEDDED_CONFIGURATION_NAME)
 
             // We need to resolve the contents of our CPK file based on
             // both the runtimeElements and cordaEmbedded configurations.
@@ -239,6 +244,10 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
                 bnd(osgi.scanCordaClasses)
             }
 
+            val allCordaProvided = objects.fileCollection()
+                .from(calculatorTask.flatMap(DependencyCalculator::providedJars))
+            val allCordapps = objects.fileCollection()
+                .from(calculatorTask.flatMap(DependencyCalculator::cordapps))
             jar.doFirst { t ->
                 t as Jar
                 t.fileMode = Integer.parseInt("444", 8)
@@ -256,6 +265,16 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
                 // check whether metadata has been configured (not mandatory for non-flow, non-contract gradle build files)
                 if (cordapp.contract.isEmpty && cordapp.workflow.isEmpty) {
                     throw InvalidUserDataException("Cordapp metadata not defined for this gradle build file. See https://docs.corda.net/head/cordapp-build-systems.html#separation-of-cordapp-contracts-flows-and-services")
+                }
+
+                // Compute the maximum platform version used by any "corda-provided"
+                // dependencies, or by any CorDapp dependencies.
+                val platformVersion = max(
+                    allCordaProvided.maxOf(CORDA_PLATFORM_VERSION) ?: UNKNOWN_PLATFORM_VERSION,
+                    allCordapps.maxOf(CORDAPP_PLATFORM_VERSION) ?: UNKNOWN_PLATFORM_VERSION
+                )
+                if (platformVersion > UNKNOWN_PLATFORM_VERSION) {
+                    attributes[CORDAPP_PLATFORM_VERSION] = platformVersion
                 }
 
                 configureCordappAttributes(osgi.symbolicName.get(), attributes)

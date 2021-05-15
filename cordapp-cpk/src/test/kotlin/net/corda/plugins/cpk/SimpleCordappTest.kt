@@ -68,6 +68,7 @@ class SimpleCordappTest {
         println(jarManifest.mainAttributes.entries)
 
         with(jarManifest.mainAttributes) {
+            assertEquals(testPlatformVersion, getValue(CORDAPP_PLATFORM_VERSION))
             assertEquals("Simple Java", getValue(BUNDLE_NAME))
             assertEquals("com.example.simple-cordapp", getValue(BUNDLE_SYMBOLICNAME))
             assertEquals(toOSGi(cordappVersion), getValue(BUNDLE_VERSION))

@@ -2,6 +2,7 @@
 package net.corda.plugins.cpk
 
 import aQute.bnd.version.MavenVersion.parseMavenString
+import aQute.bnd.version.Version
 import aQute.bnd.version.VersionRange
 import net.corda.plugins.cpk.xml.CPKDependency
 import net.corda.plugins.cpk.xml.DependencyConstraint
@@ -20,6 +21,7 @@ import org.gradle.testkit.runner.TaskOutcome.SUCCESS
 import org.gradle.util.GradleVersion
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.TestReporter
+import org.junit.jupiter.api.fail
 import java.io.IOException
 import java.io.InputStream
 import java.nio.file.Files
@@ -29,8 +31,8 @@ import java.util.Properties
 import java.util.jar.JarFile
 import java.util.jar.Manifest
 import java.util.stream.Collectors.toList
-import kotlin.test.fail
 
+const val testPlatformVersion = "1000"
 const val expectedCordappContractVersion = 2
 const val expectedCordappWorkflowVersion = 3
 const val expectedCordappServiceVersion = 4
@@ -44,19 +46,30 @@ const val slf4jVersion = "1.7.30"
 
 private val GRADLE_7 = GradleVersion.version("7.0")
 
-fun toOSGi(version: String): String {
-    return parseMavenString(version).osGiVersion.toString()
+fun osgiVersion(version: String): Version {
+    return parseMavenString(version).osGiVersion
 }
 
-fun toOSGiRange(version: String): String {
-    val osgiVersion = parseMavenString(version).osGiVersion
-    return VersionRange(true, osgiVersion, osgiVersion.bumpMajor(), false)
-        .toString().replace(".0","")
+fun toOSGi(mavenVersion: String): String {
+    return osgiVersion(mavenVersion).toString()
+}
+
+fun toOSGiRange(mavenVersion: String): String {
+    val osgiVersion = osgiVersion(mavenVersion)
+    return with(VersionRange(true, osgiVersion, osgiVersion.bumpMajor(), false)) {
+        StringBuilder()
+            .append(if (includeLow()) '[' else '(')
+            .append(low.major).append('.').append(low.minor)
+            .append(',')
+            .append(high.major)
+            .append(if (includeHigh()) ']' else ')')
+            .toString()
+    }
 }
 
 fun createDocumentBuilderFactory() = XMLFactory.createDocumentBuilderFactory()
 
-val Path.manifest: Manifest get() = JarFile(toFile()).use(JarFile::getManifest)
+val Path.manifest: Manifest get() = toFile().manifest
 
 val List<HashValue>.allSHA256: Boolean get() = isNotEmpty() && all(HashValue::isSHA256)
 

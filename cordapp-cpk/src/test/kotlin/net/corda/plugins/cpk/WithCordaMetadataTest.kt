@@ -75,6 +75,8 @@ class WithCordaMetadataTest {
         val contractJar = testProject.artifacts.single { it.toString().endsWith("contracts-$CONTRACT_CORDAPP_VERSION.jar") }
         assertThat(contractJar).isRegularFile()
         with(contractJar.manifest.mainAttributes) {
+            assertThat(getValue(CORDAPP_PLATFORM_VERSION))
+                .isEqualTo(testPlatformVersion)
             assertThat(getValue(CORDA_CONTRACT_CLASSES))
                 .isEqualTo("com.example.metadata.contracts.ExampleContract,com.example.metadata.contracts.ExampleContract\$NestedContract")
             assertThat(getValue(CORDA_MAPPED_SCHEMA_CLASSES))
@@ -112,6 +114,7 @@ class WithCordaMetadataTest {
             assertThat(getValue(CPK_CORDAPP_VERSION)).isEqualTo(toOSGi(CONTRACT_CORDAPP_VERSION))
             assertThat(getValue(CPK_CORDAPP_LICENCE)).isEqualTo(TEST_LICENCE)
             assertThat(getValue(CPK_CORDAPP_VENDOR)).isEqualTo(TEST_VENDOR)
+            assertThat(getValue(CPK_PLATFORM_VERSION)).isEqualTo(testPlatformVersion)
         }
     }
 
@@ -120,6 +123,8 @@ class WithCordaMetadataTest {
         val workflowJar = testProject.artifacts.single { it.toString().endsWith("workflows-$WORKFLOW_CORDAPP_VERSION.jar") }
         assertThat(workflowJar).isRegularFile()
         with(workflowJar.manifest.mainAttributes) {
+            assertThat(getValue(CORDAPP_PLATFORM_VERSION))
+                .isEqualTo(testPlatformVersion)
             assertThat(getValue(CORDA_WORKFLOW_CLASSES))
                 .isEqualTo("com.example.metadata.workflows.ExampleFlow,com.example.metadata.workflows.ExampleFlow\$NestedFlow")
             assertThat(getValue(CORDA_CONTRACT_CLASSES)).isNull()
@@ -155,6 +160,7 @@ class WithCordaMetadataTest {
             assertThat(getValue(CPK_CORDAPP_VERSION)).isEqualTo(toOSGi(WORKFLOW_CORDAPP_VERSION))
             assertThat(getValue(CPK_CORDAPP_LICENCE)).isEqualTo(TEST_LICENCE)
             assertThat(getValue(CPK_CORDAPP_VENDOR)).isEqualTo(TEST_VENDOR)
+            assertThat(getValue(CPK_PLATFORM_VERSION)).isEqualTo(testPlatformVersion)
         }
     }
 
@@ -163,6 +169,8 @@ class WithCordaMetadataTest {
         val serviceJar = testProject.artifacts.single { it.toString().endsWith("services-$SERVICE_CORDAPP_VERSION.jar") }
         assertThat(serviceJar).isRegularFile()
         with(serviceJar.manifest.mainAttributes) {
+            assertThat(getValue(CORDAPP_PLATFORM_VERSION))
+                .isEqualTo(testPlatformVersion)
             assertThat(getValue(CORDA_SERVICE_CLASSES))
                 .isEqualTo("com.example.metadata.services.ExampleService")
             assertThat(getValue(CORDA_WORKFLOW_CLASSES)).isNull()
@@ -198,6 +206,7 @@ class WithCordaMetadataTest {
             assertThat(getValue(CPK_CORDAPP_VERSION)).isEqualTo(toOSGi(SERVICE_CORDAPP_VERSION))
             assertThat(getValue(CPK_CORDAPP_LICENCE)).isEqualTo(TEST_LICENCE)
             assertThat(getValue(CPK_CORDAPP_VENDOR)).isEqualTo(TEST_VENDOR)
+            assertThat(getValue(CPK_PLATFORM_VERSION)).isEqualTo(testPlatformVersion)
         }
     }
 }

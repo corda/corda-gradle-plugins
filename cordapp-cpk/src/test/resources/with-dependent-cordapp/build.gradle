@@ -23,10 +23,25 @@ cordapp {
 
 jar {
     archiveBaseName = 'with-dependent-cordapp'
+    doFirst {
+        configurations.compileClasspath.forEach { dep ->
+            println "COMPILE-WORKFLOW> ${dep.name}"
+        }
+    }
 }
 
 dependencies {
     cordapp project(':cordapp')
     cordaProvided project(':corda-api')
     implementation "com.google.guava:guava:$guava_version"
+}
+
+// Copy the DependencyConstraints XML from ':cordapp' into our build directory.
+def copy = tasks.register('copy', Copy) {
+    into project.layout.buildDirectory
+    from project(':cordapp').tasks.named('cordappDependencyConstraints')
+}
+
+tasks.named('assemble') {
+    dependsOn copy
 }

@@ -20,6 +20,7 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.TaskDependency
 import java.io.File
 import java.util.Collections.unmodifiableList
+import java.util.Collections.unmodifiableSet
 import javax.inject.Inject
 
 @Suppress("UnstableApiUsage")
@@ -27,6 +28,17 @@ open class DependencyCalculator @Inject constructor(objects: ObjectFactory) : De
     private companion object {
         private const val NON_CORDA = false
         private const val CORDA = true
+
+        private val HARDCODED_EXCLUDES: Set<Pair<String, String>> = unmodifiableSet(setOf(
+            "org.jetbrains.kotlin" to "*",
+            "net.corda.kotlin" to "*",
+            "org.osgi" to "*",
+            "org.slf4j" to "slf4j-api",
+            "org.slf4j" to "jcl-over-slf4j",
+            "commons-logging" to "commons-logging",
+            "co.paralleluniverse" to "quasar-core",
+            "co.paralleluniverse" to "quasar-core-osgi"
+        ))
 
         private val CORDAPP_BUILD_CONFIGURATIONS: List<String> = unmodifiableList(listOf(
             /**
@@ -71,6 +83,15 @@ open class DependencyCalculator @Inject constructor(objects: ObjectFactory) : De
     val cordapps: Provider<Set<FileSystemLocation>>
         @OutputFiles
         get() = _cordapps.elements
+
+    /**
+     * This is the resolved contents of the `cordaAllProvided` configuration,
+     * which should contain all of the Corda API jars that this CorDapp uses.
+     */
+    private val _providedJars: ConfigurableFileCollection = objects.fileCollection()
+    val providedJars: Provider<Set<FileSystemLocation>>
+        @OutputFiles
+        get() = _providedJars.elements
 
     /**
      * These jars are embedded into the "main" jar and
@@ -182,6 +203,11 @@ open class DependencyCalculator @Inject constructor(objects: ObjectFactory) : De
 
         _cordapps.apply {
             setFrom(cordappFiles)
+            disallowChanges()
+        }
+
+        _providedJars.apply {
+            setFrom(providedFiles)
             disallowChanges()
         }
     }
