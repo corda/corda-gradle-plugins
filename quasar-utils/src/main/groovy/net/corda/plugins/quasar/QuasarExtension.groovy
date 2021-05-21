@@ -5,8 +5,9 @@ import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
-
 import javax.inject.Inject
+
+import static net.corda.plugins.quasar.QuasarPlugin.QUASAR_ARTIFACT_NAME
 
 class QuasarExtension {
 
@@ -65,7 +66,7 @@ class QuasarExtension {
         group = objects.property(String).convention(defaultGroup)
         version = objects.property(String).convention(defaultVersion)
         dependency = group.zip(version) { grp, ver ->
-            [ group: grp, name: 'quasar-core-osgi', version: ver, ext: 'jar' ]
+            [ group: grp, name: QUASAR_ARTIFACT_NAME, version: ver, ext: 'jar' ]
         }
         agent = dependency.map {
             it['classifier'] = 'agent'
