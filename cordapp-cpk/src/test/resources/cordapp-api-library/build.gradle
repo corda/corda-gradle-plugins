@@ -1,0 +1,37 @@
+plugins {
+    id 'net.corda.plugins.cordapp-cpk'
+    id 'org.jetbrains.kotlin.jvm'
+}
+
+apply from: 'repositories.gradle'
+apply from: 'javaTarget.gradle'
+apply from: 'kotlin.gradle'
+
+version = workflow_cordapp_version
+
+allprojects {
+    group = 'com.example'
+}
+
+cordapp {
+    targetPlatformVersion = platform_version.toInteger()
+    minimumPlatformVersion = platform_version.toInteger()
+
+    workflow {
+        name = 'Cordapp API Library'
+        versionId = cordapp_workflow_version.toInteger()
+        licence = 'Test-Licence'
+        vendor = 'R3'
+    }
+}
+
+jar {
+    archiveBaseName = 'cordapp-api-library'
+}
+
+dependencies {
+    cordaProvided project(':corda-api')
+    cordapp project(':cordapp')
+    implementation "org.jetbrains.kotlin:kotlin-osgi-bundle:$kotlin_version"
+    implementation "com.google.guava:guava:$workflow_guava_version"
+}

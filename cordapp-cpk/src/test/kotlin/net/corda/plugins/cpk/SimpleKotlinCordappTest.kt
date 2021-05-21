@@ -74,6 +74,7 @@ class SimpleKotlinCordappTest {
         println(jarManifest.mainAttributes.entries)
 
         with(jarManifest.mainAttributes) {
+            assertEquals(testPlatformVersion, getValue(CORDAPP_PLATFORM_VERSION))
             assertEquals("Simple Kotlin", getValue(BUNDLE_NAME))
             assertEquals("com.example.simple-kotlin-cordapp", getValue(BUNDLE_SYMBOLICNAME))
             assertEquals(toOSGi(cordappVersion), getValue(BUNDLE_VERSION))

@@ -1,5 +1,6 @@
 package net.corda.plugins.cpk
 
+import net.corda.plugins.cpk.xml.loadDependencyConstraints
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.TestReporter
 import org.junit.jupiter.api.io.TempDir
@@ -10,6 +11,7 @@ import java.nio.file.Path
 class WithDependentCordappTest {
     companion object {
         private const val CORDA_GUAVA_VERSION = "20.0"
+        private const val librarySlf4jVersion = "1.7.21"
 
         private fun buildProject(
             guavaVersion: String,
@@ -27,7 +29,8 @@ class WithDependentCordappTest {
                     "-Pcommons_io_version=$commonsIoVersion",
                     "-Pcorda_api_version=$cordaApiVersion",
                     "-Plibrary_guava_version=$libraryGuavaVersion",
-                    "-Pguava_version=$guavaVersion"
+                    "-Pguava_version=$guavaVersion",
+                    "-Pslf4j_version=$librarySlf4jVersion"
                 )
         }
     }
@@ -46,13 +49,31 @@ class WithDependentCordappTest {
         reporter: TestReporter
     ) {
         val testProject = buildProject(guavaVersion, libraryGuavaVersion, testProjectDir, reporter)
+        val bndVersion = testProject.properties.getProperty("bnd_version")
+
+        assertThat(testProject.output.split(System.lineSeparator()))
+            .contains("COMPILE-WORKFLOW> biz.aQute.bnd.annotation-${bndVersion}.jar")
+            .contains("COMPILE-WORKFLOW> guava-${guavaVersion}.jar")
+            .contains("COMPILE-WORKFLOW> cordapp.jar")
+            .contains("COMPILE-CONTRACT> biz.aQute.bnd.annotation-${bndVersion}.jar")
+            .contains("COMPILE-CONTRACT> slf4j-api-${librarySlf4jVersion}.jar")
+            .contains("COMPILE-CONTRACT> commons-io-${commonsIoVersion}.jar")
+            .contains("COMPILE-CONTRACT> library.jar")
+            .doesNotContain(
+                "COMPILE-CONTRACT> guava-${guavaVersion}.jar",
+                "COMPILE-CONTRACT> guava-${libraryGuavaVersion}.jar",
+                "COMPILE-WORKFLOW> commons-io-${commonsIoVersion}.jar",
+                "COMPILE-WORKFLOW> slf4j-api-${librarySlf4jVersion}.jar",
+                "COMPILE-WORKFLOW> library.jar"
+            )
 
         assertThat(testProject.dependencyConstraints)
             .anyMatch { it.fileName == "guava-$guavaVersion.jar" }
             .noneMatch { it.fileName == "commons-io-$commonsIoVersion.jar" }
+            .noneMatch { it.fileName == "slf4j-api-${librarySlf4jVersion}.jar" }
+            .noneMatch { it.fileName == "biz.aQute.bnd.annotation-${bndVersion}.jar" }
             .noneMatch { it.fileName == "library.jar" }
             .noneMatch { it.fileName == "cordapp.jar" }
-            .noneMatch { it.fileName.startsWith("slf4j-api-") }
             .allMatch { it.hash.isSHA256 }
             .hasSizeGreaterThanOrEqualTo(1)
         assertThat(testProject.cpkDependencies)
@@ -62,7 +83,7 @@ class WithDependentCordappTest {
 
         if (libraryGuavaVersion != guavaVersion) {
             assertThat(testProject.dependencyConstraints)
-                .noneMatch { it.fileName == "guava-$libraryGuavaVersion.jar" }
+                .noneMatch { it.fileName == "guava-${libraryGuavaVersion}.jar" }
         }
 
         val artifacts = testProject.artifacts
@@ -73,5 +94,16 @@ class WithDependentCordappTest {
 
         val cpk = artifacts.single { it.toString().endsWith(".cpk") }
         assertThat(cpk).isRegularFile()
+
+        val cordappDepsFile = testProject.buildDir.resolve("DependencyConstraints")
+        assertThat(cordappDepsFile).isRegularFile()
+        val cordappDependencyConstraints = cordappDepsFile.toFile().inputStream()
+            .use(::loadDependencyConstraints)
+        assertThat(cordappDependencyConstraints)
+            .noneMatch { it.fileName == "biz.aQute.bnd.annotation-${bndVersion}.jar" }
+            .noneMatch { it.fileName == "slf4j-api-${librarySlf4jVersion}.jar" }
+            .anyMatch { it.fileName == "guava-${libraryGuavaVersion}.jar" }
+            .anyMatch { it.fileName == "commons-io-$commonsIoVersion.jar" }
+            .anyMatch { it.fileName == "library.jar" }
     }
 }

@@ -1,6 +1,8 @@
 @file:JvmName("CordappUtils")
 package net.corda.plugins.cpk
 
+import net.corda.plugins.cpk.XMLFactory.createDocumentBuilderFactory
+import net.corda.plugins.cpk.XMLFactory.createTransformerFactory
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
@@ -19,8 +21,8 @@ import java.io.InputStream
 import java.io.Writer
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
-import java.util.Collections.unmodifiableSet
 import java.util.jar.JarFile
+import java.util.jar.Manifest
 import javax.xml.transform.OutputKeys.ENCODING
 import javax.xml.transform.OutputKeys.INDENT
 import javax.xml.transform.OutputKeys.METHOD
@@ -29,8 +31,6 @@ import javax.xml.transform.OutputKeys.STANDALONE
 import javax.xml.transform.TransformerException
 import javax.xml.transform.dom.DOMSource
 import javax.xml.transform.stream.StreamResult
-import net.corda.plugins.cpk.XMLFactory.createDocumentBuilderFactory
-import net.corda.plugins.cpk.XMLFactory.createTransformerFactory
 
 const val CORDAPP_CPK_PLUGIN_ID = "net.corda.plugins.cordapp-cpk"
 const val CORDAPP_TASK_GROUP = "Cordapp"
@@ -51,6 +51,7 @@ const val CORDA_CPK_CONFIGURATION_NAME = "cordaCPK"
 const val DEPENDENCY_CONSTRAINTS = "META-INF/DependencyConstraints"
 const val CPK_DEPENDENCIES = "META-INF/CPKDependencies"
 
+const val CPK_PLATFORM_VERSION = "Corda-CPK-Built-Platform-Version"
 const val CPK_CORDAPP_NAME = "Corda-CPK-Cordapp-Name"
 const val CPK_CORDAPP_VERSION = "Corda-CPK-Cordapp-Version"
 const val CPK_CORDAPP_LICENCE = "Corda-CPK-Cordapp-Licence"
@@ -65,22 +66,11 @@ const val CORDA_MAPPED_SCHEMA_CLASSES = "Corda-MappedSchema-Classes"
 const val CORDA_SERVICE_CLASSES = "Corda-Service-Classes"
 const val REQUIRED_PACKAGES = "Required-Packages"
 
+const val CORDAPP_PLATFORM_VERSION = "Cordapp-Built-Platform-Version"
 const val CORDAPP_CONTRACT_NAME = "Cordapp-Contract-Name"
 const val CORDAPP_CONTRACT_VERSION = "Cordapp-Contract-Version"
 const val CORDAPP_WORKFLOW_NAME = "Cordapp-Workflow-Name"
 const val CORDAPP_WORKFLOW_VERSION = "Cordapp-Workflow-Version"
-
-@JvmField
-val HARDCODED_EXCLUDES: Set<Pair<String, String>> = unmodifiableSet(setOf(
-    "org.jetbrains.kotlin" to "*",
-    "net.corda.kotlin" to "*",
-    "org.osgi" to "*",
-    "org.slf4j" to "slf4j-api",
-    "org.slf4j" to "jcl-over-slf4j",
-    "commons-logging" to "commons-logging",
-    "co.paralleluniverse" to "quasar-core",
-    "co.paralleluniverse" to "quasar-core-osgi"
-))
 
 @JvmField
 val SEPARATOR: String = System.lineSeparator() + "- "
@@ -152,6 +142,20 @@ fun ResolvedConfiguration.resolveFirstLevel(dependencies: Collection<Dependency>
 private fun ResolvedConfiguration.resolve(dependencies: Collection<Dependency>, fetchArtifacts: (ResolvedDependency) -> Iterable<ResolvedArtifact>): Set<ResolvedArtifact> {
     return getFirstLevelModuleDependencies(Spec(dependencies::contains))
         .flatMapTo(LinkedHashSet(), fetchArtifacts)
+}
+
+/**
+ * Extracts the [Manifest] from a jar file.
+ */
+val File.manifest: Manifest get() = JarFile(this).use(JarFile::getManifest)
+
+/**
+ * Computes the maximum value of [attributeName] from all [Manifest]s,
+ * or `null` if no such value can be derived. The attribute is assumed
+ * to have an integer value.
+ */
+fun Iterable<File>.maxOf(attributeName: String): Int? {
+    return mapNotNull { it.manifest.mainAttributes.getValue(attributeName)?.toIntOrNull() }.max()
 }
 
 /**

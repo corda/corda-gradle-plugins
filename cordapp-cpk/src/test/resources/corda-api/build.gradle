@@ -18,12 +18,16 @@ repositories {
 
 dependencies {
     compileOnly "org.osgi:osgi.annotation:$osgi_version"
-    implementation "org.jetbrains.kotlin:kotlin-osgi-bundle:$kotlin_version"
+    api "org.jetbrains.kotlin:kotlin-osgi-bundle:$kotlin_version"
     api "javax.persistence:javax.persistence-api:$persistence_api_version"
     runtimeOnly "com.google.guava:guava:$corda_guava_version"
 }
 
 tasks.named('jar', Jar) {
+    manifest {
+        attributes('Corda-Platform-Version': 1000)
+    }
+
     bnd """\
 Bundle-SymbolicName: net.corda.api
 Bundle-Name: Fake Corda APIs
