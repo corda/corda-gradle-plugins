@@ -126,15 +126,12 @@ class QuasarPlugin implements Plugin<Project> {
     }
 
     private static Configuration createRuntimeOnlyConfiguration(String name, ConfigurationContainer configurations) {
-        Configuration configuration = configurations.findByName(name)
-        if (configuration == null) {
-            configuration = configurations.create(name)
-            configuration.canBeConsumed = false
-            configuration.canBeResolved = false
-            configuration.transitive = false
-            configuration.visible = false
-            configurations.getByName(RUNTIME_ONLY_CONFIGURATION_NAME).extendsFrom(configuration)
-        }
+        Configuration configuration = configurations.maybeCreate(name)
+            .setTransitive(false)
+            .setVisible(false)
+        configuration.canBeConsumed = false
+        configuration.canBeResolved = false
+        configurations.getByName(RUNTIME_ONLY_CONFIGURATION_NAME).extendsFrom(configuration)
         return configuration
     }
 
@@ -143,15 +140,13 @@ class QuasarPlugin implements Plugin<Project> {
     }
 
     private static Configuration createCompileConfiguration(String name, String testSuffix, ConfigurationContainer configurations) {
-        Configuration configuration = configurations.findByName(name)
-        if (configuration == null) {
-            configuration = configurations.maybeCreate(name).setVisible(false)
-            configuration.canBeConsumed = false
-            configuration.canBeResolved = false
-            configurations.getByName(COMPILE_ONLY_CONFIGURATION_NAME).extendsFrom(configuration)
-            configurations.matching { it.name.endsWith(testSuffix) }.configureEach { cfg ->
-                cfg.extendsFrom(configuration)
-            }
+        Configuration configuration = configurations.maybeCreate(name)
+            .setVisible(false)
+        configuration.canBeConsumed = false
+        configuration.canBeResolved = false
+        configurations.getByName(COMPILE_ONLY_CONFIGURATION_NAME).extendsFrom(configuration)
+        configurations.matching { it.name.endsWith(testSuffix) }.configureEach { cfg ->
+            cfg.extendsFrom(configuration)
         }
         return configuration
     }
