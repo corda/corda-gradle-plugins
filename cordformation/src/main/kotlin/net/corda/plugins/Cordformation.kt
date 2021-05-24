@@ -84,7 +84,7 @@ class Cordformation : Plugin<Project> {
             val deployCordapps = maybeCreate(DEPLOY_CORDAPP_CONFIGURATION_NAME).setVisible(false)
             val cordapp = createCompileConfiguration(CORDAPP_CONFIGURATION_NAME).withDependencies { deps ->
                 deps.filterIsInstance(ModuleDependency::class.java).forEach { dep ->
-                    val cpk = dep.copy()
+                    val cpk = dep.copy().setTransitive(false)
                     when (dep) {
                         is ExternalDependency -> {
                             cpk.artifact {
