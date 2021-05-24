@@ -92,6 +92,7 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
         cordapp = project.extensions.create(CORDAPP_EXTENSION_NAME, CordappExtension::class.java, bndVersion)
 
         project.configurations.apply {
+            // This definition of cordaRuntimeOnly must be kept aligned with the one in the quasar-utils plugin.
             createRuntimeOnlyConfiguration(CORDA_RUNTIME_ONLY_CONFIGURATION_NAME)
             maybeCreate(CORDA_CPK_CONFIGURATION_NAME).isCanBeResolved = false
 
@@ -121,6 +122,7 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
                     }
                 }
 
+            // This definition of cordaProvided must be kept aligned with the one in the quasar-utils plugin.
             val cordaProvided = createCompileConfiguration(CORDA_PROVIDED_CONFIGURATION_NAME)
 
             // Unlike cordaProvided dependencies, cordaPrivateProvided ones will not be

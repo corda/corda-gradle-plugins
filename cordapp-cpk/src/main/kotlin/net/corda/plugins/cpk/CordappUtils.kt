@@ -84,16 +84,14 @@ fun Dependency.toMaven(): String {
 }
 
 private fun ConfigurationContainer.createChildConfiguration(name: String, parent: Configuration): Configuration {
-    return findByName(name) ?: run {
-        val configuration = create(name) {
-            it.isCanBeConsumed = false
-            it.isCanBeResolved = false
-            it.isTransitive = false
-            it.isVisible = false
+    return maybeCreate(name)
+        .setTransitive(false)
+        .setVisible(false)
+        .also { configuration ->
+            configuration.isCanBeConsumed = false
+            configuration.isCanBeResolved = false
+            parent.extendsFrom(configuration)
         }
-        parent.extendsFrom(configuration)
-        configuration
-    }
 }
 
 fun ConfigurationContainer.createRuntimeOnlyConfiguration(name: String): Configuration {
@@ -110,17 +108,16 @@ fun ConfigurationContainer.createCompileConfiguration(name: String): Configurati
 }
 
 private fun ConfigurationContainer.createCompileConfiguration(name: String, testSuffix: String): Configuration {
-    return findByName(name) ?: run {
-        val configuration = maybeCreate(name).setVisible(false).apply {
-            isCanBeConsumed = false
-            isCanBeResolved = false
+    return maybeCreate(name)
+        .setVisible(false)
+        .also { configuration ->
+            configuration.isCanBeConsumed = false
+            configuration.isCanBeResolved = false
+            getByName(COMPILE_ONLY_CONFIGURATION_NAME).extendsFrom(configuration)
+            matching { it.name.endsWith(testSuffix) }.configureEach { cfg ->
+                cfg.extendsFrom(configuration)
+            }
         }
-        getByName(COMPILE_ONLY_CONFIGURATION_NAME).extendsFrom(configuration)
-        matching { it.name.endsWith(testSuffix) }.configureEach { cfg ->
-            cfg.extendsFrom(configuration)
-        }
-        configuration
-    }
 }
 
 /**

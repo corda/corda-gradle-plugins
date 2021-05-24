@@ -185,7 +185,12 @@ apply plugin: 'net.corda.plugins.quasar-utils'
 
 task show {
     doFirst {
-        def configs = configurations.matching { it.name in ['quasar', 'quasarAgent', 'cordaRuntimeOnly', 'compileClasspath', 'cordaProvided', 'compileOnly', 'runtimeClasspath'] }
+        def configs = configurations.matching { it.name in [
+            'quasar',
+            'quasarAgent',
+            'compileClasspath',
+            'runtimeClasspath'
+        ] }
         configs.collectEntries { [(it.name):it] }.each { name, files ->
             files.each { file ->
                 println "\$name: \${file.name}"
@@ -196,9 +201,6 @@ task show {
 """, "show"
         assertThat(output.findAll { it.startsWith("quasar:") }).hasSize(1)
         assertThat(output.findAll { it.startsWith("quasarAgent:") }).hasSize(1)
-        assertThat(output.findAll { it.startsWith("cordaRuntimeOnly:") }).hasSize(1)
-        assertThat(output.findAll { it.startsWith("compileOnly:") }).hasSize(1)
-        assertThat(output.findAll { it.startsWith("cordaProvided:") }).hasSize(1)
         assertThat(output.findAll { it.startsWith("compileClasspath:") }).hasSize(1)
         assertThat(output.findAll { it.startsWith("runtimeClasspath:") }.size()).isGreaterThan(1)
     }
