@@ -37,8 +37,8 @@ class DockerformTest : BaseformTest() {
         val result = runner.build()
 
         assertThat(result.task(":prepareDockerNodes")!!.outcome).isEqualTo(TaskOutcome.SUCCESS)
-        assertThat(getNodeCordappCpk(notaryNodeName, cordaFinanceWorkflowsCpkName)).isRegularFile()
-        assertThat(getNodeCordappCpk(notaryNodeName, cordaFinanceContractsCpkName)).isRegularFile()
+        assertThat(getNodeCordappCpk(notaryNodeName, cordaWorkflowsCpkName)).isRegularFile()
+        assertThat(getNodeCordappCpk(notaryNodeName, cordaContractsCpkName)).isRegularFile()
         assertThat(getNetworkParameterOverrides(notaryNodeName)).isRegularFile()
     }
 
@@ -56,14 +56,14 @@ class DockerformTest : BaseformTest() {
         val result = runner.build()
 
         assertThat(result.task(":prepareDockerNodes")!!.outcome).isEqualTo(TaskOutcome.SUCCESS)
-        assertThat(getNodeCordappCpk(notaryNodeName, cordaFinanceWorkflowsCpkName)).isRegularFile()
-        assertThat(getNodeCordappCpk(notaryNodeName, cordaFinanceContractsCpkName)).isRegularFile()
+        assertThat(getNodeCordappCpk(notaryNodeName, cordaWorkflowsCpkName)).isRegularFile()
+        assertThat(getNodeCordappCpk(notaryNodeName, cordaContractsCpkName)).isRegularFile()
         assertThat(getNetworkParameterOverrides(notaryNodeName)).isRegularFile()
-        assertThat(getNodeCordappCpk(bankNodeName, cordaFinanceWorkflowsCpkName)).isRegularFile()
-        assertThat(getNodeCordappCpk(bankNodeName, cordaFinanceContractsCpkName)).isRegularFile()
+        assertThat(getNodeCordappCpk(bankNodeName, cordaWorkflowsCpkName)).isRegularFile()
+        assertThat(getNodeCordappCpk(bankNodeName, cordaContractsCpkName)).isRegularFile()
         assertThat(getNetworkParameterOverrides(bankNodeName)).isRegularFile()
-        assertThat(getNodeCordappCpk(bigCorporationNodeName, cordaFinanceWorkflowsCpkName)).isRegularFile()
-        assertThat(getNodeCordappCpk(bigCorporationNodeName, cordaFinanceContractsCpkName)).isRegularFile()
+        assertThat(getNodeCordappCpk(bigCorporationNodeName, cordaWorkflowsCpkName)).isRegularFile()
+        assertThat(getNodeCordappCpk(bigCorporationNodeName, cordaContractsCpkName)).isRegularFile()
         assertThat(getNetworkParameterOverrides(bigCorporationNodeName)).isRegularFile()
     }
 
@@ -81,14 +81,14 @@ class DockerformTest : BaseformTest() {
         val result = runner.build()
 
         assertThat(result.task(":prepareDockerNodes")!!.outcome).isEqualTo(TaskOutcome.SUCCESS)
-        assertThat(getNodeCordappCpk(notaryNodeName, cordaFinanceWorkflowsCpkName)).isRegularFile()
-        assertThat(getNodeCordappCpk(notaryNodeName, cordaFinanceContractsCpkName)).isRegularFile()
+        assertThat(getNodeCordappCpk(notaryNodeName, cordaWorkflowsCpkName)).isRegularFile()
+        assertThat(getNodeCordappCpk(notaryNodeName, cordaContractsCpkName)).isRegularFile()
         assertThat(getNetworkParameterOverrides(notaryNodeName)).isRegularFile()
-        assertThat(getNodeCordappCpk(bankNodeName, cordaFinanceWorkflowsCpkName)).isRegularFile()
-        assertThat(getNodeCordappCpk(bankNodeName, cordaFinanceContractsCpkName)).isRegularFile()
+        assertThat(getNodeCordappCpk(bankNodeName, cordaWorkflowsCpkName)).isRegularFile()
+        assertThat(getNodeCordappCpk(bankNodeName, cordaContractsCpkName)).isRegularFile()
         assertThat(getNetworkParameterOverrides(bankNodeName)).isRegularFile()
-        assertThat(getNodeCordappCpk(bigCorporationNodeName, cordaFinanceWorkflowsCpkName)).isRegularFile()
-        assertThat(getNodeCordappCpk(bigCorporationNodeName, cordaFinanceContractsCpkName)).isRegularFile()
+        assertThat(getNodeCordappCpk(bigCorporationNodeName, cordaWorkflowsCpkName)).isRegularFile()
+        assertThat(getNodeCordappCpk(bigCorporationNodeName, cordaContractsCpkName)).isRegularFile()
         assertThat(getNetworkParameterOverrides(bigCorporationNodeName)).isRegularFile()
     }
 
@@ -104,8 +104,8 @@ class DockerformTest : BaseformTest() {
         val result = runner.build()
 
         assertThat(result.task(":prepareDockerNodes")!!.outcome).isEqualTo(TaskOutcome.SUCCESS)
-        assertThat(getNodeCordappCpk(notaryNodeName, cordaFinanceWorkflowsCpkName)).isRegularFile()
-        assertThat(getNodeCordappCpk(notaryNodeName, cordaFinanceContractsCpkName)).isRegularFile()
+        assertThat(getNodeCordappCpk(notaryNodeName, cordaWorkflowsCpkName)).isRegularFile()
+        assertThat(getNodeCordappCpk(notaryNodeName, cordaContractsCpkName)).isRegularFile()
         assertThat(getNetworkParameterOverrides(notaryNodeName)).isRegularFile()
     }
 
@@ -122,11 +122,11 @@ class DockerformTest : BaseformTest() {
         val result = runner.build()
 
         assertThat(result.task(":prepareDockerNodes")!!.outcome).isEqualTo(TaskOutcome.SUCCESS)
-        assertThat(getNodeCordappCpk(notaryNodeName, cordaFinanceWorkflowsCpkName)).isRegularFile()
-        assertThat(getNodeCordappCpk(notaryNodeName, cordaFinanceContractsCpkName)).isRegularFile()
+        assertThat(getNodeCordappCpk(notaryNodeName, cordaWorkflowsCpkName)).isRegularFile()
+        assertThat(getNodeCordappCpk(notaryNodeName, cordaContractsCpkName)).isRegularFile()
         assertThat(getNetworkParameterOverrides(notaryNodeName)).isRegularFile()
-        assertThat(getNodeCordappCpk(bankNodeName, cordaFinanceWorkflowsCpkName)).isRegularFile()
-        assertThat(getNodeCordappCpk(bankNodeName, cordaFinanceContractsCpkName)).isRegularFile()
+        assertThat(getNodeCordappCpk(bankNodeName, cordaWorkflowsCpkName)).isRegularFile()
+        assertThat(getNodeCordappCpk(bankNodeName, cordaContractsCpkName)).isRegularFile()
         assertThat(getNetworkParameterOverrides(bankNodeName)).isRegularFile()
 
         assertThatConfig(getNodeConfig(notaryNodeName))

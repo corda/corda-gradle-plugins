@@ -16,8 +16,8 @@ val corda_release_version: String by project
 val cordaCPK by configurations.creating
 
 dependencies {
-    cordapp("$corda_group:corda-finance-contracts:$corda_bundle_version")
-    cordapp("$corda_group:corda-finance-workflows:$corda_bundle_version")
+    cordapp("$corda_group:corda-smoketest-linearstate-flow-contracts:$corda_bundle_version")
+    cordapp("$corda_group:corda-smoketest-linearstate-sample-workflows:$corda_bundle_version")
     cordaRuntimeOnly("$corda_group:corda-node-api:$corda_bundle_version")
     cordaRuntimeOnly("$corda_group:corda:$corda_release_version")
 }
@@ -40,8 +40,8 @@ tasks.register<Cordform>("deployNodes") {
             deploy = false
         }
 
-        cordapp("$corda_group:corda-finance-contracts:$corda_bundle_version")
-        cordapp("$corda_group:corda-finance-workflows:$corda_bundle_version") {
+        cordapp("$corda_group:corda-smoketest-linearstate-flow-contracts:$corda_bundle_version")
+        cordapp("$corda_group:corda-smoketest-linearstate-sample-workflows:$corda_bundle_version") {
             config("a=b")
         }
         runSchemaMigration = false

@@ -20,8 +20,8 @@ class CordformTest : BaseformTest() {
         val result = runner.build()
 
         assertThat(result.task(":deployNodes")!!.outcome).isEqualTo(SUCCESS)
-        assertThat(getNodeCordappCpk(notaryNodeName, "corda-finance-workflows-$financeReleaseVersion-cordapp")).isRegularFile()
-        assertThat(getNodeCordappCpk(notaryNodeName, "corda-finance-contracts-$financeReleaseVersion-cordapp")).isRegularFile()
+        assertThat(getNodeCordappCpk(notaryNodeName, "corda-smoketest-linearstate-sample-workflows-$financeReleaseVersion-cordapp")).isRegularFile()
+        assertThat(getNodeCordappCpk(notaryNodeName, "corda-smoketest-linearstate-flow-contracts-$financeReleaseVersion-cordapp")).isRegularFile()
         assertThat(getNetworkParameterOverrides(notaryNodeName)).isRegularFile()
 //
 //        ThreadLocalToggleField<SerializationEnvironment>("contextSerializationEnv")
@@ -53,8 +53,8 @@ class CordformTest : BaseformTest() {
         val result = runner.build()
 
         assertThat(result.task(":deployNodes")!!.outcome).isEqualTo(SUCCESS)
-        assertThat(getNodeCordappCpk(notaryNodeName, cordaFinanceWorkflowsCpkName)).isRegularFile()
-        assertThat(getNodeCordappCpk(notaryNodeName, cordaFinanceContractsCpkName)).isRegularFile()
+        assertThat(getNodeCordappCpk(notaryNodeName, cordaWorkflowsCpkName)).isRegularFile()
+        assertThat(getNodeCordappCpk(notaryNodeName, cordaContractsCpkName)).isRegularFile()
         assertThat(getNetworkParameterOverrides(notaryNodeName)).isRegularFile()
     }
 
@@ -88,8 +88,8 @@ class CordformTest : BaseformTest() {
         println(result.output)
 
         assertThat(result.task(":deployNodes")!!.outcome).isEqualTo(SUCCESS)
-        assertThat(getNodeCordappCpk(notaryNodeName, cordaFinanceWorkflowsCpkName)).isRegularFile()
-        assertThat(getNodeCordappCpk(notaryNodeName, cordaFinanceContractsCpkName)).isRegularFile()
+        assertThat(getNodeCordappCpk(notaryNodeName, cordaWorkflowsCpkName)).isRegularFile()
+        assertThat(getNodeCordappCpk(notaryNodeName, cordaContractsCpkName)).isRegularFile()
         assertThat(getNetworkParameterOverrides(notaryNodeName)).isRegularFile()
     }
 
@@ -125,8 +125,8 @@ class CordformTest : BaseformTest() {
         val notaryFullName = "${notaryNodeName}_${notaryNodeUnitName}"
 
         assertThat(result.task(":deployNodes")!!.outcome).isEqualTo(SUCCESS)
-        assertThat(getNodeCordappCpk(notaryFullName, cordaFinanceWorkflowsCpkName)).isRegularFile()
-        assertThat(getNodeCordappCpk(notaryFullName, cordaFinanceContractsCpkName)).isRegularFile()
+        assertThat(getNodeCordappCpk(notaryFullName, cordaWorkflowsCpkName)).isRegularFile()
+        assertThat(getNodeCordappCpk(notaryFullName, cordaContractsCpkName)).isRegularFile()
         assertThat(getNetworkParameterOverrides(notaryFullName)).isRegularFile()
     }
 
@@ -142,10 +142,10 @@ class CordformTest : BaseformTest() {
         val result = runner.build()
 
         assertThat(result.task(":deployNodes")!!.outcome).isEqualTo(SUCCESS)
-        assertThat(getNodeCordappCpk(notaryNodeName, cordaFinanceWorkflowsCpkName)).isRegularFile()
-        assertThat(getNodeCordappCpk(notaryNodeName, cordaFinanceContractsCpkName)).isRegularFile()
-        assertThat(getNodeCordappConfig(notaryNodeName, cordaFinanceWorkflowsCpkName)).isRegularFile()
-        assertThat(getNodeCordappConfig(notaryNodeName, cordaFinanceContractsCpkName)).isRegularFile()
+        assertThat(getNodeCordappCpk(notaryNodeName, cordaWorkflowsCpkName)).isRegularFile()
+        assertThat(getNodeCordappCpk(notaryNodeName, cordaContractsCpkName)).isRegularFile()
+        assertThat(getNodeCordappConfig(notaryNodeName, cordaWorkflowsCpkName)).isRegularFile()
+        assertThat(getNodeCordappConfig(notaryNodeName, cordaContractsCpkName)).isRegularFile()
     }
 
     @Test

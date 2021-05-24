@@ -21,11 +21,11 @@ class KotlinCordformTest : BaseformTest() {
             .isEqualTo(SUCCESS)
 
         // Check Notary node deployment
-        assertThat(getNodeCordappCpk(notaryNodeName, cordaFinanceContractsCpkName))
+        assertThat(getNodeCordappCpk(notaryNodeName, cordaContractsCpkName))
             .isRegularFile()
-        assertThat(getNodeCordappCpk(notaryNodeName, cordaFinanceWorkflowsCpkName))
+        assertThat(getNodeCordappCpk(notaryNodeName, cordaWorkflowsCpkName))
             .isRegularFile()
-        assertThat(getNodeCordappConfig(notaryNodeName, cordaFinanceWorkflowsCpkName))
+        assertThat(getNodeCordappConfig(notaryNodeName, cordaWorkflowsCpkName))
             .isRegularFile()
         assertThat(getNodeCordappCpk(notaryNodeName, localCordappCpkName))
             .doesNotExist()
@@ -36,11 +36,11 @@ class KotlinCordformTest : BaseformTest() {
             .hasPath("rpcSettings.adminAddress", "localhost:60002")
 
         // Check Bank node deployment
-        assertThat(getNodeCordappCpk(bankNodeName, cordaFinanceContractsCpkName))
+        assertThat(getNodeCordappCpk(bankNodeName, cordaContractsCpkName))
             .isRegularFile()
-        assertThat(getNodeCordappCpk(bankNodeName, cordaFinanceWorkflowsCpkName))
+        assertThat(getNodeCordappCpk(bankNodeName, cordaWorkflowsCpkName))
             .isRegularFile()
-        assertThat(getNodeCordappConfig(bankNodeName, cordaFinanceWorkflowsCpkName))
+        assertThat(getNodeCordappConfig(bankNodeName, cordaWorkflowsCpkName))
             .isRegularFile()
         assertThat(getNodeCordappCpk(bankNodeName, localCordappCpkName))
             .isRegularFile()
