@@ -17,11 +17,11 @@ open class BaseformTest {
     private lateinit var testRoot: String
 
     companion object {
-        private const val cordaVersion = "1621838064270-rc"
+        private const val cordaVersion = "1621866761705-rc"
         const val cordaBundleVersion = "1.0.$cordaVersion"
         const val cordaReleaseVersion = "5.0.$cordaVersion"
-        const val cordaFinanceWorkflowsCpkName = "corda-finance-workflows-$cordaBundleVersion-cordapp"
-        const val cordaFinanceContractsCpkName = "corda-finance-contracts-$cordaBundleVersion-cordapp"
+        const val cordaWorkflowsCpkName = "corda-smoketest-linearstate-sample-workflows-$cordaBundleVersion-cordapp"
+        const val cordaContractsCpkName = "corda-smoketest-linearstate-flow-contracts-$cordaBundleVersion-cordapp"
         const val localCordappCpkName = "locally-built-cordapp"
         const val bankNodeName = "BankOfCorda"
         const val notaryNodeName = "NotaryService"

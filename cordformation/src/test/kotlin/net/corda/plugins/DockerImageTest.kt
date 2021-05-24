@@ -39,8 +39,8 @@ class DockerImageTest :BaseformTest() {
         println(result.output)
 
         assertThat(result.task(":dockerImage")!!.outcome).isEqualTo(SUCCESS)
-        assertThat(Paths.get(testProjectDir.toAbsolutePath().toString(), "build", "docker", "$cordaFinanceContractsCpkName.cpk")).isRegularFile()
-        assertThat(Paths.get(testProjectDir.toAbsolutePath().toString(), "build", "docker", "$cordaFinanceWorkflowsCpkName.cpk")).isRegularFile()
+        assertThat(Paths.get(testProjectDir.toAbsolutePath().toString(), "build", "docker", "$cordaContractsCpkName.cpk")).isRegularFile()
+        assertThat(Paths.get(testProjectDir.toAbsolutePath().toString(), "build", "docker", "$cordaWorkflowsCpkName.cpk")).isRegularFile()
         assertThat(Paths.get(testProjectDir.toAbsolutePath().toString(), "build", "docker","dummyJar.jar")).isRegularFile()
     }
 }

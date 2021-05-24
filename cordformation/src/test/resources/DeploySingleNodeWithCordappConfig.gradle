@@ -7,8 +7,8 @@ apply from: 'repositories.gradle'
 dependencies {
     cordaRuntimeOnly "$corda_group:corda:$corda_release_version"
     cordaRuntimeOnly "$corda_group:corda-node-api:$corda_bundle_version"
-    cordapp "$corda_group:corda-finance-contracts:$corda_bundle_version"
-    cordapp "$corda_group:corda-finance-workflows:$corda_bundle_version"
+    cordapp "$corda_group:corda-smoketest-linearstate-flow-contracts:$corda_bundle_version"
+    cordapp "$corda_group:corda-smoketest-linearstate-sample-workflows:$corda_bundle_version"
 }
 
 task deployNodes(type: net.corda.plugins.Cordform) {
@@ -20,10 +20,10 @@ task deployNodes(type: net.corda.plugins.Cordform) {
             port 10003
             adminAddress "localhost:10004"
         }
-        cordapp "$corda_group:corda-finance-contracts:$corda_bundle_version", {
+        cordapp "$corda_group:corda-smoketest-linearstate-flow-contracts:$corda_bundle_version", {
             config "a=b"
         }
-        cordapp "$corda_group:corda-finance-workflows:$corda_bundle_version", {
+        cordapp "$corda_group:corda-smoketest-linearstate-sample-workflows:$corda_bundle_version", {
             config "a=b"
         }
     }
