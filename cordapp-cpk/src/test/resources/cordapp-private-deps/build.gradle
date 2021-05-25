@@ -38,7 +38,7 @@ tasks.named('jar', Jar) {
 def show = tasks.register('show') {
     doLast {
         [ 'cordaPrivateProvided', 'cordaAllProvided' ].forEach { configName ->
-            configurations[configName].allDependencies.forEach {dep ->
+            configurations[configName].allDependencies.forEach { dep ->
                 println "DEPENDENCY HOST $configName: ${dep.name}:${dep.version}"
             }
         }

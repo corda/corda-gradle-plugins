@@ -22,8 +22,8 @@ dependencies {
 }
 
 def copy = tasks.register('copy', Copy) {
-    into(project.layout.buildDirectory.dir("libs"))
-    from(configurations.testArtifacts)
+    into project.layout.buildDirectory.dir('libs')
+    from configurations.testArtifacts
 }
 
 tasks.named('assemble') {

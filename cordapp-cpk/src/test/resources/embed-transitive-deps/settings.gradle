@@ -13,4 +13,4 @@ rootProject.name = 'embed-transitive-deps'
 include 'library'
 
 include 'annotations'
-project(':annotations').projectDir = file("../resources/test/annotations")
+project(':annotations').projectDir = file('../resources/test/annotations')

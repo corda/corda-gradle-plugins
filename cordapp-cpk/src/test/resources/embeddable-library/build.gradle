@@ -9,7 +9,7 @@ apply from: '../javaTarget.gradle'
 group = 'com.example'
 
 // Share the source files, but not the output files.
-buildDir = rootProject.file("embeddableLibraryBuild")
+buildDir = rootProject.file('embeddableLibraryBuild')
 
 dependencies {
     implementation "commons-collections:commons-collections:$commons_collections_version"

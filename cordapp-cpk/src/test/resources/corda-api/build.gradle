@@ -10,7 +10,7 @@ group = 'net.corda'
 version = corda_api_version
 
 // Share the source files, but not the output files.
-buildDir = rootProject.file("cordaBuild")
+buildDir = rootProject.file('cordaBuild')
 
 repositories {
     mavenCentral()

@@ -12,7 +12,7 @@ rootProject.name = 'cordapp-transitive-deps'
 
 include 'cordapp'
 include 'embeddable-library'
-project(':embeddable-library').projectDir = file("../resources/test/embeddable-library")
+project(':embeddable-library').projectDir = file('../resources/test/embeddable-library')
 
 include 'corda-api'
 project(':corda-api').projectDir = file('../resources/test/corda-api')

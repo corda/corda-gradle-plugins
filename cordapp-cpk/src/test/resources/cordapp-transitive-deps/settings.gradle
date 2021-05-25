@@ -11,4 +11,4 @@ include 'corda-api'
 project(':corda-api').projectDir = file('../resources/test/corda-api')
 
 include 'annotations'
-project(':annotations').projectDir = file("../resources/test/annotations")
+project(':annotations').projectDir = file('../resources/test/annotations')
