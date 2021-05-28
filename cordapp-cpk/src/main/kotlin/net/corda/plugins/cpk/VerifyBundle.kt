@@ -76,6 +76,9 @@ open class VerifyBundle @Inject constructor(objects: ObjectFactory) : DefaultTas
                 for (error in verifier.errors) {
                     logger.error("{}: {}", jarName, error)
                 }
+                logger.error(
+                    "Ensure that dependencies are OSGi bundles, and that they export every package {} needs to import.",
+                        jarName)
                 throw InvalidUserDataException("Bundle $jarName has validation errors:"
                     + verifier.errors.joinToString(System.lineSeparator(), System.lineSeparator()))
             }
