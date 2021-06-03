@@ -187,17 +187,16 @@ open class DependencyCalculator @Inject constructor(objects: ObjectFactory) : De
             disallowChanges()
         }
 
-        // Finally, work out which jars from the compile classpath are excluded from the runtime classpath.
+        // Finally, work out which jars we have used that have not been packaged into our CPK.
         // We still ignore anything that was for "compile only", because we only want to validate packages
         // that will be available at runtime.
-        val compileConfiguration = configurations.getByName(COMPILE_CLASSPATH_CONFIGURATION_NAME).resolvedConfiguration
-        val cordaFiles = compileConfiguration.resolveAll(cordaDeps).toFiles()
+        val externalConfiguration = configurations.getByName(CORDAPP_EXTERNAL_CONFIGURATION_NAME).resolvedConfiguration
         val providedDeps = configurations.getByName(CORDA_ALL_PROVIDED_CONFIGURATION_NAME).allDependencies
-        val providedFiles = compileConfiguration.resolveAllFilesFor(providedDeps)
+        val providedFiles = externalConfiguration.resolveAllFilesFor(providedDeps)
         val cordappDeps = configurations.getByName(ALL_CORDAPPS_CONFIGURATION_NAME).allDependencies
-        val cordappFiles = compileConfiguration.resolveFirstLevelFilesFor(cordappDeps)
+        val cordappFiles = externalConfiguration.resolveFirstLevelFilesFor(cordappDeps)
         _externalJars.apply {
-            setFrom(providedFiles, cordaFiles, cordappFiles)
+            setFrom(providedFiles, cordappFiles)
             disallowChanges()
         }
 

@@ -22,6 +22,8 @@ import java.util.jar.JarFile
 
 class WithEmbeddedJarTest {
     companion object {
+        private const val RESOLUTION_OPTIONAL = "resolution:=optional"
+        private const val SUPPRESS_VERSION = "version=[0,0)"
         private const val cordappVersion = "1.0.2-SNAPSHOT"
         private const val guavaVersion = "29.0-jre"
         private lateinit var testProject: GradleProject
@@ -83,7 +85,11 @@ class WithEmbeddedJarTest {
                 .containsPackageWithAttributes("lib")
                 .containsPackageWithAttributes("com.example.library")
                 .containsPackageWithAttributes("com.google.common.base")
-            assertThat(getValue(IMPORT_PACKAGE)).isNotNull()
+            assertThatHeader(getValue(IMPORT_PACKAGE))
+                .containsPackageWithAttributes("sun.misc", "version=[0,9999)", RESOLUTION_OPTIONAL)
+                .containsPackageWithAttributes("com.google.apphosting.api", SUPPRESS_VERSION, RESOLUTION_OPTIONAL)
+                .containsPackageWithAttributes("com.google.appengine.api", SUPPRESS_VERSION, RESOLUTION_OPTIONAL)
+                .containsPackageWithAttributes("com.google.appengine.api", SUPPRESS_VERSION, RESOLUTION_OPTIONAL)
             assertThat(getValue(EXPORT_PACKAGE)).isNull()
             assertThat(getValue(BUNDLE_CLASSPATH))
                 .startsWith(".,")

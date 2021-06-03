@@ -108,7 +108,7 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
             // POM. This also means that CPK dependencies will not be transitive
             // by default, and so we must implement a way of fixing this ourselves.
             val collector = CordappDependencyCollector(this, project.dependencies, project.logger)
-            createCompileConfiguration(ALL_CORDAPPS_CONFIGURATION_NAME)
+            val allCordapps = createCompileConfiguration(ALL_CORDAPPS_CONFIGURATION_NAME)
                 .extendsFrom(cordappCfg)
                 .withDependencies { dependencies ->
                     collector.collect()
@@ -130,7 +130,7 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
             // In other words, they will not included in this CPK's companion POM.
             val cordaPrivate = createCompileConfiguration(CORDA_PRIVATE_CONFIGURATION_NAME)
 
-            createCompileConfiguration(CORDA_ALL_PROVIDED_CONFIGURATION_NAME)
+            val allProvided = createCompileConfiguration(CORDA_ALL_PROVIDED_CONFIGURATION_NAME)
                 .extendsFrom(cordaProvided, cordaPrivate)
                 .withDependencies { dependencies ->
                     collector.collect()
@@ -147,7 +147,27 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
             create(CORDAPP_PACKAGING_CONFIGURATION_NAME)
                 .setVisible(false)
                 .extendsFrom(cordaEmbedded, getByName(RUNTIME_ELEMENTS_CONFIGURATION_NAME))
-                .isCanBeConsumed = false
+                .attributes { attrs ->
+                    // Dark Gradle Magic which ensures that this configuration
+                    // is resolved exactly like runtimeClasspath.
+                    AttributeFactory(attrs, project.objects)
+                        .withExternalDependencies()
+                        .javaRuntime()
+                        .asLibrary()
+                        .jar()
+                }.isCanBeConsumed = false
+
+            create(CORDAPP_EXTERNAL_CONFIGURATION_NAME)
+                .setVisible(false)
+                .extendsFrom(allProvided, allCordapps)
+                .attributes { attrs ->
+                    // Dark Gradle Magic which ensures that this configuration
+                    // is resolved exactly like compileClasspath.
+                    AttributeFactory(attrs, project.objects)
+                        .withExternalDependencies()
+                        .asLibrary()
+                        .javaApi()
+                }.isCanBeConsumed = false
         }
 
         // We need to perform some extra work on the root project to support publication.
