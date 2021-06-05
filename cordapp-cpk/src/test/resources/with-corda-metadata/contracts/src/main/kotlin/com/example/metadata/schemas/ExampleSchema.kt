@@ -1,7 +1,7 @@
 @file:Suppress("unused")
 package com.example.metadata.schemas
 
-import net.corda.v5.application.node.services.persistence.MappedSchema
+import net.corda.v5.application.services.persistence.MappedSchema
 import org.hibernate.annotations.Type
 import javax.persistence.Column
 import javax.persistence.Entity
