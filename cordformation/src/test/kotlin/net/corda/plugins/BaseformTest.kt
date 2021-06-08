@@ -17,7 +17,7 @@ open class BaseformTest {
     private lateinit var testRoot: String
 
     companion object {
-        private const val cordaVersion = "1621866761705-rc"
+        private const val cordaVersion = "1623057204977-rc"
         const val cordaBundleVersion = "1.0.$cordaVersion"
         const val cordaReleaseVersion = "5.0.$cordaVersion"
         const val cordaWorkflowsCpkName = "corda-smoketest-linearstate-sample-workflows-$cordaBundleVersion-cordapp"
@@ -53,10 +53,10 @@ open class BaseformTest {
         installResource("gradle.properties")
         installResource("postgres.gradle")
         return GradleRunner.create()
-                .withDebug(true)
-                .withProjectDir(testProjectDir.toFile())
-                .withArguments(taskName, "-s", "--info", "-g", testGradleUserHome, *extraArgs)
-                .withPluginClasspath()
+            .withDebug(true)
+            .withProjectDir(testProjectDir.toFile())
+            .withArguments(taskName, "-s", "--info", "-g", testGradleUserHome, *extraArgs)
+            .withPluginClasspath()
     }
 
     private fun createBuildFile(buildFileResourceName: String, buildFile: Path) {
