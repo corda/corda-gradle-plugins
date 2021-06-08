@@ -6,6 +6,7 @@ import net.corda.plugins.Cordformation.Companion.CORDA_DRIVER_CONFIGURATION_NAME
 import net.corda.plugins.Cordformation.Companion.CORDA_RUNTIME_ONLY_CONFIGURATION_NAME
 import net.corda.plugins.Cordformation.Companion.CPK_CLASSIFIER
 import net.corda.plugins.Cordformation.Companion.DEPLOY_CORDAPP_CONFIGURATION_NAME
+import net.corda.plugins.Cordformation.Companion.DEFAULT_JOLOKIA_VERSION
 import org.gradle.api.Action
 import org.gradle.api.GradleException
 import org.gradle.api.Project
@@ -543,7 +544,7 @@ open class Node @Inject constructor(
      */
     private fun installAgentJar() {
         // TODO: improve how we re-use existing declared external variables from root gradle.build
-        val jolokiaVersion = task.project.findRootProperty("jolokia_version") ?: "1.6.0"
+        val jolokiaVersion = task.project.findRootProperty("jolokia_version") ?: DEFAULT_JOLOKIA_VERSION
 
         val agentJar = task.project.configuration(RUNTIME_CLASSPATH_CONFIGURATION_NAME).files {
             (it.group == "org.jolokia") &&

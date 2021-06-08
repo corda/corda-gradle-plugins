@@ -25,6 +25,7 @@ class Cordformation : Plugin<Project> {
         const val CORDA_CPK_CONFIGURATION_NAME = "cordaCPK"
         const val CPK_CLASSIFIER = "cordapp"
         const val CORDA_CPK_PLUGIN_ID = "net.corda.plugins.cordapp-cpk"
+        const val DEFAULT_JOLOKIA_VERSION = "1.6.2"
         const val MINIMUM_GRADLE_VERSION = "5.1"
 
         /**
@@ -108,7 +109,7 @@ class Cordformation : Plugin<Project> {
                 .isCanBeConsumed = false
         }
         // TODO: improve how we re-use existing declared external variables from root gradle.build
-        val jolokiaVersion = project.findRootProperty("jolokia_version") ?: "1.6.0"
+        val jolokiaVersion = project.findRootProperty("jolokia_version") ?: DEFAULT_JOLOKIA_VERSION
         val jolokia = project.dependencies.add(CORDFORMATION_TYPE, "org.jolokia:jolokia-jvm:$jolokiaVersion:agent")
         // The Jolokia agent is a fat jar really, so we don't want its transitive dependencies.
         (jolokia as ModuleDependency).isTransitive = false
