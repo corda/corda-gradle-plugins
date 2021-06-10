@@ -39,6 +39,7 @@ const val CPK_XML_NAMESPACE = "urn:corda-cpk"
 const val CORDAPP_SEALING_SYSTEM_PROPERTY_NAME = "net.corda.cordapp.sealing.enabled"
 
 const val CORDAPP_CONFIGURATION_NAME = "cordapp"
+const val CORDAPP_EXTERNAL_CONFIGURATION_NAME = "cordappExternal"
 const val CORDAPP_PACKAGING_CONFIGURATION_NAME = "cordappPackaging"
 const val CORDA_RUNTIME_ONLY_CONFIGURATION_NAME = "cordaRuntimeOnly"
 const val CORDA_ALL_PROVIDED_CONFIGURATION_NAME = "cordaAllProvided"

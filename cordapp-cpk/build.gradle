@@ -88,6 +88,7 @@ processTestResources {
             'persistence_api_version': test_persistence_api_version,
             'hibernate_version': test_hibernate_version,
             'corda_guava_version': corda_guava_version,
+            'corda_slf4j_version': slf4j_version,
             'osgi_version': osgi_version,
             'kotlin_version': test_kotlin_version,
             'java_home': System.getProperty('java.home'),

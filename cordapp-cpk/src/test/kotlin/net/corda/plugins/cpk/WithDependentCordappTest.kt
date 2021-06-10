@@ -2,6 +2,8 @@ package net.corda.plugins.cpk
 
 import net.corda.plugins.cpk.xml.loadDependencyConstraints
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.TestReporter
 import org.junit.jupiter.api.io.TempDir
 import org.junit.jupiter.params.ParameterizedTest
@@ -49,17 +51,30 @@ class WithDependentCordappTest {
         reporter: TestReporter
     ) {
         val testProject = buildProject(guavaVersion, libraryGuavaVersion, testProjectDir, reporter)
+        val cordaSlf4jVersion = testProject.properties.getProperty("corda_slf4j_version")
         val bndVersion = testProject.properties.getProperty("bnd_version")
+        assertEquals(CORDA_GUAVA_VERSION, testProject.properties.getProperty("corda_guava_version"))
+        assertNotEquals(cordaSlf4jVersion, librarySlf4jVersion)
 
         assertThat(testProject.output.split(System.lineSeparator()))
             .contains("COMPILE-WORKFLOW> biz.aQute.bnd.annotation-${bndVersion}.jar")
             .contains("COMPILE-WORKFLOW> guava-${guavaVersion}.jar")
             .contains("COMPILE-WORKFLOW> cordapp.jar")
+            .contains("EXTERNAL-WORKFLOW> corda-api-${cordaApiVersion}.jar")
+            .contains("EXTERNAL-WORKFLOW> slf4j-api-${cordaSlf4jVersion}.jar")
+            .contains("EXTERNAL-WORKFLOW> cordapp.jar")
             .contains("COMPILE-CONTRACT> biz.aQute.bnd.annotation-${bndVersion}.jar")
-            .contains("COMPILE-CONTRACT> slf4j-api-${librarySlf4jVersion}.jar")
+            .contains("COMPILE-CONTRACT> slf4j-api-${cordaSlf4jVersion}.jar")
             .contains("COMPILE-CONTRACT> commons-io-${commonsIoVersion}.jar")
             .contains("COMPILE-CONTRACT> library.jar")
+            .contains("EXTERNAL-CONTRACT> corda-api-${cordaApiVersion}.jar")
+            .contains("EXTERNAL-CONTRACT> slf4j-api-${cordaSlf4jVersion}.jar")
+            .noneMatch { it.startsWith("EXTERNAL-WORKFLOW> guava-") }
+            .noneMatch { it.startsWith("EXTERNAL-WORKFLOW> ") && it.contains("osgi.") }
+            .noneMatch { it.startsWith("EXTERNAL-CONTRACT> guava-") }
+            .noneMatch { it.startsWith("EXTERNAL-CONTRACT> ") && it.contains("osgi.") }
             .doesNotContain(
+                "EXTERNAL-CONTRACT> library.jar",
                 "COMPILE-CONTRACT> guava-${guavaVersion}.jar",
                 "COMPILE-CONTRACT> guava-${libraryGuavaVersion}.jar",
                 "COMPILE-WORKFLOW> commons-io-${commonsIoVersion}.jar",
@@ -70,6 +85,7 @@ class WithDependentCordappTest {
         assertThat(testProject.dependencyConstraints)
             .anyMatch { it.fileName == "guava-$guavaVersion.jar" }
             .noneMatch { it.fileName == "commons-io-$commonsIoVersion.jar" }
+            .noneMatch { it.fileName == "slf4j-api-${cordaSlf4jVersion}.jar" }
             .noneMatch { it.fileName == "slf4j-api-${librarySlf4jVersion}.jar" }
             .noneMatch { it.fileName == "biz.aQute.bnd.annotation-${bndVersion}.jar" }
             .noneMatch { it.fileName == "library.jar" }
@@ -102,6 +118,7 @@ class WithDependentCordappTest {
         assertThat(cordappDependencyConstraints)
             .noneMatch { it.fileName == "biz.aQute.bnd.annotation-${bndVersion}.jar" }
             .noneMatch { it.fileName == "slf4j-api-${librarySlf4jVersion}.jar" }
+            .noneMatch { it.fileName == "slf4j-api-${cordaSlf4jVersion}.jar" }
             .anyMatch { it.fileName == "guava-${libraryGuavaVersion}.jar" }
             .anyMatch { it.fileName == "commons-io-$commonsIoVersion.jar" }
             .anyMatch { it.fileName == "library.jar" }

@@ -23,6 +23,9 @@ jar {
         configurations.compileClasspath.forEach { dep ->
             println "COMPILE-CONTRACT> ${dep.name}"
         }
+        configurations.cordappExternal.forEach { dep ->
+            println "EXTERNAL-CONTRACT> ${dep.name}"
+        }
     }
 }
 

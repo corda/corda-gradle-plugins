@@ -42,7 +42,6 @@ const val annotationsVersion = "1.0.1"
 const val commonsCollectionsVersion = "3.2.2"
 const val commonsCodecVersion = "1.15"
 const val commonsIoVersion = "2.8.0"
-const val slf4jVersion = "1.7.30"
 
 private val GRADLE_7 = GradleVersion.version("7.0")
 

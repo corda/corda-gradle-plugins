@@ -27,6 +27,9 @@ jar {
         configurations.compileClasspath.forEach { dep ->
             println "COMPILE-WORKFLOW> ${dep.name}"
         }
+        configurations.cordappExternal.forEach { dep ->
+            println "EXTERNAL-WORKFLOW> ${dep.name}"
+        }
     }
 }
 
