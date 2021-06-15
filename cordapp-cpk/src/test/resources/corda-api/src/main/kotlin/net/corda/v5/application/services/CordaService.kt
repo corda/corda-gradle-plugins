@@ -1,9 +1,9 @@
 @file:Suppress("PackageDirectoryMismatch", "Unused")
 package net.corda.v5.application.services
 
-import net.corda.v5.application.flows.flowservices.dependencies.CordaInjectable
-import net.corda.v5.serialization.SerializeAsToken
+import net.corda.v5.application.services.lifecycle.ServiceLifecycleEvent
+import net.corda.v5.serialization.SingletonSerializeAsToken
 
-interface CordaService : SerializeAsToken, CordaInjectable {
+interface CordaService : SingletonSerializeAsToken {
     fun onEvent(event: ServiceLifecycleEvent) {}
 }
