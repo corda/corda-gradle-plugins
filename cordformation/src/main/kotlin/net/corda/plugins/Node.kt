@@ -1,12 +1,16 @@
 package net.corda.plugins
 
-import com.typesafe.config.*
+import com.typesafe.config.Config
+import com.typesafe.config.ConfigFactory
+import com.typesafe.config.ConfigObject
+import com.typesafe.config.ConfigRenderOptions
+import com.typesafe.config.ConfigValueFactory
 import net.corda.plugins.Cordformation.Companion.CORDA_CPK_CONFIGURATION_NAME
 import net.corda.plugins.Cordformation.Companion.CORDA_DRIVER_CONFIGURATION_NAME
 import net.corda.plugins.Cordformation.Companion.CORDA_RUNTIME_ONLY_CONFIGURATION_NAME
 import net.corda.plugins.Cordformation.Companion.CPK_CLASSIFIER
-import net.corda.plugins.Cordformation.Companion.DEPLOY_CORDAPP_CONFIGURATION_NAME
 import net.corda.plugins.Cordformation.Companion.DEFAULT_JOLOKIA_VERSION
+import net.corda.plugins.Cordformation.Companion.DEPLOY_CORDAPP_CONFIGURATION_NAME
 import org.gradle.api.Action
 import org.gradle.api.GradleException
 import org.gradle.api.Project
@@ -23,13 +27,21 @@ import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.Optional
 import java.io.File
+import java.io.FileInputStream
+import java.io.InputStream
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.time.Instant
+import java.util.*
 import java.util.Collections.unmodifiableList
-import java.util.LinkedList
 import java.util.concurrent.TimeUnit
+import java.util.jar.JarFile
+import java.util.jar.Manifest
+import java.util.zip.CRC32
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
 import javax.inject.Inject
 
 /**
@@ -78,6 +90,7 @@ open class Node @Inject constructor(
         @Internal get
         private set
     private val rpcSettings: RpcSettings = objects.newInstance(RpcSettings::class.java)
+    private val httpRpcSettings: HttpRpcSettings = objects.newInstance(HttpRpcSettings::class.java)
     private var webserverJar: String? = null
     private var p2pPort = 10002
     @get:Input
@@ -239,6 +252,13 @@ open class Node @Inject constructor(
     }
 
     /**
+     * Specifies RPC settings for the node.
+     */
+    fun httpRpcSettings(settings: HttpRpcSettings) {
+        config = settings.addTo("httpRpcSettings", config)
+    }
+
+    /**
      * Set the path to a file with optional properties, which are appended to the generated node.conf file.
      *
      * @param configFile The file path.
@@ -273,6 +293,14 @@ open class Node @Inject constructor(
     fun rpcSettings(action: Action<in RpcSettings>) {
         action.execute(rpcSettings)
         config = rpcSettings.addTo("rpcSettings", config)
+    }
+
+    /**
+     * Specifies RPC settings for the node.
+     */
+    fun httpRpcSettings(action: Action<in HttpRpcSettings>) {
+        action.execute(httpRpcSettings)
+        config = httpRpcSettings.addTo("httpRpcSettings", config)
     }
 
     /**
@@ -395,15 +423,54 @@ open class Node @Inject constructor(
         runSchemaMigration()
     }
 
+    private fun computeSizeAndCrc32(
+        zipEntry: ZipEntry,
+        inputStream: InputStream,
+        buffer: ByteArray?
+    ) {
+        val crc32 = CRC32()
+        var sz = 0L
+        while (true) {
+            val read = inputStream.read(buffer)
+            if (read < 0) break
+            sz += read.toLong()
+            crc32.update(buffer, 0, read)
+        }
+        zipEntry.size = sz
+        zipEntry.compressedSize = sz
+        zipEntry.crc = crc32.value
+    }
+
+    private fun createZipEntry(entryName: String, lastModifiedTime: Long): ZipEntry {
+        val zipEntry = ZipEntry(entryName)
+        zipEntry.time = lastModifiedTime
+        return zipEntry
+    }
+
     internal fun installCordapps() {
         val cordappsDir = nodeDir.toPath().resolve("cordapps")
         val nodeCordapps = getCordappList().map(ResolvedCordapp::jarFile).distinct()
-        nodeCordapps.map { nodeCordapp ->
-            fs.copy {
-                it.apply {
-                    from(nodeCordapp)
-                    into(cordappsDir)
+        ZipOutputStream(Files.newOutputStream(cordappsDir.resolve("cordapp-bundle.cpb")).buffered()).use { zoos ->
+            val manifestEntry = createZipEntry(JarFile.MANIFEST_NAME, Instant.now().toEpochMilli())
+            zoos.putNextEntry(manifestEntry)
+            Manifest().write(zoos)
+            val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+            for(nodeCordapp in nodeCordapps) {
+                val corDappFile = nodeCordapp.toFile()
+                val newEntry = createZipEntry(corDappFile.name, corDappFile.lastModified())
+                newEntry.method = ZipEntry.STORED
+                FileInputStream(corDappFile).use { inputStream ->
+                    computeSizeAndCrc32(newEntry, inputStream, buffer)
                 }
+                zoos.putNextEntry(newEntry)
+                FileInputStream(corDappFile).use { inputStream ->
+                    while (true) {
+                        val read = inputStream.read(buffer)
+                        if (read < 0) break
+                        zoos.write(buffer, 0, read)
+                    }
+                }
+                zoos.closeEntry()
             }
         }
     }
@@ -639,6 +706,7 @@ open class Node @Inject constructor(
                 .withValue("p2pAddress", ConfigValueFactory.fromAnyRef("$containerName:$p2pPort"))
                 .withValue("rpcSettings.address", ConfigValueFactory.fromAnyRef("$containerName:${rpcSettings.port}"))
                 .withValue("rpcSettings.adminAddress", ConfigValueFactory.fromAnyRef("$containerName:${rpcSettings.adminPort}"))
+                .withValue("httpRpcSettings.address", ConfigValueFactory.fromAnyRef("$containerName:${httpRpcSettings.port}"))
                 .withValue("detectPublicIp", ConfigValueFactory.fromAnyRef(false))
                 .withFallback(configDefaults)
 
