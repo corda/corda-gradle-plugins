@@ -27,6 +27,8 @@ class TransitiveCordappsTest {
         private const val cpk1Version = "1.0-SNAPSHOT"
         private const val cpk2Version = "2.0-SNAPSHOT"
         private const val cpk3Version = "3.0-SNAPSHOT"
+        private const val cpk1Type = "foo"
+        private const val cpk2Type = "api"
 
         private const val ioOsgiVersion = "version=\"[1.4,2)\""
         private const val kotlinOsgiVersion = "version=\"[1.4,2)\""
@@ -52,7 +54,9 @@ class TransitiveCordappsTest {
                     "-Pcpk1_version=$cpk1Version",
                     "-Pcpk2_version=$cpk2Version",
                     "-Pcpk3_version=$cpk3Version",
-                    "-Pwith_publishing=$withPublishing"
+                    "-Pwith_publishing=$withPublishing",
+                    "-Pcpk1_type=$cpk1Type",
+                    "-Pcpk2_type=$cpk2Type"
                 )
         }
     }
@@ -74,9 +78,9 @@ class TransitiveCordappsTest {
             .allMatch { it.hash.isSHA256 }
             .hasSize(1)
         assertThat(testProject.cpkDependencies)
-            .anyMatch { it.name == "com.example.cpk-one" && it.version == toOSGi(cpk1Version) }
-            .anyMatch { it.name == "com.example.cpk-two" && it.version == toOSGi(cpk2Version) }
-            .anyMatch { it.name == "com.example.cpk-three" && it.version == toOSGi(cpk3Version) }
+            .anyMatch { it.name == "com.example.cpk-one" && it.version == toOSGi(cpk1Version) && it.type == cpk1Type }
+            .anyMatch { it.name == "com.example.cpk-two" && it.version == toOSGi(cpk2Version) && it.type == cpk2Type }
+            .anyMatch { it.name == "com.example.cpk-three" && it.version == toOSGi(cpk3Version) && it.type == null }
             .allMatch { it.signers.allSHA256 }
             .hasSize(3)
 

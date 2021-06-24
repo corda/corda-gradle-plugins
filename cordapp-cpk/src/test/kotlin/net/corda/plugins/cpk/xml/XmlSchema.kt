@@ -104,14 +104,19 @@ class SignersBuilder(private val node: Node) : AbstractBuilder<List<HashValue>> 
 class CPKDependency(
     val name: String,
     val version: String,
+    val type: String?,
     val signers: List<HashValue>
 ) {
     override fun toString(): String {
         return """<cpkDependency>
     <name>$name</name>
     <version>$version</version>
-    ${formatSigners()}
+    ${formatType()}${formatSigners()}
 </cpkDependency>"""
+    }
+
+    private fun formatType(): String {
+        return type?.let { "<type>$it</type>${System.lineSeparator()}" } ?: ""
     }
 
     private fun formatSigners(): String {
@@ -133,6 +138,7 @@ class CPKDependency(
     class Builder(private val node: Node) : AbstractBuilder<CPKDependency> {
         private var name: String? = null
         private var version: String? = null
+        private var type: String? = null
         private var signers: List<HashValue>? = null
 
         override fun build(): CPKDependency {
@@ -140,6 +146,7 @@ class CPKDependency(
                 when (val tagName = childElement.tagName) {
                     "name" -> name = childElement.textContent
                     "version" -> version = childElement.textContent
+                    "type" -> type = childElement.textContent
                     "signers" -> signers = SignersBuilder(childElement).build()
                     else -> fail("Unknown XML element <$tagName>")
                 }
@@ -147,6 +154,7 @@ class CPKDependency(
             return CPKDependency(
                 name = name ?: fail("cpkDependency.name missing"),
                 version = version ?: fail("cpkDependency.version missing"),
+                type = type,
                 signers = signers ?: fail("cpkDependency.signers missing")
             )
         }

@@ -58,6 +58,7 @@ const val CPK_CORDAPP_VERSION = "Corda-CPK-Cordapp-Version"
 const val CPK_CORDAPP_LICENCE = "Corda-CPK-Cordapp-Licence"
 const val CPK_CORDAPP_VENDOR = "Corda-CPK-Cordapp-Vendor"
 const val CPK_FORMAT_TAG = "Corda-CPK-Format"
+const val CPK_TYPE_TAG = "Corda-CPK-Type"
 const val CPK_FORMAT = "1.0"
 
 const val PLATFORM_VERSION_X = 999
