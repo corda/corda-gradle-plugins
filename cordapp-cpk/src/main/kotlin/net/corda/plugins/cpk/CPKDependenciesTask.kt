@@ -106,6 +106,9 @@ open class CPKDependenciesTask @Inject constructor(objects: ObjectFactory) : Def
                     val cpkDependency = cpkDependencies.appendElement("cpkDependency")
                     cpkDependency.appendElement("name", mainAttributes.getValue(BUNDLE_SYMBOLICNAME))
                     cpkDependency.appendElement("version", mainAttributes.getValue(BUNDLE_VERSION))
+                    mainAttributes.getValue(CPK_TYPE_TAG)?.also { cpkType ->
+                        cpkDependency.appendElement("type", cpkType)
+                    }
 
                     val signerCertificates = signerCertificatesFor(jar)
                     if (signerCertificates.size != 1) {
