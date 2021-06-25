@@ -5,14 +5,14 @@ plugins {
 apply from: '../repositories.gradle'
 apply from: '../javaTarget.gradle'
 
-version = cpk1_version
+version = cpk2_version
 
 cordapp {
     targetPlatformVersion = platform_version.toInteger()
     minimumPlatformVersion = platform_version.toInteger()
 
     contract {
-        name = 'CPK-1'
+        name = 'CPK-2'
         versionId = cordapp_contract_version.toInteger()
         licence = 'Test-Licence'
         vendor = 'R3'
@@ -20,12 +20,10 @@ cordapp {
 }
 
 dependencies {
-    cordaProvided project(':corda-api')
+    cordapp project(':cpk-one')
+    cordaProvided "commons-io:commons-io:$commons_io_version"
 }
 
 jar {
-    archiveBaseName = 'cpk-one'
-    manifest {
-        attributes('Corda-CPK-Type': cpk1_type)
-    }
+    archiveBaseName = 'cpk-two'
 }

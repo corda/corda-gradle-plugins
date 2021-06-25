@@ -25,7 +25,4 @@ dependencies {
 
 jar {
     archiveBaseName = 'cpk-one'
-    manifest {
-        attributes('Corda-CPK-Type': cpk1_type)
-    }
 }

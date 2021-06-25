@@ -52,15 +52,16 @@ const val CORDA_CPK_CONFIGURATION_NAME = "cordaCPK"
 const val DEPENDENCY_CONSTRAINTS = "META-INF/DependencyConstraints"
 const val CPK_DEPENDENCIES = "META-INF/CPKDependencies"
 
+// These tags are for the CPK file.
 const val CPK_PLATFORM_VERSION = "Corda-CPK-Built-Platform-Version"
 const val CPK_CORDAPP_NAME = "Corda-CPK-Cordapp-Name"
 const val CPK_CORDAPP_VERSION = "Corda-CPK-Cordapp-Version"
 const val CPK_CORDAPP_LICENCE = "Corda-CPK-Cordapp-Licence"
 const val CPK_CORDAPP_VENDOR = "Corda-CPK-Cordapp-Vendor"
 const val CPK_FORMAT_TAG = "Corda-CPK-Format"
-const val CPK_TYPE_TAG = "Corda-CPK-Type"
 const val CPK_FORMAT = "1.0"
 
+// These tags are for the "main" JAR file.
 const val PLATFORM_VERSION_X = 999
 const val CORDA_CONTRACT_CLASSES = "Corda-Contract-Classes"
 const val CORDA_WORKFLOW_CLASSES = "Corda-Flow-Classes"
@@ -73,6 +74,7 @@ const val CORDAPP_CONTRACT_NAME = "Cordapp-Contract-Name"
 const val CORDAPP_CONTRACT_VERSION = "Cordapp-Contract-Version"
 const val CORDAPP_WORKFLOW_NAME = "Cordapp-Workflow-Name"
 const val CORDAPP_WORKFLOW_VERSION = "Cordapp-Workflow-Version"
+const val CORDA_CPK_TYPE = "Corda-CPK-Type"
 
 @JvmField
 val SEPARATOR: String = System.lineSeparator() + "- "

@@ -23,8 +23,8 @@
         <xs:all>
             <xs:element name="name" type="xs:token"/>
             <xs:element name="version" type="xs:token"/>
-            <xs:element name="signers" type="cpk:signersType"/>
             <xs:element name="type" type="xs:token" minOccurs="0"/>
+            <xs:element name="signers" type="cpk:signersType"/>
         </xs:all>
     </xs:complexType>
 
