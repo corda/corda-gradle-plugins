@@ -29,9 +29,6 @@ dependencies {
 
 tasks.named('jar', Jar) {
     archiveBaseName = 'cordapp'
-}
-
-def show = tasks.register('show') {
     doLast {
         [ 'cordaPrivateProvided', 'cordaAllProvided' ].forEach { configName ->
             configurations[configName].allDependencies.forEach { dep ->
@@ -39,8 +36,4 @@ def show = tasks.register('show') {
             }
         }
     }
-}
-
-tasks.named('assemble') {
-    dependsOn show
 }

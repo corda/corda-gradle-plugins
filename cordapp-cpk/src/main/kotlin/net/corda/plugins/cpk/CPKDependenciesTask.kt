@@ -106,7 +106,7 @@ open class CPKDependenciesTask @Inject constructor(objects: ObjectFactory) : Def
                     val cpkDependency = cpkDependencies.appendElement("cpkDependency")
                     cpkDependency.appendElement("name", mainAttributes.getValue(BUNDLE_SYMBOLICNAME))
                     cpkDependency.appendElement("version", mainAttributes.getValue(BUNDLE_VERSION))
-                    mainAttributes.getValue(CPK_TYPE_TAG)?.also { cpkType ->
+                    mainAttributes.getValue(CORDA_CPK_TYPE)?.also { cpkType ->
                         cpkDependency.appendElement("type", cpkType)
                     }
 

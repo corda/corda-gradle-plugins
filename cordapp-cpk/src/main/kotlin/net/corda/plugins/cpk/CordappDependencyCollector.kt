@@ -36,13 +36,13 @@ class CordappDependencyCollector(
     private fun collectFrom(dependencies: DependencySet) {
         for (dependency in dependencies) {
             if (dependency is ProjectDependency) {
-                if (cordappProjects.add(dependency)) {
+                if (cordappProjects.add(dependency) && dependency.isTransitive) {
                     // Resolve a CorDapp dependency from another
                     // module in a multi-module build.
                     collectFrom(dependency)
                 }
             } else if (dependency is ModuleDependency) {
-                if (cordappModules.add(dependency)) {
+                if (cordappModules.add(dependency) && dependency.isTransitive) {
                     val cordapp = dependencyHandler.create(dependency.asMap.toCPK())
                     // Try to resolve the CorDapp's "companion" dependency.
                     // This may not exist, although it's better if it does.

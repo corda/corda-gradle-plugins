@@ -1,0 +1,54 @@
+plugins {
+    id 'net.corda.plugins.cordapp-cpk'
+    id 'org.jetbrains.kotlin.jvm'
+}
+
+apply from: 'repositories.gradle'
+apply from: 'javaTarget.gradle'
+apply from: 'kotlin.gradle'
+
+allprojects {
+    group = 'com.example'
+}
+
+if (with_publishing.toBoolean()) {
+    allprojects {
+        apply plugin: 'java-library'
+        apply plugin: 'maven-publish'
+
+        publishing {
+            publications {
+                maven(MavenPublication) {
+                    from components.java
+                }
+            }
+        }
+    }
+}
+
+version = cordapp_version
+
+cordapp {
+    targetPlatformVersion = platform_version.toInteger()
+    minimumPlatformVersion = platform_version.toInteger()
+
+    contract {
+        name = 'Without Transitive CorDapps'
+        versionId = cordapp_contract_version.toInteger()
+        licence = 'Test-Licence'
+        vendor = 'R3'
+    }
+}
+
+dependencies {
+    cordaProvided "commons-codec:commons-codec:$commons_codec_version"
+    cordapp project(path: ':cpk-two', transitive: false)
+}
+
+tasks.named('jar', Jar) {
+    doFirst {
+        configurations.cordaAllProvided.allDependencies.forEach { dep ->
+            println "ALL-PROVIDED: ${dep.name}:${dep.version}"
+        }
+    }
+}
