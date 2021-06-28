@@ -123,9 +123,18 @@ public class Launcher {
             JavaProcessBuilder builder = new JavaProcessBuilder();
             builder.setMainClassName(Optional.ofNullable(System.getProperty(Flask.JvmProperties.MAIN_CLASS))
                     .orElse(manifest.getMainAttributes().getValue(Flask.ManifestAttributes.APPLICATION_CLASS)));
+
+            // Following block optimizes networkbootstrapper elapsed time to launch node when merely generating node member info
+            String disableQuasar = System.getProperty("net.corda.flask.launcher.disableQuasarAgent", "false");
+            if (disableQuasar.equalsIgnoreCase("true")) {
+                log.info("System property net.corda.flask.launcher.disableQuasarAgent is true -> removing quasar java agent");
+                javaAgents=null;
+            }
+
             if(jvmArgs != null) {
                 builder.getJvmArgs().addAll(jvmArgs);
             }
+
             if(javaAgents != null) {
                 for(String javaAgentString : javaAgents) {
                     int equalCharPosition = javaAgentString.indexOf('=');
