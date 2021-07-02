@@ -46,7 +46,6 @@ class Main {
         assertEquals(expectedPropertyValue, prop);
 
         if(!JavaAgent.running) throw new AssertionError("Java Agent is not running");
-
         String expectedAgentArgument = "testArgument";
         assertEquals(expectedAgentArgument, JavaAgent.agentArgs);
     }

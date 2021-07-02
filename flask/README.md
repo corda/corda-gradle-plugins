@@ -43,17 +43,26 @@ This plugin creates two new Gradle tasks in your project:
 it also registers these task as Gradle extension objects under the names `flaskJar` and `flaskRun` so that they 
 can be easily configured.
 
-Additionally, it is possible to specify jvm arguments and Java agents that will be applied by default when starting the application.
+#### Provide JVM arguments from cli 
+It is possible to specify jvm arguments and Java agents that will be applied by default when starting the application.
 
-Additional JVM properties can be added to the child process launching the generated jar with
+Additional JVM arguments can be added to the child process launching the generated jar with
 ```bash
 java -jar flask.jar -flaskJvmArg="-Xmx4G" -flaskJvmArg="-Dsome.property=\"some value\""
 ```
 
-It is also possible to override the name of the child process main class with
+#### Override child process main class
+It is possible to override the name of the child process main class with
 
 ```bash
 java -Dnet.corda.flask.main.class="new.main.class.Name" -jar flask.jar
+```
+
+#### Disable included Java agents
+You can disable the Java agents incldued in the ghenerated jar file with
+
+```bash
+java -Dnet.corda.flask.no.java.agent="true" -jar flask.jar
 ```
 
 ### The *flaskJar* task

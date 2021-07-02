@@ -176,6 +176,11 @@ class FlaskPluginTest {
     }
 
     @Test
+    void runWithDisabledJavaAgent() {
+        invokeGradle("flaskRunDisableJavaAgent")
+    }
+
+    @Test
     @Timeout(value = 10L, unit = TimeUnit.SECONDS)
     @DisplayName("Check that shutdown hooks are executed on flask jars")
     void shutdownHookTest() {
