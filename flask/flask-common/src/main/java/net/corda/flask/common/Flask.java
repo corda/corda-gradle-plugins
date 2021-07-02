@@ -68,6 +68,11 @@ public class Flask {
         public static final String MAIN_CLASS = "net.corda.flask.main.class";
 
         /**
+         * If this property is set to true, the embedded Java agents will not be started
+         */
+        public static final String NO_JAVA_AGENT = "net.corda.flask.no.java.agent";
+
+        /**
          * This property will contain the amount of time the parent process will wait
          * for the child process termination before killing it forcibly
          */

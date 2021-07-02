@@ -13,7 +13,12 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
@@ -49,7 +54,7 @@ public class Launcher {
                 .collect(Collectors.toList());
     }
 
-    private static List<String> extractJvmArgsFromCliArgs(String[] args, List<String> passThroughJvmArguments) {
+    private static List<String> extractFlaskArgs(String[] args, List<String> passThroughJvmArguments) {
         List<String> result = new ArrayList<>();
         int originalLength = passThroughJvmArguments.size();
         for(String arg : args) {
@@ -72,7 +77,6 @@ public class Launcher {
     @SneakyThrows
     public static void main(String[] args) {
         Manifest manifest = new Manifest();
-        List<String> cliArgs;
         List<String> jvmArgs = new ArrayList<>();
         List<String> javaAgents = null;
         try(ZipFile jar = new ZipFile(currentJar.toFile())) {
@@ -101,7 +105,7 @@ public class Launcher {
                 }
             }
         }
-        cliArgs = extractJvmArgsFromCliArgs(args, jvmArgs);
+        List<String> cliArgs = extractFlaskArgs(args, jvmArgs);
         String mainClassName = manifest.getMainAttributes().getValue(Flask.ManifestAttributes.LAUNCHER_CLASS);
         @SuppressWarnings("unchecked")
         Class<? extends Launcher> launcherClass = (Class<? extends Launcher>)
@@ -113,7 +117,7 @@ public class Launcher {
     @SneakyThrows
     final int launch(Manifest manifest, List<String> jvmArgs, List<String> javaAgents, List<String> args) {
         JarCache cache = new JarCache(CACHE_FOLDER_DEFAULT_NAME);
-        if(Boolean.parseBoolean(System.getProperty(Flask.JvmProperties.WIPE_CACHE))) {
+        if(Boolean.getBoolean(Flask.JvmProperties.WIPE_CACHE)) {
             cache.wipeLibDir();
         } else if(Files.exists(cache.getLibDir())) {
             cache.cleanLibDir();
@@ -126,7 +130,8 @@ public class Launcher {
             if(jvmArgs != null) {
                 builder.getJvmArgs().addAll(jvmArgs);
             }
-            if(javaAgents != null) {
+            boolean disableJavaAgents = Boolean.getBoolean(Flask.JvmProperties.NO_JAVA_AGENT);
+            if(javaAgents != null && !disableJavaAgents) {
                 for(String javaAgentString : javaAgents) {
                     int equalCharPosition = javaAgentString.indexOf('=');
                     String hash;

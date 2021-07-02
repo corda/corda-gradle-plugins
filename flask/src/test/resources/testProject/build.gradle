@@ -46,8 +46,25 @@ tasks.register("flaskRunMainClassOverride", JavaExec) {
     Provider<Task> flaskJarTask = tasks.named("flaskJar")
     inputs.files(flaskJarTask)
     classpath(flaskJarTask)
+    args = [
+        "-flaskJvmArg=-Djava.agent.supposed.to.be.active=true"
+    ]
+    systemProperties([
+        'net.corda.flask.main.class' : "net.corda.gradle.flask.test.AlternativeMain"
+    ])
+}
+
+tasks.register("flaskRunDisableJavaAgent", JavaExec) {
+    workingDir = project.buildDir
+    Provider<Task> flaskJarTask = tasks.named("flaskJar")
+    inputs.files(flaskJarTask)
+    classpath(flaskJarTask)
+    args = [
+        "-flaskJvmArg=-Djava.agent.supposed.to.be.active=false"
+    ]
     systemProperties([
         'net.corda.flask.main.class' : "net.corda.gradle.flask.test.AlternativeMain",
+        'net.corda.flask.no.java.agent' : "true"
     ])
 }
 
