@@ -59,7 +59,7 @@ java -Dnet.corda.flask.main.class="new.main.class.Name" -jar flask.jar
 ```
 
 #### Disable included Java agents
-You can disable the Java agents incldued in the ghenerated jar file with
+You can disable the Java agents incldued in the generated jar file with
 
 ```bash
 java -Dnet.corda.flask.no.java.agent="true" -jar flask.jar
