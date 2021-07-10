@@ -11,8 +11,6 @@ import org.gradle.api.artifacts.SelfResolvingDependency
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.FileSystemLocation
 import org.gradle.api.model.ObjectFactory
-import org.gradle.api.plugins.JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME
-import org.gradle.api.plugins.JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME
 import org.gradle.api.provider.Provider
 import org.gradle.api.specs.Specs.satisfyNone
 import org.gradle.api.tasks.OutputFiles
@@ -46,8 +44,8 @@ open class DependencyCalculator @Inject constructor(objects: ObjectFactory) : De
              * configurations. Hence every [ProjectDependency][org.gradle.api.artifacts.ProjectDependency]
              * needed to build this CorDapp should exist somewhere beneath their umbrella.
              */
-            RUNTIME_CLASSPATH_CONFIGURATION_NAME,
-            COMPILE_CLASSPATH_CONFIGURATION_NAME
+            CORDAPP_PACKAGING_CONFIGURATION_NAME,
+            CORDAPP_EXTERNAL_CONFIGURATION_NAME
         ))
     }
 

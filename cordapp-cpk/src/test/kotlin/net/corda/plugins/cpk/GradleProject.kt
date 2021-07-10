@@ -172,7 +172,10 @@ class GradleProject(private val projectDir: Path, private val reporter: TestRepo
     val artifactDir: Path = buildDir.resolve("libs")
     val artifacts: List<Path>
         @Throws(IOException::class)
-        get() = Files.list(artifactDir).collect(toList())
+        get() {
+            assertThat(artifactDir).isDirectory()
+            return Files.list(artifactDir).collect(toList())
+        }
 
     val dependencyConstraintsFile: Path = buildDir.resolve("generated-constraints")
         .resolve(META_INF_DIR).resolve("DependencyConstraints")
@@ -237,7 +240,6 @@ class GradleProject(private val projectDir: Path, private val reporter: TestRepo
     fun build(vararg args: String): GradleProject {
         configureGradle(GradleRunner::build, args)
         assertThat(buildDir).isDirectory()
-        assertThat(artifactDir).isDirectory()
         assertEquals(SUCCESS, resultFor(taskName).outcome)
         return this
     }

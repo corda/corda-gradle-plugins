@@ -127,7 +127,7 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
 
             // Unlike cordaProvided dependencies, cordaPrivateProvided ones will not be
             // added to the compile classpath of any CPKs that will depend on this CPK.
-            // In other words, they will not included in this CPK's companion POM.
+            // In other words, they will not be included in this CPK's companion POM.
             val cordaPrivate = createCompileConfiguration(CORDA_PRIVATE_CONFIGURATION_NAME)
 
             val allProvided = createCompileConfiguration(CORDA_ALL_PROVIDED_CONFIGURATION_NAME)
