@@ -20,9 +20,9 @@ plugins {
 }
 
 rootProject.name = 'corda-gradle-plugins'
-include 'publish-utils'
+//include 'publish-utils'
 include 'quasar-utils'
-include 'cordformation'
+//include 'cordformation'
 include 'api-scanner'
 include 'api-scanner:annotations'
 include 'cordapp-cpk'
