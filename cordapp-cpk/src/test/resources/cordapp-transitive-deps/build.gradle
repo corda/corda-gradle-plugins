@@ -15,7 +15,6 @@ version = host_version
 
 cordapp {
     targetPlatformVersion = platform_version.toInteger()
-    minimumPlatformVersion = platform_version.toInteger()
 
     contract {
         name = 'CorDapp Transitive Dependencies'
@@ -32,6 +31,6 @@ dependencies {
     cordapp project(':cordapp')
 }
 
-jar {
+tasks.named('jar', Jar) {
     archiveBaseName = 'cordapp-transitive-deps'
 }
