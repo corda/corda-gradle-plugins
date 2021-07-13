@@ -5,13 +5,11 @@
 ### Version 6.0.0
 
 * Compatible with Gradle 6.6+.
-* `quasar-utils`: Upgrade to use Quasar 0.8.6_r3 OSGi bundles.
+* `quasar-utils`: Upgrade to use Quasar 0.8.7_r3 OSGi bundles.
 * `quasar-utils`: Support configurable `@Suspendable` annotation.
-* `cordformation`: Replace `Closure` with `Action` in the DSL.
-* `cordformation`: Annotate `Baseform.signing` as `@Nested` instead of `@Input`.
 * `cordapp-cpk`: Generate CPK format CorDapps. Requires Gradle 6.6+.
-* `cordformation`: Update to deploy CPKs for Corda 5.
-* `cordformation`: Upgrade default Jolkia version to 1.6.2.
+* `flask`: Package an application as an executable jar of jars.
+* Retire the `cordformation` and `publish-utils` plugins.
 
 ## Version 5
 
