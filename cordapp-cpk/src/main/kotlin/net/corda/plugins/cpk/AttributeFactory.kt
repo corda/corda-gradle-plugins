@@ -16,7 +16,7 @@ import org.gradle.api.attributes.Usage.JAVA_RUNTIME
 import org.gradle.api.attributes.Usage.USAGE_ATTRIBUTE
 import org.gradle.api.model.ObjectFactory
 
-class AttributeFactory(
+internal class AttributeFactory(
     private val attrs: AttributeContainer,
     private val objects: ObjectFactory) {
 
@@ -37,6 +37,11 @@ class AttributeFactory(
 
     fun jar(): AttributeFactory {
         attrs.attribute(LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements::class.java, JAR))
+        return this
+    }
+
+    fun cpk(): AttributeFactory {
+        attrs.attribute(LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements::class.java, "cpk"))
         return this
     }
 

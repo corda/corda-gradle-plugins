@@ -1,0 +1,15 @@
+plugins {
+    id 'biz.aQute.bnd.builder'
+}
+
+apply from: '../repositories.gradle'
+apply from: '../javaTarget.gradle'
+
+group = 'com.example'
+version = library_version
+
+dependencies {
+    compileOnly "org.osgi:org.osgi.service.component.annotations:$osgi_service_component_version"
+    compileOnly "org.osgi:osgi.annotation:$osgi_version"
+    implementation "org.slf4j:slf4j-api:$corda_slf4j_version"
+}

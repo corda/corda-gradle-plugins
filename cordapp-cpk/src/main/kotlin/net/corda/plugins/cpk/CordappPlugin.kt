@@ -11,12 +11,12 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Dependency.ARCHIVES_CONFIGURATION
 import org.gradle.api.artifacts.ModuleDependency
-import org.gradle.api.attributes.AttributeContainer
+import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.file.DuplicatesStrategy.FAIL
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.java.archives.Attributes
-import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.AppliedPlugin
+import org.gradle.api.plugins.JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME
 import org.gradle.api.plugins.JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME
 import org.gradle.api.plugins.JavaPlugin.JAR_TASK_NAME
 import org.gradle.api.plugins.JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME
@@ -94,27 +94,40 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
         cordapp = project.extensions.create(CORDAPP_EXTENSION_NAME, CordappExtension::class.java, bndVersion)
 
         project.configurations.apply {
+            // Generator object for variant attributes. We need this to ensure
+            // Gradle resolves project dependencies into the correct artifacts.
+            val attributor = Attributor(project.objects)
+
             // This definition of cordaRuntimeOnly must be kept aligned with the one in the quasar-utils plugin.
             createRuntimeOnlyConfiguration(CORDA_RUNTIME_ONLY_CONFIGURATION_NAME)
-            maybeCreate(CORDA_CPK_CONFIGURATION_NAME).isCanBeResolved = false
+            maybeCreate(CORDA_CPK_CONFIGURATION_NAME)
+                .attributes(attributor::forCpk)
+                .isCanBeResolved = false
 
             getByName(COMPILE_ONLY_CONFIGURATION_NAME).withDependencies { dependencies ->
                 val bndDependency = project.dependencies.create("biz.aQute.bnd:biz.aQute.bnd.annotation:" + cordapp.bndVersion.get())
                 dependencies.add(bndDependency)
             }
 
-            // Generator object for variant attributes. We need this to ensure
-            // Gradle resolves project dependencies into the correct artifacts.
-            val attributor = Attributor(project.objects)
+            // We will ALWAYS want to compile against bundles, and not classes.
+            // Bnd probably sets this attribute already, but still set it anyway.
+            getByName(COMPILE_CLASSPATH_CONFIGURATION_NAME).attributes(attributor::forJar)
 
             val cordappCfg = createCompileConfiguration(CORDAPP_CONFIGURATION_NAME)
+                .setDescription("The CorDapps that this CorDapp directly depends on.")
 
             // The "cordapp" and "cordaProvided" configurations are "compile only",
             // which causes their dependencies to be excluded from the published
             // POM. This also means that CPK dependencies will not be transitive
             // by default, and so we must implement a way of fixing this ourselves.
-            val collector = CordappDependencyCollector(this, project.dependencies, project.logger)
+            val collector = CordappDependencyCollector(
+                configurations = this,
+                dependencyHandler = project.dependencies,
+                attributor = attributor,
+                logger = project.logger
+            )
             val allCordapps = createCompileConfiguration(ALL_CORDAPPS_CONFIGURATION_NAME)
+                .setDescription("Every CorDapp this CorDapp depends on, either directly or indirectly.")
                 .extendsFrom(cordappCfg)
                 .withDependencies { dependencies ->
                     collector.collect()
@@ -128,19 +141,24 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
 
                         // We also need to GUARANTEE that Gradle uses the jar artifact here.
                         // Only the jar contains the OSGi metadata we need.
-                        dep.attributes(attributor::forJar)
+                        if (dep is ProjectDependency) {
+                            dep.attributes(attributor::forJar)
+                        }
                     }
                 }
 
             // This definition of cordaProvided must be kept aligned with the one in the quasar-utils plugin.
             val cordaProvided = createCompileConfiguration(CORDA_PROVIDED_CONFIGURATION_NAME)
+                .setDescription("Compile-only dependencies which Corda will provide at runtime.")
 
             // Unlike cordaProvided dependencies, cordaPrivateProvided ones will not be
             // added to the compile classpath of any CPKs that will depend on this CPK.
             // In other words, they will not be included in this CPK's companion POM.
             val cordaPrivate = createCompileConfiguration(CORDA_PRIVATE_CONFIGURATION_NAME)
+                .setDescription("Corda-provided dependencies which are only available to this CorDapp.")
 
             val allProvided = createCompileConfiguration(CORDA_ALL_PROVIDED_CONFIGURATION_NAME)
+                .setDescription("Every Corda-provided dependency, including private and transitive ones.")
                 .extendsFrom(cordaProvided, cordaPrivate)
                 .withDependencies { dependencies ->
                     collector.collect()
@@ -149,6 +167,7 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
 
             // Embedded dependencies should not appear in the CorDapp's published POM.
             val cordaEmbedded = createCompileConfiguration(CORDA_EMBEDDED_CONFIGURATION_NAME)
+                .setDescription("These dependencies are added to the CorDapp's Bundle-Classpath.")
 
             // We need to resolve the contents of our CPK file based on
             // both the runtimeElements and cordaEmbedded configurations.
@@ -401,43 +420,6 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
             throw InvalidUserDataException("CorDapp `versionId` must not be smaller than 1.")
         }
         return value
-    }
-}
-
-/**
- * Generator for Gradle [Configuration][org.gradle.api.artifacts.Configuration]
- * variant attributes.
- */
-private class Attributor(private val objects: ObjectFactory) {
-    /**
-     * Dark Gradle Magic which ensures that a configuration
-     * is resolved exactly like compileClasspath.
-     */
-    fun forCompileClasspath(attrs: AttributeContainer) {
-        AttributeFactory(attrs, objects)
-            .withExternalDependencies()
-            .asLibrary()
-            .javaApi()
-    }
-
-    /**
-     * Dark Gradle Magic which ensures that a configuration
-     * is resolved exactly like runtimeClasspath.
-     */
-    fun forRuntimeClasspath(attrs: AttributeContainer) {
-        AttributeFactory(attrs, objects)
-            .withExternalDependencies()
-            .javaRuntime()
-            .asLibrary()
-            .jar()
-    }
-
-    /**
-     * Dark Gradle Magic which ensures that we use a
-     * project's jar artifact and not just its classes.
-     */
-    fun forJar(attrs: AttributeContainer) {
-        AttributeFactory(attrs, objects).jar()
     }
 }
 
