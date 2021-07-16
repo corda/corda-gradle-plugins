@@ -26,9 +26,6 @@ import javax.inject.Inject
 @Suppress("UnstableApiUsage", "MemberVisibilityCanBePrivate")
 open class PackagingTask @Inject constructor(objects: ObjectFactory) : Jar() {
     private companion object {
-        private const val CORDAPP_CLASSIFIER = "cordapp"
-        private const val CORDAPP_EXTENSION = "cpk"
-
         private val MANIFEST_MAPPING = unmodifiableList(listOf(
             BUNDLE_SYMBOLICNAME to CPK_CORDAPP_NAME,
             BUNDLE_VERSION to CPK_CORDAPP_VERSION,
@@ -85,8 +82,8 @@ open class PackagingTask @Inject constructor(objects: ObjectFactory) : Jar() {
             libs.into("lib")
         }
 
-        archiveExtension.set(CORDAPP_EXTENSION)
-        archiveClassifier.set(CORDAPP_CLASSIFIER)
+        archiveExtension.set(CPK_FILE_EXTENSION)
+        archiveClassifier.set(CPK_ARTIFACT_CLASSIFIER)
         fileMode = Integer.parseInt("444", 8)
         dirMode = Integer.parseInt("555", 8)
         manifestContentCharset = "UTF-8"

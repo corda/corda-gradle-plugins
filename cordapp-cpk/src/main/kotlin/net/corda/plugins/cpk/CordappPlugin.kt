@@ -51,7 +51,6 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
         private const val CORDAPP_EXTENSION_NAME = "cordapp"
         private const val OSGI_EXTENSION_NAME = "osgi"
         private const val MIN_GRADLE_VERSION = "6.6"
-        private const val CPK_TASK_NAME = "cpk"
         private const val UNKNOWN = "Unknown"
 
         val Array<String>.packageRange: IntRange get() {

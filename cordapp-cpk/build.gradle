@@ -24,9 +24,13 @@ repositories {
 
 gradlePlugin {
     plugins {
-        cordappPlugin {
+        cordappCpkPlugin {
             id = 'net.corda.plugins.cordapp-cpk'
             implementationClass = 'net.corda.plugins.cpk.CordappPlugin'
+        }
+        cordappCpbPlugin {
+            id = 'net.corda.plugins.cordapp-cpb'
+            implementationClass = 'net.corda.plugins.cpb.CpbPlugin'
         }
     }
     automatedPublishing = false
@@ -35,12 +39,15 @@ gradlePlugin {
 pluginBundle {
     website = project.vcsUrl
     vcsUrl = project.vcsUrl
-    description = 'Corda Cordapp CPK Builder Plugin'
+    description = 'Corda Cordapp Builder Plugins'
     tags = ['corda']
 
     plugins {
-        cordappPlugin {
+        cordappCpkPlugin {
             displayName = 'Corda Cordapp CPK Plugin'
+        }
+        cordappCpbPlugin {
+            displayName = 'Corda Cordapp CPB Plugin'
         }
     }
 }
