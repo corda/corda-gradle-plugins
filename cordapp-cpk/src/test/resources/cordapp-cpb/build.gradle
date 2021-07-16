@@ -1,0 +1,59 @@
+plugins {
+    id 'net.corda.plugins.cordapp-cpb'
+    id 'org.jetbrains.kotlin.jvm'
+}
+
+apply from: 'javaTarget.gradle'
+apply from: 'kotlin.gradle'
+
+allprojects {
+    group = 'com.example'
+    version = cordapp_version
+    repositories {
+        maven {
+            name = 'test-repository'
+            url = getProperty("maven.repository.dir")
+        }
+        mavenCentral()
+    }
+}
+
+version = "1.0"
+
+cordapp {
+    targetPlatformVersion = platform_version.toInteger()
+
+    contract {
+        name = 'CorDapp CPB test'
+        versionId = cordapp_contract_version.toInteger()
+        licence = 'Test-Licence'
+        vendor = 'R3'
+    }
+}
+
+configurations {
+    cpks
+}
+
+dependencies {
+    cordapp group: group, name: "external-cordapp", version: cordapp_version
+    cordapp project('project-dependency')
+
+    cpks project(path: 'project-dependency', configuration: 'cordaCPK')
+    cpks group: "com.example", name: "corda-platform-cordapp", version: cordapp_version, classifier: "cordapp", ext: "cpk"
+    cpks group: "com.example", name: "external-cordapp", version: cordapp_version, classifier: "cordapp", ext: "cpk"
+    cpks group: "com.example", name: "external-cordapp-transitive-dependency", version: cordapp_version, classifier: "cordapp", ext: "cpk"
+}
+
+
+def cpkDir = file("$buildDir/cpks")
+def copyCPKs = tasks.register('copyCPKs', Copy) {
+    from configurations.cpks
+    into cpkDir
+}
+
+artifacts {
+    archives(file: cpkDir) {
+        builtBy copyCPKs
+    }
+}

@@ -1,0 +1,59 @@
+plugins {
+    id 'net.corda.plugins.cordapp-cpk'
+}
+
+allprojects { p ->
+    apply plugin: 'java-library'
+    apply plugin: 'maven-publish'
+
+    if (p.path in [rootProject.path, ":corda-platform-cordapp", ":external-cordapp-transitive-dependency"]) {
+        apply from: "$rootDir/repositories.gradle"
+        apply from: "$rootDir/javaTarget.gradle"
+
+
+        group = 'com.example'
+        version = cordapp_version
+
+        jar {
+            archiveBaseName = p.name
+        }
+    }
+
+    publishing {
+        repositories {
+            maven {
+                name = 'Test'
+                url = getProperty("maven.repository.dir")
+            }
+        }
+        publications {
+            maven(MavenPublication) {
+                from components.java
+                pluginManager.withPlugin('net.corda.plugins.cordapp-cpk') {
+                    artifact tasks.named('cpk')
+                }
+            }
+        }
+    }
+}
+
+
+cordapp {
+    targetPlatformVersion = platform_version.toInteger()
+    minimumPlatformVersion = platform_version.toInteger()
+
+    contract {
+        name = 'External CorDapp'
+        versionId = cordapp_contract_version.toInteger()
+        licence = 'Test-Licence'
+        vendor = 'R3'
+    }
+}
+
+dependencies {
+    cordaProvided project(":corda-api")
+
+    cordapp project("corda-platform-cordapp")
+    cordapp project("external-cordapp-transitive-dependency")
+}
+
