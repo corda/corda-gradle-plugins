@@ -11,9 +11,10 @@ import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.logging.Logger
 import java.util.Collections.unmodifiableSet
 
-class CordappDependencyCollector(
+internal class CordappDependencyCollector(
     private val configurations: ConfigurationContainer,
     private val dependencyHandler: DependencyHandler,
+    private val attributor: Attributor,
     private val logger: Logger
 ) {
     private val cordappProjects = mutableSetOf<ProjectDependency>()
@@ -63,7 +64,10 @@ class CordappDependencyCollector(
     }
 
     private fun collectFrom(cordapp: Dependency) {
-        val resolved = configurations.detachedConfiguration(cordapp).resolvedConfiguration
+        val resolved = configurations.detachedConfiguration(cordapp)
+            .attributes(attributor::forCompileClasspath)
+            .setVisible(false)
+            .resolvedConfiguration
         if (resolved.hasError()) {
             logger.warn("CorDapp has unresolved dependencies:{}",
                 resolved.lenientConfiguration.unresolvedModuleDependencies.joinToString(SEPARATOR, SEPARATOR))

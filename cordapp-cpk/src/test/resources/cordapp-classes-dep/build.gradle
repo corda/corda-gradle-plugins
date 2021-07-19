@@ -1,0 +1,37 @@
+plugins {
+    id 'net.corda.plugins.cordapp-cpk'
+    id 'org.jetbrains.kotlin.jvm'
+}
+
+apply from: 'repositories.gradle'
+apply from: 'javaTarget.gradle'
+apply from: 'kotlin.gradle'
+
+group = 'com.example'
+version = cordapp_version
+
+cordapp {
+    targetPlatformVersion = platform_version.toInteger()
+
+    contract {
+        name = 'CorDapp Classes Dependency'
+        versionId = cordapp_contract_version.toInteger()
+        licence = 'Test-Licence'
+        vendor = 'R3'
+    }
+}
+
+dependencies {
+    compileOnly "org.osgi:org.osgi.service.component.annotations:$osgi_service_component_version"
+    implementation "org.jetbrains.kotlin:kotlin-osgi-bundle:$kotlin_version"
+    cordaProvided project(':corda-api')
+    implementation project(':library')
+}
+
+tasks.named('jar', Jar) {
+    doFirst {
+        configurations.compileClasspath.forEach {
+            println("COMPILE ${it.name}")
+        }
+    }
+}

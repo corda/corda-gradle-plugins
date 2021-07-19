@@ -10,6 +10,7 @@ plugins {
 description 'Configures this project to create a CPK CorDapp'
 
 ext {
+    osgi_service_component_version = '1.4.0'
     test_persistence_api_version = '2.2'
     test_hibernate_version = '5.4.30.Final'
     test_kotlin_version = '1.4.32'
@@ -85,6 +86,7 @@ dependencies {
 processTestResources {
     filesMatching('gradle.properties') {
         expand([
+            'osgi_service_component_version': osgi_service_component_version,
             'persistence_api_version': test_persistence_api_version,
             'hibernate_version': test_hibernate_version,
             'corda_guava_version': corda_guava_version,
