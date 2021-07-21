@@ -1,0 +1,34 @@
+plugins {
+    id 'net.corda.plugins.cordapp-cpk'
+    id 'org.jetbrains.kotlin.jvm'
+}
+
+repositories {
+    maven {
+        name = 'Test'
+        url = repository_dir
+    }
+}
+apply from: 'repositories.gradle'
+apply from: 'javaTarget.gradle'
+apply from: 'kotlin.gradle'
+
+group = 'com.example'
+version = cordapp_version
+
+cordapp {
+    targetPlatformVersion = platform_version.toInteger()
+
+    contract {
+        name = 'Transitive Remote CorDapps'
+        versionId = cordapp_contract_version.toInteger()
+        licence = 'Test-Licence'
+        vendor = 'R3'
+    }
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-osgi-bundle:$kotlin_version"
+    implementation "commons-io:commons-io:$commons_io_version"
+    cordapp "com.example:cpk-three:$cpk3_version"
+}

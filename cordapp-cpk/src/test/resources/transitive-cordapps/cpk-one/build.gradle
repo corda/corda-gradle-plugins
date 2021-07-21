@@ -9,7 +9,6 @@ version = cpk1_version
 
 cordapp {
     targetPlatformVersion = platform_version.toInteger()
-    minimumPlatformVersion = platform_version.toInteger()
 
     contract {
         name = 'CPK-1'

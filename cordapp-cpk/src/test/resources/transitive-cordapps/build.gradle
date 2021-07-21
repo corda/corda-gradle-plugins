@@ -8,18 +8,34 @@ apply from: 'javaTarget.gradle'
 apply from: 'kotlin.gradle'
 
 allprojects {
+    apply plugin: 'java-library'
+    apply plugin: 'maven-publish'
+
     group = 'com.example'
-}
 
-if (with_publishing.toBoolean()) {
-    allprojects {
-        apply plugin: 'java-library'
-        apply plugin: 'maven-publish'
+    tasks.withType(GenerateModuleMetadata).configureEach {
+        // Ensure our Maven Repository is "bare bones",
+        // i.e. has no sneaky extra Gradle metadata.
+        enabled = false
+    }
 
+    publishing {
         publishing {
+            repositories {
+                maven {
+                    name = 'Test'
+                    url = repository_dir
+                }
+            }
+
             publications {
                 maven(MavenPublication) {
                     from components.java
+                    try {
+                        artifact tasks.named('cpk')
+                    } catch (UnknownTaskException) {
+                        // This project has no CPK to publish.
+                    }
                 }
             }
         }
@@ -30,7 +46,6 @@ version = cordapp_version
 
 cordapp {
     targetPlatformVersion = platform_version.toInteger()
-    minimumPlatformVersion = platform_version.toInteger()
 
     contract {
         name = 'Transitive CorDapps'
