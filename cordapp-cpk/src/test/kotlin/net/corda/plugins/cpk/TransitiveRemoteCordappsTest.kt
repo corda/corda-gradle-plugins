@@ -1,12 +1,11 @@
 package net.corda.plugins.cpk
 
+import java.nio.file.Files
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.TestReporter
 import org.junit.jupiter.api.io.TempDir
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.ValueSource
 import org.osgi.framework.Constants.BUNDLE_LICENSE
 import org.osgi.framework.Constants.BUNDLE_NAME
 import org.osgi.framework.Constants.BUNDLE_SYMBOLICNAME
@@ -16,12 +15,15 @@ import org.osgi.framework.Constants.EXPORT_PACKAGE
 import org.osgi.framework.Constants.IMPORT_PACKAGE
 import org.osgi.framework.Constants.REQUIRE_CAPABILITY
 import java.nio.file.Path
+import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Test
 
 /**
  * Verify that transitive cordapp and cordaProvided dependencies
  * are inherited by downstream CPK projects.
  */
-class TransitiveCordappsTest {
+class TransitiveRemoteCordappsTest {
     companion object {
         private const val cordappVersion = "1.0.1-SNAPSHOT"
         private const val cpk1Version = "1.0-SNAPSHOT"
@@ -35,19 +37,25 @@ class TransitiveCordappsTest {
         private const val cordaOsgiVersion = "version=\"[5.0,6)\""
         private const val cordappOsgiVersion = "version=\"1.0.1\""
 
-        private fun buildProject(
-            taskName: String,
-            testProjectDir: Path,
-            reporter: TestReporter
-        ): GradleProject {
-            val repositoryDir = testProjectDir.resolve("maven")
-            return GradleProject(testProjectDir, reporter)
+        private lateinit var repositoryDir: Path
+        private lateinit var publisherProject: GradleProject
+        private lateinit var testProject: GradleProject
+
+        @Suppress("unused")
+        @BeforeAll
+        @JvmStatic
+        fun setup(@TempDir testProjectDir: Path, reporter: TestReporter) {
+            // JUnit 5.8+ should allow each use of @TempDir to create a
+            // brand new directory. Replicate this behaviour until then.
+            repositoryDir = Files.createTempDirectory(testProjectDir.parent, "maven")
+            val publisherProjectDir = Files.createTempDirectory(testProjectDir.parent, "publisher")
+            publisherProject = GradleProject(publisherProjectDir, reporter)
                 .withTestName("transitive-cordapps")
                 .withSubResource("src/main/kotlin/com/example/transitives/ExampleContract.kt")
                 .withSubResource("cpk-one/build.gradle")
                 .withSubResource("cpk-two/build.gradle")
                 .withSubResource("cpk-three/build.gradle")
-                .withTaskName(taskName)
+                .withTaskName("publishAllPublicationsToTestRepository")
                 .build(
                     "-Pcordapp_contract_version=$expectedCordappContractVersion",
                     "-Pcommons_io_version=$commonsIoVersion",
@@ -60,22 +68,35 @@ class TransitiveCordappsTest {
                     "-Pcpk1_type=$cpk1Type",
                     "-Pcpk2_type=$cpk2Type"
                 )
+            testProject = GradleProject(testProjectDir, reporter)
+                .withTestName("transitive-remote-cordapps")
+                .withSubResource("src/main/kotlin/com/example/transitives/ExampleContract.kt")
+                .build(
+                    "-Pcordapp_contract_version=$expectedCordappContractVersion",
+                    "-Pcommons_io_version=$commonsIoVersion",
+                    "-Pcorda_api_version=$cordaApiVersion",
+                    "-Pcordapp_version=$cordappVersion",
+                    "-Pcpk3_version=$cpk3Version",
+                    "-Prepository_dir=$repositoryDir"
+                )
+        }
+
+        // Only needed until JUnit 5.8+ allows multiple @TempDir directories.
+        @Suppress("unused")
+        @AfterAll
+        @JvmStatic
+        fun destroy() {
+            repositoryDir.deleteAll()
+            publisherProject.delete()
         }
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = [ "assemble", "publishAllPublicationsToTestRepository" ])
-    fun transitivesTest(
-        taskName: String,
-        @TempDir testProjectDir: Path,
-        reporter: TestReporter
-    ) {
-        val testProject = buildProject(taskName, testProjectDir, reporter)
-
+    @Test
+    fun remoteTransitivesTest() {
         assertThat(testProject.dependencyConstraints)
-            .noneMatch { it.fileName == "cpk-one-${cpk1Version}.jar" }
-            .noneMatch { it.fileName == "cpk-two-${cpk2Version}.jar" }
-            .noneMatch { it.fileName == "cpk-three-${cpk3Version}.jar" }
+            .noneMatch { it.fileName == "cpk-one-$cpk1Version.jar" }
+            .noneMatch { it.fileName == "cpk-two-$cpk2Version.jar" }
+            .noneMatch { it.fileName == "cpk-three-$cpk3Version.jar" }
             .anyMatch { it.fileName == "commons-io-$commonsIoVersion.jar" }
             .allMatch { it.hash.isSHA256 }
             .hasSize(1)
@@ -101,8 +122,8 @@ class TransitiveCordappsTest {
         println(jarManifest.mainAttributes.entries)
 
         with(jarManifest.mainAttributes) {
-            assertEquals("Transitive CorDapps", getValue(BUNDLE_NAME))
-            assertEquals("com.example.transitive-cordapps", getValue(BUNDLE_SYMBOLICNAME))
+            assertEquals("Transitive Remote CorDapps", getValue(BUNDLE_NAME))
+            assertEquals("com.example.transitive-remote-cordapps", getValue(BUNDLE_SYMBOLICNAME))
             assertEquals(toOSGi(cordappVersion), getValue(BUNDLE_VERSION))
             assertThatHeader(getValue(IMPORT_PACKAGE)).containsAll(
                 "kotlin;$kotlinOsgiVersion",

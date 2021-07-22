@@ -68,6 +68,13 @@ fun toOSGiRange(mavenVersion: String): String {
 
 fun createDocumentBuilderFactory() = XMLFactory.createDocumentBuilderFactory()
 
+fun Path.deleteAll() {
+    if (Files.isDirectory(this)) {
+        Files.list(this).forEach(Path::deleteAll)
+    }
+    Files.delete(this)
+}
+
 val Path.manifest: Manifest get() = toFile().manifest
 
 val List<HashValue>.allSHA256: Boolean get() = isNotEmpty() && all(HashValue::isSHA256)
@@ -251,5 +258,10 @@ class GradleProject(private val projectDir: Path, private val reporter: TestRepo
 
     private fun getGradleArgs(args: Array<out String>): List<String> {
         return arrayListOf(taskName, "--info", "--stacktrace", "-g", testGradleUserHome, *args)
+    }
+
+    // Only needed until JUnit 5.8+ allows multiple @TempDir directories.
+    fun delete() {
+        projectDir.deleteAll()
     }
 }
