@@ -48,7 +48,7 @@ class PublishAfterEvaluationHandler(rootProject: Project) : Action<Gradle> {
             // Each sub-project can load its plugins into its
             // own classloader, which makes all of the [Plugin]
             // implementation classes different.
-            if (project.plugins.hasPlugin(CORDAPP_CPK_PLUGIN_ID)) {
+            project.plugins.withId(CORDAPP_CPK_PLUGIN_ID) {
                 publishCompanionFor(project)
             }
         }
