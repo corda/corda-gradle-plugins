@@ -31,10 +31,10 @@ allprojects {
             publications {
                 maven(MavenPublication) {
                     from components.java
-                    try {
+
+                    // Publish any CPK that this project may have.
+                    pluginManager.withPlugin('net.corda.plugins.cordapp-cpk') {
                         artifact tasks.named('cpk')
-                    } catch (UnknownTaskException) {
-                        // This project has no CPK to publish.
                     }
                 }
             }
