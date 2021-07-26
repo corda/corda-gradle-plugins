@@ -119,6 +119,7 @@ class GradleProject(private val projectDir: Path, private val reporter: TestRepo
     private lateinit var result: BuildResult
     private var gradleVersion: GradleVersion = GradleVersion.current()
     private var buildScript: String = ""
+    private val subResources = mutableListOf<String>()
     private var taskName: String = DEFAULT_TASK_NAME
     private var testName: String = "."
 
@@ -150,8 +151,12 @@ class GradleProject(private val projectDir: Path, private val reporter: TestRepo
     }
 
     fun withSubResource(resourceName: String): GradleProject {
-        installResource(subDirectoryFor(resourceName), "$testName/$resourceName")
+        subResources += resourceName
         return this
+    }
+
+    private fun installSubResource(resourceName: String) {
+        installResource(subDirectoryFor(resourceName), resourceName = "$testName/$resourceName")
     }
 
     private fun subDirectoryFor(resourceName: String): Path {
@@ -230,6 +235,7 @@ class GradleProject(private val projectDir: Path, private val reporter: TestRepo
         if (!installResource(projectDir, "$testName/build.gradle")) {
             projectDir.resolve("build.gradle").toFile().writeText(buildScript)
         }
+        subResources.forEach(::installSubResource)
 
         val runner = GradleRunner.create()
             .withGradleVersion(gradleVersion.version)
