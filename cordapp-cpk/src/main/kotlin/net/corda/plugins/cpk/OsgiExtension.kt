@@ -34,7 +34,7 @@ fun TaskInputs.nested(nestName: String, osgi: OsgiExtension) {
 }
 
 @Suppress("UnstableApiUsage", "MemberVisibilityCanBePrivate", "unused")
-open class OsgiExtension(objects: ObjectFactory, jar: Jar) {
+open class OsgiExtension(objects: ObjectFactory, useImportPolicy: Provider<Boolean>, jar: Jar) {
     private companion object {
         private const val CORDAPP_CONFIG_PLUGIN_ID = "net.corda.cordapp.cordapp-configuration"
         private const val CORDAPP_CONFIG_FILENAME = "cordapp-configuration.properties"
@@ -61,6 +61,11 @@ open class OsgiExtension(objects: ObjectFactory, jar: Jar) {
             "org.hibernate.proxy"
         ))
 
+        private val Array<String>.packageRange: IntRange get() {
+            val firstIdx = if (size > 2 && this[0] == "META-INF" && this[1] == "versions") { 3 } else { 0 }
+            return firstIdx..size - 2
+        }
+
         @Throws(IOException::class)
         private fun loadConfig(input: InputStream): Map<String, String> {
             return Properties().let { props ->
@@ -83,13 +88,18 @@ open class OsgiExtension(objects: ObjectFactory, jar: Jar) {
             return value.split(",").mapTo(LinkedHashSet(), String::trim)
         }
 
+        fun consumerPolicy(value: String): String = "$value;version='\${range;[=,+);\${@}}'"
         fun dynamic(value: String): String = "$value;resolution:=dynamic;version=!"
         fun optional(value: String): String = "$value;resolution:=optional"
         fun emptyVersion(value: String): String = "$value;version='[0,0)'"
     }
 
+    private val _noPackages: SetProperty<String> = objects.setProperty(String::class.java)
+        .apply(SetProperty<String>::disallowChanges)
+    private val _policyPackages: SetProperty<String> = objects.setProperty(String::class.java)
     private val _requiredPackages: SetProperty<String> = objects.setProperty(String::class.java).value(BASE_REQUIRED_PACKAGES)
     private val _cordaClasses: MapProperty<String, String> = objects.mapProperty(String::class.java, String::class.java)
+    private val _autoExportPackages: SetProperty<String> = objects.setProperty(String::class.java)
     private val _exports: SetProperty<String> = objects.setProperty(String::class.java)
     private val _imports: SetProperty<String> = objects.setProperty(String::class.java)
         .apply(SetProperty<String>::finalizeValueOnRead)
@@ -163,6 +173,15 @@ open class OsgiExtension(objects: ObjectFactory, jar: Jar) {
     @get:Input
     val autoExport: Property<Boolean> = objects.property(Boolean::class.java).convention(true)
 
+    private val autoExported: Provider<out Set<String>>
+        get() = autoExport.flatMap { isAuto ->
+            if (isAuto) {
+                _autoExportPackages
+            } else {
+                _noPackages
+            }
+        }
+
     @get:Input
     val exports: Provider<String> = _exports.map { names ->
         if (names.isNotEmpty()){
@@ -191,12 +210,25 @@ open class OsgiExtension(objects: ObjectFactory, jar: Jar) {
         }
     }
 
+    val applyImportPolicy: Property<Boolean> = objects.property(Boolean::class.java).convention(useImportPolicy)
+
+    private val activePolicy: Provider<out Set<String>>
+        get() = applyImportPolicy.flatMap { isActive ->
+            if (isActive) {
+                _policyPackages
+            } else {
+                _noPackages
+            }
+        }
+
     @get:Input
     val imports: Provider<String> = _imports.zip(_requiredPackages) { imports, required ->
-        val result = linkedSetOf<String>()
-        result.addAll(imports)
+        val result = LinkedHashSet(imports)
         result.addAll(required.map(::dynamic))
         result
+    }.zip(activePolicy) { imports, policy ->
+        imports.addAll(policy.map(::consumerPolicy))
+        imports
     }.map(::declareImports)
 
     private fun declareImports(importPackages: Set<String>): String {
@@ -235,6 +267,25 @@ open class OsgiExtension(objects: ObjectFactory, jar: Jar) {
             }
         })
 
+        // Install a "listener" for files copied into the CorDapp jar.
+        // We will extract the names of the non-empty packages inside
+        // this jar as we go...
+        jar.rootSpec.eachFile { file ->
+            if (!file.isDirectory) {
+                val elements = file.relativePath.segments
+                val packageRange = elements.packageRange
+                if (!packageRange.isEmpty()) {
+                    val packageName = elements.slice(packageRange)
+                    if (packageName[0] != "META-INF" && packageName[0] != "OSGI-INF" && packageName.isJavaIdentifiers) {
+                        _autoExportPackages.add(packageName.joinToString("."))
+                    }
+                }
+            }
+        }
+
+        // Add the auto-extracted package names to the exports.
+        _exports.addAll(autoExported)
+
         _cordaClasses.putAll(BASE_CORDA_CLASSES)
 
         /**
@@ -258,6 +309,11 @@ open class OsgiExtension(objects: ObjectFactory, jar: Jar) {
              * Replace the default set of required packages with any new ones.
              */
             config[REQUIRED_PACKAGES]?.let(::parsePackages)?.also(_requiredPackages::set)
+
+            /**
+             * Apply our OSGi "consumer policy" when importing these packages.
+             */
+            config[IMPORT_POLICY_PACKAGES]?.let(::parsePackages)?.also(_policyPackages::set)
         }
     }
 

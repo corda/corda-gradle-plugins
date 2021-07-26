@@ -36,6 +36,9 @@ const val CORDAPP_CPK_PLUGIN_ID = "net.corda.plugins.cordapp-cpk"
 const val CORDAPP_TASK_GROUP = "Cordapp"
 const val CPK_XML_NAMESPACE = "urn:corda-cpk"
 
+const val CORDA_API_GROUP = "net.corda"
+const val ENTERPRISE_API_GROUP = "com.r3.corda"
+
 const val CORDAPP_SEALING_SYSTEM_PROPERTY_NAME = "net.corda.cordapp.sealing.enabled"
 
 const val CPK_TASK_NAME = "cpk"
@@ -71,6 +74,7 @@ const val CORDA_CONTRACT_CLASSES = "Corda-Contract-Classes"
 const val CORDA_WORKFLOW_CLASSES = "Corda-Flow-Classes"
 const val CORDA_MAPPED_SCHEMA_CLASSES = "Corda-MappedSchema-Classes"
 const val CORDA_SERVICE_CLASSES = "Corda-Service-Classes"
+const val IMPORT_POLICY_PACKAGES = "Import-Policy-Packages"
 const val REQUIRED_PACKAGES = "Required-Packages"
 
 const val CORDAPP_PLATFORM_VERSION = "Cordapp-Built-Platform-Version"
