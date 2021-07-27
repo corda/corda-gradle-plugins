@@ -34,5 +34,3 @@ Bundle-SymbolicName: net.corda.api
 Bundle-Name: Fake Corda APIs
 """
 }
-
-
