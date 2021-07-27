@@ -30,7 +30,7 @@ allprojects { p ->
             maven(MavenPublication) {
                 from components.java
                 pluginManager.withPlugin('net.corda.plugins.cordapp-cpk') {
-                    artifact tasks.named('cpk')
+                    artifact tasks.named('cpk', Jar)
                 }
             }
         }
@@ -40,7 +40,6 @@ allprojects { p ->
 
 cordapp {
     targetPlatformVersion = platform_version.toInteger()
-    minimumPlatformVersion = platform_version.toInteger()
 
     contract {
         name = 'External CorDapp'
@@ -51,9 +50,8 @@ cordapp {
 }
 
 dependencies {
-    cordaProvided project(":corda-api")
+    cordaProvided project(':corda-api')
 
-    cordapp project("corda-platform-cordapp")
-    cordapp project("external-cordapp-transitive-dependency")
+    cordapp project('corda-platform-cordapp')
+    cordapp project('external-cordapp-transitive-dependency')
 }
-

@@ -4,7 +4,6 @@ plugins {
 
 cordapp {
     targetPlatformVersion = platform_version.toInteger()
-    minimumPlatformVersion = platform_version.toInteger()
 
     contract {
         name = 'External CorDapp transitive dependency'
@@ -15,5 +14,5 @@ cordapp {
 }
 
 dependencies {
-    cordaProvided project(":corda-api")
+    cordaProvided project(':corda-api')
 }
