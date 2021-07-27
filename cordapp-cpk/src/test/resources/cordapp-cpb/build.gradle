@@ -46,14 +46,14 @@ dependencies {
 }
 
 
-def cpkDir = file("$buildDir/cpks")
+def cpkDir = layout.buildDirectory.dir('cpks')
 def copyCPKs = tasks.register('copyCPKs', Copy) {
     from configurations.cpks
     into cpkDir
 }
 
 artifacts {
-    archives(file: cpkDir) {
+    archives(cpkDir) {
         builtBy copyCPKs
     }
 }

@@ -3,9 +3,7 @@ plugins {
 }
 
 cordapp {
-
     targetPlatformVersion = platform_version.toInteger()
-    minimumPlatformVersion = platform_version.toInteger()
 
     contract {
         name = 'Corda platform CorDapp'
@@ -16,11 +14,11 @@ cordapp {
 }
 
 dependencies {
-    cordaProvided project(":corda-api")
+    cordaProvided project(':corda-api')
 }
 
 jar {
     manifest {
-        attributes(['Corda-CPK-Type': "corda-api"])
+        attributes(['Corda-CPK-Type': 'corda-api'])
     }
 }
