@@ -22,7 +22,7 @@ dependencies {
     cordaProvided project(':corda-api')
 }
 
-jar {
+tasks.named('jar', Jar) {
     archiveBaseName = 'cpk-one'
     manifest {
         attributes('Corda-CPK-Type': cpk1_type)

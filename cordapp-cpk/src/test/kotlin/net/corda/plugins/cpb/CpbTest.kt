@@ -2,7 +2,9 @@ package net.corda.plugins.cpb
 
 import net.corda.plugins.cpk.GradleProject
 import net.corda.plugins.cpk.cordaApiVersion
+import net.corda.plugins.cpk.digestFor
 import net.corda.plugins.cpk.expectedCordappContractVersion
+import net.corda.plugins.cpk.hashFor
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeAll
@@ -12,8 +14,6 @@ import org.junit.jupiter.api.io.TempDir
 import java.io.InputStream
 import java.nio.file.Files
 import java.nio.file.Path
-import java.security.DigestInputStream
-import java.security.MessageDigest
 import java.security.cert.X509Certificate
 import java.util.TreeMap
 import java.util.jar.JarInputStream
@@ -65,12 +65,7 @@ class CpbTest {
         }
 
         fun sha256(inputStream : InputStream) : String {
-            val md = MessageDigest.getInstance("SHA-256")
-            DigestInputStream(inputStream, md).also {
-                val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
-                while(it.read(buffer) > 0) {}
-            }
-            return md.digest().toHex()
+            return digestFor(algorithmName = "SHA-256").hashFor(inputStream).toHex()
         }
     }
 

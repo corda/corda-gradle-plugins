@@ -20,14 +20,16 @@ class WithoutTransitiveCordappsTest {
         private const val providedPrefix = "ALL-PROVIDED: "
 
         private fun buildProject(
-            withPublishing: Boolean,
+            taskName: String,
             testProjectDir: Path,
             reporter: TestReporter
         ): GradleProject {
+            val repositoryDir = testProjectDir.resolve("maven")
             return GradleProject(testProjectDir, reporter)
                 .withTestName("without-transitive-cordapps")
                 .withSubResource("cpk-one/build.gradle")
                 .withSubResource("cpk-two/build.gradle")
+                .withTaskName(taskName)
                 .build(
                     "-Pcordapp_contract_version=$expectedCordappContractVersion",
                     "-Pcommons_codec_version=$commonsCodecVersion",
@@ -36,19 +38,19 @@ class WithoutTransitiveCordappsTest {
                     "-Pcordapp_version=$cordappVersion",
                     "-Pcpk1_version=$cpk1Version",
                     "-Pcpk2_version=$cpk2Version",
-                    "-Pwith_publishing=$withPublishing"
+                    "-Prepository_dir=$repositoryDir"
                 )
         }
     }
 
     @ParameterizedTest
-    @ValueSource(booleans = [false, true])
+    @ValueSource(strings = [ "assemble", "publishAllPublicationsToTestRepository" ])
     fun transitivesTest(
-        withPublishing: Boolean,
+        taskName: String,
         @TempDir testProjectDir: Path,
         reporter: TestReporter
     ) {
-        val testProject = buildProject(withPublishing, testProjectDir, reporter)
+        val testProject = buildProject(taskName, testProjectDir, reporter)
 
         assertThat(testProject.dependencyConstraints)
             .isEmpty()

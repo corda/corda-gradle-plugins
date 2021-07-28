@@ -118,8 +118,8 @@ configure(publishProjects) { Project subproject ->
 
                 groupId subproject.group
                 artifactId subproject.name
-                artifact tasks.sourceJar
-                artifact tasks.javadocJar
+                artifact tasks.named('sourceJar', Jar)
+                artifact tasks.named('javadocJar', Jar)
 
                 pom {
                     name = subproject.name

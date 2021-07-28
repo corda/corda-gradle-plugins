@@ -8,18 +8,32 @@ apply from: 'javaTarget.gradle'
 apply from: 'kotlin.gradle'
 
 allprojects {
+    apply plugin: 'java-library'
+    apply plugin: 'maven-publish'
+
     group = 'com.example'
-}
 
-if (with_publishing.toBoolean()) {
-    allprojects {
-        apply plugin: 'java-library'
-        apply plugin: 'maven-publish'
+    tasks.withType(GenerateModuleMetadata).configureEach {
+        // Ensure our Maven Repository is "bare bones",
+        // i.e. has no sneaky extra Gradle metadata.
+        enabled = false
+    }
 
-        publishing {
-            publications {
-                maven(MavenPublication) {
-                    from components.java
+    publishing {
+        repositories {
+            maven {
+                name = 'Test'
+                url = repository_dir
+            }
+        }
+
+        publications {
+            maven(MavenPublication) {
+                from components.java
+
+                // Publish any CPK that this project may have.
+                pluginManager.withPlugin('net.corda.plugins.cordapp-cpk') {
+                    artifact tasks.named('cpk', Jar)
                 }
             }
         }
@@ -30,7 +44,6 @@ version = cordapp_version
 
 cordapp {
     targetPlatformVersion = platform_version.toInteger()
-    minimumPlatformVersion = platform_version.toInteger()
 
     contract {
         name = 'Without Transitive CorDapps'
@@ -42,7 +55,9 @@ cordapp {
 
 dependencies {
     cordaProvided "commons-codec:commons-codec:$commons_codec_version"
-    cordapp project(path: ':cpk-two', transitive: false)
+    cordapp(project(':cpk-two')) {
+        transitive = false
+    }
 }
 
 tasks.named('jar', Jar) {
