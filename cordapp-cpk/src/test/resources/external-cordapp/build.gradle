@@ -10,11 +10,10 @@ allprojects { p ->
         apply from: "$rootDir/repositories.gradle"
         apply from: "$rootDir/javaTarget.gradle"
 
-
         group = 'com.example'
         version = cordapp_version
 
-        jar {
+        tasks.named('jar', Jar) {
             archiveBaseName = p.name
         }
     }

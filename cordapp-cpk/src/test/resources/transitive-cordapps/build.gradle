@@ -34,7 +34,7 @@ allprojects {
 
                     // Publish any CPK that this project may have.
                     pluginManager.withPlugin('net.corda.plugins.cordapp-cpk') {
-                        artifact tasks.named('cpk')
+                        artifact tasks.named('cpk', Jar)
                     }
                 }
             }

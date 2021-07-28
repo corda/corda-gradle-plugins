@@ -9,7 +9,6 @@ version = cpk2_version
 
 cordapp {
     targetPlatformVersion = platform_version.toInteger()
-    minimumPlatformVersion = platform_version.toInteger()
 
     contract {
         name = 'CPK-2'
@@ -24,6 +23,6 @@ dependencies {
     cordaProvided "commons-io:commons-io:$commons_io_version"
 }
 
-jar {
+tasks.named('jar', Jar) {
     archiveBaseName = 'cpk-two'
 }

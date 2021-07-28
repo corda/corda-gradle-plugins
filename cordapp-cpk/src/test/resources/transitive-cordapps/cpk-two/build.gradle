@@ -22,7 +22,7 @@ dependencies {
     cordapp project(':cpk-one')
 }
 
-jar {
+tasks.named('jar', Jar) {
     archiveBaseName = 'cpk-two'
     manifest {
         attributes('Corda-CPK-Type': cpk2_type)

@@ -22,6 +22,6 @@ dependencies {
     cordapp project(':cpk-two')
 }
 
-jar {
+tasks.named('jar', Jar) {
     archiveBaseName = 'cpk-three'
 }

@@ -32,7 +32,9 @@ cordapp {
 }
 
 configurations {
-    cpks
+    cpks {
+        canBeConsumed = false
+    }
 }
 
 dependencies {
