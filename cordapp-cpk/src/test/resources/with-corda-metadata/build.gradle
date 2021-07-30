@@ -8,6 +8,7 @@ subprojects {
 
 configurations {
     testArtifacts {
+        canBeConsumed = false
         transitive = false
     }
 }
@@ -21,11 +22,14 @@ dependencies {
     testArtifacts project(path: ':services', configuration: 'cordaCPK')
 }
 
+def artifactDir = layout.buildDirectory.dir('libs')
 def copy = tasks.register('copy', Copy) {
-    into project.layout.buildDirectory.dir('libs')
+    into artifactDir
     from configurations.testArtifacts
 }
 
-tasks.named('assemble') {
-    dependsOn copy
+artifacts {
+    archives(artifactDir) {
+        builtBy copy
+    }
 }

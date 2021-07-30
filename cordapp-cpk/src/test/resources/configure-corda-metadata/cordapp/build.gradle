@@ -9,7 +9,6 @@ apply from: '../kotlin.gradle'
 
 cordapp {
     targetPlatformVersion = platform_version.toInteger()
-    minimumPlatformVersion = platform_version.toInteger()
 
     contract {
         name = contract_name
@@ -21,7 +20,7 @@ cordapp {
 
 version = cordapp_version
 
-jar {
+tasks.named('jar', Jar) {
     archiveBaseName = 'cordapp'
 }
 

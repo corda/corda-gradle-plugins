@@ -22,7 +22,6 @@ import org.gradle.api.plugins.JavaPlugin.JAR_TASK_NAME
 import org.gradle.api.plugins.JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.provider.Property
-import org.gradle.api.provider.SetProperty
 import org.gradle.api.tasks.SourceSet.MAIN_SOURCE_SET_NAME
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.bundling.ZipEntryCompression.DEFLATED
@@ -52,11 +51,6 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
         private const val OSGI_EXTENSION_NAME = "osgi"
         private const val MIN_GRADLE_VERSION = "6.6"
         private const val UNKNOWN = "Unknown"
-
-        val Array<String>.packageRange: IntRange get() {
-            val firstIdx = if (size > 2 && this[0] == "META-INF" && this[1] == "versions") { 3 } else { 0 }
-            return firstIdx..size - 2
-        }
 
         private val bndVersion: String get() {
             val properties = Properties().also { props ->
@@ -228,40 +222,23 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
             }
         }
 
+        // Corda's API artifacts should all be listed in the allCordapps configuration,
+        // and belong to either Maven Groups "net.corda" or possibly "com.r3.corda".
+        val allProvided = project.configurations.getByName(CORDA_ALL_PROVIDED_CONFIGURATION_NAME)
+        val hasCordaApis = project.provider {
+            // This value may change once any withDependencies handlers execute.
+            allProvided.allDependencies.any { dep ->
+                dep.group == CORDA_API_GROUP || dep.group == ENTERPRISE_API_GROUP
+            }
+        }
+
         val objects = project.objects
         val jarTask = project.tasks.named(JAR_TASK_NAME, Jar::class.java) { jar ->
             jar.inputs.nested(CORDAPP_EXTENSION_NAME, cordapp)
 
-            val osgi = jar.extensions.create(OSGI_EXTENSION_NAME, OsgiExtension::class.java, objects, jar)
-            jar.inputs.nested(OSGI_EXTENSION_NAME, osgi)
+            val osgi = jar.extensions.create(OSGI_EXTENSION_NAME, OsgiExtension::class.java, objects, hasCordaApis, jar)
             osgi.embed(calculatorTask.flatMap(DependencyCalculator::embeddedJars))
-
-            val noPackages = objects.setProperty(String::class.java)
-                .apply(SetProperty<String>::disallowChanges)
-            val autoPackages = objects.setProperty(String::class.java)
-            osgi.exportPackages(osgi.autoExport.flatMap { isAuto ->
-                if (isAuto) {
-                    autoPackages
-                } else {
-                    noPackages
-                }
-            })
-
-            // Install a "listener" for files copied into the CorDapp jar.
-            // We will extract the names of the non-empty packages inside
-            // this jar as we go...
-            jar.rootSpec.eachFile { file ->
-                if (!file.isDirectory) {
-                    val elements = file.relativePath.segments
-                    val packageRange = elements.packageRange
-                    if (!packageRange.isEmpty()) {
-                        val packageName = elements.slice(packageRange)
-                        if (packageName[0] != "META-INF" && packageName[0] != "OSGI-INF" && packageName.isJavaIdentifiers) {
-                            autoPackages.add(packageName.joinToString("."))
-                        }
-                    }
-                }
-            }
+            jar.inputs.nested(OSGI_EXTENSION_NAME, osgi)
 
             with(jar.convention.getPlugin(BundleTaskConvention::class.java)) {
                 // Add jars which have been migrated off the Bundle-Classpath

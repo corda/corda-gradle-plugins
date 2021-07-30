@@ -137,7 +137,7 @@ open class DependencyCalculator @Inject constructor(objects: ObjectFactory) : De
 
     @TaskAction
     fun calculate() {
-        // Compute the (unresolved) dependencies on the runtime classpath
+        // Compute the (unresolved) dependencies on the packaging classpath
         // that the user has selected for this CPK archive. We ignore any
         // dependencies from the cordaRuntimeOnly configuration because
         // these will be provided by Corda. Also ignore anything from the
@@ -228,8 +228,8 @@ open class DependencyCalculator @Inject constructor(objects: ObjectFactory) : De
             .filterNot { artifact -> isCordaProvided(artifact.moduleVersion.id) }
             .also { artifacts ->
                 // Corda artifacts should not be included, either directly or transitively.
-                warnAboutCordaArtifacts("net.corda", artifacts)
-                warnAboutCordaArtifacts("com.r3.corda", artifacts)
+                warnAboutCordaArtifacts(CORDA_API_GROUP, artifacts)
+                warnAboutCordaArtifacts(ENTERPRISE_API_GROUP, artifacts)
             }
     }
 
