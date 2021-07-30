@@ -61,9 +61,13 @@ open class OsgiExtension(objects: ObjectFactory, useImportPolicy: Provider<Boole
             "org.hibernate.proxy"
         ))
 
-        private val Array<String>.packageRange: IntRange get() {
-            val firstIdx = if (size > 2 && this[0] == "META-INF" && this[1] == "versions") { 3 } else { 0 }
-            return firstIdx..size - 2
+        private fun getPackageRange(packages: Array<String>): IntRange {
+            val firstIdx = if (packages.size > 2 && packages[0] == "META-INF" && packages[1] == "versions") {
+                3
+            } else {
+                0
+            }
+            return firstIdx..packages.size - 2
         }
 
         @Throws(IOException::class)
@@ -273,7 +277,7 @@ open class OsgiExtension(objects: ObjectFactory, useImportPolicy: Provider<Boole
         jar.rootSpec.eachFile { file ->
             if (!file.isDirectory) {
                 val elements = file.relativePath.segments
-                val packageRange = elements.packageRange
+                val packageRange = getPackageRange(elements)
                 if (!packageRange.isEmpty()) {
                     val packageName = elements.slice(packageRange)
                     if (packageName[0] != "META-INF" && packageName[0] != "OSGI-INF" && packageName.isJavaIdentifiers) {
