@@ -15,3 +15,6 @@ include 'cpk-two'
 
 include 'corda-api'
 project(':corda-api').projectDir = file('../resources/test/corda-api')
+
+include 'corda-platform'
+project(':corda-platform').projectDir = file('../resources/test/corda-platform')

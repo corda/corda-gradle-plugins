@@ -12,7 +12,7 @@ allprojects {
     repositories {
         maven {
             name = 'test-repository'
-            url = getProperty("maven.repository.dir")
+            url = maven_repository_dir
         }
         mavenCentral()
     }
@@ -42,7 +42,7 @@ dependencies {
     cordapp project('project-dependency')
 
     cpks project(path: 'project-dependency', configuration: 'cordaCPK')
-    cpks group: "com.example", name: "corda-platform-cordapp", version: cordapp_version, classifier: "cordapp", ext: "cpk"
+    cpks group: "net.corda", name: "corda-platform-cordapp", version: platform_cordapp_version, classifier: "cordapp", ext: "cpk"
     cpks group: "com.example", name: "external-cordapp", version: cordapp_version, classifier: "cordapp", ext: "cpk"
     cpks group: "com.example", name: "external-cordapp-transitive-dependency", version: cordapp_version, classifier: "cordapp", ext: "cpk"
 }

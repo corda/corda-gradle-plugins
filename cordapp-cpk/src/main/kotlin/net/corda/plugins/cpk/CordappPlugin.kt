@@ -125,19 +125,21 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
                 .withDependencies { dependencies ->
                     collector.collect()
                     dependencies.addAll(collector.cordappDependencies)
-                    dependencies.filterIsInstance(ModuleDependency::class.java).forEach { dep ->
-                        // Ensure that none of these dependencies is transitive. This will prevent
-                        // Gradle from adding any of these CorDapps' private library dependencies
-                        // to our own compile classpath.
-                        // WE ARE MUTATING THESE DEPENDENCIES FOR EVERY CONFIGURATION THEY APPEAR IN!
-                        dep.isTransitive = false
+                    dependencies.filterIsInstance(ModuleDependency::class.java)
+                        .filterNot(::isPlatformModule)
+                        .forEach { dep ->
+                            // Ensure that none of these dependencies is transitive. This will prevent
+                            // Gradle from adding any of these CorDapps' private library dependencies
+                            // to our own compile classpath.
+                            // WE ARE MUTATING THESE DEPENDENCIES FOR EVERY CONFIGURATION THEY APPEAR IN!
+                            dep.isTransitive = false
 
-                        // We also need to GUARANTEE that Gradle uses the jar artifact here.
-                        // Only the jar contains the OSGi metadata we need.
-                        if (dep is ProjectDependency) {
-                            dep.attributes(attributor::forJar)
+                            // We also need to GUARANTEE that Gradle uses the jar artifact here.
+                            // Only the jar contains the OSGi metadata we need.
+                            if (dep is ProjectDependency) {
+                                dep.attributes(attributor::forJar)
+                            }
                         }
-                    }
                 }
 
             // This definition of cordaProvided must be kept aligned with the one in the quasar-utils plugin.
@@ -222,13 +224,14 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
             }
         }
 
-        // Corda's API artifacts should all be listed in the allCordapps configuration,
+        // Corda's API artifacts should all be listed in the cordaAllProvided configuration,
         // and belong to either Maven Groups "net.corda" or possibly "com.r3.corda".
         val allProvided = project.configurations.getByName(CORDA_ALL_PROVIDED_CONFIGURATION_NAME)
         val hasCordaApis = project.provider {
             // This value may change once any withDependencies handlers execute.
             allProvided.allDependencies.any { dep ->
-                dep.group == CORDA_API_GROUP || dep.group == ENTERPRISE_API_GROUP
+                (dep.group == CORDA_API_GROUP || dep.group == ENTERPRISE_API_GROUP)
+                        && !(dep is ModuleDependency && isPlatformModule(dep))
             }
         }
 

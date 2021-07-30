@@ -2,6 +2,8 @@ plugins {
     id 'net.corda.plugins.cordapp-cpk'
 }
 
+group = 'com.example'
+
 cordapp {
     targetPlatformVersion = platform_version.toInteger()
 

@@ -22,15 +22,13 @@ import kotlin.streams.asSequence
 
 class CpbTest {
     companion object {
+        private const val platformCordappVersion = "2.3.4"
         private const val cordappVersion = "1.2.1"
-        private const val hostVersion = "2.0.1"
         private val cordaDevCertPrincipal = X500Principal("CN=Corda Dev Code Signer, OU=R3, O=Corda, L=London, C=GB")
-
 
         private lateinit var externalProject: GradleProject
         private lateinit var testProject: GradleProject
 
-        @Suppress("unused")
         @BeforeAll
         @JvmStatic
         fun setup(@TempDir testDir: Path, reporter: TestReporter) {
@@ -42,17 +40,17 @@ class CpbTest {
                 .withSubResource("corda-platform-cordapp/build.gradle")
                 .withSubResource("external-cordapp-transitive-dependency/build.gradle")
                 .withTaskName("publishAllPublicationsToTestRepository")
-                .build("-Pmaven.repository.dir=$mavenRepoDir",
+                .build("-Pmaven_repository_dir=$mavenRepoDir",
                     "-Pcorda_api_version=$cordaApiVersion",
-                    "-Phost_version=$hostVersion",
+                    "-Pplatform_cordapp_version=$platformCordappVersion",
                     "-Pcordapp_version=$cordappVersion",
                     "-Pcordapp_contract_version=$expectedCordappContractVersion")
             testProject = GradleProject(cpbProjectDir, reporter)
                 .withTestName("cordapp-cpb")
                 .withSubResource("project-dependency/build.gradle")
-                .build("-Pmaven.repository.dir=$mavenRepoDir",
+                .build("-Pmaven_repository_dir=$mavenRepoDir",
+                    "-Pplatform_cordapp_version=$platformCordappVersion",
                     "-Pcordapp_version=$cordappVersion",
-                    "-Phost_version=$hostVersion",
                     "-Pcordapp_contract_version=$expectedCordappContractVersion")
         }
 
@@ -91,11 +89,11 @@ class CpbTest {
         val cpbFile = assembledCpbFiles.first()
 
         testProject.cpkDependencies.singleOrNull {
-            it.name == "com.example.corda-platform-cordapp"
+            it.name == "net.corda.corda-platform-cordapp"
         }?.let {
-            Assertions.assertEquals(cordappVersion, it.version)
+            Assertions.assertEquals(platformCordappVersion, it.version)
             Assertions.assertEquals("corda-api", it.type)
-        } ?: Assertions.fail("'com.example.corda-platform-cordapp' is expected to be listed in the META-INF/CPKDependencies file")
+        } ?: Assertions.fail("'net.corda.corda-platform-cordapp' is expected to be listed in the META-INF/CPKDependencies file")
 
         val embeddedCpkFiles = TreeMap<String, String>()
         JarInputStream(Files.newInputStream(cpbFile), true).use { jarInputStream ->

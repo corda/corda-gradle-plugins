@@ -28,6 +28,7 @@ cordapp {
 }
 
 dependencies {
+    cordaProvided platform("net.corda:corda-platform:$corda_api_version")
     implementation "org.jetbrains.kotlin:kotlin-osgi-bundle:$kotlin_version"
     implementation "commons-io:commons-io:$commons_io_version"
     cordapp "com.example:cpk-three:$cpk3_version"

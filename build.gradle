@@ -119,12 +119,6 @@ configure(publishProjects) { Project subproject ->
         from sourceSets.main.allSource
     }
 
-    tasks.register('javadocJar', Jar) {
-        dependsOn subproject.javadoc
-        archiveClassifier = 'javadoc'
-        from javadoc.destinationDir
-    }
-
     tasks.register('install') {
         dependsOn 'publishToMavenLocal'
     }
@@ -141,7 +135,7 @@ configure(publishProjects) { Project subproject ->
                 groupId subproject.group
                 artifactId subproject.name
                 artifact tasks.named('sourceJar', Jar)
-                artifact tasks.named('javadocJar', Jar)
+                artifact tasks.named('publishPluginJavaDocsJar', Jar)
 
                 pom {
                     name = subproject.name

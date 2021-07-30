@@ -2,6 +2,7 @@ import static org.gradle.jvm.toolchain.JavaLanguageVersion.of
 
 plugins {
     id 'org.jetbrains.kotlin.jvm'
+    id 'org.jetbrains.dokka'
     id 'java-gradle-plugin'
     id 'jacoco'
 }
@@ -71,6 +72,12 @@ dependencies {
 
     jacocoRuntime "org.jacoco:org.jacoco.agent:${jacoco.toolVersion}:runtime"
 }
+
+tasks.withType(Jar).matching { it.name == 'publishPluginJavaDocsJar' }
+    .configureEach {
+        def dokka = tasks.named('dokkaHtml')
+        from dokka.flatMap { it.outputDirectory }
+    }
 
 tasks.named('compileTestKotlin') {
     kotlinOptions {

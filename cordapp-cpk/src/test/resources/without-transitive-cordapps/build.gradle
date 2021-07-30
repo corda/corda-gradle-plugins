@@ -8,10 +8,7 @@ apply from: 'javaTarget.gradle'
 apply from: 'kotlin.gradle'
 
 allprojects {
-    apply plugin: 'java-library'
     apply plugin: 'maven-publish'
-
-    group = 'com.example'
 
     tasks.withType(GenerateModuleMetadata).configureEach {
         // Ensure our Maven Repository is "bare bones",
@@ -29,7 +26,13 @@ allprojects {
 
         publications {
             maven(MavenPublication) {
-                from components.java
+                pluginManager.withPlugin('java-library') {
+                    from components.java
+                }
+
+                pluginManager.withPlugin('java-platform') {
+                    from components.javaPlatform
+                }
 
                 // Publish any CPK that this project may have.
                 pluginManager.withPlugin('net.corda.plugins.cordapp-cpk') {
@@ -40,6 +43,7 @@ allprojects {
     }
 }
 
+group = 'com.example'
 version = cordapp_version
 
 cordapp {
