@@ -1,9 +1,17 @@
 plugins {
     id 'net.corda.plugins.cordapp-cpk'
+    id 'org.jetbrains.kotlin.jvm'
 }
 
+repositories {
+    maven {
+        name = 'Test'
+        url = repository_dir
+    }
+}
 apply from: 'repositories.gradle'
 apply from: 'javaTarget.gradle'
+apply from: 'kotlin.gradle'
 
 group = 'com.example'
 version = cordapp_version
@@ -12,7 +20,7 @@ cordapp {
     targetPlatformVersion = platform_version.toInteger()
 
     contract {
-        name = 'CorDapp With Guava'
+        name = 'CorDapp With Platform'
         versionId = cordapp_contract_version.toInteger()
         licence = 'Test-Licence'
         vendor = 'R3'
@@ -20,11 +28,11 @@ cordapp {
 }
 
 dependencies {
-    cordaProvided project(':corda-api')
+    cordaProvided platform("net.corda:corda-platform:$corda_api_version")
+    cordaProvided 'net.corda:corda-api'
     implementation "org.jetbrains.kotlin:kotlin-osgi-bundle:$kotlin_version"
-    implementation "com.google.guava:guava:$guava_version"
 }
 
 tasks.named('jar', Jar) {
-    archiveBaseName = 'cordapp-with-guava'
+    archiveBaseName = 'cordapp-with-platform'
 }

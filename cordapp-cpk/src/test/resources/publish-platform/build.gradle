@@ -1,11 +1,7 @@
-plugins {
-    id 'net.corda.plugins.cordapp-cpk'
-    id 'org.jetbrains.kotlin.jvm'
-}
-
 apply from: 'repositories.gradle'
 apply from: 'javaTarget.gradle'
-apply from: 'kotlin.gradle'
+
+group = 'com.example'
 
 allprojects {
     apply plugin: 'maven-publish'
@@ -43,24 +39,4 @@ allprojects {
             }
         }
     }
-}
-
-group = 'com.example'
-version = cordapp_version
-
-cordapp {
-    targetPlatformVersion = platform_version.toInteger()
-
-    contract {
-        name = 'Transitive CorDapps'
-        versionId = cordapp_contract_version.toInteger()
-        licence = 'Test-Licence'
-        vendor = 'R3'
-    }
-}
-
-dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-osgi-bundle:$kotlin_version"
-    implementation "commons-io:commons-io:$commons_io_version"
-    cordapp project(':cpk-three')
 }

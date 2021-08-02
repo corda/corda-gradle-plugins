@@ -9,24 +9,43 @@ dependencies, nor any jars which should be provided by Corda, e.g. Kotlin or Qua
 contain sufficient OSGi metadata to be a valid OSGi bundle.
 
 ## Usage.
-Include these lines at the top of the `build.gradle` file of the Gradle project:
+Include these lines at the top of the `build.gradle` file of your CorDapp Gradle project:
 
 ```gradle
 plugins {
     id 'net.corda.plugins.cordapp-cpk'
 }
 ```
-You will also need to declare the plugin version in `settings.gradle`:
+
+You must also apply the `net.corda.cordapp.cordapp-configuration` plugin to your "root" Gradle project,
+to configure the `cordapp-cpk` plugin for your version of Corda:
+```gradle
+plugins {
+    id 'net.corda.cordapp.cordapp-configuration'
+}
+```
+
+If your Gradle project only contains a single module then you would apply both plugins together:
+```gradle
+plugins {
+    id 'net.corda.cordapp.cordapp-configuration'
+    id 'net.corda.plugins.cordapp-cpk'
+}
+```
+
+You will also need to declare both plugins' versions in `settings.gradle`:
 ```gradle
 pluginManagement {
     plugins {
+        id 'net.corda.cordapp.cordapp-configuration' version cordaReleaseVersion
         id 'net.corda.plugins.cordapp-cpk' version cpkPluginVersion
     }
 }
 ```
-where `cpkPluginVersion` is a Gradle property:
-```
+where `cpkPluginVersion` and `cordaReleaseVersion` are both Gradle properties:
+```gradle
 cpkPluginVersion = '6.0.0'
+cordaReleaseVersion = '5.0.0'
 ```
 
 Applying the `cordapp-cpk` plugin implicitly applies both Gradle's `java-library` plugin and Bnd's `builder` plugin,
@@ -114,7 +133,7 @@ configuration, and will also become a transitive `cordaProvided` dependency of a
 on this CorDapp.
 
 - `cordaPrivateProvided`: This configuration is like `cordaProvided`, except that its contents do
-not become transitive `cordaProvided` dependencies of CorDapps which depend on this one.
+not become transitive `cordaProvided` dependencies of any CorDapps which depend on this one.
 
 - `cordapp`: This declares a compile-time dependency against the "main" jar of another CPK CorDapp.
 As with `cordaProvided`, the dependency is also added implicitly to Gradle's `compileOnly` and
@@ -204,7 +223,7 @@ enabled to ensure that every `Import-Package` element has an associated version 
 The `cordapp-cpk` plugin automatically adds these dependencies to the CorDapp:
 ```groovy
 compileOnly "biz.aQute.bnd:biz.aQute.bnd.annotation:$bndVersion"
-compileOnly "org.osgi:osgi.annotation:7.0.0"
+compileOnly "org.osgi:osgi.annotation:8.0.0"
 ```
 
 These annotations [control how Bnd will generate OSGi metadata](https://bnd.bndtools.org/chapters/230-manifest-annotations.html)
@@ -323,3 +342,29 @@ Required-Packages=org.foo,org.bar
 ```
 
 Note that doing this will completely override the plugin's hard-coded list of packages.
+
+### Corda API Imports
+
+Our goal is for any CPK written for Corda 5.x to be compatible with every release of Corda 5.x.
+This requires the `cordapp-cpk` plugin to apply an explicit OSGi "consumer policy" for every
+Corda API package that the CPK may use:
+```
+version='${range;[=,+);${@}}'
+```
+We identify Corda's API packages using the `Import-Policy-Packages` property:
+```
+Import-Policy-Packages=net.corda.v5.*
+```
+You can prevent the `cordapp-cpk` plugin from applying this policy by settings:
+```gradle
+jar {
+    osgi {
+        applyImportPolicy = false
+    }
+}
+```
+However, this will likely also prevent your CPK compiled for Corda 5.x from installing
+correctly into any Corda node where
+```
+0 <= Corda version < x
+```

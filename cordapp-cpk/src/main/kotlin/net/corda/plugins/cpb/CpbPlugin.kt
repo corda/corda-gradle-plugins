@@ -9,6 +9,7 @@ import net.corda.plugins.cpk.CordappExtension
 import net.corda.plugins.cpk.CordappPlugin
 import net.corda.plugins.cpk.PackagingTask
 import net.corda.plugins.cpk.SignJar.Companion.sign
+import net.corda.plugins.cpk.isPlatformModule
 import net.corda.plugins.cpk.nested
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
@@ -51,22 +52,25 @@ class CpbPlugin : Plugin<Project> {
                     .resolvedConfiguration
 
                 val attributor = Attributor(project.objects)
-                cpbConfiguration.allDependencies.filterIsInstance(ModuleDependency::class.java).forEach { dependency ->
-                    val cpk = dependency.copy()
-                    when (dependency) {
-                        is ExternalDependency -> {
-                            cpk.artifact {
-                                it.name = dependency.name
-                                it.classifier = CPK_ARTIFACT_CLASSIFIER
-                                it.type = CPK_FILE_EXTENSION
+                cpbConfiguration.allDependencies
+                    .filterIsInstance(ModuleDependency::class.java)
+                    .filterNot(::isPlatformModule)
+                    .forEach { dependency ->
+                        val cpk = dependency.copy()
+                        when (dependency) {
+                            is ExternalDependency -> {
+                                cpk.artifact {
+                                    it.name = dependency.name
+                                    it.classifier = CPK_ARTIFACT_CLASSIFIER
+                                    it.type = CPK_FILE_EXTENSION
+                                }
+                            }
+                            else -> {
+                                cpk.attributes(attributor::forCpk)
                             }
                         }
-                        else -> {
-                            cpk.attributes(attributor::forCpk)
-                        }
+                        dependencies.add(cpk)
                     }
-                    dependencies.add(cpk)
-                }
             }.apply {
                 isCanBeConsumed = false
             }

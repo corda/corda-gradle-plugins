@@ -3,14 +3,18 @@ plugins {
 }
 
 allprojects { p ->
-    apply plugin: 'java-library'
     apply plugin: 'maven-publish'
 
-    if (p.path in [rootProject.path, ":corda-platform-cordapp", ":external-cordapp-transitive-dependency"]) {
+    tasks.withType(GenerateModuleMetadata).configureEach {
+        // Ensure our Maven Repository is "bare bones",
+        // i.e. has no sneaky extra Gradle metadata.
+        enabled = false
+    }
+
+    pluginManager.withPlugin('net.corda.plugins.cordapp-cpk') {
         apply from: "$rootDir/repositories.gradle"
         apply from: "$rootDir/javaTarget.gradle"
 
-        group = 'com.example'
         version = cordapp_version
 
         tasks.named('jar', Jar) {
@@ -22,12 +26,17 @@ allprojects { p ->
         repositories {
             maven {
                 name = 'Test'
-                url = getProperty("maven.repository.dir")
+                url = maven_repository_dir
             }
         }
         publications {
             maven(MavenPublication) {
-                from components.java
+                pluginManager.withPlugin('java-library') {
+                    from components.java
+                }
+                pluginManager.withPlugin('java-platform') {
+                    from components.javaPlatform
+                }
                 pluginManager.withPlugin('net.corda.plugins.cordapp-cpk') {
                     artifact tasks.named('cpk', Jar)
                 }
@@ -36,6 +45,7 @@ allprojects { p ->
     }
 }
 
+group = 'com.example'
 
 cordapp {
     targetPlatformVersion = platform_version.toInteger()

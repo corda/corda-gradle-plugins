@@ -1,12 +1,16 @@
+@file:JvmName("AttributeUtils")
 package net.corda.plugins.cpk
 
+import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.attributes.Bundling
 import org.gradle.api.attributes.Bundling.BUNDLING_ATTRIBUTE
 import org.gradle.api.attributes.Bundling.EXTERNAL
 import org.gradle.api.attributes.Category
 import org.gradle.api.attributes.Category.CATEGORY_ATTRIBUTE
+import org.gradle.api.attributes.Category.ENFORCED_PLATFORM
 import org.gradle.api.attributes.Category.LIBRARY
+import org.gradle.api.attributes.Category.REGULAR_PLATFORM
 import org.gradle.api.attributes.LibraryElements
 import org.gradle.api.attributes.LibraryElements.JAR
 import org.gradle.api.attributes.LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE
@@ -15,6 +19,18 @@ import org.gradle.api.attributes.Usage.JAVA_API
 import org.gradle.api.attributes.Usage.JAVA_RUNTIME
 import org.gradle.api.attributes.Usage.USAGE_ATTRIBUTE
 import org.gradle.api.model.ObjectFactory
+
+/**
+ * Identify a platform dependency by examining its
+ * [Category][org.gradle.api.attributes.Category]
+ * variant attribute.
+ */
+fun isPlatformModule(dependency: ModuleDependency): Boolean {
+    val attr = dependency.attributes.getAttribute(CATEGORY_ATTRIBUTE) ?: return false
+    return attr.name.let { value ->
+        value == REGULAR_PLATFORM || value == ENFORCED_PLATFORM
+    }
+}
 
 internal class AttributeFactory(
     private val attrs: AttributeContainer,

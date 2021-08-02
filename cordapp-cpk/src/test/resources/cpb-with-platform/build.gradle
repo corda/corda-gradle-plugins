@@ -1,0 +1,57 @@
+plugins {
+    id 'net.corda.plugins.cordapp-cpb'
+    id 'org.jetbrains.kotlin.jvm'
+}
+
+repositories {
+    maven {
+        name = 'Test'
+        url = maven_repository_dir
+    }
+}
+apply from: 'repositories.gradle'
+apply from: 'javaTarget.gradle'
+apply from: 'kotlin.gradle'
+
+group = 'com.example'
+version = cordapp_version
+
+cordapp {
+    targetPlatformVersion = platform_version.toInteger()
+
+    contract {
+        name = 'CPB Platform Test'
+        versionId = cordapp_contract_version.toInteger()
+        licence = 'Test-Licence'
+        vendor = 'R3'
+    }
+}
+
+configurations {
+    cpks {
+        canBeConsumed = false
+    }
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-osgi-bundle:$kotlin_version"
+    cordaProvided 'net.corda:corda-api'
+
+    cordapp platform("net.corda:corda-platform:$corda_api_version")
+    cordapp 'net.corda:corda-platform-cordapp'
+
+    cpks platform("net.corda:corda-platform:$corda_api_version")
+    cpks 'net.corda:corda-platform-cordapp::cordapp@cpk'
+}
+
+def cpkDir = layout.buildDirectory.dir('cpks')
+def copyCPKs = tasks.register('copyCPKs', Copy) {
+    from configurations.cpks
+    into cpkDir
+}
+
+artifacts {
+    archives(cpkDir) {
+        builtBy copyCPKs
+    }
+}

@@ -106,6 +106,12 @@ processTestResources {
     }
 }
 
+tasks.withType(Jar).matching { it.name == 'publishPluginJavaDocsJar' }
+    .configureEach {
+        def dokka = tasks.named('dokkaHtml')
+        from dokka.flatMap { it.outputDirectory }
+    }
+
 tasks.withType(Javadoc).configureEach {
     options.showFromPackage()
 }

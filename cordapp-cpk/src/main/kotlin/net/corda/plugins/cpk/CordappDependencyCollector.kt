@@ -6,6 +6,7 @@ import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ProjectDependency
+import org.gradle.api.artifacts.ResolvedConfiguration
 import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.logging.Logger
@@ -17,6 +18,7 @@ internal class CordappDependencyCollector(
     private val attributor: Attributor,
     private val logger: Logger
 ) {
+    private val platforms = mutableSetOf<ModuleDependency>()
     private val cordappProjects = mutableSetOf<ProjectDependency>()
     private val cordappModules = mutableSetOf<Dependency>()
     private val provided = mutableSetOf<Dependency>()
@@ -31,20 +33,52 @@ internal class CordappDependencyCollector(
 
     @Synchronized
     fun collect() {
+        // Identify any Gradle platform dependencies we may have.
+        // We will need these when we resolve our detached configurations.
+        // IMPORTANT! We MUST NOT resolve the "cordappExternal" configuration here!
+        configurations.getByName(CORDAPP_EXTERNAL_CONFIGURATION_NAME).allDependencies
+            .filterIsInstance(ModuleDependency::class.java)
+            .filterTo(platforms, ::isPlatformModule)
+
+        // Now walk through our "cordapp" dependencies.
         collectFrom(configurations.getByName(CORDAPP_CONFIGURATION_NAME).allDependencies)
+    }
+
+    private fun resolve(dependency: Dependency): ResolvedConfiguration {
+        // Configuration.extendsFrom() appears broken for detached configurations.
+        // See https://github.com/gradle/gradle/issues/6881.
+        return configurations.detachedConfiguration(dependency, *platforms.toTypedArray())
+            .attributes(attributor::forCompileClasspath)
+            .setVisible(false)
+            .resolvedConfiguration
+    }
+
+    private fun hasCollectables(dependency: ModuleDependency): Boolean {
+        return dependency.isTransitive && !isPlatformModule(dependency)
     }
 
     private fun collectFrom(dependencies: DependencySet) {
         for (dependency in dependencies) {
             if (dependency is ProjectDependency) {
-                if (cordappProjects.add(dependency) && dependency.isTransitive) {
+                if (cordappProjects.add(dependency) && hasCollectables(dependency)) {
                     // Resolve a CorDapp dependency from another
                     // module in a multi-module build.
                     collectFrom(dependency)
                 }
             } else if (dependency is ModuleDependency) {
-                if (cordappModules.add(dependency) && dependency.isTransitive) {
-                    val cordapp = dependencyHandler.create(dependency.asMap.toCPK())
+                if (cordappModules.add(dependency) && hasCollectables(dependency)) {
+                    val depMap = dependency.asMap
+                    if (dependency.version == null && platforms.isNotEmpty()) {
+                        // This dependency has no explicit version of its own.
+                        // Try to learn which version to use by resolving it
+                        // against our platform dependencies.
+                        resolve(dependency).getFirstLevelModuleDependencies { dep ->
+                            dep.group == dependency.group && dep.name == dependency.name
+                        }.singleOrNull()?.also { dep ->
+                            depMap[DEPENDENCY_VERSION] = dep.moduleVersion
+                        }
+                    }
+                    val cordapp = dependencyHandler.create(depMap.toCPK())
                     // Try to resolve the CorDapp's "companion" dependency.
                     // This may not exist, although it's better if it does.
                     collectFrom(cordapp)
@@ -64,17 +98,16 @@ internal class CordappDependencyCollector(
     }
 
     private fun collectFrom(cordapp: Dependency) {
-        val resolved = configurations.detachedConfiguration(cordapp)
-            .attributes(attributor::forCompileClasspath)
-            .setVisible(false)
-            .resolvedConfiguration
+        val resolved = resolve(cordapp)
         if (resolved.hasError()) {
             logger.warn("CorDapp has unresolved dependencies:{}",
                 resolved.lenientConfiguration.unresolvedModuleDependencies.joinToString(SEPARATOR, SEPARATOR))
             logger.warn("Cannot resolve CPK companion artifact '{}' - SKIPPED", cordapp.toMaven())
         } else {
             // This should never now throw ResolveException.
-            collectFrom(resolved.firstLevelModuleDependencies, mutableSetOf())
+            collectFrom(resolved.getFirstLevelModuleDependencies { dep ->
+                dep is ModuleDependency && !isPlatformModule(dep)
+            }, mutableSetOf())
         }
     }
 
