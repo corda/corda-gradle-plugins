@@ -4,14 +4,18 @@ import net.corda.plugins.cpk.CORDAPP_TASK_GROUP
 import net.corda.plugins.cpk.CORDA_CPK_TYPE
 import net.corda.plugins.cpk.CPK_FILE_EXTENSION
 import org.gradle.api.file.DuplicatesStrategy
+import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.Property
 import org.gradle.api.tasks.AbstractCopyTask
+import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.bundling.ZipEntryCompression
 import java.nio.file.Files
 import java.util.jar.JarInputStream
 import java.util.zip.ZipInputStream
+import javax.inject.Inject
 
-open class CpbTask : Jar() {
+open class CpbTask @Inject constructor(objects: ObjectFactory) : Jar() {
 
     companion object {
         private const val CPB_ARTIFACT_CLASSIFIER = "package"
@@ -19,12 +23,23 @@ open class CpbTask : Jar() {
         private const val CPK_FILE_SUFFIX = ".$CPK_FILE_EXTENSION"
         private const val JAR_FILE_SUFFIX = ".jar"
         private val EXCLUDED_CPK_TYPES = setOf("corda-api")
+        const val CPB_NAME_ATTRIBUTE = "Corda-CPB-Name"
+        const val CPB_VERSION_ATTRIBUTE = "Corda-CPB-Version"
     }
+
+
+    @get:Input
+    val cpbName : Property<String>
+
+    @get:Input
+    val cpbVersion : Property<String>
 
     init {
         group = CORDAPP_TASK_GROUP
         description = "Assembles a .cpb archive that contains the current project's .cpk artifact " +
                 "and all of its dependencies"
+        cpbName = objects.property(String::class.java).convention(archiveBaseName)
+        cpbVersion = objects.property(String::class.java).convention(archiveVersion)
         archiveClassifier.set(CPB_ARTIFACT_CLASSIFIER)
         archiveExtension.set(CPB_FILE_EXTENSION)
         dirMode = Integer.parseInt("555", 8)
@@ -38,6 +53,11 @@ open class CpbTask : Jar() {
         isPreserveFileTimestamps = false
         isReproducibleFileOrder = true
         isZip64 = true
+
+        manifest { m ->
+            m.attributes[CPB_NAME_ATTRIBUTE] = cpbName
+            m.attributes[CPB_VERSION_ATTRIBUTE] = cpbVersion
+        }
     }
 
     override fun from(vararg args : Any) : AbstractCopyTask {

@@ -97,6 +97,8 @@ class CpbTest {
 
         val embeddedCpkFiles = TreeMap<String, String>()
         JarInputStream(Files.newInputStream(cpbFile), true).use { jarInputStream ->
+            Assertions.assertEquals("customName", jarInputStream.manifest.mainAttributes.getValue("Corda-CPB-Name"))
+            Assertions.assertEquals("customVersion", jarInputStream.manifest.mainAttributes.getValue("Corda-CPB-Version"))
             generateSequence(jarInputStream::getNextJarEntry).forEach { jarEntry ->
                 when {
                     jarEntry.name.endsWith(".cpk") -> {

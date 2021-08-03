@@ -59,3 +59,8 @@ artifacts {
         builtBy copyCPKs
     }
 }
+
+cpb {
+    cpbName = "customName"
+    cpbVersion = "customVersion"
+}
