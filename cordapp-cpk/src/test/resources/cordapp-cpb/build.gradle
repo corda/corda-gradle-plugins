@@ -61,6 +61,6 @@ artifacts {
 }
 
 cpb {
-    cpbName = "customName"
-    cpbVersion = "customVersion"
+    archiveBaseName = "customName"
+    archiveVersion = "customVersion"
 }

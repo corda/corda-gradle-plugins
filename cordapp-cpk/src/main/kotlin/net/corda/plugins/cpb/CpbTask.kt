@@ -5,9 +5,7 @@ import net.corda.plugins.cpk.CORDA_CPK_TYPE
 import net.corda.plugins.cpk.CPK_FILE_EXTENSION
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.model.ObjectFactory
-import org.gradle.api.provider.Property
 import org.gradle.api.tasks.AbstractCopyTask
-import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.bundling.ZipEntryCompression
 import java.nio.file.Files
@@ -28,18 +26,10 @@ open class CpbTask @Inject constructor(objects: ObjectFactory) : Jar() {
     }
 
 
-    @get:Input
-    val cpbName : Property<String>
-
-    @get:Input
-    val cpbVersion : Property<String>
-
     init {
         group = CORDAPP_TASK_GROUP
         description = "Assembles a .cpb archive that contains the current project's .cpk artifact " +
                 "and all of its dependencies"
-        cpbName = objects.property(String::class.java).convention(archiveBaseName)
-        cpbVersion = objects.property(String::class.java).convention(archiveVersion)
         archiveClassifier.set(CPB_ARTIFACT_CLASSIFIER)
         archiveExtension.set(CPB_FILE_EXTENSION)
         dirMode = Integer.parseInt("555", 8)
@@ -55,8 +45,8 @@ open class CpbTask @Inject constructor(objects: ObjectFactory) : Jar() {
         isZip64 = true
 
         manifest { m ->
-            m.attributes[CPB_NAME_ATTRIBUTE] = cpbName
-            m.attributes[CPB_VERSION_ATTRIBUTE] = cpbVersion
+            m.attributes[CPB_NAME_ATTRIBUTE] = archiveBaseName
+            m.attributes[CPB_VERSION_ATTRIBUTE] = archiveVersion
         }
     }
 
