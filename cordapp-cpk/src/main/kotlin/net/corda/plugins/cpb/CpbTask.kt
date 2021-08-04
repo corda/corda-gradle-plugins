@@ -4,16 +4,14 @@ import net.corda.plugins.cpk.CORDAPP_TASK_GROUP
 import net.corda.plugins.cpk.CORDA_CPK_TYPE
 import net.corda.plugins.cpk.CPK_FILE_EXTENSION
 import org.gradle.api.file.DuplicatesStrategy
-import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.AbstractCopyTask
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.bundling.ZipEntryCompression
 import java.nio.file.Files
 import java.util.jar.JarInputStream
 import java.util.zip.ZipInputStream
-import javax.inject.Inject
 
-open class CpbTask @Inject constructor(objects: ObjectFactory) : Jar() {
+open class CpbTask : Jar() {
 
     companion object {
         private const val CPB_ARTIFACT_CLASSIFIER = "package"
