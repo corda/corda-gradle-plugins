@@ -324,9 +324,9 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
             task.mustRunAfter(verifyBundle)
 
             // Basic configuration of the packaging task.
-            task.destinationDirectory.set(jarTask.flatMap(Jar::getDestinationDirectory))
-            task.archiveBaseName.set(jarTask.flatMap(Jar::getArchiveBaseName))
-            task.archiveAppendix.set(jarTask.flatMap(Jar::getArchiveAppendix))
+            task.destinationDirectory.convention(jarTask.flatMap(Jar::getDestinationDirectory))
+            task.archiveBaseName.convention(jarTask.flatMap(Jar::getArchiveBaseName))
+            task.archiveAppendix.convention(jarTask.flatMap(Jar::getArchiveAppendix))
 
             // Configure the CPK archive contents.
             task.setLibrariesFrom(constraintsTask)
