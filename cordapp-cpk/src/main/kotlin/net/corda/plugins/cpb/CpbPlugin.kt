@@ -17,8 +17,10 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.Dependency.ARCHIVES_CONFIGURATION
 import org.gradle.api.artifacts.ExternalDependency
 import org.gradle.api.artifacts.ModuleDependency
+import org.gradle.api.plugins.JavaPlugin.JAR_TASK_NAME
+import org.gradle.api.tasks.bundling.Jar
 
-@Suppress("UnstableApiUsage")
+@Suppress("Unused", "UnstableApiUsage")
 class CpbPlugin : Plugin<Project> {
 
     companion object {
@@ -92,6 +94,13 @@ class CpbPlugin : Plugin<Project> {
             val cordappExtension = project.extensions.findByType(CordappExtension::class.java)
                 ?: throw GradleException("Cordapp extension not found")
             cpbTask.inputs.nested("cordappSigning", cordappExtension.signing)
+
+            // Basic configuration of the CPB task.
+            val jarTask = project.tasks.named(JAR_TASK_NAME, Jar::class.java)
+            cpbTask.destinationDirectory.convention(jarTask.flatMap(Jar::getDestinationDirectory))
+            cpbTask.archiveBaseName.convention(jarTask.flatMap(Jar::getArchiveBaseName))
+            cpbTask.archiveAppendix.convention(jarTask.flatMap(Jar::getArchiveAppendix))
+
             cpbTask.doLast {
                 if (cordappExtension.signing.enabled.get()) {
                     cpbTask.sign(cordappExtension.signing, cpbTask.archiveFile.get().asFile)
