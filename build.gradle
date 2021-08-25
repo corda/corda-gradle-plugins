@@ -4,6 +4,7 @@ import static org.gradle.jvm.toolchain.JavaLanguageVersion.of
 plugins {
     id 'org.jetbrains.kotlin.jvm' apply false
     id 'com.gradle.plugin-publish' apply false
+    id 'org.owasp.dependencycheck' apply false
     id 'com.jfrog.artifactory' apply false
 }
 
@@ -12,6 +13,7 @@ ext {
 }
 
 subprojects {
+    apply plugin: 'org.owasp.dependencycheck'
     apply plugin: 'idea'
 
     version gradle_plugins_version

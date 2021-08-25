@@ -59,7 +59,7 @@ class ApiPrintWriter extends PrintWriter {
         println();
     }
 
-    void println(MethodInfo method, AnnotationInfoList visibleAnnotations, String indentation) {
+    void println(@Nonnull MethodInfo method, @Nonnull AnnotationInfoList visibleAnnotations, String indentation) {
         append(asAnnotations(visibleAnnotations.getNames(), indentation));
         append(indentation).append(pureModifiersFor(method)).append(' ');
         if (!method.isConstructor()) {
@@ -79,10 +79,10 @@ class ApiPrintWriter extends PrintWriter {
         println(')');
     }
 
-    void println(FieldInfo field, AnnotationInfoList visibleAnnotations, String indentation) {
+    void println(@Nonnull FieldInfo field, @Nonnull AnnotationInfoList visibleAnnotations, String indentation) {
         append(asAnnotations(visibleAnnotations.getNames(), indentation))
             .append(indentation)
-            .append(field.getModifierStr())
+            .append(field.getModifiersStr())
             .append(' ')
             .append(removeQualifierFromBaseTypes(field.getTypeSignatureOrTypeDescriptor()))
             .append(' ')
@@ -101,7 +101,7 @@ class ApiPrintWriter extends PrintWriter {
         println();
     }
 
-    private static String asAnnotations(Collection<String> items, String indentation) {
+    private static String asAnnotations(@Nonnull Collection<String> items, String indentation) {
         if (items.isEmpty()) {
             return "";
         }
@@ -109,25 +109,42 @@ class ApiPrintWriter extends PrintWriter {
             .collect(joining(System.lineSeparator() + indentation + '@', indentation + '@', System.lineSeparator()));
     }
 
-    private static String pureModifiersFor(MethodInfo method) {
+    @Nonnull
+    private static String pureModifiersFor(@Nonnull MethodInfo method) {
         StringBuilder builder = new StringBuilder();
         TypeUtils.modifiersToString(method.getModifiers() & METHOD_MASK, METHOD, false, builder);
         return builder.toString();
     }
 
-    private static String removePackageName(String className) {
+    @Nonnull
+    private static String removePackageName(@Nonnull String className) {
         return className.substring(className.lastIndexOf('.') + 1);
     }
 
-    private static String stringOf(Collection<ClassInfo> items) {
+    private static String stringOf(@Nonnull Collection<ClassInfo> items) {
         return items.stream().map(ClassInfo::getName).sorted().collect(joining(", "));
     }
 
-    private static String removeQualifierFromBaseTypes(String className) {
+    // We cannot trust the output of TypeSignature::toString not to change.
+    private static String stringOf(TypeSignature sig) {
+        if (sig instanceof BaseTypeSignature) {
+            return ((BaseTypeSignature) sig).getTypeStr();
+        } else if (sig instanceof ClassRefTypeSignature) {
+            return ((ClassRefTypeSignature) sig).getFullyQualifiedClassName();
+        } else if (sig instanceof TypeVariableSignature) {
+            return ((TypeVariableSignature) sig).getName();
+        } else {
+            return sig.toString();
+        }
+    }
+
+    @Nonnull
+    private static String removeQualifierFromBaseTypes(@Nonnull String className) {
         return className.replace("java.lang.", "");
     }
 
+    @Nonnull
     private static String removeQualifierFromBaseTypes(TypeSignature typeSignature) {
-        return removeQualifierFromBaseTypes(typeSignature.toString());
+        return removeQualifierFromBaseTypes(stringOf(typeSignature));
     }
 }
