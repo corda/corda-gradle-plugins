@@ -78,9 +78,9 @@ class ScanApi extends DefaultTask {
     private static final int VISIBILITY_MASK = Modifier.PUBLIC | Modifier.PROTECTED;
 
     private static final String ENUM_BASE_CLASS = "java.lang.Enum";
-    private static final String DONOTIMPLEMENT_ANNOTATION_NAME = "net.corda.core.DoNotImplement";
+    private static final String DONOTIMPLEMENT_ANNOTATION_NAME = "net.corda.v5.base.annotations.DoNotImplement";
     private static final String INTERNAL_ANNOTATION_NAME = ".CordaInternal";
-    private static final String DEFAULT_INTERNAL_ANNOTATION = "net.corda.core" + INTERNAL_ANNOTATION_NAME;
+    private static final String DEFAULT_INTERNAL_ANNOTATION = "net.corda.v5.base.annotations" + INTERNAL_ANNOTATION_NAME;
     private static final Set<String> ANNOTATION_BLACKLIST;
 
     static {
@@ -441,6 +441,7 @@ class ScanApi extends DefaultTask {
             List<String> visible = partitioned.get(true);
             int idx = visible.indexOf(DONOTIMPLEMENT_ANNOTATION_NAME);
             if (idx != -1) {
+                // Raise @DoNotImplement to top of list.
                 swap(visible, 0, idx);
                 sort(visible.subList(1, visible.size()));
             } else {
