@@ -22,11 +22,11 @@ configurations {
  * jars to depend upon each other. And so we share source code
  * rather than resort to shading!
  */
-def generatedSourceDir = file("$buildDir/generated-source")
+def generatedSourceDir = layout.buildDirectory.dir('generated-source')
 def generateSource = tasks.register('generateSource', Copy) {
     from project(':cordapp-cpk').file('src/main/template')
     filter(ReplaceTokens, tokens: [root_package: 'net.corda.plugins.cordformation'])
-    into generatedSourceDir
+    into generatedSourceDir.map { it.dir('net/corda/plugins/cordformation/signing') }
 }
 
 sourceSets {
