@@ -41,7 +41,7 @@ subprojects {
                 }
             }
 
-            tasks.named("processResources", ProcessResources) {
+            tasks.named('processResources', ProcessResources) {
                 from(files(generateResources)) {
                     into 'META-INF'
                 }
@@ -115,7 +115,7 @@ configure(publishProjects) { Project subproject ->
 
     evaluationDependsOn(subproject.path)
 
-    tasks.register('sourceJar', Jar) {
+    tasks.register('sourcesJar', Jar) {
         dependsOn subproject.classes
         archiveClassifier = 'sources'
         from sourceSets.main.allSource
@@ -127,21 +127,8 @@ configure(publishProjects) { Project subproject ->
 
     publishing {
         publications {
-            create(subproject.name, MavenPublication) {
-                if (subproject.hasProperty('mavenArtifacts')) {
-                    subproject.mavenArtifacts.call(it)
-                } else {
-                    from components.java
-                }
-
-                groupId subproject.group
-                artifactId subproject.name
-                artifact tasks.named('sourceJar', Jar)
-                artifact tasks.named('publishPluginJavaDocsJar', Jar)
-
+            configureEach {
                 pom {
-                    name = subproject.name
-                    description = subproject.description
                     url = vcsUrl
                     scm {
                         url = vcsUrl
@@ -162,6 +149,24 @@ configure(publishProjects) { Project subproject ->
                             email = 'dev@corda.net'
                         }
                     }
+                }
+            }
+
+            create(subproject.name, MavenPublication) {
+                if (subproject.hasProperty('mavenArtifacts')) {
+                    subproject.mavenArtifacts.call(it)
+                } else {
+                    from components.java
+                }
+
+                groupId subproject.group
+                artifactId subproject.name
+                artifact tasks.named('sourcesJar', Jar)
+                artifact tasks.named('publishPluginJavaDocsJar', Jar)
+
+                pom {
+                    name = subproject.name
+                    description = subproject.description
                 }
 
                 if (subproject.hasProperty('mavenPom')) {

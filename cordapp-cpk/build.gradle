@@ -12,7 +12,7 @@ description 'Configures this project to create a CPK CorDapp'
 ext {
     osgi_service_component_version = '1.4.0'
     test_persistence_api_version = '2.2'
-    test_hibernate_version = '5.4.30.Final'
+    test_hibernate_version = '5.4.32.Final'
     test_kotlin_version = '1.4.32'
     corda_guava_version = '20.0'
 }
@@ -58,11 +58,11 @@ pluginBundle {
  * jars to depend upon each other. And so we share source code
  * rather than resort to shading!
  */
-def generatedSourceDir = file("$buildDir/generated-source")
+def generatedSourceDir = layout.buildDirectory.dir('generated-source')
 def generateSource = tasks.register('generateSource', Copy) {
     from 'src/main/template'
     filter(ReplaceTokens, tokens: [root_package: 'net.corda.plugins.cpk'])
-    into generatedSourceDir
+    into generatedSourceDir.map { it.dir('net/corda/plugins/cpk/signing') }
 }
 
 sourceSets {
