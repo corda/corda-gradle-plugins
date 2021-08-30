@@ -1,4 +1,4 @@
-package net.corda.core;
+package net.corda.v5.base.annotations;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;

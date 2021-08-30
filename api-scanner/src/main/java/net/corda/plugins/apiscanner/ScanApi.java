@@ -59,7 +59,7 @@ import static java.util.stream.Collectors.toSet;
 import static net.corda.plugins.apiscanner.ApiScanner.GROUP_NAME;
 import static org.gradle.api.tasks.PathSensitivity.RELATIVE;
 
-@SuppressWarnings({"unused", "WeakerAccess", "UnstableApiUsage"})
+@SuppressWarnings({"unused", "rawtypes", "WeakerAccess", "UnstableApiUsage"})
 class ScanApi extends DefaultTask {
     private static final int CLASS_MASK = Modifier.classModifiers();
     private static final int INTERFACE_MASK = Modifier.interfaceModifiers() & ~Modifier.ABSTRACT;
@@ -78,9 +78,9 @@ class ScanApi extends DefaultTask {
     private static final int VISIBILITY_MASK = Modifier.PUBLIC | Modifier.PROTECTED;
 
     private static final String ENUM_BASE_CLASS = "java.lang.Enum";
-    private static final String DONOTIMPLEMENT_ANNOTATION_NAME = "net.corda.core.DoNotImplement";
+    private static final String DONOTIMPLEMENT_ANNOTATION_NAME = "net.corda.v5.base.annotations.DoNotImplement";
     private static final String INTERNAL_ANNOTATION_NAME = ".CordaInternal";
-    private static final String DEFAULT_INTERNAL_ANNOTATION = "net.corda.core" + INTERNAL_ANNOTATION_NAME;
+    private static final String DEFAULT_INTERNAL_ANNOTATION = "net.corda.v5.base.annotations" + INTERNAL_ANNOTATION_NAME;
     private static final Set<String> ANNOTATION_BLACKLIST;
 
     static {
@@ -185,7 +185,7 @@ class ScanApi extends DefaultTask {
         this.excludeMethods.empty()
             .putAll(excludeMethods.map(m -> {
                 Map<String, Set<String>> result = new LinkedHashMap<>();
-                m.forEach((key, value) -> result.put(key, new LinkedHashSet<>((Collection<String>)value)));
+                m.forEach((key, value) -> result.put(key, new LinkedHashSet<>(value)));
                 return result;
             }));
     }
@@ -280,8 +280,8 @@ class ScanApi extends DefaultTask {
 
         void scan(ApiPrintWriter writer, ClassLoader appLoader) {
             try (ScanResult result = new ClassGraph()
-                    .blacklistPackages(excludePackages.get().toArray(new String[0]))
-                    .blacklistClasses(excludeClasses.get().toArray(new String[0]))
+                    .rejectPackages(excludePackages.get().toArray(new String[0]))
+                    .rejectClasses(excludeClasses.get().toArray(new String[0]))
                     .overrideClassLoaders(appLoader)
                     .ignoreParentClassLoaders()
                     .ignoreMethodVisibility()
@@ -441,6 +441,7 @@ class ScanApi extends DefaultTask {
             List<String> visible = partitioned.get(true);
             int idx = visible.indexOf(DONOTIMPLEMENT_ANNOTATION_NAME);
             if (idx != -1) {
+                // Raise @DoNotImplement to top of list.
                 swap(visible, 0, idx);
                 sort(visible.subList(1, visible.size()));
             } else {

@@ -4,6 +4,7 @@ import static org.gradle.jvm.toolchain.JavaLanguageVersion.of
 plugins {
     id 'org.jetbrains.kotlin.jvm' apply false
     id 'com.gradle.plugin-publish' apply false
+    id 'org.owasp.dependencycheck' apply false
     id 'com.jfrog.artifactory' apply false
 }
 
@@ -12,6 +13,7 @@ ext {
 }
 
 subprojects {
+    apply plugin: 'org.owasp.dependencycheck'
     apply plugin: 'idea'
 
     version gradle_plugins_version
@@ -72,13 +74,15 @@ subprojects {
     tasks.withType(Test).configureEach {
         useJUnitPlatform()
 
-        // Prevent the project from creating temporary files outside of the build directory.
-        systemProperty 'java.io.tmpdir', buildDir.absolutePath
+        doFirst {
+            // Prevent the project from creating temporary files outside of the build directory.
+            systemProperty 'java.io.tmpdir', buildDir.absolutePath
 
-        // Tell the tests where Gradle's current module cache is.
-        // We need the tests to share this module cache to prevent the
-        // Gradle Test-Kit from downloading its own copy of Kotlin etc.
-        systemProperty 'test.gradle.user.home', project.gradle.gradleUserHomeDir
+            // Tell the tests where Gradle's current module cache is.
+            // We need the tests to share this module cache to prevent the
+            // Gradle Test-Kit from downloading its own copy of Kotlin etc.
+            systemProperty 'test.gradle.user.home', gradle.gradleUserHomeDir
+        }
     }
 
     tasks.withType(ValidatePlugins).configureEach {
