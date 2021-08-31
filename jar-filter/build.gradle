@@ -73,11 +73,11 @@ dependencies {
     jacocoRuntime "org.jacoco:org.jacoco.agent:${jacoco.toolVersion}:runtime"
 }
 
-tasks.withType(Jar).matching { it.name == 'publishPluginJavaDocsJar' }
-    .configureEach {
-        def dokka = tasks.named('dokkaHtml')
-        from dokka.flatMap { it.outputDirectory }
-    }
+tasks.register('kdocsJar', Jar) {
+    def dokka = tasks.named('dokkaHtml')
+    from dokka.flatMap { it.outputDirectory }
+    archiveClassifier = 'javadoc'
+}
 
 tasks.named('compileTestKotlin') {
     kotlinOptions {
