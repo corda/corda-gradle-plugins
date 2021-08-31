@@ -162,7 +162,11 @@ configure(publishProjects) { Project subproject ->
                 groupId subproject.group
                 artifactId subproject.name
                 artifact tasks.named('sourcesJar', Jar)
-                artifact tasks.named('publishPluginJavaDocsJar', Jar)
+                try {
+                    artifact tasks.named('kdocsJar', Jar)
+                } catch (UnknownTaskException e) {
+                    artifact tasks.named('publishPluginJavaDocsJar', Jar)
+                }
 
                 pom {
                     name = subproject.name
