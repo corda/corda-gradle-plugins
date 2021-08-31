@@ -68,6 +68,11 @@ class TransitiveRemoteCordappsTest {
                     "-Pcpk1_type=$cpk1Type",
                     "-Pcpk2_type=$cpk2Type"
                 )
+
+            // Check that we could still read all of Gradle's MavenPom properties.
+            assertThat(publisherProject.output.split(System.lineSeparator()))
+                .noneMatch { it.startsWith("INTERNAL API:") }
+
             testProject = GradleProject(testProjectDir, reporter)
                 .withTestName("transitive-remote-cordapps")
                 .withSubResource("src/main/kotlin/com/example/transitives/ExampleContract.kt")

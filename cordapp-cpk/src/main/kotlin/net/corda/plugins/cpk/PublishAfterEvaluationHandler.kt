@@ -14,6 +14,11 @@ import org.gradle.api.logging.Logger
 import org.gradle.api.plugins.JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME
 import org.gradle.api.provider.Provider
 import org.gradle.api.publish.PublishingExtension
+import org.gradle.api.publish.maven.MavenPom
+import org.gradle.api.publish.maven.MavenPomDeveloper
+import org.gradle.api.publish.maven.MavenPomLicense
+import org.gradle.api.publish.maven.MavenPomOrganization
+import org.gradle.api.publish.maven.MavenPomScm
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.publish.maven.tasks.GenerateMavenPom
 import org.gradle.api.tasks.TaskContainer
@@ -36,9 +41,7 @@ class PublishAfterEvaluationHandler(rootProject: Project) : Action<Gradle> {
     }
 
     init {
-        rootProject.plugins.withId("com.jfrog.artifactory") { plugin ->
-            enableArtifactoryPublisher(plugin)
-        }
+        rootProject.plugins.withId("com.jfrog.artifactory", ::enableArtifactoryPublisher)
     }
 
     override fun execute(gradle: Gradle) {
@@ -54,6 +57,7 @@ class PublishAfterEvaluationHandler(rootProject: Project) : Action<Gradle> {
         }
     }
 
+    @Suppress("UnstableApiUsage")
     private fun publishCompanionFor(project: Project) {
         val publications = (project.extensions.findByType(PublishingExtension::class.java) ?: return).publications
         val pomXmlWriter = PomXmlWriter(project.configurations)
@@ -66,10 +70,56 @@ class PublishAfterEvaluationHandler(rootProject: Project) : Action<Gradle> {
                     cpk.artifactId = toCompanionArtifactId(pub.artifactId)
                     cpk.version = pub.version
                     cpk.pom { pom ->
+                        val pubPom = pub.pom
+
                         pom.packaging = "pom"
-                        pom.url.set(pub.pom.url)
-                        pom.description.set(pub.pom.description)
-                        pom.inceptionYear.set(pub.pom.inceptionYear)
+                        pom.url.set(pubPom.url)
+                        pom.name.set(pubPom.name.map { name -> "$name Companion" })
+                        pom.description.set(pubPom.description)
+                        pom.inceptionYear.set(pubPom.inceptionYear)
+                        pubPom.maybeGetScm()?.also { pubScm ->
+                            pom.scm { scm ->
+                                scm.url.set(pubScm.url)
+                                scm.tag.set(pubScm.tag)
+                                scm.connection.set(pubScm.connection)
+                                scm.developerConnection.set(pubScm.developerConnection)
+                            }
+                        }
+                        pubPom.maybeGetOrganization()?.also { pubOrg ->
+                            pom.organization { org ->
+                                org.name.set(pubOrg.name)
+                                org.url.set(pubOrg.url)
+                            }
+                        }
+                        pubPom.maybeGetLicences()?.also { pubLicences ->
+                            pom.licenses { licences ->
+                                pubLicences.forEach { pubLicence ->
+                                    licences.license { licence ->
+                                        licence.url.set(pubLicence.url)
+                                        licence.name.set(pubLicence.name)
+                                        licence.comments.set(pubLicence.comments)
+                                        licence.distribution.set(pubLicence.distribution)
+                                    }
+                                }
+                            }
+                        }
+                        pubPom.maybeGetDevelopers()?.also { pubDevelopers ->
+                            pom.developers { developers ->
+                                pubDevelopers.forEach { pubDeveloper ->
+                                    developers.developer { developer ->
+                                        developer.id.set(pubDeveloper.id)
+                                        developer.url.set(pubDeveloper.url)
+                                        developer.name.set(pubDeveloper.name)
+                                        developer.email.set(pubDeveloper.email)
+                                        developer.roles.set(pubDeveloper.roles)
+                                        developer.timezone.set(pubDeveloper.timezone)
+                                        developer.properties.set(pubDeveloper.properties)
+                                        developer.organization.set(pubDeveloper.organization)
+                                        developer.organizationUrl.set(pubDeveloper.organizationUrl)
+                                    }
+                                }
+                            }
+                        }
                         pom.withXml(pomXmlWriter)
                     }
                 }
@@ -77,6 +127,64 @@ class PublishAfterEvaluationHandler(rootProject: Project) : Action<Gradle> {
                     publish(project.tasks, pub, publicationProvider)
                 }
             }
+    }
+
+    /**
+     * The [getScm][org.gradle.api.publish.maven.internal.publication.MavenPomInternal.getScm]
+     * method belongs to Gradle's internal API, and so we cannot rely on it existing. We therefore
+     * try to invoke it using reflection.
+     */
+    private fun MavenPom.maybeGetScm(): MavenPomScm? {
+        return try {
+            this::class.java.getMethod("getScm").invoke(this) as? MavenPomScm
+        } catch (e: Exception) {
+            logger.warn("INTERNAL API: Cannot read SCM from CPK POM", e)
+            null
+        }
+    }
+
+    /**
+     * The [getLicenses][org.gradle.api.publish.maven.internal.publication.MavenPomInternal.getLicenses]
+     * method belongs to Gradle's internal API, and so we cannot rely on it existing. We therefore
+     * try to invoke it using reflection.
+     */
+    private fun MavenPom.maybeGetLicences(): Iterable<MavenPomLicense>? {
+        @Suppress("unchecked_cast")
+        return try {
+            this::class.java.getMethod("getLicenses").invoke(this) as? Iterable<MavenPomLicense>
+        } catch (e: Exception) {
+            logger.warn("INTERNAL API: Cannot read licenses from CPK POM", e)
+            null
+        }
+    }
+
+    /**
+     * The [getDevelopers][org.gradle.api.publish.maven.internal.publication.MavenPomInternal.getDevelopers]
+     * method belongs to Gradle's internal API, and so we cannot rely on it existing. We therefore
+     * try to invoke it using reflection.
+     */
+    private fun MavenPom.maybeGetDevelopers(): Iterable<MavenPomDeveloper>? {
+        @Suppress("unchecked_cast")
+        return try {
+            this::class.java.getMethod("getDevelopers").invoke(this) as? Iterable<MavenPomDeveloper>
+        } catch (e: Exception) {
+            logger.warn("INTERNAL API: Cannot read developers from CPK POM", e)
+            null
+        }
+    }
+
+    /**
+     * The [getOrganization][org.gradle.api.publish.maven.internal.publication.MavenPomInternal.getOrganization]
+     * method belongs to Gradle's internal API, and so we cannot rely on it existing. We therefore
+     * try to invoke it using reflection.
+     */
+    private fun MavenPom.maybeGetOrganization(): MavenPomOrganization? {
+        return try {
+            this::class.java.getMethod("getOrganization").invoke(this) as? MavenPomOrganization
+        } catch (e: Exception) {
+            logger.warn("INTERNAL API: Cannot read organization from CPK POM", e)
+            null
+        }
     }
 }
 

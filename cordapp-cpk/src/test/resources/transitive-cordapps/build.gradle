@@ -39,6 +39,32 @@ allprojects {
                     pluginManager.withPlugin('net.corda.plugins.cordapp-cpk') {
                         artifact tasks.named('cpk', Jar)
                     }
+
+                    pom {
+                        name = 'Transitive CorDapps'
+                        url = 'https://com.example.cordapp'
+                        scm {
+                            url = 'https://com.example.cordapp'
+                        }
+                        organization {
+                            name = 'Example-Name'
+                            url = 'https://example.com'
+                        }
+                        licenses {
+                            license {
+                                name = 'Apache-2.0'
+                                url = 'https://www.apache.org/licenses/LICENSE-2.0'
+                                distribution = 'repo'
+                            }
+                        }
+                        developers {
+                            developer {
+                                id = 'Example-Id'
+                                name = 'Example-Name'
+                                email = 'dev@example.com'
+                            }
+                        }
+                    }
                 }
             }
         }
