@@ -107,20 +107,26 @@ class QuasarPlugin implements Plugin<Project> {
         def quasarAgent = project.configurations[QUASAR_AGENT]
         project.tasks.withType(Test).configureEach {
             doFirst {
-                if (adapter.withoutSuspendableAnnotation) {
-                    adapter.warnNoSuspendableAnnotation()
+                if (adapter.instrumentingTests) {
+                    if (adapter.withoutSuspendableAnnotation) {
+                        adapter.warnNoSuspendableAnnotation()
+                    }
+
+                    jvmArgs "-javaagent:${quasarAgent.singleFile}${adapter.options}",
+                            "-Dco.paralleluniverse.fibers.verifyInstrumentation"
                 }
-                jvmArgs "-javaagent:${quasarAgent.singleFile}${adapter.options}",
-                        "-Dco.paralleluniverse.fibers.verifyInstrumentation"
             }
         }
         project.tasks.withType(JavaExec).configureEach {
             doFirst {
-                if (adapter.withoutSuspendableAnnotation) {
-                    adapter.warnNoSuspendableAnnotation()
+                if (adapter.instrumentingJavaExec) {
+                    if (adapter.withoutSuspendableAnnotation) {
+                        adapter.warnNoSuspendableAnnotation()
+                    }
+
+                    jvmArgs "-javaagent:${quasarAgent.singleFile}${adapter.options}",
+                            "-Dco.paralleluniverse.fibers.verifyInstrumentation"
                 }
-                jvmArgs "-javaagent:${quasarAgent.singleFile}${adapter.options}",
-                        "-Dco.paralleluniverse.fibers.verifyInstrumentation"
             }
         }
     }
@@ -179,6 +185,14 @@ class QuasarPlugin implements Plugin<Project> {
 
         Dependency createDependency(Closure closure) {
             dependencies.create(quasar.dependency.get(), closure)
+        }
+
+        boolean isInstrumentingTests() {
+            quasar.instrumentTests.get()
+        }
+
+        boolean isInstrumentingJavaExec() {
+            quasar.instrumentJavaExec.get()
         }
 
         boolean isWithoutSuspendableAnnotation() {

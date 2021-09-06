@@ -32,6 +32,16 @@ class QuasarExtension {
     final Provider<Map<String, String>> dependency
 
     /**
+     * Whether we should apply the Quasar agent to Test tasks.
+     */
+    final Property<Boolean> instrumentTests
+
+    /**
+     * Whether we should apply the Quasar agent to JavaExec tasks.
+     */
+    final Property<Boolean> instrumentJavaExec
+
+    /**
      * Dependency notation for the Quasar agent to use.
      */
     final Provider<Map<String, String>> agent
@@ -72,6 +82,8 @@ class QuasarExtension {
             it['classifier'] = 'agent'
             it
         }
+        instrumentTests = objects.property(Boolean).convention(true)
+        instrumentJavaExec = objects.property(Boolean).convention(true)
 
         debug = objects.property(Boolean).convention(false)
         verbose = objects.property(Boolean).convention(false)
