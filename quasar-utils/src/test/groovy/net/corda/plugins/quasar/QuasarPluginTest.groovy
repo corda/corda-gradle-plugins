@@ -13,7 +13,7 @@ import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 class QuasarPluginTest {
     private static final String TEST_GRADLE_USER_HOME = System.getProperty("test.gradle.user.home", ".")
     private static final String QUASAR_VERSION = QuasarPlugin.defaultVersion
-    private static final String JUNIT_VERSION = "4.13"
+    private static final String JUNIT_VERSION = "4.13.2"
 
     private static final String QUASAR_R3 = """\
 if (org.gradle.api.JavaVersion.current().java9Compatible) {

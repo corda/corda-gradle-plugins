@@ -12,7 +12,7 @@ import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 class QuasarSuspendableTest {
     private static final String TEST_GRADLE_USER_HOME = System.getProperty("test.gradle.user.home", ".")
-    private static final String JUNIT_VERSION = "4.13"
+    private static final String JUNIT_VERSION = "4.13.2"
 
     @TempDir
     public Path testProjectDir
