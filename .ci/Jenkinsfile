@@ -50,7 +50,7 @@ pipeline {
     stages {
         stage('Build') {
             steps {
-                sh './gradlew --no-daemon -s --no-build-cache clean build'
+                sh './gradlew --no-daemon --info --no-build-cache clean build'
             }
         }
         stage('Publish to Artifactory') {
@@ -60,31 +60,26 @@ pipeline {
             }
             steps {
                 rtServer (
-                        id: 'R3-Artifactory',
-                        url: 'https://software.r3.com/artifactory',
-                        credentialsId: 'artifactory-credentials'
+                    id: 'R3-Artifactory',
+                    url: 'https://software.r3.com/artifactory',
+                    credentialsId: 'artifactory-credentials'
                 )
                 rtGradleDeployer (
-                        id: 'deployer',
-                        serverId: 'R3-Artifactory',
-                        repo: env.ARTIFACTORY_REPO,
+                    id: 'deployer',
+                    serverId: 'R3-Artifactory',
+                    repo: env.ARTIFACTORY_REPO,
                 )
-                withCredentials([
-                        usernamePassword(credentialsId: 'artifactory-credentials',
-                                usernameVariable: 'CORDA_ARTIFACTORY_USERNAME',
-                                passwordVariable: 'CORDA_ARTIFACTORY_PASSWORD')]) {
-                    rtGradleRun (
-                            usesPlugin: true,
-                            useWrapper: true,
-                            switches: "--no-daemon -s",
-                            tasks: 'artifactoryPublish',
-                            deployerId: 'deployer',
-                            buildName: env.ARTIFACTORY_BUILD_NAME
-                    )
-                }
+                rtGradleRun (
+                    usesPlugin: true,
+                    useWrapper: true,
+                    switches: "--no-daemon --info -s",
+                    tasks: 'artifactoryPublish',
+                    deployerId: 'deployer',
+                    buildName: env.ARTIFACTORY_BUILD_NAME
+                )
                 rtPublishBuildInfo (
-                        serverId: 'R3-Artifactory',
-                        buildName: env.ARTIFACTORY_BUILD_NAME
+                    serverId: 'R3-Artifactory',
+                    buildName: env.ARTIFACTORY_BUILD_NAME
                 )
             }
         }
