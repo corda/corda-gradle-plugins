@@ -28,6 +28,7 @@ open class DependencyCalculator @Inject constructor(objects: ObjectFactory) : De
         private const val CORDA = true
 
         private val HARDCODED_EXCLUDES: Set<Pair<String, String>> = unmodifiableSet(setOf(
+            "org.jetbrains" to "annotations",
             "org.jetbrains.kotlin" to "*",
             "net.corda.kotlin" to "*",
             "org.osgi" to "*",
