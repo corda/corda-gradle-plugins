@@ -14,6 +14,11 @@ class AssertHeaders(private val parameters: Parameters) {
         return this
     }
 
+    fun containsExactly(vararg elements: String): AssertHeaders {
+        assertThat(actualElements).containsExactly(*elements)
+        return this
+    }
+
     fun containsPackageWithAttributes(packageName: String, vararg attributes: String): AssertHeaders {
         assertThat(parameters.keys).contains(packageName)
         val packageAttributes = parameters[packageName].map(Any::toString)
