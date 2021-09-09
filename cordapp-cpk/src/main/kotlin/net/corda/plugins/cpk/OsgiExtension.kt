@@ -280,7 +280,10 @@ open class OsgiExtension(objects: ObjectFactory, useImportPolicy: Provider<Boole
                 val packageRange = getPackageRange(elements)
                 if (!packageRange.isEmpty()) {
                     val packageName = elements.slice(packageRange)
-                    if (packageName[0] != "META-INF" && packageName[0] != "OSGI-INF" && packageName.isJavaIdentifiers) {
+                    if (packageName[0] != "META-INF"
+                        && packageName[0] != "OSGI-INF"
+                        && packageName[0] != "migration"
+                        && packageName.isJavaIdentifiers) {
                         _autoExportPackages.add(packageName.joinToString("."))
                     }
                 }
