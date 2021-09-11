@@ -178,7 +178,7 @@ configure(publishProjects) { Project subproject ->
                 }
             }
 
-            // Create a "special" artifact in the Maven repository so that
+            // Create a "marker" artifact in the Maven repository so that
             // Gradle's plugins {} block can find our plugins:
             //
             // This artifact would normally be created by setting:
@@ -194,6 +194,8 @@ configure(publishProjects) { Project subproject ->
                     artifactId plugin.id + '.gradle.plugin'
 
                     pom {
+                        name = "Gradle plugin marker for ${plugin.id}"
+                        description = subproject.description
                         packaging 'pom'
                         withXml {
                             def dependency = asNode().appendNode('dependencies').appendNode('dependency')
