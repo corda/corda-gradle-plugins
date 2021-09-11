@@ -1,7 +1,6 @@
-cordapp-cpb
-cordapp-cpb/net.corda.plugins.cordapp-cpb.gradle.plugin
 cordapp-cpk
 cordapp-cpk/net.corda.plugins.cordapp-cpk.gradle.plugin
+cordapp-cpb/net.corda.plugins.cordapp-cpb.gradle.plugin
 flask
 flask/net.corda.plugins.flask.gradle.plugin
 quasar-utils
