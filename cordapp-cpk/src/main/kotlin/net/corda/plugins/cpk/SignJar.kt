@@ -3,7 +3,6 @@ package net.corda.plugins.cpk
 import net.corda.plugins.cpk.signing.SigningOptions
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
-import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileSystemLocation
@@ -22,6 +21,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.StandardCopyOption.REPLACE_EXISTING
+import java.util.Collections.unmodifiableMap
 import javax.inject.Inject
 
 @Suppress("Unused", "UnstableApiUsage", "MemberVisibilityCanBePrivate")
@@ -51,14 +51,7 @@ open class SignJar @Inject constructor(objects: ObjectFactory) : DefaultTask() {
 
             logger.info("Jar signing with following options: ${options.toSanitized()}")
             try {
-                ant.invokeMethod("signjar", options)
-            } catch (e: Exception) {
-                // Not adding error message as it's always meaningless, logs with --INFO level contain more insights
-                throw InvalidUserDataException("Exception while signing ${path.fileName}, " +
-                        "ensure the 'cordapp.signing.options' entry contains correct keyStore configuration, " +
-                        "or disable signing by 'cordapp.signing.enabled false'. " +
-                        if (logger.isInfoEnabled || logger.isDebugEnabled) "Search for 'ant:signjar' in log output."
-                        else "Run with --info or --debug option and search for 'ant:signjar' in log output. ", e)
+                Signer(this).sign(path, unmodifiableMap(options))
             } finally {
                 if (useDefaultKeyStore) {
                     options[SigningOptions.Key.KEYSTORE]?.also { jarFile ->

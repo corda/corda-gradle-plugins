@@ -55,12 +55,12 @@ fun TaskInputs.nested(nestName: String, options: SigningOptions) {
 @Suppress("UnstableApiUsage")
 open class SigningOptions @Inject constructor(objects: ObjectFactory, providers: ProviderFactory) {
     companion object {
-        // Defaults to resources/certificates/cordadevcodesign.p12 keystore with Corda development key
+        // Defaults to META-INF/certificates/cordadevcodesign.p12 keystore with Corda development key
         private const val DEFAULT_ALIAS = "cordacodesign"
         private const val DEFAULT_STOREPASS = "cordacadevpass"
         private const val DEFAULT_STORETYPE = "PKCS12"
         private const val DEFAULT_SIGFILE = "cordapp"
-        const val DEFAULT_KEYSTORE = "certificates/cordadevcodesign.p12"
+        const val DEFAULT_KEYSTORE = "META-INF/certificates/cordadevcodesign.p12"
         const val DEFAULT_KEYSTORE_FILE = "cordadevcakeys"
         const val DEFAULT_KEYSTORE_EXTENSION = ".p12"
         const val SYSTEM_PROPERTY_PREFIX = "signing."
