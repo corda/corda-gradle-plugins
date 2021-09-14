@@ -49,8 +49,8 @@ open class SignJar @Inject constructor(objects: ObjectFactory) : DefaultTask() {
             val path = file.toPath()
             options[SigningOptions.Key.JAR] = path.toString()
 
+            logger.info("Jar signing with following options: ${options.toSanitized()}")
             try {
-                logger.info("Jar signing with following options: ${options.toSanitized()}")
                 ant.invokeMethod("signjar", options)
             } catch (e: Exception) {
                 // Not adding error message as it's always meaningless, logs with --INFO level contain more insights
@@ -61,14 +61,14 @@ open class SignJar @Inject constructor(objects: ObjectFactory) : DefaultTask() {
                         else "Run with --info or --debug option and search for 'ant:signjar' in log output. ", e)
             } finally {
                 if (useDefaultKeyStore) {
-                    options[SigningOptions.Key.KEYSTORE]?.apply {
-                        Paths.get(this).toFile().delete()
+                    options[SigningOptions.Key.KEYSTORE]?.also { jarFile ->
+                        Files.deleteIfExists(Paths.get(jarFile))
                     }
                 }
             }
         }
 
-        private fun MutableMap<String, String>.toSanitized(): Map<String, String> {
+        private fun Map<String, String>.toSanitized(): Map<String, String> {
             return LinkedHashMap(this).also {
                 it.computeIfPresent(SigningOptions.Key.KEYPASS) { _, _ -> DUMMY_VALUE }
                 it.computeIfPresent(SigningOptions.Key.STOREPASS) { _, _ -> DUMMY_VALUE }
