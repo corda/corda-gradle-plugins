@@ -90,6 +90,12 @@ dependencies {
     testImplementation "org.assertj:assertj-core:$assertj_version"
 }
 
+tasks.named('jar', Jar) {
+    manifest {
+        attributes('Sealed': true)
+    }
+}
+
 processTestResources {
     filesMatching('gradle.properties') {
         expand([
