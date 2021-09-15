@@ -36,9 +36,9 @@ open class SignJar @Inject constructor(objects: ObjectFactory) : DefaultTask() {
             }
         }
 
-        fun Task.sign(signing: Signing, file: File) {
-            val options = signing.options.signJarOptions.get()
-            val useDefaultKeyStore = !signing.options.keyStore.isPresent
+        fun Task.sign(signing: SigningOptions, file: File) {
+            val options = signing.signJarOptions.get()
+            val useDefaultKeyStore = !signing.keyStore.isPresent
             if (useDefaultKeyStore) {
                 logger.info("CorDapp JAR signing with the default Corda development key, suitable for Corda running in development mode only.")
                 val keyStore = File.createTempFile(SigningOptions.DEFAULT_KEYSTORE_FILE, SigningOptions.DEFAULT_KEYSTORE_EXTENSION, temporaryDir).toPath()
@@ -127,7 +127,7 @@ open class SignJar @Inject constructor(objects: ObjectFactory) : DefaultTask() {
         for (file: File in inputJars) {
             val signedFile = toSigned(file).get()
             Files.copy(file.toPath(), signedFile.toPath(), REPLACE_EXISTING)
-            sign(signing, signedFile)
+            sign(signing.options, signedFile)
         }
     }
 }

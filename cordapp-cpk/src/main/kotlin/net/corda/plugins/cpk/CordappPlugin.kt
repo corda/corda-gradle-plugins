@@ -297,7 +297,7 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
                 configureCordappAttributes(osgi.symbolicName.get(), attributes)
             }.doLast { t ->
                 if (cordapp.signing.enabled.get()) {
-                    t.sign(cordapp.signing, (t as Jar).archiveFile.get().asFile)
+                    t.sign(cordapp.signing.options, (t as Jar).archiveFile.get().asFile)
                 } else {
                     t.logger.lifecycle("CorDapp JAR signing is disabled, the CorDapp's contracts will not use signature constraints.")
                 }
@@ -333,7 +333,7 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
             task.cordapp.set(jarTask.flatMap(Jar::getArchiveFile))
             task.doLast { t ->
                 if (cordapp.signing.enabled.get()) {
-                    t.sign(cordapp.signing, (t as PackagingTask).archiveFile.get().asFile)
+                    t.sign(cordapp.signing.options, (t as PackagingTask).archiveFile.get().asFile)
                 }
             }
         }
