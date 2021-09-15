@@ -89,7 +89,6 @@ cordapp {
             storeType= ('PKCS12' | 'JKS')
             keyPassword = '$storePassword'
             signatureFileName = '$alias'
-            signedJar = '??'
             verbose = (true | false)
             strict = (true | false)
             internalSF = (true | false)
@@ -109,7 +108,7 @@ cordapp {
         }
     }
 
-    sealing  = (true | false)
+    sealing = (true | false)
 
     hashAlgorithm = 'SHA-256'
 }

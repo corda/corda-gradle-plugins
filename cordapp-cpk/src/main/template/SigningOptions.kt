@@ -1,6 +1,7 @@
 @file:JvmName("SigningOptionsProperties")
 package @root_package@.signing
 
+import org.gradle.api.file.RegularFile
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
@@ -15,6 +16,7 @@ import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity.RELATIVE
 import org.gradle.api.tasks.TaskInputs
 import java.io.File
+import java.net.URI
 import javax.inject.Inject
 
 /**
@@ -28,11 +30,8 @@ import javax.inject.Inject
  */
 fun TaskInputs.nested(nestName: String, options: SigningOptions) {
     property("${nestName}.alias", options.alias)
-    file(options.keyStore).withPropertyName("${nestName}.keyStore")
-        .withPathSensitivity(RELATIVE)
-        .optional()
+    property("${nestName}.keyStore", options.keyStore).optional(true)
     property("${nestName}.signatureFileName", options.signatureFileName)
-    property("${nestName}.signedJar", options.signedJar).optional(true)
     property("${nestName}.strict", options.strict)
     property("${nestName}.internalSF", options.internalSF)
     property("${nestName}.sectionsOnly", options.sectionsOnly)
@@ -107,13 +106,24 @@ open class SigningOptions @Inject constructor(objects: ObjectFactory, providers:
     )
 
     @get:Optional
-    @get:InputFile
-    @get:PathSensitive(RELATIVE)
-    val keyStore: RegularFileProperty = objects.fileProperty().fileProvider(
+    @get:Input
+    val keyStore: Property<URI> = objects.property(URI::class.java).convention(
         providers.systemProperty(SYSTEM_PROPERTY_PREFIX + Key.KEYSTORE)
             .forUseAtConfigurationTime()
-            .map(::File)
+            .map(URI::create)
     )
+
+    fun setKeyStore(value: RegularFile?) {
+        setKeyStore(value?.asFile)
+    }
+
+    fun setKeyStore(value: File?) {
+        keyStore.set(value?.absoluteFile?.toURI())
+    }
+
+    fun setKeyStore(value: String?) {
+        keyStore.set(value?.let(URI::create))
+    }
 
     @get:Internal
     val storeType: Property<String> = objects.property(String::class.java).convention(
@@ -140,10 +150,6 @@ open class SigningOptions @Inject constructor(objects: ObjectFactory, providers:
             })
     )
 
-    @get:Optional
-    @get:Input
-    val signedJar: Property<String> = objects.property(String::class.java)
-
     @get:Console
     val verbose: Property<Boolean> = objects.property(Boolean::class.java).convention(false)
 
@@ -167,7 +173,11 @@ open class SigningOptions @Inject constructor(objects: ObjectFactory, providers:
 
     @get:Optional
     @get:Input
-    val tsaUrl: Property<String> = objects.property(String::class.java)
+    val tsaUrl: Property<URI> = objects.property(URI::class.java)
+
+    fun setTsaUrl(value: String?) {
+        tsaUrl.set(value?.let(URI::create))
+    }
 
     @get:Optional
     @get:Input
@@ -216,6 +226,33 @@ open class SigningOptions @Inject constructor(objects: ObjectFactory, providers:
         put(Key.FORCE, force.map(Boolean::toString))
     }
 
+    open fun values(options: SigningOptions): SigningOptions {
+        // DO NOT COPY THE FOLLOWING PROPERTIES!
+        // - signatureFileName
+        alias.set(options.alias)
+        storePassword.set(options.storePassword)
+        keyStore.set(options.keyStore)
+        storeType.set(options.storeType)
+        keyPassword.set(options.keyPassword)
+        verbose.set(options.verbose)
+        strict.set(options.strict)
+        internalSF.set(options.internalSF)
+        sectionsOnly.set(options.sectionsOnly)
+        lazy.set(options.lazy)
+        maxMemory.set(options.maxMemory)
+        preserveLastModified.set(options.preserveLastModified)
+        tsaUrl.set(options.tsaUrl)
+        tsaCert.set(options.tsaCert)
+        tsaDigestAlgorithm.set(options.tsaDigestAlgorithm)
+        tsaProxyHost.set(options.tsaProxyHost)
+        tsaProxyPort.set(options.tsaProxyPort)
+        executable.set(options.executable)
+        force.set(options.force)
+        signatureAlgorithm.set(options.signatureAlgorithm)
+        digestAlgorithm.set(options.digestAlgorithm)
+        return this
+    }
+
     protected fun MutableMap<String, String>.setOptional(key: String, value: Property<*>) {
         if (value.isPresent) {
             this[key] = value.get().toString()
@@ -235,7 +272,6 @@ open class SigningOptions @Inject constructor(objects: ObjectFactory, providers:
     val signJarOptions: Provider<out MutableMap<String, String>> = _signJarOptions.map { opts ->
         val result = LinkedHashMap(opts)
         result.setOptional(Key.KEYSTORE, keyStore)
-        result.setOptional(Key.SIGNEDJAR, signedJar)
         result.setOptional(Key.MAXMEMORY, maxMemory)
         result.setOptional(Key.TSAURL, tsaUrl)
         result.setOptional(Key.TSACERT, tsaCert)

@@ -9,16 +9,15 @@ apply from: 'kotlin.gradle'
 allprojects {
     group = 'com.example'
     version = cordapp_version
+
     repositories {
         maven {
             name = 'test-repository'
             url = maven_repository_dir
         }
-        mavenCentral()
     }
+    apply from: "$rootDir/repositories.gradle"
 }
-
-version = "1.0"
 
 cordapp {
     targetPlatformVersion = platform_version.toInteger()
