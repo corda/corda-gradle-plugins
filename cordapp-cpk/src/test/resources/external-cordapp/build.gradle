@@ -2,7 +2,7 @@ plugins {
     id 'net.corda.plugins.cordapp-cpk'
 }
 
-allprojects { p ->
+allprojects {
     apply plugin: 'maven-publish'
 
     tasks.withType(GenerateModuleMetadata).configureEach {
@@ -16,10 +16,6 @@ allprojects { p ->
         apply from: "$rootDir/javaTarget.gradle"
 
         version = cordapp_version
-
-        tasks.named('jar', Jar) {
-            archiveBaseName = p.name
-        }
     }
 
     publishing {
@@ -31,11 +27,11 @@ allprojects { p ->
         }
         publications {
             maven(MavenPublication) {
-                pluginManager.withPlugin('java-library') {
-                    from components.java
-                }
                 pluginManager.withPlugin('java-platform') {
                     from components.javaPlatform
+                }
+                pluginManager.withPlugin('java') {
+                    from components.java
                 }
                 pluginManager.withPlugin('net.corda.plugins.cordapp-cpk') {
                     artifact tasks.named('cpk', Jar)

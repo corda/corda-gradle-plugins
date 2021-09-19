@@ -103,7 +103,7 @@ class CpbPlugin : Plugin<Project> {
 
             cpbTask.doLast {
                 if (cordappExtension.signing.enabled.get()) {
-                    cpbTask.sign(cordappExtension.signing, cpbTask.archiveFile.get().asFile)
+                    cpbTask.sign(cordappExtension.signing.options, cpbTask.archiveFile.get().asFile)
                 }
             }
         }

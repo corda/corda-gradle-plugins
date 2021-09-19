@@ -1,6 +1,8 @@
 package net.corda.plugins.cpk
 
 import net.corda.plugins.cpk.signing.SigningOptions
+import net.corda.plugins.cpk.signing.SigningOptions.Key
+import org.gradle.api.Action
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.InvalidUserDataException
@@ -12,6 +14,7 @@ import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.OutputFiles
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity.RELATIVE
@@ -31,25 +34,29 @@ open class SignJar @Inject constructor(objects: ObjectFactory) : DefaultTask() {
 
         @Suppress("SameParameterValue")
         private fun writeResourceToFile(resourcePath: String, path: Path) {
-            this::class.java.classLoader.getResourceAsStream(resourcePath)?.use {
-                Files.copy(it, path, REPLACE_EXISTING)
+            this::class.java.classLoader.getResourceAsStream(resourcePath)?.use { input ->
+                Files.copy(input, path, REPLACE_EXISTING)
             }
         }
 
-        fun Task.sign(signing: Signing, file: File) {
-            val options = signing.options.signJarOptions.get()
-            val useDefaultKeyStore = !signing.options.keyStore.isPresent
+        fun Task.sign(signing: SigningOptions, file: File, outputFile: File? = null) {
+            val options = signing.signJarOptions.get()
+            val useDefaultKeyStore = !signing.keyStore.isPresent
             if (useDefaultKeyStore) {
                 logger.info("CorDapp JAR signing with the default Corda development key, suitable for Corda running in development mode only.")
                 val keyStore = File.createTempFile(SigningOptions.DEFAULT_KEYSTORE_FILE, SigningOptions.DEFAULT_KEYSTORE_EXTENSION, temporaryDir).toPath()
                 writeResourceToFile(SigningOptions.DEFAULT_KEYSTORE, keyStore)
-                options[SigningOptions.Key.KEYSTORE] = keyStore.toString()
+                options[Key.KEYSTORE] = keyStore.toString()
             }
 
             val path = file.toPath()
-            options[SigningOptions.Key.JAR] = path.toString()
+            options[Key.JAR] = path.toString()
 
-            logger.info("Jar signing with following options: ${options.toSanitized()}")
+            if (outputFile != null) {
+                options[Key.SIGNEDJAR] = outputFile.toPath().toString()
+            }
+
+            logger.info("Jar signing with following options: {}", options.toSanitized())
             try {
                 ant.invokeMethod("signjar", options)
             } catch (e: Exception) {
@@ -61,7 +68,7 @@ open class SignJar @Inject constructor(objects: ObjectFactory) : DefaultTask() {
                         else "Run with --info or --debug option and search for 'ant:signjar' in log output. ", e)
             } finally {
                 if (useDefaultKeyStore) {
-                    options[SigningOptions.Key.KEYSTORE]?.also { jarFile ->
+                    options[Key.KEYSTORE]?.also { jarFile ->
                         Files.deleteIfExists(Paths.get(jarFile))
                     }
                 }
@@ -70,19 +77,26 @@ open class SignJar @Inject constructor(objects: ObjectFactory) : DefaultTask() {
 
         private fun Map<String, String>.toSanitized(): Map<String, String> {
             return LinkedHashMap(this).also {
-                it.computeIfPresent(SigningOptions.Key.KEYPASS) { _, _ -> DUMMY_VALUE }
-                it.computeIfPresent(SigningOptions.Key.STOREPASS) { _, _ -> DUMMY_VALUE }
+                it.computeIfPresent(Key.KEYPASS) { _, _ -> DUMMY_VALUE }
+                it.computeIfPresent(Key.STOREPASS) { _, _ -> DUMMY_VALUE }
             }
         }
     }
 
-    private val signing: Signing = project.extensions.findByType(CordappExtension::class.java)?.signing
+    @get:Nested
+    val signing: SigningOptions = objects.newInstance(SigningOptions::class.java).values(
+        (project.extensions.findByType(CordappExtension::class.java)
             ?: throw GradleException("Please apply cordapp-cpk plugin to create cordapp DSL extension.")
+        ).signing.options
+    )
+
+    fun signing(action: Action<in SigningOptions>) {
+        action.execute(signing)
+    }
 
     init {
-        description = "Signs the given jars using the configuration from cordapp.signing.options."
+        description = "Signs the given jars, using the cordapp.signing.options key by default."
         group = CORDAPP_TASK_GROUP
-        inputs.nested("signing", signing)
     }
 
     @get:Input
@@ -115,19 +129,22 @@ open class SignJar @Inject constructor(objects: ObjectFactory) : DefaultTask() {
     private fun toSigned(file: FileSystemLocation): Provider<File> = toSigned(file.asFile)
 
     private fun toSigned(file: File): Provider<File> {
-        val path = file.absolutePath
-        val lastDot = path.lastIndexOf('.')
         return postfix.map { pfx ->
-            File(path.substring(0, lastDot) + pfx + path.substring(lastDot))
+            File(addSuffix(file.absolutePath, pfx))
+        }
+    }
+
+    private fun addSuffix(path: String, suffix: String): String {
+        return when (val lastDot = path.lastIndexOf('.')) {
+            -1 -> path + suffix
+            else -> path.substring(0, lastDot) + suffix + path.substring(lastDot)
         }
     }
 
     @TaskAction
     fun build() {
         for (file: File in inputJars) {
-            val signedFile = toSigned(file).get()
-            Files.copy(file.toPath(), signedFile.toPath(), REPLACE_EXISTING)
-            sign(signing, signedFile)
+            sign(signing, file, toSigned(file).get())
         }
     }
 }

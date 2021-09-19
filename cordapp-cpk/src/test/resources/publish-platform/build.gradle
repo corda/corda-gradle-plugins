@@ -23,12 +23,12 @@ allprojects {
 
             publications {
                 maven(MavenPublication) {
-                    pluginManager.withPlugin('java-library') {
-                        from components.java
-                    }
-
                     pluginManager.withPlugin('java-platform') {
                         from components.javaPlatform
+                    }
+
+                    pluginManager.withPlugin('java') {
+                        from components.java
                     }
 
                     // Publish any CPK that this project may have.
