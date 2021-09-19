@@ -34,7 +34,7 @@ class JarFilterProject(private val projectDir: Path, private val name: String) {
             "gradle.properties",
             "settings.gradle",
             "kotlin.gradle",
-            "java16.gradle"
+            "javaLatest.gradle"
         )
 
         val result = GradleRunner.create()

@@ -8,12 +8,12 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.EnabledForJreRange
-import org.junit.jupiter.api.condition.JRE.JAVA_16
+import org.junit.jupiter.api.condition.JRE.JAVA_17
 import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Path
 import kotlin.test.assertFailsWith
 
-@EnabledForJreRange(min = JAVA_16)
+@EnabledForJreRange(min = JAVA_17)
 class DeleteJavaRecordConstructorTest {
     companion object {
         private const val RECORD_CLASS = "net.corda.gradle.RecordWithConstructor"

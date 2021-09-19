@@ -5,7 +5,7 @@ plugins {
     id 'java-library'
 }
 apply from: 'repositories.gradle'
-apply from: 'java16.gradle'
+apply from: 'javaLatest.gradle'
 
 sourceSets {
     main {
@@ -16,10 +16,6 @@ sourceSets {
             )
         }
     }
-}
-
-tasks.withType(JavaCompile).configureEach {
-    options.compilerArgs << '--enable-preview' << '--release=16'
 }
 
 jar {

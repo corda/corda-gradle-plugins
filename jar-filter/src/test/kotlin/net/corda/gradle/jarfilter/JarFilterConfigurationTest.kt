@@ -7,6 +7,7 @@ import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome.FAILED
 import org.gradle.testkit.runner.TaskOutcome.NO_SOURCE
 import org.gradle.testkit.runner.TaskOutcome.SUCCESS
+import org.gradle.util.GradleVersion
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.BeforeEach
@@ -275,8 +276,8 @@ class JarFilterConfigurationTest {
         return GradleRunner.create()
             .withProjectDir(testProjectDir.toFile())
             .withArguments(getBasicArgsForTasks("jarFilter"))
+            .withDebug(isDebuggable(GradleVersion.current()))
             .withPluginClasspath()
-            .withDebug(true)
     }
 
     private fun BuildResult.forTask(name: String): BuildTask {
