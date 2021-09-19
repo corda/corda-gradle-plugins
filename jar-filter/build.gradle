@@ -43,7 +43,7 @@ pluginBundle {
 }
 
 jacoco {
-    // Upgrade to a version that is compatible with Java 16.
+    // Upgrade to a version that is compatible with Java 17.
     toolVersion = '0.8.7'
 }
 

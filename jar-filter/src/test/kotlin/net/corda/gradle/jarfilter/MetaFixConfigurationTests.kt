@@ -6,6 +6,7 @@ import org.gradle.testkit.runner.BuildTask
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome.FAILED
 import org.gradle.testkit.runner.TaskOutcome.NO_SOURCE
+import org.gradle.util.GradleVersion
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.BeforeEach
@@ -81,8 +82,8 @@ class MetaFixConfigurationTests {
         return GradleRunner.create()
             .withProjectDir(testProjectDir.toFile())
             .withArguments(getBasicArgsForTasks("metafix"))
+            .withDebug(isDebuggable(GradleVersion.current()))
             .withPluginClasspath()
-            .withDebug(true)
     }
 
     private fun BuildResult.forTask(name: String): BuildTask {

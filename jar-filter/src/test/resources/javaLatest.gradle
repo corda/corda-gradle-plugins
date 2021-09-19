@@ -1,0 +1,7 @@
+pluginManager.withPlugin('java') {
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(17)
+        }
+    }
+}
