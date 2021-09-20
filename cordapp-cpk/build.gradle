@@ -39,15 +39,15 @@ gradlePlugin {
 pluginBundle {
     website = project.vcsUrl
     vcsUrl = project.vcsUrl
-    description = 'Corda Cordapp Builder Plugins'
+    description = 'Corda CorDapp Builder Plugins'
     tags = ['corda']
 
     plugins {
         cordappCpkPlugin {
-            displayName = 'Corda Cordapp CPK Plugin'
+            displayName = 'Corda CorDapp CPK Plugin'
         }
         cordappCpbPlugin {
-            displayName = 'Corda Cordapp CPB Plugin'
+            displayName = 'Corda CorDapp CPB Plugin'
         }
     }
 }
