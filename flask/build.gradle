@@ -3,6 +3,8 @@ plugins {
     id "java-gradle-plugin"
 }
 
+description 'Packages an application as an executable jar of jars.'
+
 evaluationDependsOn("flask-common")
 evaluationDependsOn("flask-launcher")
 
