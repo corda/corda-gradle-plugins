@@ -1,7 +1,7 @@
 package net.corda.plugins.cpk
 
 import aQute.bnd.gradle.BndBuilderPlugin
-import aQute.bnd.gradle.BundleTaskConvention
+import aQute.bnd.gradle.BundleTaskExtension
 import net.corda.plugins.cpk.SignJar.Companion.sign
 import org.gradle.api.Action
 import org.gradle.api.GradleException
@@ -224,26 +224,15 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
             }
         }
 
-        // Corda's API artifacts should all be listed in the cordaAllProvided configuration,
-        // and belong to either Maven Groups "net.corda" or possibly "com.r3.corda".
-        val allProvided = project.configurations.getByName(CORDA_ALL_PROVIDED_CONFIGURATION_NAME)
-        val hasCordaApis = project.provider {
-            // This value may change once any withDependencies handlers execute.
-            allProvided.allDependencies.any { dep ->
-                (dep.group == CORDA_API_GROUP || dep.group == ENTERPRISE_API_GROUP)
-                        && !(dep is ModuleDependency && isPlatformModule(dep))
-            }
-        }
-
         val objects = project.objects
         val jarTask = project.tasks.named(JAR_TASK_NAME, Jar::class.java) { jar ->
             jar.inputs.nested(CORDAPP_EXTENSION_NAME, cordapp)
 
-            val osgi = jar.extensions.create(OSGI_EXTENSION_NAME, OsgiExtension::class.java, objects, hasCordaApis, jar)
+            val osgi = jar.extensions.create(OSGI_EXTENSION_NAME, OsgiExtension::class.java, objects, jar)
             osgi.embed(calculatorTask.flatMap(DependencyCalculator::embeddedJars))
             jar.inputs.nested(OSGI_EXTENSION_NAME, osgi)
 
-            with(jar.convention.getPlugin(BundleTaskConvention::class.java)) {
+            with(jar.extensions.getByType(BundleTaskExtension::class.java)) {
                 // Add jars which have been migrated off the Bundle-Classpath
                 // back into Bnd's regular classpath.
                 classpath(calculatorTask.flatMap(DependencyCalculator::unbundledJars))

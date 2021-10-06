@@ -29,8 +29,10 @@ tasks.named('jar', Jar) {
         attributes('Corda-Platform-Version': 1000)
     }
 
-    bnd """\
+    bundle {
+        bnd '''\
 Bundle-SymbolicName: net.corda.api
 Bundle-Name: Fake Corda APIs
-"""
+'''
+    }
 }

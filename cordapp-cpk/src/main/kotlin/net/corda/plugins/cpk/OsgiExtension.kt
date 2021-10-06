@@ -34,7 +34,7 @@ fun TaskInputs.nested(nestName: String, osgi: OsgiExtension) {
 }
 
 @Suppress("UnstableApiUsage", "MemberVisibilityCanBePrivate", "unused")
-open class OsgiExtension(objects: ObjectFactory, useImportPolicy: Provider<Boolean>, jar: Jar) {
+open class OsgiExtension(objects: ObjectFactory, jar: Jar) {
     private companion object {
         private const val CORDAPP_CONFIG_PLUGIN_ID = "net.corda.cordapp.cordapp-configuration"
         private const val CORDAPP_CONFIG_FILENAME = "cordapp-configuration.properties"
@@ -92,7 +92,7 @@ open class OsgiExtension(objects: ObjectFactory, useImportPolicy: Provider<Boole
             return value.split(",").mapTo(LinkedHashSet(), String::trim)
         }
 
-        fun consumerPolicy(value: String): String = "$value;version='\${range;[=,+);\${@}}'"
+        fun consumerPolicy(value: String): String = "$value:o;version='\${range;[=,+);\${@}}'"
         fun dynamic(value: String): String = "$value;resolution:=dynamic;version=!"
         fun optional(value: String): String = "$value;resolution:=optional"
         fun emptyVersion(value: String): String = "$value;version='[0,0)'"
@@ -214,7 +214,7 @@ open class OsgiExtension(objects: ObjectFactory, useImportPolicy: Provider<Boole
         }
     }
 
-    val applyImportPolicy: Property<Boolean> = objects.property(Boolean::class.java).convention(useImportPolicy)
+    val applyImportPolicy: Property<Boolean> = objects.property(Boolean::class.java).convention(true)
 
     private val activePolicy: Provider<out Set<String>>
         get() = applyImportPolicy.flatMap { isActive ->
