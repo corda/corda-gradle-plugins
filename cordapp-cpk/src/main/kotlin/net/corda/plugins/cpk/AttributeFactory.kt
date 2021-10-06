@@ -26,10 +26,8 @@ import org.gradle.api.model.ObjectFactory
  * variant attribute.
  */
 fun isPlatformModule(dependency: ModuleDependency): Boolean {
-    val attr = dependency.attributes.getAttribute(CATEGORY_ATTRIBUTE) ?: return false
-    return attr.name.let { value ->
-        value == REGULAR_PLATFORM || value == ENFORCED_PLATFORM
-    }
+    val attributeName = (dependency.attributes.getAttribute(CATEGORY_ATTRIBUTE) ?: return false).name
+    return attributeName == REGULAR_PLATFORM || attributeName == ENFORCED_PLATFORM
 }
 
 internal class AttributeFactory(

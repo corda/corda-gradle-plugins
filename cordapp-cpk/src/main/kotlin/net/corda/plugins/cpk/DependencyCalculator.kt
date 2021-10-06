@@ -4,10 +4,10 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
+import org.gradle.api.artifacts.FileCollectionDependency
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.artifacts.ResolvedConfiguration
-import org.gradle.api.artifacts.SelfResolvingDependency
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.FileSystemLocation
 import org.gradle.api.model.ObjectFactory
@@ -162,12 +162,12 @@ open class DependencyCalculator @Inject constructor(objects: ObjectFactory) : De
         val packageFiles = (
             packagingConfiguration.resolveWithoutCorda(nonCordaDeps)
             - packagingConfiguration.resolveAll(cordaDeps)
-        ).toFiles() + nonCordaDeps.toSelfResolvingFiles()
+        ).toFiles() + nonCordaDeps.toFileCollectionFiles()
 
         // Separate out any jars which we want to embed instead.
         // Avoid embedding anything which another CorDapp depends on.
         val embeddedDeps = configurations.getByName(CORDA_EMBEDDED_CONFIGURATION_NAME).allDependencies - runtimeDeps
-        val embeddedFiles = packagingConfiguration.resolveWithoutCorda(embeddedDeps).toFiles() + embeddedDeps.toSelfResolvingFiles()
+        val embeddedFiles = packagingConfiguration.resolveWithoutCorda(embeddedDeps).toFiles() + embeddedDeps.toFileCollectionFiles()
 
         // The user has explicitly asked to embed these artifacts.
         val mustEmbedFiles = packagingConfiguration.resolveFirstLevelFilesFor(embeddedDeps)
@@ -211,18 +211,18 @@ open class DependencyCalculator @Inject constructor(objects: ObjectFactory) : De
     }
 
     private fun ResolvedConfiguration.resolveAllFilesFor(dependencies: Collection<Dependency>): Set<File> {
-        return resolveAll(dependencies).toFiles() + dependencies.toSelfResolvingFiles()
+        return resolveAll(dependencies).toFiles() + dependencies.toFileCollectionFiles()
     }
 
     private fun ResolvedConfiguration.resolveFirstLevelFilesFor(dependencies: Collection<Dependency>): Set<File> {
-        return resolveFirstLevel(dependencies).toFiles() + dependencies.toSelfResolvingFiles()
+        return resolveFirstLevel(dependencies).toFiles() + dependencies.toFileCollectionFiles()
     }
 
     private fun Collection<ResolvedArtifact>.toFiles(): Set<File> = mapTo(LinkedHashSet(), ResolvedArtifact::getFile)
 
-    private fun Collection<Dependency>.toSelfResolvingFiles(): Set<File>
-        = filterIsInstance(SelfResolvingDependency::class.java)
-            .flatMapTo(LinkedHashSet(), SelfResolvingDependency::resolve)
+    private fun Collection<Dependency>.toFileCollectionFiles(): Set<File>
+        = filterIsInstance<FileCollectionDependency>()
+            .flatMapTo(LinkedHashSet(), FileCollectionDependency::resolve)
 
     private fun ResolvedConfiguration.resolveWithoutCorda(dependencies: Collection<Dependency>): List<ResolvedArtifact> {
         return resolveAll(dependencies)
