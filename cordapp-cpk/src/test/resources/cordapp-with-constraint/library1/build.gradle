@@ -1,0 +1,19 @@
+plugins {
+    id 'biz.aQute.bnd.builder'
+    id 'java-library'
+}
+
+apply from: '../repositories.gradle'
+apply from: '../javaTarget.gradle'
+
+group = 'org.testing'
+version = library1_version
+
+dependencies {
+    constraints {
+        implementation "org.apache.commons:commons-compress:$commons_compress_version"
+    }
+
+    compileOnly "org.osgi:osgi.annotation:$osgi_version"
+    implementation 'org.apache.commons:commons-compress'
+}

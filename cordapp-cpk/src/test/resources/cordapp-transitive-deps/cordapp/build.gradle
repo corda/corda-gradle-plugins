@@ -29,6 +29,10 @@ dependencies {
     cordaEmbedded "commons-io:commons-io:$commons_io_version"
 }
 
-jar {
+tasks.named('jar', Jar) {
     archiveBaseName = 'cordapp'
+    osgi {
+        // Required by commons-io 2.9.0+.
+        suppressImportVersion 'sun.nio.ch'
+    }
 }
