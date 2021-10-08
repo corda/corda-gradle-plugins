@@ -51,8 +51,8 @@ class QuasarPlugin implements Plugin<Project> {
         }
 
         def rootProject = project.rootProject
-        def quasarGroup = rootProject.findProperty('quasar_group')?.toString() ?: defaultGroup
-        def quasarVersion = rootProject.findProperty('quasar_version')?.toString() ?: defaultVersion
+        def quasarGroup = rootProject.findProperty('quasar_group')?.toString()?.trim() ?: defaultGroup
+        def quasarVersion = rootProject.findProperty('quasar_version')?.toString()?.trim() ?: defaultVersion
         def quasarSuspendable = rootProject.findProperty('quasar_suspendable_annotation')?.toString()?.trim()
         def quasarPackageExclusions = rootProject.findProperty('quasar_exclusions') ?: Collections.emptyList()
         if (!(quasarPackageExclusions instanceof Iterable<?>)) {
