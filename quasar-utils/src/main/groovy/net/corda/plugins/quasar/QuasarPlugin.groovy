@@ -9,12 +9,12 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.JavaPlugin
+import org.gradle.api.tasks.JavaExec
+import org.gradle.api.tasks.testing.Test
 import org.gradle.util.GradleVersion
 
 import static org.gradle.api.plugins.JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME
 import static org.gradle.api.plugins.JavaPlugin.RUNTIME_CONFIGURATION_NAME
-import org.gradle.api.tasks.JavaExec
-import org.gradle.api.tasks.testing.Test
 
 import javax.inject.Inject
 
@@ -50,7 +50,6 @@ class QuasarPlugin implements Plugin<Project> {
         def quasarGroup = rootProject.findProperty('quasar_group')?.toString()?.trim() ?: defaultGroup
         def quasarVersion = rootProject.findProperty('quasar_version')?.toString()?.trim() ?: defaultVersion
         def quasarClassifier = rootProject.findProperty('quasar_classifier')?.toString()?.trim() ?: defaultClassifier
-        def quasarSuspendable = rootProject.findProperty('quasar_suspendable_annotation')?.toString()?.trim()
         def quasarPackageExclusions = rootProject.findProperty('quasar_exclusions') ?: Collections.emptyList()
         if (!(quasarPackageExclusions instanceof Iterable<?>)) {
             throw new InvalidUserDataException("quasar_exclusions property must be an Iterable<String>")
