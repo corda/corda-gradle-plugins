@@ -12,7 +12,7 @@ import org.gradle.api.tasks.Optional
 import java.time.Duration
 import javax.inject.Inject
 
-@Suppress("UnstableApiUsage")
+@Suppress("UnstableApiUsage", "Unused")
 open class NetworkParameterOverrides @Inject constructor(objects: ObjectFactory) {
 
     @get:Optional

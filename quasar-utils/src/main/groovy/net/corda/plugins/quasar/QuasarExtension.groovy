@@ -1,5 +1,6 @@
 package net.corda.plugins.quasar
 
+import groovy.transform.CompileStatic
 import groovy.transform.PackageScope
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ListProperty
@@ -8,6 +9,7 @@ import org.gradle.api.provider.Provider
 
 import javax.inject.Inject
 
+@CompileStatic
 class QuasarExtension {
 
     /**
@@ -24,6 +26,16 @@ class QuasarExtension {
      * Maven classifier for the Quasar agent.
      */
     final Property<String> classifier
+
+    /**
+     * Whether we should apply the Quasar agent to Test tasks.
+     */
+    final Property<Boolean> instrumentTests
+
+    /**
+     * Whether we should apply the Quasar agent to JavaExec tasks.
+     */
+    final Property<Boolean> instrumentJavaExec
 
     /**
      * Dependency notation for the Quasar agent to use.
@@ -54,8 +66,8 @@ class QuasarExtension {
         String defaultGroup,
         String defaultVersion,
         String defaultClassifier,
-        Iterable<? extends String> initialPackageExclusions,
-        Iterable<? extends String> initialClassLoaderExclusions
+        Iterable<String> initialPackageExclusions,
+        Iterable<String> initialClassLoaderExclusions
     ) {
         group = objects.property(String).convention(defaultGroup)
         version = objects.property(String).convention(defaultVersion)
@@ -63,10 +75,13 @@ class QuasarExtension {
         dependency = group.flatMap { grp ->
             version.flatMap { ver ->
                 classifier.map { cls ->
-                    [ group: grp, name: 'quasar-core', version: ver, classifier: cls, ext: 'jar' ]
+                    [ group: grp, name: 'quasar-core', version: ver, classifier: cls, ext: 'jar' ] as Map<String, String>
                 }
             }
         }
+
+        instrumentTests = objects.property(Boolean).convention(true)
+        instrumentJavaExec = objects.property(Boolean).convention(true)
 
         debug = objects.property(Boolean).convention(false)
         verbose = objects.property(Boolean).convention(false)
@@ -74,11 +89,11 @@ class QuasarExtension {
         excludePackages.set(initialPackageExclusions)
         excludeClassLoaders = objects.listProperty(String)
         excludeClassLoaders.set(initialClassLoaderExclusions)
-        options = excludePackages.flatMap { packages ->
-            excludeClassLoaders.flatMap { classLoaders ->
+        options = excludePackages.flatMap { List<String> packages ->
+            excludeClassLoaders.flatMap { List<String> classLoaders ->
                 debug.flatMap { isDebug ->
                     verbose.map { isVerbose ->
-                        def builder = new StringBuilder('=')
+                        final def builder = new StringBuilder('=')
                         if (isDebug) {
                             builder.append('d')
                         }

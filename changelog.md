@@ -1,5 +1,9 @@
 # Changelog
 
+## Version 5.1
+
+* Upgrade plugins to be compatible with Gradle 7.2.
+
 ## Version 5
 
 ### Version 5.0.16

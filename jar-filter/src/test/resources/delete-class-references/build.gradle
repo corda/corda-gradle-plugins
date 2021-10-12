@@ -4,7 +4,6 @@ plugins {
     id 'org.jetbrains.kotlin.jvm'
     id 'net.corda.plugins.jar-filter' apply false
 }
-apply from: 'repositories.gradle'
 apply from: 'kotlin.gradle'
 
 sourceSets {

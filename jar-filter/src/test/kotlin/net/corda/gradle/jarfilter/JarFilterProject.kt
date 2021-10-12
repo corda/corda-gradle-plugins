@@ -21,7 +21,6 @@ class JarFilterProject(private val projectDir: Path, private val name: String) {
     fun build(): JarFilterProject {
         projectDir.installResources(
             "$name/build.gradle",
-            "repositories.gradle",
             "gradle.properties",
             "settings.gradle",
             "kotlin.gradle"

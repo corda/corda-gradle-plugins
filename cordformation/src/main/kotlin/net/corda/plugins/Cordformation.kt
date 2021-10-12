@@ -19,7 +19,7 @@ class Cordformation : Plugin<Project> {
     internal companion object {
         private const val CORDFORMATION_TYPE = "cordformationInternal"
         private const val DEFAULT_JOLOKIA_VERSION = "1.6.2"
-        private const val MINIMUM_GRADLE_VERSION = "5.5"
+        private const val MINIMUM_GRADLE_VERSION = "7.0"
 
         /**
          * Gets a resource file from this plugin's JAR file by creating an intermediate tmp dir
@@ -74,9 +74,10 @@ class Cordformation : Plugin<Project> {
         project.pluginManager.apply(JavaPlugin::class.java)
 
         project.configurations.apply {
-            createCompileConfiguration(CORDAPP_CONFIGURATION_NAME, this)
-            val cordaRuntime = createRuntimeConfiguration(CORDA_RUNTIME_CONFIGURATION_NAME, this)
-            createChildConfiguration(CORDFORMATION_TYPE, cordaRuntime, this).withDependencies { dependencies ->
+            val cordapp = createImplementationConfiguration(CORDAPP_CONFIGURATION_NAME)
+            val cordaRuntimeOnly = createRuntimeOnlyConfiguration(CORDA_RUNTIME_ONLY_CONFIGURATION_NAME)
+
+            createChildConfiguration(CORDFORMATION_TYPE, cordaRuntimeOnly).withDependencies { dependencies ->
                 // TODO: improve how we re-use existing declared external variables from root gradle.build
                 val jolokiaVersion = project.findRootProperty("jolokia_version") ?: DEFAULT_JOLOKIA_VERSION
                 val jolokia = project.dependencies.create("org.jolokia:jolokia-jvm:$jolokiaVersion:agent")
@@ -84,7 +85,17 @@ class Cordformation : Plugin<Project> {
                 (jolokia as ModuleDependency).isTransitive = false
                 dependencies.add(jolokia)
             }
-            create(CORDA_DRIVER_CONFIGURATION_NAME)
+
+            create(CORDA_DRIVER_CONFIGURATION_NAME) {
+                it.isCanBeConsumed = false
+                it.isVisible = false
+            }
+            create(DEPLOY_CORDAPP_CONFIGURATION_NAME) {
+                it.isCanBeConsumed = false
+                it.isTransitive = false
+                it.isVisible = false
+                it.extendsFrom(cordapp)
+            }
         }
     }
 }

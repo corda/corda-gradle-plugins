@@ -110,7 +110,6 @@ public class GradleProject {
 
     private void configureGradle(Function<GradleRunner, BuildResult> builder, String[] args) throws IOException {
         installResource(projectDir, name + "/build.gradle");
-        installResource(projectDir, "repositories.gradle");
         installResource(projectDir, "gradle.properties");
         if (!installResource(projectDir, name + "/settings.gradle")) {
             installResource(projectDir, "settings.gradle");

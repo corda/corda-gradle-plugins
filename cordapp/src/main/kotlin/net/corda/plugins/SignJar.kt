@@ -8,8 +8,8 @@ import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileSystemLocation
 import org.gradle.api.model.ObjectFactory
-import org.gradle.api.provider.Provider
 import org.gradle.api.provider.Property
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputFiles
@@ -17,6 +17,7 @@ import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity.RELATIVE
 import org.gradle.api.tasks.SkipWhenEmpty
 import org.gradle.api.tasks.TaskAction
+import org.gradle.work.DisableCachingByDefault
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
@@ -24,7 +25,8 @@ import java.nio.file.Paths
 import java.nio.file.StandardCopyOption.REPLACE_EXISTING
 import javax.inject.Inject
 
-@Suppress("UnstableApiUsage")
+@Suppress("UnstableApiUsage", "unused")
+@DisableCachingByDefault
 open class SignJar @Inject constructor(objects: ObjectFactory) : DefaultTask() {
     companion object {
         private const val DUMMY_VALUE = "****"
@@ -37,8 +39,9 @@ open class SignJar @Inject constructor(objects: ObjectFactory) : DefaultTask() {
         }
 
         fun Task.sign(signing: Signing, file: File, outputFile: File? = null) {
-            val options = signing.options.toSignJarOptionsMap()
-            if (signing.options.hasDefaultOptions()) {
+            val options = signing.options.signJarOptions.get()
+            val useDefaultKeyStore = !signing.options.keyStore.isPresent
+            if (useDefaultKeyStore) {
                 logger.info("CorDapp JAR signing with the default Corda development key, suitable for Corda running in development mode only.")
                 val keyStore = File.createTempFile(SigningOptions.DEFAULT_KEYSTORE_FILE, SigningOptions.DEFAULT_KEYSTORE_EXTENSION, temporaryDir).toPath()
                 writeResourceToFile(SigningOptions.DEFAULT_KEYSTORE, keyStore)
@@ -52,8 +55,8 @@ open class SignJar @Inject constructor(objects: ObjectFactory) : DefaultTask() {
                 options[Key.SIGNEDJAR] = outputFile.toPath().toString()
             }
 
+            logger.info("Jar signing with following options: {}", options.toSanitized())
             try {
-                logger.info("Jar signing with following options: ${options.toSanitized()}")
                 ant.invokeMethod("signjar", options)
             } catch (e: Exception) {
                 // Not adding error message as it's always meaningless, logs with --INFO level contain more insights
@@ -63,9 +66,9 @@ open class SignJar @Inject constructor(objects: ObjectFactory) : DefaultTask() {
                         if (logger.isInfoEnabled || logger.isDebugEnabled) "Search for 'ant:signjar' in log output."
                         else "Run with --info or --debug option and search for 'ant:signjar' in log output. ", e)
             } finally {
-                if (signing.options.hasDefaultOptions()) {
-                    options[Key.KEYSTORE]?.apply {
-                        Files.deleteIfExists(Paths.get(this))
+                if (useDefaultKeyStore) {
+                    options[Key.KEYSTORE]?.also { jarFile ->
+                        Files.deleteIfExists(Paths.get(jarFile))
                     }
                 }
             }
@@ -90,18 +93,19 @@ open class SignJar @Inject constructor(objects: ObjectFactory) : DefaultTask() {
     val postfix: Property<String> = objects.property(String::class.java).convention("-signed")
 
     private val _inputJars = objects.fileCollection()
-
     val inputJars: FileCollection
         @PathSensitive(RELATIVE)
-        @InputFiles
         @SkipWhenEmpty
+        @InputFiles
         get() = _inputJars
 
-    fun setInputJars(jars: Any?) {
-        _inputJars.setFrom(jars ?: return)
+    fun setInputJars(vararg jars: Any) {
+        _inputJars.setFrom(*jars)
     }
 
-    fun inputJars(jars: Any?) = setInputJars(jars)
+    fun inputJars(vararg jars: Any) {
+        _inputJars.setFrom(*jars)
+    }
 
     private val _outputJars = objects.fileCollection().apply {
         setFrom(_inputJars.elements.map { files -> files.map(::toSigned) })

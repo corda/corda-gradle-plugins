@@ -3,7 +3,6 @@ import net.corda.plugins.apiscanner.GenerateApi
 plugins {
     id 'net.corda.plugins.api-scanner' apply false
 }
-apply from: 'repositories.gradle'
 
 description 'Test generating API file for child project'
 version = ''

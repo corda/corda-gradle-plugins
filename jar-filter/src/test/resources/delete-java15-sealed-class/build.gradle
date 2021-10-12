@@ -5,7 +5,6 @@ plugins {
     id 'net.corda.plugins.jar-filter' apply false
     id 'java-library'
 }
-apply from: 'repositories.gradle'
 
 java {
     sourceCompatibility = VERSION_15

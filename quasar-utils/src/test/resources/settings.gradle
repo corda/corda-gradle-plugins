@@ -4,3 +4,12 @@ pluginManagement {
         gradlePluginPortal()
     }
 }
+
+dependencyResolutionManagement {
+    repositories {
+        mavenCentral()
+        maven {
+            url "${artifactory_contextUrl}/corda-dependencies"
+        }
+    }
+}

@@ -3,8 +3,8 @@ import static org.gradle.api.JavaVersion.VERSION_1_8
 tasks.named('compileKotlin', AbstractCompile) {
     kotlinOptions {
         jvmTarget = VERSION_1_8
-        apiVersion = '1.2'
-        languageVersion = '1.2'
-        freeCompilerArgs = ['-Xjvm-default=enable']
+        apiVersion = '1.4'
+        languageVersion = '1.4'
+        freeCompilerArgs = ['-Xjvm-default=all']
     }
 }

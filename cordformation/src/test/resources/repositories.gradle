@@ -1,9 +1,0 @@
-repositories {
-    mavenCentral()
-    maven {
-        url "${artifactory_contextUrl}/corda-releases"
-    }
-    maven {
-        url "${artifactory_contextUrl}/corda-dependencies"
-    }
-}

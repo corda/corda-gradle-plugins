@@ -4,22 +4,23 @@ import com.typesafe.config.ConfigFactory
 import com.typesafe.config.ConfigValueFactory
 import org.gradle.api.Action
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.file.FileSystemOperations
+import org.gradle.api.file.ProjectLayout
+import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.Optional
-import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
-import org.gradle.api.tasks.PathSensitivity.RELATIVE
+import org.gradle.work.DisableCachingByDefault
 import org.yaml.snakeyaml.DumperOptions
 import org.yaml.snakeyaml.Yaml
 import org.yaml.snakeyaml.nodes.Tag
 import org.yaml.snakeyaml.representer.Represent
 import org.yaml.snakeyaml.representer.Representer
 import java.nio.file.Files
-import java.nio.file.Path
 import java.nio.file.Paths
 import javax.inject.Inject
 
@@ -30,13 +31,17 @@ import javax.inject.Inject
  * See documentation for examples.
  */
 @Suppress("unused", "UnstableApiUsage")
-open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(objects) {
+@DisableCachingByDefault
+open class Dockerform @Inject constructor(
+    objects: ObjectFactory,
+    fs: FileSystemOperations,
+    layout: ProjectLayout
+) : Baseform(objects, fs, layout) {
 
     private companion object {
 
         private const val DEFAULT_DB_STARTING_PORT = 5432
         private const val DEFAULT_SSH_PORT = 22022
-        private val DEFAULT_DIRECTORY: Path = Paths.get("build", "docker")
         private const val COMPOSE_SPEC_VERSION = "3"
 
         private val YAML_FORMAT_OPTIONS = DumperOptions().apply {
@@ -51,19 +56,9 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
         description = "Creates a docker-compose file and image definitions for a deployment of Corda Nodes."
     }
 
-    private val directoryPath: Path = project.projectDir.toPath().resolve(directory)
-
-    val dockerComposePath: Path
-        @PathSensitive(RELATIVE)
-        @InputFile
-        get() {
-            val wantedPath = directoryPath.resolve("docker-compose.yml")
-            if (!Files.exists(wantedPath)) {
-                Files.createDirectories(wantedPath.parent)
-                Files.createFile(wantedPath)
-            }
-            return wantedPath
-        }
+    @get:OutputFile
+    val dockerComposePath: RegularFileProperty = objects.fileProperty()
+        .convention(directory.file("docker-compose.yml"))
 
     @get:Optional
     @get:Input
@@ -93,6 +88,7 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
         logger.lifecycle("Running DockerForm task")
         initializeConfiguration()
         nodes.forEach { it.installDockerConfig(DEFAULT_SSH_PORT) }
+        nodes.forEach(Node::installDrivers)
         installCordaJar()
         generateKeystoreAndSignCordappJar()
         generateExcludedWhitelist()
@@ -102,29 +98,30 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
         val services = mutableMapOf<String, MutableMap<String, Any>>()
         val volumes = mutableMapOf<String, Map<String, Any>>()
 
-        nodes.forEachIndexed {index, it ->
+        val directoryPath = directory.asPath
+        nodes.forEachIndexed { index, it ->
 
             val nodeBuildPath = directoryPath.resolve(it.nodeDir.name).toAbsolutePath()
             val nodeBuildDir = nodeBuildPath.toString()
 
             val service = mutableMapOf(
-                    "volumes" to listOf(
-                            "$nodeBuildDir/node.conf:/etc/corda/node.conf",
-                            "$nodeBuildDir/certificates:/opt/corda/certificates",
-                            "$nodeBuildDir/logs:/opt/corda/logs",
-                            "$nodeBuildDir/persistence:/opt/corda/persistence",
-                            "$nodeBuildDir/cordapps:/opt/corda/cordapps",
-                            "$nodeBuildDir/network-parameters:/opt/corda/network-parameters",
-                            "$nodeBuildDir/additional-node-infos:/opt/corda/additional-node-infos",
-                            "$nodeBuildDir/drivers:/opt/corda/drivers"
-                    ),
-                    "environment" to listOf("ACCEPT_LICENSE=\${ACCEPT_LICENSE}"),
-                    "ports" to listOf(it.rpcPort.get(),
-                            when (it.usesDefaultSSHPort) {
-                               true -> it.config.getInt("sshd.port")
-                               false -> QuotedString("${it.config.getInt("sshd.port")}:${it.config.getInt("sshd.port")}")
-                            }),
-                    "image" to dockerImage.get()
+                "volumes" to listOf(
+                    "$nodeBuildDir/node.conf:/etc/corda/node.conf",
+                    "$nodeBuildDir/certificates:/opt/corda/certificates",
+                    "$nodeBuildDir/logs:/opt/corda/logs",
+                    "$nodeBuildDir/persistence:/opt/corda/persistence",
+                    "$nodeBuildDir/cordapps:/opt/corda/cordapps",
+                    "$nodeBuildDir/network-parameters:/opt/corda/network-parameters",
+                    "$nodeBuildDir/additional-node-infos:/opt/corda/additional-node-infos",
+                    "$nodeBuildDir/drivers:/opt/corda/drivers"
+                ),
+                "environment" to listOf("ACCEPT_LICENSE=\${ACCEPT_LICENSE}"),
+                "ports" to listOf(it.rpcPort.get(),
+                    when (it.usesDefaultSSHPort) {
+                        true -> it.config.getInt("sshd.port")
+                        false -> QuotedString("${it.config.getInt("sshd.port")}:${it.config.getInt("sshd.port")}")
+                    }),
+                "image" to dockerImage.get()
             )
 
             if (dockerConfig.isNotEmpty()) {
@@ -135,39 +132,40 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
                 val dbPort = DEFAULT_DB_STARTING_PORT + index
                 val dbHost = "${it.containerName}-db"
                 val defaultUrlArgs = ConfigFactory.empty()
-                        .withValue("DBHOSTNAME",ConfigValueFactory.fromAnyRef(dbHost))
-                        .withValue("DBPORT",ConfigValueFactory.fromAnyRef(dbPort))
+                    .withValue("DBHOSTNAME", ConfigValueFactory.fromAnyRef(dbHost))
+                    .withValue("DBPORT", ConfigValueFactory.fromAnyRef(dbPort))
 
                 var dbUrl = dockerConfig.getString("dataSourceProperties.dataSource.url")
 
                 if (dockerConfig.hasPath("dataSourceProperties.dataSource.urlArgs")) {
                     val urlArgs = defaultUrlArgs.withFallback(
-                            dockerConfig.getConfig("dataSourceProperties.dataSource.urlArgs")).resolve()
+                        dockerConfig.getConfig("dataSourceProperties.dataSource.urlArgs")).resolve()
 
                     dbUrl = TypesafeUtils.resolveString(dbUrl, urlArgs)
                 }
 
                 // Install the database configuration
                 val dbConfig = ConfigFactory.empty()
-                        .withValue("dataSourceProperties.dataSource.url", ConfigValueFactory.fromAnyRef(dbUrl))
-                        .withValue("dataSourceProperties.dataSourceClassName", dockerConfig.getValue("dataSourceProperties.dataSourceClassName"))
-                        .withValue("dataSourceProperties.dataSource.user", dockerConfig.getValue("dockerConfig.dbUser"))
-                        .withValue("dataSourceProperties.dataSource.password", dockerConfig.getValue("dockerConfig.dbPassword"))
-                        .withValue("database", ConfigValueFactory.fromMap(dockerConfig.getObject("database")))
+                    .withValue("dataSourceProperties.dataSource.url", ConfigValueFactory.fromAnyRef(dbUrl))
+                    .withValue("dataSourceProperties.dataSourceClassName", dockerConfig.getValue("dataSourceProperties.dataSourceClassName"))
+                    .withValue("dataSourceProperties.dataSource.user", dockerConfig.getValue("dockerConfig.dbUser"))
+                    .withValue("dataSourceProperties.dataSource.password", dockerConfig.getValue("dockerConfig.dbPassword"))
+                    .withValue("database", ConfigValueFactory.fromMap(dockerConfig.getObject("database")))
 
                 it.installDefaultDatabaseConfig(dbConfig)
 
                 val dbDockerfile = dockerConfig.getString("dockerConfig.dbDockerfile")
                 // Override the port and hostname parameters in dockerfile
                 val dbDockerfileArgs = defaultUrlArgs.withFallback(
-                        dockerConfig.getConfig("dockerConfig.dbDockerfileArgs")).resolve()
+                    dockerConfig.getConfig("dockerConfig.dbDockerfileArgs")).resolve()
+                val buildDir = layout.buildDirectory.asFile.get()
                 val database = mutableMapOf(
-                        "build" to mapOf(
-                             "context" to project.buildDir.absolutePath,
-                             "dockerfile" to project.buildDir.resolve(dbDockerfile).toString(),
-                             "args" to dbDockerfileArgs.entrySet().associate { it.key to it.value.unwrapped() }
-                        ),
-                        "restart" to "unless-stopped"
+                    "build" to mapOf(
+                        "context" to buildDir.absolutePath,
+                        "dockerfile" to buildDir.resolve(dbDockerfile).toString(),
+                        "args" to dbDockerfileArgs.entrySet().associate { it.key to it.value.unwrapped() }
+                    ),
+                    "restart" to "unless-stopped"
                 )
 
                 // append persistence volume if it is required
@@ -195,12 +193,12 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
                     val hostDir = absoluteHostPath.toFile()
                     if (hostDir.mkdirs() || hostDir.isDirectory) {
                         volumes["$dbHost-volume"] = mapOf(
-                                "driver" to "local",
-                                "driver_opts" to mapOf(
-                                        "type" to "none",
-                                        "device" to absoluteHostPath.toString(),
-                                        "o" to "bind"
-                                )
+                            "driver" to "local",
+                            "driver_opts" to mapOf(
+                                "type" to "none",
+                                "device" to absoluteHostPath.toString(),
+                                "o" to "bind"
+                            )
                         )
                         database["volumes"] = listOf("$dbHost-volume:$containerPathStr")
                     } else {
@@ -220,9 +218,9 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
         if (external.containerImage.isPresent) {
 
             val extra = mutableMapOf(
-                    "container_name" to external.containerName.get(),
-                    "image" to external.containerImage.get(),
-                    "ports" to external.servicePorts.get().map {QuotedString("${it}:${it}") }
+                "container_name" to external.containerName.get(),
+                "image" to external.containerImage.get(),
+                "ports" to external.servicePorts.get().map { QuotedString("${it}:${it}") }
             )
             if(external.volumes.get().isNotEmpty()){
                 extra["volumes"] = external.volumes.get().map{ "${it["sourceFile"]}:${it["deploymentPath"]}" }
@@ -240,8 +238,9 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
         }
 
         val dockerComposeObject = mutableMapOf(
-                "version" to COMPOSE_SPEC_VERSION,
-                "services" to services)
+            "version" to COMPOSE_SPEC_VERSION,
+            "services" to services
+        )
 
         if (volumes.isNotEmpty()) {
             dockerComposeObject["volumes"] = volumes
@@ -249,7 +248,7 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
 
         val dockerComposeContent = YAML_MAPPER.dump(dockerComposeObject)
 
-        Files.write(dockerComposePath, dockerComposeContent.toByteArray())
+        Files.write(dockerComposePath.asPath, dockerComposeContent.toByteArray())
     }
 
     private class QuotedString(val value: String)

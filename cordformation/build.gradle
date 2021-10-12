@@ -27,7 +27,7 @@ configurations {
     all {
         resolutionStrategy {
             dependencySubstitution {
-                substitute module('commons-logging:commons-logging') with module("org.slf4j:jcl-over-slf4j:$slf4j_version")
+                substitute module('commons-logging:commons-logging') using module("org.slf4j:jcl-over-slf4j:$slf4j_version")
             }
         }
     }
@@ -39,11 +39,11 @@ configurations {
  * jars to depend upon each other. And so we share source code
  * rather than resort to shading!
  */
-def generatedSourceDir = file("$buildDir/generated-source")
+def generatedSourceDir = layout.buildDirectory.dir('generated-source')
 def generateSource = tasks.register('generateSource', Copy) {
     from project(':cordapp').file('src/main/template')
     filter(ReplaceTokens, tokens: [root_package: 'net.corda.plugins.cordformation'])
-    into file("$generatedSourceDir/net/corda/plugins/cordformation/signing")
+    into generatedSourceDir.map { it.dir('net/corda/plugins/cordformation/signing') }
 }
 
 sourceSets {
@@ -115,15 +115,6 @@ dependencies {
     testImplementation "org.assertj:assertj-core:$assertj_version"
     testImplementation "net.corda:corda-serialization:$corda_release_version"
     testRuntimeOnly "net.corda:corda-node-api:$corda_release_version"
-}
-
-tasks.named('validateTaskProperties', ValidateTaskProperties) {
-    // The official advice is to annotate Path inputs
-    // as @Input instead of @InputDirectory if we don't
-    // care about the directory contents changing.
-    // Unfortunately, Gradle also generates a warning
-    // for this which we are forced to tolerate.
-    failOnWarning = false
 }
 
 task createNodeRunner(type: Jar) {

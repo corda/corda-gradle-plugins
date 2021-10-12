@@ -15,7 +15,7 @@ import java.util.Objects;
 
 import static org.gradle.api.plugins.JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME;
 
-@SuppressWarnings({"unused", "UnstableApiUsage"})
+@SuppressWarnings("unused")
 public class ApiScanner implements Plugin<Project> {
     private static final String CLASSIFIER_PROPERTY_NAME = "cordaScanApiClassifier";
     private static final String DEFAULT_CLASSIFIER = "";

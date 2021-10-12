@@ -22,6 +22,7 @@ import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity.RELATIVE
 import org.gradle.api.tasks.SkipWhenEmpty
 import org.gradle.api.tasks.TaskAction
+import org.gradle.work.DisableCachingByDefault
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.ClassWriter.COMPUTE_MAXS
@@ -38,6 +39,7 @@ import javax.inject.Inject
 import kotlin.math.max
 
 @Suppress("Unused", "UnstableApiUsage")
+@DisableCachingByDefault
 open class JarFilterTask @Inject constructor(objects: ObjectFactory, layouts: ProjectLayout) : DefaultTask() {
     private companion object {
         private const val DEFAULT_MAX_PASSES = 5

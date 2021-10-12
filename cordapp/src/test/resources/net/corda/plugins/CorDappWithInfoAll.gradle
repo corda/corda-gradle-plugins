@@ -2,22 +2,13 @@ plugins {
     id 'net.corda.plugins.cordapp'
 }
 
-apply from: 'repositories.gradle'
-
 tasks.named('jar', Jar) {
     archiveBaseName = 'test-cordapp'
 }
 
 cordapp {
-    targetPlatformVersion target_version_arg.toInteger()
-    minimumPlatformVersion min_platform_version_arg.toInteger()
-    info {
-        name name_info_arg
-        version version_info_arg
-        vendor vendor_info_arg
-        targetPlatformVersion 123
-        minimumPlatformVersion 456
-    }
+    targetPlatformVersion = target_version_arg.toInteger()
+    minimumPlatformVersion = min_platform_version_arg.toInteger()
     contract {
         name cordappContractName_info_arg
         versionId cordappContractVersion_info_arg.toInteger()

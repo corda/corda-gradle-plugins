@@ -13,7 +13,6 @@ ext {
 }
 
 apply plugin: 'net.corda.plugins.api-scanner'
-apply from: 'repositories.gradle'
 
 sourceSets {
     main {

@@ -5,7 +5,7 @@ import com.typesafe.config.ConfigFactory
 import com.typesafe.config.ConfigValueFactory
 import org.gradle.api.tasks.Input
 
-class RpcSettings {
+open class RpcSettings {
     private var config = ConfigFactory.empty()
 
     @get:Input

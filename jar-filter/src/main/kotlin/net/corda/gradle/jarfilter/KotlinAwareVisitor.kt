@@ -58,7 +58,6 @@ abstract class KotlinAwareVisitor(
                 val header = KotlinClassHeader(
                     classKind,
                     metadataVersion,
-                    bytecodeVersion,
                     data1,
                     data2,
                     extraString,
@@ -77,7 +76,7 @@ abstract class KotlinAwareVisitor(
         val kmClass = processClassMetadata(metadata.toKmClass()) ?: return null
         return KotlinClassMetadata.Class.Writer()
             .apply(kmClass::accept)
-            .write(header.metadataVersion, header.bytecodeVersion, header.extraInt)
+            .write(header.metadataVersion, header.extraInt)
             .header
     }
 
@@ -85,7 +84,7 @@ abstract class KotlinAwareVisitor(
         val kmPackage = processPackageMetadata(metadata.toKmPackage()) ?: return null
         return KotlinClassMetadata.FileFacade.Writer()
             .apply(kmPackage::accept)
-            .write(header.metadataVersion, header.bytecodeVersion, header.extraInt)
+            .write(header.metadataVersion, header.extraInt)
             .header
     }
 
@@ -93,7 +92,7 @@ abstract class KotlinAwareVisitor(
         val kmPackage = processPackageMetadata(metadata.toKmPackage()) ?: return null
         return KotlinClassMetadata.MultiFileClassPart.Writer()
             .apply(kmPackage::accept)
-            .write(metadata.facadeClassName, header.metadataVersion, header.bytecodeVersion, header.extraInt)
+            .write(metadata.facadeClassName, header.metadataVersion, header.extraInt)
             .header
     }
 

@@ -8,11 +8,16 @@ import com.typesafe.config.ConfigValueFactory
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
-import org.gradle.api.plugins.JavaPlugin.COMPILE_CONFIGURATION_NAME
-import org.gradle.api.plugins.JavaPlugin.RUNTIME_CONFIGURATION_NAME
+import org.gradle.api.file.FileSystemLocationProperty
+import org.gradle.api.plugins.JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME
+import org.gradle.api.plugins.JavaPlugin.RUNTIME_ONLY_CONFIGURATION_NAME
+import java.nio.file.Path
 
-const val CORDA_RUNTIME_CONFIGURATION_NAME = "cordaRuntime"
+const val CORDAPP_PLUGIN_ID = "net.corda.plugins.cordapp"
+const val CORDA_RUNTIME_ONLY_CONFIGURATION_NAME = "cordaRuntimeOnly"
+const val CORDA_CORDAPP_CONFIGURATION_NAME = "cordaCordapp"
 const val CORDA_DRIVER_CONFIGURATION_NAME = "cordaDriver"
+const val DEPLOY_CORDAPP_CONFIGURATION_NAME = "deployCordapp"
 const val CORDAPP_CONFIGURATION_NAME = "cordapp"
 
 /**
@@ -23,22 +28,27 @@ fun Project.findRootProperty(name: String): String? {
     return rootProject.findProperty(name)?.toString()
 }
 
-fun createChildConfiguration(name: String, parent: Configuration, configurations: ConfigurationContainer): Configuration {
-    return configurations.findByName(name) ?: run {
-        val configuration = configurations.create(name) {
-            it.isTransitive = false
+fun ConfigurationContainer.createChildConfiguration(name: String, parent: Configuration): Configuration {
+    return maybeCreate(name)
+        .setTransitive(false)
+        .setVisible(false)
+        .also { configuration ->
+            configuration.isCanBeConsumed = false
+            configuration.isCanBeResolved = false
+            parent.extendsFrom(configuration)
         }
-        parent.extendsFrom(configuration)
-        configuration
-    }
 }
 
-fun createCompileConfiguration(name: String, configurations: ConfigurationContainer): Configuration {
-    return createChildConfiguration(name, configurations.getByName(COMPILE_CONFIGURATION_NAME), configurations)
+fun ConfigurationContainer.createImplementationConfiguration(name: String): Configuration {
+    return createChildConfiguration(name, getByName(IMPLEMENTATION_CONFIGURATION_NAME))
 }
 
-fun createRuntimeConfiguration(name: String, configurations: ConfigurationContainer): Configuration {
-    return createChildConfiguration(name, configurations.getByName(RUNTIME_CONFIGURATION_NAME), configurations)
+fun ConfigurationContainer.createRuntimeOnlyConfiguration(name: String): Configuration {
+    return createChildConfiguration(name, getByName(RUNTIME_ONLY_CONFIGURATION_NAME))
+}
+
+val FileSystemLocationProperty<*>.asPath: Path get() {
+    return asFile.get().toPath()
 }
 
 internal fun Config.copyTo(key: String, target: Config, targetKey: String = key): Config {
