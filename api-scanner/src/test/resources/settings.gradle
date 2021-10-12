@@ -8,3 +8,9 @@ pluginManagement {
         id 'org.jetbrains.kotlin.jvm' version kotlin_version
     }
 }
+
+dependencyResolutionManagement {
+    repositories {
+        mavenCentral()
+    }
+}

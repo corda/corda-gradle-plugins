@@ -45,7 +45,6 @@ open class BaseformTest {
 
         createBuildFile(buildFileResourceName, buildFile)
         installResource("settings.gradle")
-        installResource("repositories.gradle")
         installResource("gradle.properties")
         installResource("postgres.gradle")
         return GradleRunner.create()
@@ -76,7 +75,7 @@ open class BaseformTest {
 
     fun getNodeConfig(nodeName: String): Config {
         val configFile = getNodeConfigFile(nodeName)
-        assertThat(configFile).isRegularFile()
+        assertThat(configFile).isRegularFile
         return ConfigFactory.parseFile(configFile.toFile())
     }
 

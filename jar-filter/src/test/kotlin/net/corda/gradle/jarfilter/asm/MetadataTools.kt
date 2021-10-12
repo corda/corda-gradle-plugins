@@ -25,7 +25,6 @@ fun <T: Any, X: Any> Class<in T>.metadataAs(template: Class<in X>): ByteArray {
         KotlinClassHeader(
             m.kind,
             m.metadataVersion,
-            m.bytecodeVersion,
             m.data1,
             m.data2.map { s ->
                 when {
@@ -66,7 +65,6 @@ private fun Class<*>.readMetadata(): KotlinClassHeader {
     return KotlinClassHeader(
         kind = metadata.kind,
         metadataVersion = metadata.metadataVersion,
-        bytecodeVersion = metadata.bytecodeVersion,
         data1 = metadata.data1,
         data2 = metadata.data2,
         extraString = metadata.extraString,

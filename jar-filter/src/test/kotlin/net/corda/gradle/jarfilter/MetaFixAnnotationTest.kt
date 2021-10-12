@@ -16,7 +16,7 @@ class MetaFixAnnotationTest {
         )
         private val valueCon = isKonstructor(
             returnType = AnnotationWithValue::class,
-            parameters = *arrayOf(String::class)
+            parameters = arrayOf(String::class)
         )
     }
 

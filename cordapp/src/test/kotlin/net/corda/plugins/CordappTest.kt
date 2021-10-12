@@ -30,41 +30,6 @@ class CordappTest {
         buildFile = testProjectDir.resolve("build.gradle")
         installResource(testProjectDir, "settings.gradle")
         installResource(testProjectDir, "gradle.properties")
-        installResource(testProjectDir, "repositories.gradle")
-    }
-
-    @Test
-    fun `a cordapp with a cordapp info block`() {
-        val expectedName = "test cordapp"
-        val expectedVersion = "3.2.1"
-        val expectedVendor = "test vendor"
-        val expectedtargetPlatformVersion = "5"
-        val expectedminimumPlatformVersion = "2"
-
-        val extraArgs = listOf(
-                "-Pname_info_arg=$expectedName",
-                "-Pversion_info_arg=$expectedVersion",
-                "-Pvendor_info_arg=$expectedVendor",
-                "-Ptarget_version_arg=$expectedtargetPlatformVersion",
-                "-Pmin_platform_version_arg=$expectedminimumPlatformVersion")
-
-        val jarTaskRunner = jarTaskRunner("CorDappWithInfo.gradle", extraArgs)
-
-        val result = jarTaskRunner.build()
-        println(result.output)
-
-        assertThat(result.task(":jar")!!.outcome).isEqualTo(TaskOutcome.SUCCESS)
-
-        val jarFile = getCordappJar(cordappJarName)
-        assertThat(jarFile).isRegularFile()
-
-        val attributes = jarFile.manifest.mainAttributes
-
-        assertThat(attributes.getValue("Name")).isEqualTo(expectedName)
-        assertThat(attributes.getValue("Implementation-Version")).isEqualTo(expectedVersion)
-        assertThat(attributes.getValue("Implementation-Vendor")).isEqualTo(expectedVendor)
-        assertThat(attributes.getValue("Target-Platform-Version")).isEqualTo(expectedtargetPlatformVersion)
-        assertThat(attributes.getValue("Min-Platform-Version")).isEqualTo(expectedminimumPlatformVersion)
     }
 
     @Test
@@ -242,7 +207,9 @@ class CordappTest {
 
     @Test
     fun `a cordapp without any metadata`() {
-        val jarTaskRunner = jarTaskRunner("CorDappWithoutMetadata.gradle")
+        val jarTaskRunner = jarTaskRunner("CorDappWithoutMetadata.gradle", listOf(
+            "-Ptarget_version_arg=10"
+        ))
 
         val result = jarTaskRunner.build()
         println(result.output)
@@ -255,7 +222,9 @@ class CordappTest {
 
     @Test
     fun `test signing passwords are not logged`() {
-        val jarTaskRunner = jarTaskRunner("CorDappWithoutMetadata.gradle")
+        val jarTaskRunner = jarTaskRunner("CorDappWithoutMetadata.gradle", listOf(
+            "-Ptarget_version_arg=10"
+        ))
         val result = jarTaskRunner.build()
         println(result.output)
         assertThat(result.output.split("\n")).anyMatch { line ->

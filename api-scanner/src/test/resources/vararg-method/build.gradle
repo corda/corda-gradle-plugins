@@ -2,7 +2,6 @@ plugins {
     id 'net.corda.plugins.api-scanner'
     id 'java'
 }
-apply from: 'repositories.gradle'
 
 description 'Test appearance of Java vararg functions'
 

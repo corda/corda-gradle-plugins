@@ -1,8 +1,7 @@
 package net.corda.plugins
 
 import com.typesafe.config.ConfigRenderOptions
-import groovy.lang.Closure
-import net.corda.plugins.cordformation.signing.SigningOptions.Companion.DEFAULT_KEYSTORE
+import net.corda.plugins.cordformation.signing.SigningOptions
 import net.corda.plugins.cordformation.signing.SigningOptions.Companion.DEFAULT_KEYSTORE_EXTENSION
 import net.corda.plugins.cordformation.signing.SigningOptions.Companion.DEFAULT_KEYSTORE_FILE
 import net.corda.plugins.cordformation.signing.SigningOptions.Key
@@ -11,12 +10,17 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.model.ObjectFactory
-import org.gradle.api.plugins.JavaPluginConvention
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.FileSystemOperations
+import org.gradle.api.file.ProjectLayout
+import org.gradle.api.plugins.JavaPlugin.JAR_TASK_NAME
+import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.SourceSet.MAIN_SOURCE_SET_NAME
-import org.gradle.util.ConfigureUtil.configureUsing
+import org.gradle.api.tasks.bundling.Jar
+import org.gradle.work.DisableCachingByDefault
 import java.io.File
 import java.lang.reflect.InvocationTargetException
 import java.net.URLClassLoader
@@ -31,20 +35,32 @@ import java.security.Security
  *
  * See documentation for examples.
  */
-@Suppress("unused", "UnstableApiUsage")
-abstract class Baseform(private val objects: ObjectFactory) : DefaultTask() {
+@Suppress("unused", "UnstableApiUsage", "LeakingThis")
+@DisableCachingByDefault
+abstract class Baseform(
+    @JvmField protected val objects: ObjectFactory,
+    @JvmField protected val fs: FileSystemOperations,
+    @JvmField protected val layout: ProjectLayout
+) : DefaultTask() {
 
-    private companion object {
+    protected companion object {
         const val nodeJarName = "corda.jar"
         const val GROUP_NAME = "Cordformation"
     }
 
     init {
         group = GROUP_NAME
+        project.pluginManager.withPlugin(CORDAPP_PLUGIN_ID) {
+            dependsOn(project.tasks.named(JAR_TASK_NAME, Jar::class.java))
+        }
+        // Ensure everything in the cordapp configuration that needs
+        // to be built is available before this task executes.
+        dependsOn(project.configurations.getByName(DEPLOY_CORDAPP_CONFIGURATION_NAME).buildDependencies)
     }
 
-    @get:Input
-    var directory: Path = project.buildDir.toPath().resolve("nodes")
+    @get:Internal
+    val directory: DirectoryProperty = objects.directoryProperty()
+        .convention(layout.buildDirectory.dir("nodes"))
 
     @get:Nested
     protected val nodes = mutableListOf<Node>()
@@ -61,8 +77,8 @@ abstract class Baseform(private val objects: ObjectFactory) : DefaultTask() {
      *
      * @param directory The directory the nodes will be installed into.
      */
-    fun directory(directory: String) {
-        this.directory = Paths.get(directory)
+    fun directory(directory: String?) {
+        directory(directory?.let(::File))
     }
 
     /**
@@ -71,22 +87,17 @@ abstract class Baseform(private val objects: ObjectFactory) : DefaultTask() {
      *
      * @param directory The directory the nodes will be installed into.
      */
-    fun directory(directory: File) {
-        this.directory = directory.toPath()
+    fun directory(directory: File?) {
+        if (directory == null || directory.isAbsolute) {
+            this.directory.fileValue(directory)
+        } else {
+            this.directory.value(layout.projectDirectory.dir(directory.path))
+        }
     }
 
     /**
      * Default configuration values that are applied to every node.
      */
-    @Deprecated("For backwards compatibility from Groovy DSL")
-    var nodeDefaults: Closure<in Node>?
-        @Internal
-        get() = null
-
-        protected set(value) {
-            _nodeDefaults = configureUsing(value)
-        }
-
     private var _nodeDefaults: Action<in Node>? = null
 
     fun nodeDefaults(action: Action<in Node>) {
@@ -119,15 +130,10 @@ abstract class Baseform(private val objects: ObjectFactory) : DefaultTask() {
      * @param action A node configuration that will be deployed.
      */
     fun node(action: Action<in Node>) {
-        val newNode = objects.newInstance(Node::class.java, project)
+        val newNode = objects.newInstance(Node::class.java, this)
         _nodeDefaults?.execute(newNode)
         action.execute(newNode)
         nodes += newNode
-    }
-
-    @Deprecated("For backwards compatibility from Kotlin DSL")
-    fun node(configureClosure: Closure<in Node>) {
-        node(configureUsing(configureClosure))
     }
 
     /**
@@ -143,7 +149,7 @@ abstract class Baseform(private val objects: ObjectFactory) : DefaultTask() {
      * so we load it manually via sourceSets.main.runtimeClasspath.
      */
     private fun createNetworkBootstrapperLoader(): URLClassLoader {
-        val plugin = project.convention.getPlugin(JavaPluginConvention::class.java)
+        val plugin = project.extensions.getByType(JavaPluginExtension::class.java)
         val classpath = plugin.sourceSets.getByName(MAIN_SOURCE_SET_NAME).runtimeClasspath
         val urls = classpath.files.map { it.toURI().toURL() }.toTypedArray()
         // This classloader should be self-contained. Don't assign Gradle's classloader as its parent.
@@ -155,7 +161,7 @@ abstract class Baseform(private val objects: ObjectFactory) : DefaultTask() {
      */
     protected fun installCordaJar() {
         val cordaJar = Cordformation.verifyAndGetRuntimeJar(project, "corda")
-        project.copy {
+        fs.copy {
             it.apply {
                 from(cordaJar)
                 into(directory)
@@ -168,13 +174,15 @@ abstract class Baseform(private val objects: ObjectFactory) : DefaultTask() {
     internal fun initializeConfiguration() {
         deleteRootDir()
         nodes.forEach {
-            it.rootDir(directory)
+            it.rootDir(directory.asFile.get())
         }
     }
 
     private fun deleteRootDir() {
-        logger.lifecycle("Deleting $directory")
-        project.delete(directory)
+        logger.lifecycle("Deleting {}", directory.get())
+        fs.delete { spec ->
+            spec.delete(directory)
+        }
     }
 
     /**
@@ -184,7 +192,7 @@ abstract class Baseform(private val objects: ObjectFactory) : DefaultTask() {
         if (excludeWhitelist.isNotEmpty()) {
             val fileName = "exclude_whitelist.txt"
             logger.debug("Adding {} to {}.", excludeWhitelist, fileName)
-            val rootDir = Paths.get(project.projectDir.toPath().resolve(directory).resolve(fileName).toAbsolutePath().normalize().toString())
+            val rootDir = directory.dir(fileName).get().asFile.toPath().toAbsolutePath().normalize()
             Files.write(rootDir, excludeWhitelist)
         }
     }
@@ -193,43 +201,60 @@ abstract class Baseform(private val objects: ObjectFactory) : DefaultTask() {
      * Optionally generate keyStore and sign the generated Cordapp/other Cordapps deployed to nodes.
      */
     protected fun generateKeystoreAndSignCordappJar() {
-        if (!signing.enabled)
+        if (!signing.enabled.get())
             return
 
-        require(!signing.generateKeystore || (signing.generateKeystore && !signing.options.hasDefaultOptions())) {
-            "Mis-configured keyStore generation to sign CorDapp JARs. When 'signing.generateKeystore' is true the following " +
-                    "'signing.options' need to be configured: keystore, alias, storepass, keypass."
+        val useDefaultKeyStore = !signing.options.keyStore.isPresent
+        require(!signing.generateKeystore.get() || useDefaultKeyStore) {
+            "Mis-configured keyStore generation to sign CorDapp JARs. When 'signing.generateKeyStore' is true the following " +
+                    "'signing.options' need to be configured: keyStore, alias, storePassword, keyPassword."
         }
 
-        if (signing.generateKeystore && !signing.options.hasDefaultOptions()) {
-            val genKeyTaskOptions = signing.options.toGenKeyOptionsMap()
+        if (signing.generateKeystore.get() && !useDefaultKeyStore) {
+            val genKeyTaskOptions = signing.options.genKeyOptions.get()
             if (Files.exists(Paths.get(genKeyTaskOptions[Key.KEYSTORE]))) {
                 logger.warn("Skipping keystore generation to sign CorDapps, the keystore already exists at '${genKeyTaskOptions[Key.KEYSTORE]}'.")
             } else {
-                logger.lifecycle("Generating keystore to sign CorDapps with options: ${genKeyTaskOptions.map { "${it.key}=${it.value}" }.joinToString()}.")
+                logger.lifecycle(
+                    "Generating keystore to sign CorDapps with options: ${
+                        genKeyTaskOptions.map { "${it.key}=${it.value}" }.joinToString()
+                    }."
+                )
                 ant.invokeMethod("genkey", genKeyTaskOptions)
             }
         }
-
-        val signJarOptions = signing.options.toSignJarOptionsMap()
-        if (signing.options.hasDefaultOptions()) {
-            val keyStore = File.createTempFile(DEFAULT_KEYSTORE_FILE, DEFAULT_KEYSTORE_EXTENSION, temporaryDir).toPath()
-            writeResourceToFile(DEFAULT_KEYSTORE, keyStore)
-            signJarOptions[Key.KEYSTORE] = keyStore.toString()
+        val signJarOptions = signing.options.signJarOptions.get()
+        if (useDefaultKeyStore) {
+            val keyStorePath =
+                File.createTempFile(DEFAULT_KEYSTORE_FILE, DEFAULT_KEYSTORE_EXTENSION, temporaryDir).let {
+                    it.deleteOnExit()
+                    it.toPath()
+                }
+            writeResourceToFile(SigningOptions.DEFAULT_KEYSTORE, keyStorePath)
+            signJarOptions[Key.KEYSTORE] = keyStorePath.toString()
+        }
+        val jarsToSign = if (signing.all.get()) {
+            nodes.flatMap(Node::getCordappList).map(Node.ResolvedCordapp::jarFile).distinct()
+        } else {
+            emptyList()
+        }.let { jars ->
+            project.configurations.findByName(CORDA_CORDAPP_CONFIGURATION_NAME)?.let { cfg ->
+                jars + cfg.artifacts.files.singleFile.toPath()
+            } ?: jars
         }
 
-        val jarsToSign = mutableListOf(project.tasks.getByName(Key.JAR).outputs.files.singleFile.toPath()) +
-                if (signing.all) nodes.flatMap(Node::getCordappList).map(Node.ResolvedCordapp::jarFile).distinct() else emptyList()
         jarsToSign.forEach {
             signJarOptions[Key.JAR] = it.toString()
-            try{
+            try {
                 ant.invokeMethod("signjar", signJarOptions)
-            }catch (e: Exception){
-                throw InvalidUserDataException("Exception while signing ${it.fileName}, " +
+            } catch (e: Exception) {
+                throw InvalidUserDataException(
+                    "Exception while signing ${it.fileName}, " +
                         "ensure the 'cordapp.signing.options' entry contains correct keyStore configuration, " +
                         "or disable signing by 'cordapp.signing.enabled false'. " +
                         if (logger.isInfoEnabled || logger.isDebugEnabled) "Search for 'ant:signjar' in log output."
-                        else "Run with --info or --debug option and search for 'ant:signjar' in log output. ", e)
+                        else "Run with --info or --debug option and search for 'ant:signjar' in log output. ", e
+                )
             }
         }
     }
@@ -245,7 +270,7 @@ abstract class Baseform(private val objects: ObjectFactory) : DefaultTask() {
         createNetworkBootstrapperLoader().use { cl ->
             val networkBootstrapperClass = cl.loadNetworkBootstrapper()
             val allCordapps = nodes.flatMap(Node::getCordappList).map(Node.ResolvedCordapp::jarFile).distinct()
-            val rootDir = project.projectDir.toPath().resolve(directory).toAbsolutePath().normalize()
+            val rootDir = directory.get().asFile.toPath().toAbsolutePath().normalize()
             try {
                 // Call NetworkBootstrapper.bootstrap
                 invokeBootstrap(networkBootstrapperClass, rootDir, allCordapps)
@@ -270,7 +295,6 @@ abstract class Baseform(private val objects: ObjectFactory) : DefaultTask() {
                 Security.removeProvider(provider.name)
             }
         }
-
         /*
          * Shutdown the most likely SFL4J implementations that
          * Network Bootstrapper could have been using.
@@ -278,7 +302,6 @@ abstract class Baseform(private val objects: ObjectFactory) : DefaultTask() {
         classLoader.shutdownLog4J2()
         classLoader.shutdownLog4J()
         classLoader.shutdownLogback()
-
         /*
          * Make sure JCL isn't holding onto anything either.
          */
@@ -288,14 +311,33 @@ abstract class Baseform(private val objects: ObjectFactory) : DefaultTask() {
     private fun invokeBootstrap(networkBootstrapperClass: Class<*>, rootDir: Path, allCordapps: List<Path>) {
         try {
             if (networkParameterOverrides.isEmpty()) {
-                val bootstrapMethod = networkBootstrapperClass.getMethod("bootstrapCordform", Path::class.java, List::class.java).apply { isAccessible = true }
-                bootstrapMethod.invoke(networkBootstrapperClass.getDeclaredConstructor().newInstance(), rootDir, allCordapps)
+                val bootstrapMethod =
+                    networkBootstrapperClass.getMethod("bootstrapCordform", Path::class.java, List::class.java)
+                        .apply { isAccessible = true }
+                bootstrapMethod.invoke(
+                    networkBootstrapperClass.getDeclaredConstructor().newInstance(),
+                    rootDir,
+                    allCordapps
+                )
             } else {
-                val bootstrapMethod = networkBootstrapperClass.getMethod("bootstrapCordform", Path::class.java, List::class.java, String::class.java).apply { isAccessible = true }
-                bootstrapMethod.invoke(networkBootstrapperClass.getDeclaredConstructor().newInstance(), rootDir, allCordapps, networkParameterOverrides.toConfig().root().render(ConfigRenderOptions.concise()))
+                val bootstrapMethod = networkBootstrapperClass.getMethod(
+                    "bootstrapCordform",
+                    Path::class.java,
+                    List::class.java,
+                    String::class.java
+                ).apply { isAccessible = true }
+                bootstrapMethod.invoke(
+                    networkBootstrapperClass.getDeclaredConstructor().newInstance(),
+                    rootDir,
+                    allCordapps,
+                    networkParameterOverrides.toConfig().root().render(ConfigRenderOptions.concise())
+                )
             }
         } catch (e: NoSuchMethodException) {
-            throw InvalidUserDataException("Unrecognised configuration options passed. Please ensure you're using the correct 'corda-node-api' version on Gradle's runtime classpath.", e)
+            throw InvalidUserDataException(
+                "Unrecognised configuration options passed. Please ensure you're using the correct 'corda-node-api' version on Gradle's runtime classpath.",
+                e
+            )
         }
     }
 
@@ -303,14 +345,22 @@ abstract class Baseform(private val objects: ObjectFactory) : DefaultTask() {
         return try {
             Class.forName("net.corda.nodeapi.internal.network.NetworkBootstrapper", true, this)
         } catch (e: ClassNotFoundException) {
-            throw InvalidUserCodeException("Cannot find the NetworkBootstrapper class. Please ensure that 'corda-node-api' is available on Gradle's runtime classpath, "
-                    + "e.g. by adding it to Gradle's 'runtimeOnly' configuration.", e)
+            throw InvalidUserCodeException(
+                "Cannot find the NetworkBootstrapper class. Please ensure that 'corda-node-api' is available on Gradle's runtime classpath, "
+                        + "e.g. by adding it to Gradle's 'cordaRuntimeOnly' configuration.", e
+            )
         }
     }
 
-    private fun ClassLoader.shutdownCommonsLogging() = execute("org.apache.commons.logging.LogFactory", "releaseAll") { c, m -> invoke(c, m, null) }
-    private fun ClassLoader.shutdownLog4J() = execute("org.apache.log4j.LogManager", "shutdown") { c, m -> invoke(c, m, null) }
-    private fun ClassLoader.shutdownLog4J2() = execute("org.apache.logging.log4j.LogManager", "shutdown") { c, m -> invoke(c, m, null) }
+    private fun ClassLoader.shutdownCommonsLogging() =
+        execute("org.apache.commons.logging.LogFactory", "releaseAll") { c, m -> invoke(c, m, null) }
+
+    private fun ClassLoader.shutdownLog4J() =
+        execute("org.apache.log4j.LogManager", "shutdown") { c, m -> invoke(c, m, null) }
+
+    private fun ClassLoader.shutdownLog4J2() =
+        execute("org.apache.logging.log4j.LogManager", "shutdown") { c, m -> invoke(c, m, null) }
+
     private fun ClassLoader.shutdownLogback() = execute("ch.qos.logback.classic.LoggerContext", "stop") { c, m ->
         val iLogger = invoke("org.slf4j.LoggerFactory", "getILoggerFactory", null)
         invoke(c, m, iLogger)

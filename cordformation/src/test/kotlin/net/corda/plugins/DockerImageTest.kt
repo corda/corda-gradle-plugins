@@ -12,7 +12,7 @@ class DockerImageTest :BaseformTest() {
 
         val result = runner.build()
         assertThat(result.task(":dockerImage")!!.outcome).isEqualTo(TaskOutcome.SUCCESS)
-        assertThat(Paths.get(testProjectDir.toAbsolutePath().toString(), "build", "docker", "Dockerfile")).isRegularFile()
+        assertThat(Paths.get(testProjectDir.toAbsolutePath().toString(), "build", "docker", "Dockerfile")).isRegularFile
 
         val dockerfile = Paths.get(testProjectDir.toAbsolutePath().toString(), "build", "docker", "Dockerfile").toFile()
         val text = dockerfile.readText()
@@ -27,8 +27,8 @@ class DockerImageTest :BaseformTest() {
         val result = runner.build()
 
         assertThat(result.task(":dockerImage")!!.outcome).isEqualTo(TaskOutcome.SUCCESS)
-        assertThat(Paths.get(testProjectDir.toAbsolutePath().toString(), "build", "docker","corda-finance-contracts-4.8.jar")).isRegularFile()
-        assertThat(Paths.get(testProjectDir.toAbsolutePath().toString(), "build", "docker","corda-finance-workflows-4.8.jar")).isRegularFile()
-        assertThat(Paths.get(testProjectDir.toAbsolutePath().toString(), "build", "docker","dummyJar.jar")).isRegularFile()
+        assertThat(Paths.get(testProjectDir.toAbsolutePath().toString(), "build", "docker","corda-finance-contracts-4.8.jar")).isRegularFile
+        assertThat(Paths.get(testProjectDir.toAbsolutePath().toString(), "build", "docker","corda-finance-workflows-4.8.jar")).isRegularFile
+        assertThat(Paths.get(testProjectDir.toAbsolutePath().toString(), "build", "docker","dummyJar.jar")).isRegularFile
     }
 }

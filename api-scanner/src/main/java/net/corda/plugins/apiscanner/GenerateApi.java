@@ -15,6 +15,7 @@ import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.work.DisableCachingByDefault;
 
 import javax.annotation.Nonnull;
 import java.io.BufferedOutputStream;
@@ -32,6 +33,7 @@ import static net.corda.plugins.apiscanner.ApiScanner.GROUP_NAME;
 import static org.gradle.api.tasks.PathSensitivity.RELATIVE;
 
 @SuppressWarnings({"unused", "UnstableApiUsage"})
+@DisableCachingByDefault
 public class GenerateApi extends DefaultTask {
 
     private final Property<String> baseName;

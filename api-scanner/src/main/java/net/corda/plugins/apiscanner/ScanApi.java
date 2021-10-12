@@ -28,6 +28,7 @@ import org.gradle.api.tasks.OutputFiles;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.work.DisableCachingByDefault;
 
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
@@ -66,6 +67,7 @@ import static net.corda.plugins.apiscanner.ApiScanner.GROUP_NAME;
 import static org.gradle.api.tasks.PathSensitivity.RELATIVE;
 
 @SuppressWarnings({"unused", "WeakerAccess", "UnstableApiUsage"})
+@DisableCachingByDefault
 class ScanApi extends DefaultTask {
     private static final int CLASS_MASK = Modifier.classModifiers();
     private static final int INTERFACE_MASK = Modifier.interfaceModifiers() & ~Modifier.ABSTRACT;

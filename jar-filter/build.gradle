@@ -14,8 +14,8 @@ repositories {
 }
 
 ext {
-    kotlin_metadata_version = '0.1.0'
-    test_kotlin_api_version = '1.2'
+    kotlin_metadata_version = '0.3.0'
+    test_kotlin_api_version = '1.4'
 }
 
 gradlePlugin {
@@ -67,6 +67,13 @@ dependencies {
     testImplementation project(':jar-filter:unwanteds')
 
     jacocoRuntime "org.jacoco:org.jacoco.agent:${jacoco.toolVersion}:runtime"
+}
+
+tasks.named('compileTestKotlin') {
+    kotlinOptions {
+        apiVersion = test_kotlin_api_version
+        languageVersion = test_kotlin_api_version
+    }
 }
 
 processTestResources {

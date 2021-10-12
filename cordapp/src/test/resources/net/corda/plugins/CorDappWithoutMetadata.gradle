@@ -2,7 +2,9 @@ plugins {
     id 'net.corda.plugins.cordapp'
 }
 
-apply from: 'repositories.gradle'
+cordapp {
+    targetPlatformVersion = target_version_arg.toInteger()
+}
 
 tasks.named('jar', Jar) {
     archiveBaseName = 'test-cordapp'

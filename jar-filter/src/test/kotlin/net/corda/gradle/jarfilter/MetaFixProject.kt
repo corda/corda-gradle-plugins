@@ -22,7 +22,6 @@ class MetaFixProject(private val projectDir: Path, private val name: String) {
     fun build(): MetaFixProject {
         projectDir.installResources(
             "$name/build.gradle",
-            "repositories.gradle",
             "gradle.properties",
             "settings.gradle",
             "kotlin.gradle"

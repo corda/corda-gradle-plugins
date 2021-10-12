@@ -7,8 +7,6 @@ plugins {
     id("net.corda.plugins.cordformation")
 }
 
-apply(from = "repositories.gradle")
-
 val corda_group: String by project
 val corda_release_version: String by project
 val slf4j_version: String by project
@@ -16,14 +14,12 @@ val slf4j_version: String by project
 dependencies {
     cordapp("$corda_group:corda-finance-contracts:$corda_release_version")
     cordapp("$corda_group:corda-finance-workflows:$corda_release_version")
-    cordaRuntime("$corda_group:corda:$corda_release_version")
-    cordaRuntime("$corda_group:corda-node-api:$corda_release_version")
-    cordaRuntime("org.slf4j:slf4j-simple:$slf4j_version")
+    cordaRuntimeOnly("$corda_group:corda:$corda_release_version")
+    cordaRuntimeOnly("$corda_group:corda-node-api:$corda_release_version")
+    cordaRuntimeOnly("org.slf4j:slf4j-simple:$slf4j_version")
 }
 
 tasks.register<Cordform>("deployNodes") {
-    dependsOn.add("jar")
-
     nodeDefaults {
         projectCordapp {
             deploy = false

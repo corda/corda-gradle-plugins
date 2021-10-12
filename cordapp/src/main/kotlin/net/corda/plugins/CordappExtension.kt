@@ -5,26 +5,33 @@ import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Nested
+import org.gradle.api.tasks.TaskInputs
 import javax.inject.Inject
 
-@Suppress("UnstableApiUsage", "Unused", "Deprecation")
-open class CordappExtension @Inject constructor(objects: ObjectFactory)  {
+/**
+ * Registers these [CordappExtension] properties as task inputs,
+ * because Gradle cannot "see" their `@Input` annotations yet.
+ */
+fun TaskInputs.nested(nestName: String, cordapp: CordappExtension) {
+    property("${nestName}.targetPlatformVersion", cordapp.targetPlatformVersion)
+    property("${nestName}.minimumPlatformVersion", cordapp.minimumPlatformVersion)
+    nested("${nestName}.contract", cordapp.contract)
+    nested("${nestName}.workflow", cordapp.workflow)
+    nested("${nestName}.signing", cordapp.signing)
+    nested("${nestName}.sealing", cordapp.sealing)
+}
 
-    /**
-     * CorDapp distribution information (deprecated)
-     */
-    @Deprecated("Use top-level attributes and specific Contract and Workflow info objects")
-    @get:Nested
-    val info: Info = objects.newInstance(Info::class.java)
+@Suppress("UnstableApiUsage", "Unused")
+open class CordappExtension @Inject constructor(objects: ObjectFactory)  {
 
     /**
      * Top-level CorDapp attributes
      */
     @get:Input
-    val targetPlatformVersion: Property<Int> = objects.property(Int::class.java).convention(info.targetPlatformVersion)
+    val targetPlatformVersion: Property<Int> = objects.property(Int::class.java)
 
     @get:Input
-    val minimumPlatformVersion: Property<Int> = objects.property(Int::class.java).convention(info.minimumPlatformVersion)
+    val minimumPlatformVersion: Property<Int> = objects.property(Int::class.java).convention(targetPlatformVersion)
 
     /**
      * CorDapp Contract distribution information.
@@ -56,10 +63,6 @@ open class CordappExtension @Inject constructor(objects: ObjectFactory)  {
 
     fun workflow(action: Action<in CordappData>) {
         action.execute(workflow)
-    }
-
-    fun info(action: Action<in Info>) {
-        action.execute(info)
     }
 
     fun signing(action: Action<in Signing>) {

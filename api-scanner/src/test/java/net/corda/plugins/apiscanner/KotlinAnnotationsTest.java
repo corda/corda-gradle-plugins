@@ -31,7 +31,7 @@ class KotlinAnnotationsTest {
         "public final class net.corda.example.HasJvmField extends java.lang.Object",
         "  public <init>()",
         "  @NotNull",
-        "  public final String stringValue = \"Hello World\"",
+        "  public final String stringValue",
         "##"
     };
 
@@ -39,6 +39,7 @@ class KotlinAnnotationsTest {
         "public final class net.corda.example.HasJvmStaticFunction extends java.lang.Object",
         "  public <init>()",
         "  public static final void doThing(String)",
+        "  @NotNull",
         "  public static final net.corda.example.HasJvmStaticFunction$Companion Companion",
         "##"
     };
@@ -92,6 +93,7 @@ class KotlinAnnotationsTest {
                 "  public <init>()",
                 "  @NotNull",
                 "  public static final String getStringValue()",
+                "  @NotNull",
                 "  public static final net.corda.example.HasJvmStaticField$Companion Companion",
                 "##"
             ).containsSequence(

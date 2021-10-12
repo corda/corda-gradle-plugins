@@ -2,7 +2,6 @@ plugins {
     id 'net.corda.plugins.api-scanner'
     id 'org.jetbrains.kotlin.jvm'
 }
-apply from: 'repositories.gradle'
 apply from: 'kotlin.gradle'
 
 description 'Test appearance of Kotlin lambdas'

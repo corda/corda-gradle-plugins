@@ -26,27 +26,27 @@ class CordappGradleConfigurationsTest {
                     |    id 'net.corda.plugins.cordapp'
                     |}
                     |
-                    |apply from: 'repositories.gradle'
-                    |
                     |version = '1.0-SNAPSHOT'
                     |group = 'com.example'
                     |
                     |dependencies {
-                    |    compile "org.slf4j:slf4j-api:1.7.26"
-                    |    runtime "commons-io:commons-io:2.6"
-                    |    cordaCompile "com.google.guava:guava:20.0"
-                    |    cordaRuntime "javax.servlet:javax.servlet-api:3.1.0"
+                    |    api "commons-io:commons-io:2.8.0"
+                    |    compileOnly "org.slf4j:slf4j-api:1.7.32"
+                    |    cordapp "javax.annotation:javax.annotation-api:1.3.2"
+                    |    cordaProvided "com.google.guava:guava:20.0"
+                    |    cordaRuntimeOnly "javax.servlet:javax.servlet-api:3.1.0"
                     |    implementation "javax.persistence:javax.persistence-api:2.2"
                     |    runtimeOnly "javax.validation:validation-api:1.1.0.Final"
                     |}
                     |
-                    |jar {
-                    |    archiveName = 'configurations.jar'
+                    |tasks.named('jar', Jar) {
+                    |    archiveFileName = 'configurations.jar'
                     |}
                     |
                     |cordapp {
-                    |    info {
+                    |    contract {
                     |        name = 'Testing'
+                    |        versionId = 1
                     |        targetPlatformVersion = 5
                     |    }
                     |}
@@ -54,7 +54,7 @@ class CordappGradleConfigurationsTest {
                 .build()
 
             val cordapp = testProject.pathOf("build", "libs", "configurations.jar")
-            assertThat(cordapp).isRegularFile()
+            assertThat(cordapp).isRegularFile
 
             poms = ZipFile(cordapp.toFile()).use { zip ->
                 zip.stream().filter { entry -> entry.name.endsWith("/pom.xml") }
@@ -65,43 +65,51 @@ class CordappGradleConfigurationsTest {
 
     @Test
     fun testCorrectNumberOfIncludes() {
-        assertEquals(2, poms.size)
+        assertEquals(3, poms.size)
     }
 
     @Test
-    fun testCompileIncluded() {
+    fun testCompileOnlyExcluded() {
         assertThat(testProject.output)
-            .contains("CorDapp dependency: slf4j-api-1.7.26.jar")
+            .doesNotContain("CorDapp dependency: slf4j-api-1.7.32.jar")
         assertThat(poms)
-            .anyMatch { it.name == "META-INF/maven/org.slf4j/slf4j-api/pom.xml" }
+            .noneMatch { it.name == "META-INF/maven/org.slf4j/slf4j-api/pom.xml" }
     }
 
     @Test
-    fun testRuntimeIncluded() {
+    fun testApiIncluded() {
         assertThat(testProject.output)
-            .contains("CorDapp dependency: commons-io-2.6.jar")
+            .contains("CorDapp dependency: commons-io-2.8.0.jar")
         assertThat(poms)
             .anyMatch { it.name == "META-INF/maven/commons-io/commons-io/pom.xml" }
     }
 
     @Test
-    fun testImplementationExcluded() {
+    fun testCordappExcluded() {
         assertThat(testProject.output)
-            .doesNotContain("CorDapp dependency: javax.persistence-api-2.2.jar")
+            .doesNotContain("CorDapp dependency: javax.annotation-api-1.3.2.jar")
         assertThat(poms)
-            .noneMatch { it.name == "META-INF/maven/javax.persistence/javax.persistence-api/pom.xml" }
+            .noneMatch { it.name == "META-INF/maven/javax.annotation/javax.annotation-api/pom.xml" }
     }
 
     @Test
-    fun testRuntimeOnlyExcluded() {
+    fun testImplementationIncluded() {
         assertThat(testProject.output)
-            .doesNotContain("CorDapp dependency: validation-api-1.1.0.Final.jar")
+            .contains("CorDapp dependency: javax.persistence-api-2.2.jar")
         assertThat(poms)
-            .noneMatch { it.name == "META-INF/maven/javax.validation/validation-api/pom.xml" }
+            .anyMatch { it.name == "META-INF/maven/javax.persistence/javax.persistence-api/pom.xml" }
     }
 
     @Test
-    fun testCordaRuntimeExcluded() {
+    fun testRuntimeOnlyIncluded() {
+        assertThat(testProject.output)
+            .contains("CorDapp dependency: validation-api-1.1.0.Final.jar")
+        assertThat(poms)
+            .anyMatch { it.name == "META-INF/maven/javax.validation/validation-api/pom.xml" }
+    }
+
+    @Test
+    fun testCordaRuntimeOnlyExcluded() {
         assertThat(testProject.output)
             .doesNotContain("CorDapp dependency: javax.servlet-api-3.1.0.jar")
         assertThat(poms)
@@ -109,7 +117,7 @@ class CordappGradleConfigurationsTest {
     }
 
     @Test
-    fun testCordaCompileExcluded() {
+    fun testCordaProvidedExcluded() {
         assertThat(testProject.output)
             .doesNotContain("CorDapp dependency: guava-20.0.jar")
         assertThat(poms)

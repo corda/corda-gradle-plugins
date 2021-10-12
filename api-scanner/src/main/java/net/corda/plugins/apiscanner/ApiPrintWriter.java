@@ -153,7 +153,7 @@ class ApiPrintWriter extends PrintWriter {
     }
 
     @Nonnull
-    private static String removeQualifierFromBaseTypes(TypeSignature typeSignature) {
+    private static String removeQualifierFromBaseTypes(@Nonnull TypeSignature typeSignature) {
         return removeQualifierFromBaseTypes(stringOf(typeSignature));
     }
 }
