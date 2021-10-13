@@ -27,11 +27,6 @@ class QuasarExtension {
     final Property<String> suspendableAnnotation
 
     /**
-     * Dependency notation for the Quasar bundle to use.
-     */
-    final Provider<Map<String, String>> dependency
-
-    /**
      * Whether we should apply the Quasar agent to Test tasks.
      */
     final Property<Boolean> instrumentTests
@@ -40,6 +35,11 @@ class QuasarExtension {
      * Whether we should apply the Quasar agent to JavaExec tasks.
      */
     final Property<Boolean> instrumentJavaExec
+
+    /**
+     * Dependency notation for the Quasar bundle to use.
+     */
+    final Provider<Map<String, String>> dependency
 
     /**
      * Dependency notation for the Quasar agent to use.

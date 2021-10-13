@@ -1,8 +1,9 @@
 import static org.gradle.jvm.toolchain.JavaLanguageVersion.of
 
 plugins {
-    id 'groovy'
     id 'java-gradle-plugin'
+    id 'java-library'
+    id 'groovy'
 }
 
 description 'A small gradle plugin for adding some basic Quasar tasks and configurations to reduce build.gradle bloat.'

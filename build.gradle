@@ -5,7 +5,7 @@ plugins {
     id 'org.jetbrains.kotlin.jvm' apply false
     id 'com.gradle.plugin-publish' apply false
     id 'org.owasp.dependencycheck' apply false
-    id 'com.jfrog.artifactory' apply false
+    id 'com.jfrog.artifactory'
 }
 
 ext {
@@ -26,7 +26,7 @@ subprojects {
             }
         }
 
-        if (parent == rootProject) {
+        pluginManager.withPlugin('java-gradle-plugin') {
             // Add a META-INF/pluginVersion.properties resource into each plugin jar.
             def generateResources = tasks.register('generateResources') {
                 def versionFile = layout.buildDirectory.dir('generated').map { dir ->
@@ -105,21 +105,14 @@ subprojects {
 // Only the top-level projects are plugins, so only publish these ones.
 // The "child projects" are the immediate children of the root. Any
 // "grandchild" project is considered to be internal to its parent.
-def publishProjects = project.childProjects.values()
+def publishProjects = childProjects.values()
 
 configure(publishProjects) { Project subproject ->
-    apply plugin: 'java-library'
     apply plugin: 'maven-publish'
     apply plugin: 'com.jfrog.artifactory'
     apply plugin: 'com.gradle.plugin-publish'
 
     evaluationDependsOn(subproject.path)
-
-    tasks.register('sourcesJar', Jar) {
-        dependsOn subproject.classes
-        archiveClassifier = 'sources'
-        from sourceSets.main.allSource
-    }
 
     tasks.register('install') {
         dependsOn 'publishToMavenLocal'
@@ -153,17 +146,29 @@ configure(publishProjects) { Project subproject ->
             }
 
             create(subproject.name, MavenPublication) {
-                if (subproject.hasProperty('mavenArtifacts')) {
-                    subproject.mavenArtifacts.call(it)
-                } else {
-                    from components.java
-                }
-
                 groupId subproject.group
                 artifactId subproject.name
-                artifact tasks.named('sourcesJar', Jar)
+
+                pluginManager.withPlugin('java') {
+                    if (subproject.hasProperty('mavenArtifacts')) {
+                        subproject.mavenArtifacts.call(it)
+                    } else {
+                        from components.java
+                    }
+
+                    artifact tasks.register('sourcesJar', Jar) {
+                        dependsOn subproject.classes
+                        archiveClassifier = 'sources'
+                        from sourceSets.main.allSource
+                    }
+                }
+
                 try {
-                    artifact tasks.named('kdocsJar', Jar)
+                    def dokka = tasks.named('dokkaHtml')
+                    artifact tasks.register('kdocsJar', Jar) {
+                        from dokka.flatMap { it.outputDirectory }
+                        archiveClassifier = 'javadoc'
+                    }
                 } catch (UnknownTaskException e) {
                     artifact tasks.named('publishPluginJavaDocsJar', Jar)
                 }
@@ -188,20 +193,22 @@ configure(publishProjects) { Project subproject ->
             //     }
             //
             // except that this would also discard all of our POM customisations.
-            subproject.extensions['gradlePlugin'].plugins.forEach { plugin ->
-                create(subproject.name + '-' + plugin.name, MavenPublication) {
-                    groupId plugin.id
-                    artifactId plugin.id + '.gradle.plugin'
+            pluginManager.withPlugin('java-gradle-plugin') {
+                subproject.extensions['gradlePlugin'].plugins.forEach { plugin ->
+                    create(subproject.name + '-' + plugin.name, MavenPublication) {
+                        groupId plugin.id
+                        artifactId plugin.id + '.gradle.plugin'
 
-                    pom {
-                        name = "Gradle plugin marker for ${plugin.id}"
-                        description = subproject.description
-                        packaging 'pom'
-                        withXml {
-                            def dependency = asNode().appendNode('dependencies').appendNode('dependency')
-                            dependency.appendNode('groupId', subproject.group)
-                            dependency.appendNode('artifactId', subproject.name)
-                            dependency.appendNode('version', subproject.version)
+                        pom {
+                            name = "Gradle plugin marker for ${plugin.id}"
+                            description = subproject.description
+                            packaging 'pom'
+                            withXml {
+                                def dependency = asNode().appendNode('dependencies').appendNode('dependency')
+                                dependency.appendNode('groupId', subproject.group)
+                                dependency.appendNode('artifactId', subproject.name)
+                                dependency.appendNode('version', subproject.version)
+                            }
                         }
                     }
                 }
@@ -220,7 +227,7 @@ artifactory {
         }
 
         defaults {
-            if (publishProjects.contains(project)) {
+            project.pluginManager.withPlugin('java-gradle-plugin') {
                 publications(project.name)
 
                 project.extensions['gradlePlugin'].plugins.forEach { plugin ->
