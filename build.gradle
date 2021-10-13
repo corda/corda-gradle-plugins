@@ -4,7 +4,6 @@ plugins {
     id 'org.jetbrains.kotlin.jvm' apply false
     id 'com.gradle.plugin-publish' apply false
     id 'com.jfrog.artifactory' apply false
-    id 'com.jfrog.bintray' apply false
     id 'com.gradle.build-scan'
 }
 
@@ -87,7 +86,6 @@ def publishProjects = project.childProjects.values()
 configure(publishProjects) { Project subproject ->
     apply plugin: 'java'
     apply plugin: 'maven-publish'
-    apply plugin: 'com.jfrog.bintray'
     apply plugin: 'com.jfrog.artifactory'
     apply plugin: 'com.gradle.plugin-publish'
 
@@ -181,35 +179,15 @@ configure(publishProjects) { Project subproject ->
             }
         }
     }
-
-    bintray {
-        user = System.getenv('CORDA_BINTRAY_USER') ?: System.getProperty('corda.bintray.user')
-        key = System.getenv('CORDA_BINTRAY_KEY') ?: System.getProperty('corda.bintray.key')
-        publications = [subproject.name]
-        dryRun = (System.getenv('CORDA_BINTRAY_DRYRUN') != null || System.getProperty('corda.bintray.dryrun') != null)
-        pkg {
-            repo = 'corda'
-            name = subproject.name
-            userOrg = 'r3'
-            licenses = ['Apache-2.0']
-
-            version {
-                gpg {
-                    sign = true
-                    passphrase = System.getenv('CORDA_BINTRAY_GPG_PASSPHRASE')
-                }
-            }
-        }
-    }
 }
 
 artifactory {
     publish {
-        contextUrl = 'https://software.r3.com/artifactory'
+        contextUrl = artifactory_contextUrl
         repository {
             repoKey = 'corda-dev'
-            username = System.getenv('CORDA_ARTIFACTORY_USERNAME') ?: System.getProperty('corda.artifactory.username')
-            password = System.getenv('CORDA_ARTIFACTORY_PASSWORD') ?: System.getProperty('corda.artifactory.password')
+            username = project.findProperty('cordaArtifactoryUsername') ?: System.getenv('CORDA_ARTIFACTORY_USERNAME') ?: System.getProperty('corda.artifactory.username')
+            password = project.findProperty('cordaArtifactoryPassword') ?: System.getenv('CORDA_ARTIFACTORY_PASSWORD') ?: System.getProperty('corda.artifactory.password')
         }
 
         defaults {

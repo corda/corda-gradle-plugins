@@ -36,7 +36,7 @@ class NetworkParameterOverridesTest {
 
     companion object {
         fun createNetworkParameterOverrides(project: Project): NetworkParameterOverrides {
-            val networkParameterOverrides = NetworkParameterOverrides(project)
+            val networkParameterOverrides = NetworkParameterOverrides(project.objects)
             val packageOwnership = PackageOwnership("packageName")
             packageOwnership.keystore = "keystore"
             packageOwnership.keystoreAlias = "keystoreAlias"

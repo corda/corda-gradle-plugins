@@ -259,7 +259,7 @@ open class Dockerform @Inject constructor(objects: ObjectFactory) : Baseform(obj
         private inner class RepresentQuotedString : Represent {
             override fun representData(data: Any): org.yaml.snakeyaml.nodes.Node? {
                 val str = data as QuotedString
-                return representScalar(Tag.STR, str.value, DumperOptions.ScalarStyle.DOUBLE_QUOTED.char)
+                return representScalar(Tag.STR, str.value, DumperOptions.ScalarStyle.DOUBLE_QUOTED)
             }
         }
 

@@ -30,7 +30,7 @@ import java.security.Security
  * See documentation for examples.
  */
 @Suppress("unused", "UnstableApiUsage")
-open class Baseform(private val objects: ObjectFactory) : DefaultTask() {
+abstract class Baseform(private val objects: ObjectFactory) : DefaultTask() {
 
     private companion object {
         const val nodeJarName = "corda.jar"
@@ -48,7 +48,7 @@ open class Baseform(private val objects: ObjectFactory) : DefaultTask() {
     protected val nodes = mutableListOf<Node>()
 
     @get:Nested
-    protected val networkParameterOverrides: NetworkParameterOverrides = objects.newInstance(NetworkParameterOverrides::class.java, project)
+    protected val networkParameterOverrides: NetworkParameterOverrides = objects.newInstance(NetworkParameterOverrides::class.java)
 
     fun networkParameterOverrides(action: Action<in NetworkParameterOverrides>) {
         action.execute(networkParameterOverrides)

@@ -1,6 +1,7 @@
 plugins {
-    id 'groovy'
     id 'java-gradle-plugin'
+    id 'java-library'
+    id 'groovy'
 }
 
 description 'A small gradle plugin for adding some basic Quasar tasks and configurations to reduce build.gradle bloat.'
@@ -33,7 +34,7 @@ pluginBundle {
 }
 
 dependencies {
-    testImplementation("org.junit.jupiter:junit-jupiter-api:$junit_jupiter_version")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junit_jupiter_version")
+    testImplementation "org.junit.jupiter:junit-jupiter-api:$junit_jupiter_version"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junit_jupiter_version"
     testImplementation "org.assertj:assertj-core:$assertj_version"
 }
