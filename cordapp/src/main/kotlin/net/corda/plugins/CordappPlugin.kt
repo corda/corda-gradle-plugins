@@ -1,13 +1,19 @@
 package net.corda.plugins
 
 import net.corda.plugins.SignJar.Companion.sign
-import org.gradle.api.*
+import org.gradle.api.GradleException
+import org.gradle.api.InvalidUserDataException
+import org.gradle.api.Plugin
+import org.gradle.api.Project
+import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.java.archives.Attributes
+import org.gradle.api.logging.Logger
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.JavaPlugin.JAR_TASK_NAME
+import org.gradle.api.plugins.JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME
 import org.gradle.api.plugins.JavaPlugin.RUNTIME_CONFIGURATION_NAME
 import org.gradle.api.provider.Property
 import org.gradle.api.publish.maven.tasks.GenerateMavenPom
@@ -44,7 +50,7 @@ class CordappPlugin @Inject constructor(private val objects: ObjectFactory): Plu
         private set
 
     override fun apply(project: Project) {
-        project.logger.info("Configuring ${project.name} as a cordapp")
+        project.logger.info("Configuring {} as a CorDapp", project.name)
 
         if (GradleVersion.current() < GradleVersion.version(MIN_GRADLE_VERSION)) {
             throw GradleException("Gradle versionId ${GradleVersion.current().version} is below the supported minimum versionId $MIN_GRADLE_VERSION. Please update Gradle or consider using Gradle wrapper if it is provided with the project. More information about CorDapp build system can be found here: https://docs.corda.net/cordapp-build-systems.html")
@@ -68,6 +74,7 @@ class CordappPlugin @Inject constructor(private val objects: ObjectFactory): Plu
      */
     private fun configureCordappJar(project: Project) {
         val cordappTask = project.tasks.register("configureCordappFatJar")
+        val configurations = project.configurations
 
         val jarTask = project.tasks.named(JAR_TASK_NAME, Jar::class.java) { task ->
             task.dependsOn(cordappTask)
@@ -84,13 +91,13 @@ class CordappPlugin @Inject constructor(private val objects: ObjectFactory): Plu
                 val attributes = task.manifest.attributes
                 // check whether metadata has been configured (not mandatory for non-flow, non-contract gradle build files)
                 if (cordapp.contract.isEmpty() && cordapp.workflow.isEmpty() && cordapp.info.isEmpty()) {
-                    it.logger.warn("Cordapp metadata not defined for this gradle build file. See https://docs.corda.net/head/cordapp-build-systems.html#separation-of-cordapp-contracts-flows-and-services")
+                    it.logger.warn("CorDapp metadata not defined for this gradle build file. See https://docs.corda.net/head/cordapp-build-systems.html#separation-of-cordapp-contracts-flows-and-services")
                 } else {
                     configureCordappAttributes(project, task, attributes)
                 }
             }.doLast {
                 if (cordapp.signing.enabled.get()) {
-                    sign(project, cordapp.signing, it.outputs.files.singleFile)
+                    it.sign(cordapp.signing, it.outputs.files.singleFile)
                 } else {
                     it.logger.info("CorDapp JAR signing is disabled, the CorDapp's contracts will not use signature constraints.")
                 }
@@ -99,9 +106,12 @@ class CordappPlugin @Inject constructor(private val objects: ObjectFactory): Plu
 
         // Note: project.afterEvaluate did not have full dependency resolution completed, hence a task is used instead
         cordappTask.configure { task ->
+            task.description = "Computes this CorDapp's dependencies."
+            task.group = CORDAPP_TASK_GROUP
+            task.dependsOn(configurations.getByName(RUNTIME_CLASSPATH_CONFIGURATION_NAME).buildDependencies)
             task.doLast {
-                jarTask.get().from(getDirectNonCordaDependencies(project).map { file ->
-                    it.logger.info("CorDapp dependency: ${file.name}")
+                jarTask.get().from(getDirectNonCordaDependencies(configurations, it.logger).map { file ->
+                    it.logger.info("CorDapp dependency: {}", file.name)
                     project.zipTree(file)
                 }).apply {
                     exclude("META-INF/*.SF")
@@ -155,8 +165,8 @@ class CordappPlugin @Inject constructor(private val objects: ObjectFactory): Plu
 
     private fun configurePomCreation(project: Project) {
         project.tasks.withType(GenerateMavenPom::class.java).configureEach { task ->
-            task.doFirst { _ ->
-                task.logger.info("Modifying task: ${task.name} in project ${project.path} to exclude all dependencies from pom")
+            task.doFirst {
+                it.logger.info("Modifying task {} to exclude all dependencies from pom", it.path)
                 // The CorDapp is a semi-fat jar, so we need to exclude its compile and runtime
                 // scoped dependencies from its Maven POM when we publish it.
                 task.pom = filterDependenciesFor(task.pom)
@@ -164,22 +174,22 @@ class CordappPlugin @Inject constructor(private val objects: ObjectFactory): Plu
         }
     }
 
-    private fun calculateExcludedDependencies(project: Project): Set<Dependency> {
+    private fun calculateExcludedDependencies(configurations: ConfigurationContainer): Set<Dependency> {
         //TODO if we intend cordapp jars to define transitive dependencies instead of just being fat
         //we need to use the final artifact name, not the project name
         //for example, project(":core") needs to be translated into net.corda:corda-core
 
-        return project.configuration("cordapp").allDependencies +
-                project.configuration("cordaCompile").allDependencies +
-                project.configuration("cordaRuntime").allDependencies
+        return configurations.getByName("cordapp").allDependencies +
+                configurations.getByName("cordaCompile").allDependencies +
+                configurations.getByName("cordaRuntime").allDependencies
     }
 
-    private fun getDirectNonCordaDependencies(project: Project): Set<File> {
-        project.logger.info("Finding direct non-corda dependencies for inclusion in CorDapp JAR")
+    private fun getDirectNonCordaDependencies(configurations: ConfigurationContainer, logger: Logger): Set<File> {
+        logger.info("Finding direct non-Corda dependencies for inclusion in CorDapp JAR")
 
-        val runtimeConfiguration = project.configuration(RUNTIME_CONFIGURATION_NAME)
+        val runtimeConfiguration = configurations.getByName(RUNTIME_CONFIGURATION_NAME)
         // The direct dependencies of this project
-        val excludeDeps = calculateExcludedDependencies(project)
+        val excludeDeps = calculateExcludedDependencies(configurations)
         val directDeps = runtimeConfiguration.allDependencies - excludeDeps
         // We want to filter out anything Corda related or provided by Corda, like kotlin-stdlib and quasar
         val filteredDeps = directDeps.filter { dep ->
@@ -189,13 +199,13 @@ class CordappPlugin @Inject constructor(private val objects: ObjectFactory): Plu
             // net.corda or com.r3.corda.enterprise may be a core dependency which shouldn't be included in this cordapp so give a warning
             val group = it.group ?: ""
             if (group.startsWith("net.corda.") || group.startsWith("com.r3.corda.")) {
-                project.logger.warn(
-                    "You appear to have included a Corda platform component ($it) using a 'compile' or 'runtime' dependency." +
-                            "This can cause node stability problems. Please use 'corda' instead." +
-                            "See http://docs.corda.net/cordapp-build-systems.html"
+                logger.warn(
+                    "You appear to have included a Corda platform component ({}) using a 'compile' or 'runtime' dependency. " +
+                        "This can cause node stability problems. Please use 'cordaCompile' or 'cordaRuntime' instead. " +
+                        "See http://docs.corda.net/cordapp-build-systems.html", it
                 )
             } else {
-                project.logger.info("Including dependency in CorDapp JAR: $it")
+                logger.info("Including dependency in CorDapp JAR: {}", it)
             }
         }
         return filteredDeps.toUniqueFiles(runtimeConfiguration) - excludeDeps.toUniqueFiles(runtimeConfiguration)

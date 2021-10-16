@@ -8,47 +8,47 @@ import org.gradle.api.tasks.Nested
 import javax.inject.Inject
 
 @Suppress("UnstableApiUsage", "Unused", "Deprecation")
-open class CordappExtension @Inject constructor(objectFactory: ObjectFactory)  {
+open class CordappExtension @Inject constructor(objects: ObjectFactory)  {
 
     /**
      * CorDapp distribution information (deprecated)
      */
     @Deprecated("Use top-level attributes and specific Contract and Workflow info objects")
     @get:Nested
-    val info: Info = objectFactory.newInstance(Info::class.java)
+    val info: Info = objects.newInstance(Info::class.java)
 
     /**
      * Top-level CorDapp attributes
      */
     @get:Input
-    val targetPlatformVersion: Property<Int> = objectFactory.property(Int::class.java).convention(info.targetPlatformVersion)
+    val targetPlatformVersion: Property<Int> = objects.property(Int::class.java).convention(info.targetPlatformVersion)
 
     @get:Input
-    val minimumPlatformVersion: Property<Int> = objectFactory.property(Int::class.java).convention(info.minimumPlatformVersion)
+    val minimumPlatformVersion: Property<Int> = objects.property(Int::class.java).convention(info.minimumPlatformVersion)
 
     /**
      * CorDapp Contract distribution information.
      */
     @get:Nested
-    val contract: CordappData = objectFactory.newInstance(CordappData::class.java)
+    val contract: CordappData = objects.newInstance(CordappData::class.java)
 
     /**
      * CorDapp Worflow (flows and services) distribution information.
      */
     @get:Nested
-    val workflow: CordappData = objectFactory.newInstance(CordappData::class.java)
+    val workflow: CordappData = objects.newInstance(CordappData::class.java)
 
     /**
      * Optional parameters for ANT signJar tasks to sign Cordapps.
      */
     @get:Nested
-    val signing: Signing = objectFactory.newInstance(Signing::class.java)
+    val signing: Signing = objects.newInstance(Signing::class.java)
 
     /**
      * Optional marker to seal all packages in the JAR.
      */
     @get:Nested
-    val sealing: Sealing = objectFactory.newInstance(Sealing::class.java)
+    val sealing: Sealing = objects.newInstance(Sealing::class.java)
 
     fun contract(action: Action<in CordappData>) {
         action.execute(contract)
