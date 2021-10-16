@@ -14,10 +14,12 @@ import java.io.File
  * The Cordformation plugin deploys nodes to a directory in a state ready to be used by a developer for experimentation,
  * testing, and debugging. It will prepopulate several fields in the configuration and create a simple node runner.
  */
+@Suppress("UnstableApiUsage")
 class Cordformation : Plugin<Project> {
     internal companion object {
-        const val CORDFORMATION_TYPE = "cordformationInternal"
-        const val MINIMUM_GRADLE_VERSION = "5.1"
+        private const val CORDFORMATION_TYPE = "cordformationInternal"
+        private const val DEFAULT_JOLOKIA_VERSION = "1.6.2"
+        private const val MINIMUM_GRADLE_VERSION = "5.1"
 
         /**
          * Gets a resource file from this plugin's JAR file by creating an intermediate tmp dir
@@ -47,7 +49,7 @@ class Cordformation : Plugin<Project> {
                     ?: throw IllegalStateException("Could not find a valid declaration of \"corda_release_version\"")
             // need to cater for optional classifier (eg. corda-4.3-jdk11.jar)
             val pattern = "\\Q$jarName\\E(-enterprise)?-\\Q$releaseVersion\\E(-.+)?\\.jar\$".toRegex()
-            val maybeJar = project.configuration(RUNTIME_CLASSPATH_CONFIGURATION_NAME).filter {
+            val maybeJar = project.configurations.getByName(RUNTIME_CLASSPATH_CONFIGURATION_NAME).filter {
                 it.toString().contains(pattern)
             }
             if (maybeJar.isEmpty) {
@@ -72,16 +74,17 @@ class Cordformation : Plugin<Project> {
         project.pluginManager.apply(JavaPlugin::class.java)
 
         project.configurations.apply {
-            createCompileConfiguration("cordapp", this)
-            val cordaRuntime = createRuntimeConfiguration("cordaRuntime", this)
-            createChildConfiguration(CORDFORMATION_TYPE, cordaRuntime, this)
-            create("cordaDriver")
+            createCompileConfiguration(CORDAPP_CONFIGURATION_NAME, this)
+            val cordaRuntime = createRuntimeConfiguration(CORDA_RUNTIME_CONFIGURATION_NAME, this)
+            createChildConfiguration(CORDFORMATION_TYPE, cordaRuntime, this).withDependencies { dependencies ->
+                // TODO: improve how we re-use existing declared external variables from root gradle.build
+                val jolokiaVersion = project.findRootProperty("jolokia_version") ?: DEFAULT_JOLOKIA_VERSION
+                val jolokia = project.dependencies.create("org.jolokia:jolokia-jvm:$jolokiaVersion:agent")
+                // The Jolokia agent is a fat jar really, so we don't want its transitive dependencies.
+                (jolokia as ModuleDependency).isTransitive = false
+                dependencies.add(jolokia)
+            }
+            create(CORDA_DRIVER_CONFIGURATION_NAME)
         }
-        // TODO: improve how we re-use existing declared external variables from root gradle.build
-        val jolokiaVersion = project.findRootProperty("jolokia_version") ?: "1.6.0"
-        val jolokia = project.dependencies.add(CORDFORMATION_TYPE, "org.jolokia:jolokia-jvm:$jolokiaVersion:agent")
-        // The Jolokia agent is a fat jar really, so we don't want its transitive dependencies.
-        (jolokia as ModuleDependency).isTransitive = false
     }
 }
-

@@ -220,12 +220,12 @@ abstract class Baseform(private val objects: ObjectFactory) : DefaultTask() {
         jarsToSign.forEach {
             signJarOptions[SigningOptions.Key.JAR] = it.toString()
             try{
-                project.ant.invokeMethod("signjar", signJarOptions)
+                ant.invokeMethod("signjar", signJarOptions)
             }catch (e: Exception){
                 throw InvalidUserDataException("Exception while signing ${it.fileName}, " +
                         "ensure the 'cordapp.signing.options' entry contains correct keyStore configuration, " +
                         "or disable signing by 'cordapp.signing.enabled false'. " +
-                        if (project.logger.isInfoEnabled || project.logger.isDebugEnabled) "Search for 'ant:signjar' in log output."
+                        if (logger.isInfoEnabled || logger.isDebugEnabled) "Search for 'ant:signjar' in log output."
                         else "Run with --info or --debug option and search for 'ant:signjar' in log output. ", e)
             }
         }

@@ -1,4 +1,6 @@
 @file:JvmName("CordformationUtils")
+@file:Suppress("deprecation")
+
 package net.corda.plugins
 
 import com.typesafe.config.Config
@@ -6,9 +8,15 @@ import com.typesafe.config.ConfigValueFactory
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
+import org.gradle.api.plugins.JavaPlugin.COMPILE_CONFIGURATION_NAME
+import org.gradle.api.plugins.JavaPlugin.RUNTIME_CONFIGURATION_NAME
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardCopyOption.REPLACE_EXISTING
+
+const val CORDA_RUNTIME_CONFIGURATION_NAME = "cordaRuntime"
+const val CORDA_DRIVER_CONFIGURATION_NAME = "cordaDriver"
+const val CORDAPP_CONFIGURATION_NAME = "cordapp"
 
 private val classLoader = object {}::class.java.classLoader
 
@@ -19,8 +27,6 @@ private val classLoader = object {}::class.java.classLoader
 fun Project.findRootProperty(name: String): String? {
     return rootProject.findProperty(name)?.toString()
 }
-
-fun Project.configuration(name: String): Configuration = configurations.single { it.name == name }
 
 fun createChildConfiguration(name: String, parent: Configuration, configurations: ConfigurationContainer): Configuration {
     return configurations.findByName(name) ?: run {
@@ -33,11 +39,11 @@ fun createChildConfiguration(name: String, parent: Configuration, configurations
 }
 
 fun createCompileConfiguration(name: String, configurations: ConfigurationContainer): Configuration {
-    return createChildConfiguration(name, configurations.single { it.name == "compile" }, configurations)
+    return createChildConfiguration(name, configurations.getByName(COMPILE_CONFIGURATION_NAME), configurations)
 }
 
 fun createRuntimeConfiguration(name: String, configurations: ConfigurationContainer): Configuration {
-    return createChildConfiguration(name, configurations.single { it.name == "runtime" }, configurations)
+    return createChildConfiguration(name, configurations.getByName(RUNTIME_CONFIGURATION_NAME), configurations)
 }
 
 fun createTempFileFromResource(resourcePath: String, tempFileName: String, tempFileExtension: String): Path {

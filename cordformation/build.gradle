@@ -9,11 +9,14 @@ plugins {
 description 'Cordformation allows you to build your own local Corda networks for development.'
 
 ext {
-    corda_release_version = '4.3'
+    corda_release_version = '4.8'
 }
 
 repositories {
     mavenCentral()
+    maven {
+        url "$artifactory_contextUrl/corda-dependencies"
+    }
 }
 
 configurations {

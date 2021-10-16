@@ -71,7 +71,7 @@ open class Node @Inject constructor(private val project: Project) {
     private var webserverJar: String? = null
     private var p2pPort = 10002
     @get:Input
-    val rpcPort: Provider<Int> = project.objects.property(Int::class.javaObjectType).apply {
+    val rpcPort: Provider<Int> = project.objects.property(Int::class.java).apply {
         set(project.provider { rpcSettings.port })
     }
 
@@ -569,7 +569,7 @@ open class Node @Inject constructor(private val project: Project) {
 
     fun runtimeVersion(): String {
         val releaseVersion = project.findRootProperty("corda_release_version")
-        val runtimeJarVersion = project.configuration("cordaRuntime").dependencies.filterNot { it.name.contains("web") }.singleOrNull()?.version
+        val runtimeJarVersion = project.configurations.getByName(CORDA_RUNTIME_CONFIGURATION_NAME).dependencies.filterNot { it.name.contains("web") }.singleOrNull()?.version
         if (releaseVersion == null && runtimeJarVersion == null) {
             throw IllegalStateException("Could not find a valid definition of corda version to use")
         } else {
@@ -581,13 +581,8 @@ open class Node @Inject constructor(private val project: Project) {
      * Installs the jolokia monitoring agent JAR to the node/drivers directory
      */
     private fun installAgentJar() {
-        // TODO: improve how we re-use existing declared external variables from root gradle.build
-        val jolokiaVersion = project.findRootProperty("jolokia_version") ?: "1.6.0"
-
-        val agentJar = project.configuration(RUNTIME_CLASSPATH_CONFIGURATION_NAME).files {
-            (it.group == "org.jolokia") &&
-                    (it.name == "jolokia-jvm") &&
-                    (it.version == jolokiaVersion)
+        val agentJar = project.configurations.getByName(RUNTIME_CLASSPATH_CONFIGURATION_NAME).files {
+            (it.group == "org.jolokia") && (it.name == "jolokia-jvm")
             // TODO: revisit when classifier attribute is added. eg && (it.classifier = "agent")
         }.firstOrNull()
         agentJar?.let {
@@ -597,7 +592,7 @@ open class Node @Inject constructor(private val project: Project) {
     }
 
     internal fun installDrivers() {
-        project.configuration("cordaDriver").files.forEach {
+        project.configurations.getByName(CORDA_DRIVER_CONFIGURATION_NAME).files.forEach {
             project.logger.lifecycle("Copy ${it.name} to './drivers' directory")
             copyToDriversDir(it)
         }
@@ -779,7 +774,7 @@ open class Node @Inject constructor(private val project: Project) {
             return null
         }
 
-        val cordappConfiguration = project.configuration("cordapp")
+        val cordappConfiguration = project.configurations.getByName(CORDAPP_CONFIGURATION_NAME)
         val cordappName = if (cordapp.project !is CordaMock) cordapp.project.name else cordapp.coordinates
         val cordappFile = cordappConfiguration.files {
             when {
