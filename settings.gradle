@@ -7,13 +7,14 @@ pluginManagement {
         id 'org.jetbrains.kotlin.jvm' version kotlin_version
         id 'com.gradle.plugin-publish' version gradle_publish_version
         id 'com.jfrog.artifactory' version artifactory_version
+        id 'com.jfrog.bintray' version bintray_version
         id 'org.owasp.dependencycheck' version '5.3.2.1'
         id 'com.gradle.build-scan' version '3.3.4'
     }
 }
 
 rootProject.name = 'corda-gradle-plugins'
-//include 'publish-utils'
+include 'publish-utils'
 include 'quasar-utils'
 include 'cordformation'
 include 'api-scanner'
