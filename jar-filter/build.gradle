@@ -1,5 +1,6 @@
 plugins {
     id 'org.jetbrains.kotlin.jvm'
+    id 'org.jetbrains.dokka'
     id 'java-gradle-plugin'
     id 'java-library'
     id 'jacoco'
@@ -40,7 +41,9 @@ pluginBundle {
 }
 
 configurations {
-    jacocoRuntime
+    jacocoRuntime {
+        canBeConsumed = false
+    }
 }
 
 dependencies {
@@ -76,8 +79,10 @@ processTestResources {
 }
 
 tasks.withType(Test).configureEach {
-    // Configures the @RequiresKotlin14 annotation.
-    systemProperty 'test.kotlin.api', test_kotlin_api_version
+    doFirst {
+        // Configures the @RequiresKotlin14 annotation.
+        systemProperty 'test.kotlin.api', test_kotlin_api_version
+    }
 }
 
 // We need to modify how the publish task works.

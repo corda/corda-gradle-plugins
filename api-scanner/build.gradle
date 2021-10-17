@@ -34,7 +34,9 @@ pluginBundle {
 }
 
 configurations {
-    jacocoRuntime
+    jacocoRuntime {
+        canBeConsumed = false
+    }
 }
 
 dependencies {
