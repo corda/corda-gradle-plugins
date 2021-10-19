@@ -2,6 +2,7 @@ import org.apache.tools.ant.filters.ReplaceTokens
 import static org.gradle.jvm.toolchain.JavaLanguageVersion.of
 
 plugins {
+    id 'com.gradle.plugin-publish'
     id 'org.jetbrains.kotlin.jvm'
     id 'org.jetbrains.dokka'
     id 'java-gradle-plugin'

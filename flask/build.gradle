@@ -1,6 +1,7 @@
 plugins {
-    id 'groovy'
+    id 'com.gradle.plugin-publish'
     id "java-gradle-plugin"
+    id 'groovy'
 }
 
 description 'Packages an application as an executable jar of jars.'
