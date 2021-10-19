@@ -1,6 +1,7 @@
 plugins {
     id 'org.jetbrains.kotlin.jvm'
     id 'org.jetbrains.dokka'
+    id 'com.gradle.plugin-publish'
     id 'java-gradle-plugin'
     id 'java-library'
     id 'jacoco'

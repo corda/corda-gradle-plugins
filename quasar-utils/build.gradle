@@ -1,4 +1,5 @@
 plugins {
+    id 'com.gradle.plugin-publish'
     id 'java-gradle-plugin'
     id 'java-library'
     id 'groovy'
