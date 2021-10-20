@@ -6,6 +6,10 @@
 
 * `cordformation`: Replace `Closure` with `Action` in the DSL.
 * `cordformation`: Annotate `Baseform.signing` as `@Nested` instead of `@Input`.
+* `cordapp`: Add correct build dependencies to CorDapp's `jar` task.
+* `cordapp`: Update YAML 1.19 -> 1.29
+* `api-scanner`: Update ClassGraph 4.8.78 -> 4.8.115
+* Publish KDocs for plugins written in Kotlin.
 
 ### Version 5.0.13
 
