@@ -16,12 +16,18 @@ import java.nio.file.Paths;
 import java.nio.file.attribute.FileTime;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.*;
+import java.util.Base64;
+import java.util.Comparator;
+import java.util.Map;
+import java.util.Optional;
+import java.util.TreeMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 import java.util.stream.Stream;
+
+import static java.util.Collections.unmodifiableMap;
 
 class JarCache {
     private static final Logger log = LoggerFactory.getLogger(JarCache.class);
@@ -45,13 +51,13 @@ class JarCache {
                 Files.createDirectories(candidate);
                 return true;
             } else if (!Files.isDirectory(candidate)) {
-                log.debug("Cache directory '{}' discarded because it is not a directory", candidate.toString());
+                log.debug("Cache directory '{}' discarded because it is not a directory", candidate);
                 return false;
             } else if (!Files.isWritable(candidate)) {
-                log.debug("Cache directory '{}' discarded because it is not writable", candidate.toString());
+                log.debug("Cache directory '{}' discarded because it is not writable", candidate);
                 return false;
             } else {
-                log.debug("Using cache directory '{}'", candidate.toString());
+                log.debug("Using cache directory '{}'", candidate);
                 return true;
             }
         } catch (Exception ioe) {
@@ -144,7 +150,7 @@ class JarCache {
                 }
             }
         }
-        return Collections.unmodifiableMap(extractedLibraries);
+        return unmodifiableMap(extractedLibraries);
     }
 
     @SneakyThrows

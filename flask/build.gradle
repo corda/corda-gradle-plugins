@@ -6,33 +6,52 @@ plugins {
 
 description 'Packages an application as an executable jar of jars.'
 
-evaluationDependsOn("flask-common")
-evaluationDependsOn("flask-launcher")
+configurations {
+    common {
+        canBeConsumed = false
+        transitive = false
+        attributes { attr ->
+            attr.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.JAR))
+        }
+    }
+
+    launcher {
+        canBeConsumed = false
+        transitive = false
+    }
+
+    heartbeatAgent {
+        canBeConsumed = false
+        transitive = false
+        attributes { attr ->
+            attr.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.JAR))
+        }
+    }
+}
 
 dependencies {
-    compileOnly project("flask-common")
-}
-
-Provider<Copy> copyLauncher = tasks.register("copyLauncher", Copy) {
-    from(project("flask-launcher").tasks.named("tar").map {it.outputs })
-    into(new File(project.buildDir, "resources/main/META-INF"))
-}
-
-Provider<Copy> copyHeartbeatAgent = tasks.register("copyHeartbeatAgent", Copy) {
-    from(project("flask-heartbeat-agent").tasks.named("jar").map {it.outputs })
-    into(new File(project.buildDir, "resources/main/META-INF"))
+    common project('flask-common')
+    launcher project(path: 'flask-launcher', configuration: 'launcherAgent')
+    heartbeatAgent project('flask-heartbeat-agent')
+    compileOnly project('flask-common')
 }
 
 tasks.named("processResources") {
-    inputs.files(copyLauncher)
-    inputs.files(copyHeartbeatAgent)
+    from(files(configurations.heartbeatAgent)) {
+        into 'META-INF'
+    }
+    from(files(configurations.launcher)) {
+        into 'META-INF'
+    }
 }
 
-jar {
+tasks.named('jar', Jar) {
     manifest {
         attributes "version" : archiveVersion.get()
     }
-    from(project("flask-common").tasks.named("jar").map { zipTree(it.outputs.files.singleFile) })
+    from {
+        configurations.common.collect { it.isDirectory() ? it : zipTree(it) }
+    }
 }
 
 gradlePlugin {

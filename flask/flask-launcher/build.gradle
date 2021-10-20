@@ -5,12 +5,17 @@ plugins {
 }
 
 sourceSets {
-    lockFileTest {
-    }
+    lockFileTest
 }
 
 repositories {
     mavenCentral()
+}
+
+configurations {
+    launcherAgent {
+        canBeResolved = false
+    }
 }
 
 dependencies {
@@ -20,30 +25,23 @@ dependencies {
             add(configurationName, [group: "org.projectlombok", name: "lombok", version: lombok_version])
         }
     }
-    implementation group: "org.slf4j", name: "slf4j-api", version: slf4j_version
-    implementation group: "org.slf4j", name: "slf4j-simple", version: slf4j_version
-
-    //this is needed to tell Gradle it needs to assemble the archives of ":flask:flask-common" project first, in order
-    //to build the current project, otherwise Gradle only compiles the code of ":flask:flask-common" and includes the
-    // class directory in the classpath (not the project main artifact)
-    implementation project(path: ":flask:flask-common", configuration: 'archives')
+    implementation project(':flask:flask-common')
+    implementation "org.slf4j:slf4j-api:$slf4j_version"
+    implementation "org.slf4j:slf4j-simple:$slf4j_version"
 
     testImplementation "org.junit.jupiter:junit-jupiter-api:$junit_jupiter_version"
     testImplementation "org.junit.jupiter:junit-jupiter-params:$junit_jupiter_version"
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junit_jupiter_version"
 
-    lockFileTestImplementation project(":flask:flask-common")
-    lockFileTestImplementation project
+    lockFileTestImplementation project(':flask:flask-common')
 }
 
-tasks.register("tar", Tar) {
-    archiveFileName = "${project.name}.tar"
-    from(sourceSets.main.output)
+def tar = tasks.register('tar', Tar) {
+    archiveVersion = ''
+    from sourceSets.main.output
     from {
-        exclude(JarFile.MANIFEST_NAME)
-        configurations.named('runtimeClasspath').map {
-            it.collect { it.isDirectory() ? it : zipTree(it) }
-        }
+        exclude JarFile.MANIFEST_NAME
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
     }
 }
 
@@ -55,7 +53,7 @@ Provider<Jar> lockFileTestExecutableJar = tasks.register("lockFileTestExecutable
     archiveBaseName = "LockFileTest"
     from(sourceSets.lockFileTest.output)
     from {
-        configurations['lockFileTestRuntimeClasspath'].collect {
+        configurations.lockFileTestRuntimeClasspath.collect {
             if(it.exists()) {
                 it.isDirectory() ? it : zipTree(it)
             } else {
@@ -65,10 +63,14 @@ Provider<Jar> lockFileTestExecutableJar = tasks.register("lockFileTestExecutable
     }
 }
 
-test {
-    inputs.files(lockFileTestExecutableJar)
-    systemProperty("org.slf4j.simpleLogger.defaultLogLevel", "trace")
+tasks.named('test', Test) {
+    dependsOn lockFileTestExecutableJar
     doFirst {
-        systemProperty("lockFileTest.executable.jar", lockFileTestExecutableJar.get().outputs.files.singleFile.toString())
+        systemProperty 'lockFileTest.executable.jar', lockFileTestExecutableJar.get().outputs.files.singleFile
+        systemProperty 'org.slf4j.simpleLogger.defaultLogLevel', 'trace'
     }
+}
+
+artifacts {
+    launcherAgent tar
 }

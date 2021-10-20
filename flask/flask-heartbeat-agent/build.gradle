@@ -5,24 +5,21 @@ plugins {
 import java.util.jar.Attributes
 
 dependencies {
-    implementation project(":flask:flask-common")
+    implementation project(':flask:flask-common')
 }
 
 tasks.named('jar', Jar) {
-    dependsOn project(':flask:flask-common').tasks.named('jar', Jar)
     manifest {
         attributes([
-            (Attributes.Name.IMPLEMENTATION_TITLE.toString()) : (project.name),
-            (Attributes.Name.SPECIFICATION_TITLE.toString()) : (project.name),
-            (Attributes.Name.IMPLEMENTATION_VERSION.toString()) : (project.version),
-            (Attributes.Name.SPECIFICATION_VERSION.toString()) : (project.version),
-            "Premain-Class": "net.corda.flask.HeartbeatAgent",
+            (Attributes.Name.IMPLEMENTATION_TITLE.toString()) : project.name,
+            (Attributes.Name.SPECIFICATION_TITLE.toString()) : project.name,
+            (Attributes.Name.IMPLEMENTATION_VERSION.toString()) : project.version,
+            (Attributes.Name.SPECIFICATION_VERSION.toString()) : project.version,
+            'Premain-Class': 'net.corda.flask.HeartbeatAgent',
         ])
     }
-    archiveFileName = "${project.name}.jar"
+    archiveVersion = ''
     from {
-        configurations.named('runtimeClasspath').map {
-            it.collect { it.isDirectory() ? it : zipTree(it) }
-        }
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
     }
 }
