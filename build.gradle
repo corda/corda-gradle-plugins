@@ -139,20 +139,22 @@ configure(publishProjects) { Project subproject ->
                         from sourceSets.main.allSource
                     }
 
-                    try {
-                        def dokka = tasks.named('dokkaHtml')
-                        artifact tasks.create('kdocJar', Jar) {
-                            from dokka.flatMap { it.outputDirectory }
-                            archiveClassifier = 'javadoc'
+                    tasks.withType(Jar)
+                        .matching { it.name == 'publishPluginJavaDocsJar' }
+                        .configureEach { Jar jar ->
+                            jar.archiveClassifier = 'javadoc'
+
+                            try {
+                                def dokka = tasks.named('dokkaHtml')
+                                jar.from dokka.flatMap { it.outputDirectory }
+                            } catch (UnknownTaskException e) {
+                                def javadoc = tasks.named('javadoc', Javadoc)
+                                jar.from javadoc.map { it.destinationDir }
+                                jar.dependsOn javadoc
+                            }
+
+                            artifact jar
                         }
-                    } catch (UnknownTaskException e) {
-                        def javadoc = tasks.named('javadoc', Javadoc)
-                        artifact tasks.create('javadocJar', Jar) {
-                            from javadoc.map { it.destinationDir }
-                            archiveClassifier = 'javadoc'
-                            dependsOn javadoc
-                        }
-                    }
                 }
 
                 pom {
