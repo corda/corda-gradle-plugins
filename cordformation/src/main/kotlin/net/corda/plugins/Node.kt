@@ -469,7 +469,7 @@ open class Node @Inject constructor(private val project: Project) {
     }
 
     private fun configureProperties() {
-        if (!rpcUsers.isEmpty()) {
+        if (rpcUsers.isNotEmpty()) {
             config = config.withValue("security", ConfigValueFactory.fromMap(mapOf(
                     "authService" to mapOf(
                             "dataSource" to mapOf(
@@ -477,10 +477,10 @@ open class Node @Inject constructor(private val project: Project) {
                                     "users" to rpcUsers)))))
         }
 
-        if (!notary.isEmpty()) {
+        if (notary.isNotEmpty()) {
             config = config.withValue("notary", ConfigValueFactory.fromMap(notary))
         }
-        if (!extraConfig.isEmpty()) {
+        if (extraConfig.isNotEmpty()) {
             config = config.withFallback(ConfigFactory.parseMap(extraConfig))
         }
         if (!config.hasPath("devMode")) {

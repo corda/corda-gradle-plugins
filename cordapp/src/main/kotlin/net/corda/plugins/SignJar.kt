@@ -18,7 +18,10 @@ import org.gradle.api.tasks.PathSensitivity.RELATIVE
 import org.gradle.api.tasks.SkipWhenEmpty
 import org.gradle.api.tasks.TaskAction
 import java.io.File
+import java.nio.file.Files
+import java.nio.file.Path
 import java.nio.file.Paths
+import java.nio.file.StandardCopyOption.REPLACE_EXISTING
 import javax.inject.Inject
 
 @Suppress("UnstableApiUsage")
@@ -26,12 +29,20 @@ open class SignJar @Inject constructor(objects: ObjectFactory) : DefaultTask() {
     companion object {
         private const val DUMMY_VALUE = "****"
 
+        @Suppress("SameParameterValue")
+        private fun writeResourceToFile(resourcePath: String, path: Path) {
+            this::class.java.classLoader.getResourceAsStream(resourcePath)?.use { input ->
+                Files.copy(input, path, REPLACE_EXISTING)
+            }
+        }
+
         fun Task.sign(signing: Signing, file: File, outputFile: File? = null) {
             val options = signing.options.toSignJarOptionsMap()
             if (signing.options.hasDefaultOptions()) {
                 logger.info("CorDapp JAR signing with the default Corda development key, suitable for Corda running in development mode only.")
-                val keyStorePath = CordappUtils.createTempFileFromResource(SigningOptions.DEFAULT_KEYSTORE, SigningOptions.DEFAULT_KEYSTORE_FILE, SigningOptions.DEFAULT_KEYSTORE_EXTENSION)
-                options[Key.KEYSTORE] = keyStorePath.toString()
+                val keyStore = File.createTempFile(SigningOptions.DEFAULT_KEYSTORE_FILE, SigningOptions.DEFAULT_KEYSTORE_EXTENSION, temporaryDir).toPath()
+                writeResourceToFile(SigningOptions.DEFAULT_KEYSTORE, keyStore)
+                options[Key.KEYSTORE] = keyStore.toString()
             }
 
             val path = file.toPath()
@@ -54,7 +65,7 @@ open class SignJar @Inject constructor(objects: ObjectFactory) : DefaultTask() {
             } finally {
                 if (signing.options.hasDefaultOptions()) {
                     options[Key.KEYSTORE]?.apply {
-                        Paths.get(this).toFile().delete()
+                        Files.deleteIfExists(Paths.get(this))
                     }
                 }
             }
