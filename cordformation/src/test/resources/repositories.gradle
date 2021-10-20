@@ -1,4 +1,9 @@
 repositories {
     mavenCentral()
-    maven { url 'https://software.r3.com/artifactory/corda-releases' }
+    maven {
+        url "${artifactory_contextUrl}/corda-releases"
+    }
+    maven {
+        url "${artifactory_contextUrl}/corda-dependencies"
+    }
 }

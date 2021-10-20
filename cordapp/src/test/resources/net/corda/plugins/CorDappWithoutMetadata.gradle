@@ -4,6 +4,6 @@ plugins {
 
 apply from: 'repositories.gradle'
 
-jar {
-    baseName 'test-cordapp'
+tasks.named('jar', Jar) {
+    archiveBaseName = 'test-cordapp'
 }

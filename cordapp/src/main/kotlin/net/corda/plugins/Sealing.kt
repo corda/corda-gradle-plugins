@@ -9,7 +9,7 @@ import javax.inject.Inject
 open class Sealing @Inject constructor(objects: ObjectFactory) {
 
     @get:Input
-    val enabled: Property<Boolean> = objects.property(Boolean::class.javaObjectType)
+    val enabled: Property<Boolean> = objects.property(Boolean::class.java)
             .convention(System.getProperty( "sealing.enabled", "true").toBoolean())
 
     fun enabled(value: Boolean) {

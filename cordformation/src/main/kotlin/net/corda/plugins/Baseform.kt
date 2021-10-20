@@ -2,9 +2,10 @@ package net.corda.plugins
 
 import com.typesafe.config.ConfigRenderOptions
 import groovy.lang.Closure
-import net.corda.plugins.cordformation.signing.SigningOptions
+import net.corda.plugins.cordformation.signing.SigningOptions.Companion.DEFAULT_KEYSTORE
 import net.corda.plugins.cordformation.signing.SigningOptions.Companion.DEFAULT_KEYSTORE_EXTENSION
 import net.corda.plugins.cordformation.signing.SigningOptions.Companion.DEFAULT_KEYSTORE_FILE
+import net.corda.plugins.cordformation.signing.SigningOptions.Key
 import org.gradle.api.Action
 import org.gradle.api.DefaultTask
 import org.gradle.api.InvalidUserCodeException
@@ -22,6 +23,7 @@ import java.net.URLClassLoader
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.nio.file.StandardCopyOption.REPLACE_EXISTING
 import java.security.Security
 
 /**
@@ -30,7 +32,7 @@ import java.security.Security
  * See documentation for examples.
  */
 @Suppress("unused", "UnstableApiUsage")
-open class Baseform(private val objects: ObjectFactory) : DefaultTask() {
+abstract class Baseform(private val objects: ObjectFactory) : DefaultTask() {
 
     private companion object {
         const val nodeJarName = "corda.jar"
@@ -48,7 +50,7 @@ open class Baseform(private val objects: ObjectFactory) : DefaultTask() {
     protected val nodes = mutableListOf<Node>()
 
     @get:Nested
-    protected val networkParameterOverrides: NetworkParameterOverrides = objects.newInstance(NetworkParameterOverrides::class.java, project)
+    protected val networkParameterOverrides: NetworkParameterOverrides = objects.newInstance(NetworkParameterOverrides::class.java)
 
     fun networkParameterOverrides(action: Action<in NetworkParameterOverrides>) {
         action.execute(networkParameterOverrides)
@@ -201,33 +203,41 @@ open class Baseform(private val objects: ObjectFactory) : DefaultTask() {
 
         if (signing.generateKeystore && !signing.options.hasDefaultOptions()) {
             val genKeyTaskOptions = signing.options.toGenKeyOptionsMap()
-            if (Files.exists(Paths.get(genKeyTaskOptions[SigningOptions.Key.KEYSTORE]))) {
-                logger.warn("Skipping keystore generation to sign Cordapps, the keystore already exists at '${genKeyTaskOptions[SigningOptions.Key.KEYSTORE]}'.")
+            if (Files.exists(Paths.get(genKeyTaskOptions[Key.KEYSTORE]))) {
+                logger.warn("Skipping keystore generation to sign CorDapps, the keystore already exists at '${genKeyTaskOptions[Key.KEYSTORE]}'.")
             } else {
-                logger.lifecycle("Generating keystore to sign Cordapps with options: ${genKeyTaskOptions.map { "${it.key}=${it.value}" }.joinToString()}.")
-                project.ant.invokeMethod("genkey", genKeyTaskOptions)
+                logger.lifecycle("Generating keystore to sign CorDapps with options: ${genKeyTaskOptions.map { "${it.key}=${it.value}" }.joinToString()}.")
+                ant.invokeMethod("genkey", genKeyTaskOptions)
             }
         }
 
         val signJarOptions = signing.options.toSignJarOptionsMap()
         if (signing.options.hasDefaultOptions()) {
-            val keyStorePath = createTempFileFromResource(SigningOptions.DEFAULT_KEYSTORE, DEFAULT_KEYSTORE_FILE, DEFAULT_KEYSTORE_EXTENSION)
-            signJarOptions[SigningOptions.Key.KEYSTORE] = keyStorePath.toString()
+            val keyStore = File.createTempFile(DEFAULT_KEYSTORE_FILE, DEFAULT_KEYSTORE_EXTENSION, temporaryDir).toPath()
+            writeResourceToFile(DEFAULT_KEYSTORE, keyStore)
+            signJarOptions[Key.KEYSTORE] = keyStore.toString()
         }
 
-        val jarsToSign = mutableListOf(project.tasks.getByName(SigningOptions.Key.JAR).outputs.files.singleFile.toPath()) +
+        val jarsToSign = mutableListOf(project.tasks.getByName(Key.JAR).outputs.files.singleFile.toPath()) +
                 if (signing.all) nodes.flatMap(Node::getCordappList).map(Node.ResolvedCordapp::jarFile).distinct() else emptyList()
         jarsToSign.forEach {
-            signJarOptions[SigningOptions.Key.JAR] = it.toString()
+            signJarOptions[Key.JAR] = it.toString()
             try{
-                project.ant.invokeMethod("signjar", signJarOptions)
+                ant.invokeMethod("signjar", signJarOptions)
             }catch (e: Exception){
                 throw InvalidUserDataException("Exception while signing ${it.fileName}, " +
                         "ensure the 'cordapp.signing.options' entry contains correct keyStore configuration, " +
                         "or disable signing by 'cordapp.signing.enabled false'. " +
-                        if (project.logger.isInfoEnabled || project.logger.isDebugEnabled) "Search for 'ant:signjar' in log output."
+                        if (logger.isInfoEnabled || logger.isDebugEnabled) "Search for 'ant:signjar' in log output."
                         else "Run with --info or --debug option and search for 'ant:signjar' in log output. ", e)
             }
+        }
+    }
+
+    @Suppress("SameParameterValue")
+    private fun writeResourceToFile(resourcePath: String, path: Path) {
+        this::class.java.classLoader.getResourceAsStream(resourcePath)?.use { input ->
+            Files.copy(input, path, REPLACE_EXISTING)
         }
     }
 

@@ -131,7 +131,6 @@ plugins {
     id 'net.corda.plugins.quasar-utils'
 }
 
-apply plugin: 'net.corda.plugins.quasar-utils'
 apply from: 'repositories.gradle'
 
 quasar {
@@ -216,8 +215,6 @@ plugins {
 description 'Show quasar-core added to configurations'
     
 apply from: 'repositories.gradle'
-
-apply plugin: 'net.corda.plugins.quasar-utils'
 
 task show {
     doFirst {

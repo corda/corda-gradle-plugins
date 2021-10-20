@@ -3,7 +3,6 @@ package net.corda.plugins
 import org.gradle.api.DefaultTask
 import com.spotify.docker.client.DefaultDockerClient
 import com.spotify.docker.client.LoggingBuildHandler
-import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.ProjectLayout
@@ -65,7 +64,8 @@ open class DockerImage @Inject constructor(objects: ObjectFactory, layouts: Proj
         dockerImageTag = tag
     }
 
-    private val _jars: ConfigurableFileCollection = project.files(project.configuration("cordapp"))
+    private val _jars = objects.fileCollection()
+        .from(project.configurations.getByName(CORDAPP_CONFIGURATION_NAME))
 
     @get:InputFiles
     @get:SkipWhenEmpty

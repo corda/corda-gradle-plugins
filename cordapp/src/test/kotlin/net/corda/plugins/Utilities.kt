@@ -17,7 +17,9 @@ fun installResource(folder: Path, resourceName: String): Long {
 
 @Throws(IOException::class)
 fun copyResourceTo(resourceName: String, target: Path): Long {
-    classLoader.getResourceAsStream(resourceName).use { input -> return Files.copy(input, target, REPLACE_EXISTING) }
+    classLoader.getResourceAsStream(resourceName)?.use { input ->
+        return Files.copy(input, target, REPLACE_EXISTING)
+    } ?: fail("Resource '$resourceName' not found")
 }
 
 fun systemProperty(name: String): String = System.getProperty(name) ?: fail("System property '$name' not set.")

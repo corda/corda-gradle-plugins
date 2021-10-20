@@ -1,6 +1,13 @@
 package net.corda.plugins.apiscanner;
 
-import io.github.classgraph.*;
+import io.github.classgraph.AnnotationInfo;
+import io.github.classgraph.AnnotationInfoList;
+import io.github.classgraph.ClassGraph;
+import io.github.classgraph.ClassInfo;
+import io.github.classgraph.ClassInfoList;
+import io.github.classgraph.FieldInfo;
+import io.github.classgraph.MethodInfo;
+import io.github.classgraph.ScanResult;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.file.ConfigurableFileCollection;
@@ -13,12 +20,20 @@ import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.SetProperty;
-import org.gradle.api.tasks.*;
+import org.gradle.api.tasks.CompileClasspath;
 import org.gradle.api.tasks.Console;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.OutputFiles;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.SkipWhenEmpty;
+import org.gradle.api.tasks.TaskAction;
 
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
-import java.io.*;
+import java.io.Closeable;
+import java.io.File;
+import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Inherited;
 import java.lang.reflect.InvocationTargetException;
@@ -27,9 +42,22 @@ import java.lang.reflect.Modifier;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-import static java.util.Collections.*;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.emptySet;
+import static java.util.Collections.sort;
+import static java.util.Collections.swap;
+import static java.util.Collections.unmodifiableList;
+import static java.util.Collections.unmodifiableSet;
 import static java.util.stream.Collectors.partitioningBy;
 import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Collectors.toList;
@@ -258,8 +286,8 @@ class ScanApi extends DefaultTask {
 
         void scan(ApiPrintWriter writer, ClassLoader appLoader) {
             try (ScanResult result = new ClassGraph()
-                    .blacklistPackages(excludePackages.get().toArray(new String[0]))
-                    .blacklistClasses(excludeClasses.get().toArray(new String[0]))
+                    .rejectPackages(excludePackages.get().toArray(new String[0]))
+                    .rejectClasses(excludeClasses.get().toArray(new String[0]))
                     .overrideClassLoaders(appLoader)
                     .ignoreParentClassLoaders()
                     .ignoreMethodVisibility()

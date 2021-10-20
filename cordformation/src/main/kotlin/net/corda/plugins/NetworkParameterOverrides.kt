@@ -3,7 +3,7 @@ package net.corda.plugins
 import com.typesafe.config.*
 import org.gradle.api.Action
 import org.gradle.api.NamedDomainObjectContainer
-import org.gradle.api.Project
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
@@ -13,22 +13,22 @@ import java.time.Duration
 import javax.inject.Inject
 
 @Suppress("UnstableApiUsage")
-open class NetworkParameterOverrides @Inject constructor(project: Project) {
+open class NetworkParameterOverrides @Inject constructor(objects: ObjectFactory) {
 
     @get:Optional
     @get:Input
-    val minimumPlatformVersion: Property<Int> = project.objects.property(Int::class.java)
+    val minimumPlatformVersion: Property<Int> = objects.property(Int::class.java)
 
     @get:Optional
     @get:Input
-    val maxMessageSize: Property<Int> = project.objects.property(Int::class.java)
+    val maxMessageSize: Property<Int> = objects.property(Int::class.java)
 
     @get:Optional
     @get:Input
-    val maxTransactionSize: Property<Int> = project.objects.property(Int::class.java)
+    val maxTransactionSize: Property<Int> = objects.property(Int::class.java)
 
     @get:Nested
-    val packageOwnership: NamedDomainObjectContainer<PackageOwnership> = project.container(PackageOwnership::class.java)
+    val packageOwnership: NamedDomainObjectContainer<PackageOwnership> = objects.domainObjectContainer(PackageOwnership::class.java)
 
     fun packageOwnership(action: Action<in NamedDomainObjectContainer<PackageOwnership>>) {
         action.execute(packageOwnership)
@@ -36,7 +36,7 @@ open class NetworkParameterOverrides @Inject constructor(project: Project) {
 
     @get:Optional
     @get:Input
-    val eventHorizon: Property<Duration> = project.objects.property(Duration::class.java)
+    val eventHorizon: Property<Duration> = objects.property(Duration::class.java)
 
     @Internal
     fun isEmpty() = !minimumPlatformVersion.isPresent &&

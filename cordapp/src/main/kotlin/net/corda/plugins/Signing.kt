@@ -10,10 +10,10 @@ import org.gradle.api.tasks.Nested
 import javax.inject.Inject
 
 @Suppress("UnstableApiUsage", "Unused")
-open class Signing @Inject constructor(objectFactory: ObjectFactory) {
+open class Signing @Inject constructor(objects: ObjectFactory) {
 
     @get:Input
-    val enabled: Property<Boolean> = objectFactory.property(Boolean::class.javaObjectType)
+    val enabled: Property<Boolean> = objects.property(Boolean::class.java)
             .convention(System.getProperty(SYSTEM_PROPERTY_PREFIX + "enabled", "true").toBoolean())
 
     fun enabled(value: Boolean) {
@@ -25,7 +25,7 @@ open class Signing @Inject constructor(objectFactory: ObjectFactory) {
     }
 
     @get:Nested
-    val options: SigningOptions = objectFactory.newInstance(SigningOptions::class.java)
+    val options: SigningOptions = objects.newInstance(SigningOptions::class.java)
 
     fun options(action: Action<in SigningOptions>) {
         action.execute(options)

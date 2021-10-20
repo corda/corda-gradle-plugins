@@ -156,7 +156,7 @@ open class SigningOptions {
     fun toSignJarOptionsMap(): MutableMap<String, String> =
             mapOf(Key.ALIAS to alias, Key.STOREPASS to storepass, Key.KEYSTORE to keystore,
                     Key.STORETYPE to storetype, Key.KEYPASS to keypass, Key.SIGFILE to sigfile,
-                    Key.SIGNEDJAR to signedjar, Key.VERBOSE to verbose, Key.STRICT to strict,
+                    Key.VERBOSE to verbose, Key.STRICT to strict,
                     Key.INTERNALSF to internalsf, Key.SECTIONSONLY to sectionsonly, Key.LAZY to lazy,
                     Key.MAXMEMORY to maxmemory, Key.PRESERVELASTMODIFIED to preservelastmodified,
                     Key.TSAURL to tsacert, Key.TSACERT to tsaurl, Key.TSAPROXYHOST to tsaproxyhost,
