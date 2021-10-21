@@ -19,7 +19,7 @@ open class SigningOptions {
         private const val DEFAULT_KEYPASS = "cordacadevkeypass"
         const val DEFAULT_KEYSTORE = "certificates/cordadevcodesign.jks"
         const val DEFAULT_KEYSTORE_FILE = "cordadevcakeys"
-        const val DEFAULT_KEYSTORE_EXTENSION = "jks"
+        const val DEFAULT_KEYSTORE_EXTENSION = ".jks"
         const val SYSTEM_PROPERTY_PREFIX = "signing."
     }
 

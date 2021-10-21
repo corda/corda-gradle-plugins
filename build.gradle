@@ -84,12 +84,13 @@ allprojects {
 // The "child projects" are the immediate children of the root. Any
 // "grandchild" project is considered to be internal to its parent.
 def publishProjects = childProjects.values()
-evaluationDependsOnChildren()
 
 configure(publishProjects) { Project subproject ->
     apply plugin: 'maven-publish'
     apply plugin: 'com.jfrog.bintray'
     apply plugin: 'com.jfrog.artifactory'
+
+    evaluationDependsOn(subproject.path)
 
     tasks.register('install') {
         dependsOn 'publishToMavenLocal'
