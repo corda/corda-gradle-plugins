@@ -26,12 +26,14 @@ class CpbPlugin : Plugin<Project> {
     companion object {
         private const val CPB_TASK_NAME = "cpb"
         private const val CPB_CONFIGURATION_NAME = CPB_TASK_NAME
+        private const val CORDA_CPB_CONFIGURATION_NAME = "cordaCPB"
         private const val CPB_PACKAGING_CONFIGURATION_NAME = "cpbPackaging"
     }
 
     override fun apply(project: Project) {
         project.pluginManager.apply(CordappPlugin::class.java)
         val allCordappsConfiguration = project.configurations.getByName(ALL_CORDAPPS_CONFIGURATION_NAME)
+        val attributor = Attributor(project.objects)
 
         val cpbConfiguration = project.configurations.create(CPB_CONFIGURATION_NAME)
             .extendsFrom(allCordappsConfiguration)
@@ -53,7 +55,6 @@ class CpbPlugin : Plugin<Project> {
                     .extendsFrom(cpbConfiguration)
                     .resolvedConfiguration
 
-                val attributor = Attributor(project.objects)
                 cpbConfiguration.allDependencies
                     .filterIsInstance(ModuleDependency::class.java)
                     .filterNot(::isPlatformModule)
@@ -76,6 +77,10 @@ class CpbPlugin : Plugin<Project> {
             }.apply {
                 isCanBeConsumed = false
             }
+
+        project.configurations.maybeCreate(CORDA_CPB_CONFIGURATION_NAME)
+            .attributes(attributor::forCpb)
+            .isCanBeResolved = false
 
         /**
          * @see [Gradle #17765](https://github.com/gradle/gradle/issues/17765).
@@ -108,5 +113,6 @@ class CpbPlugin : Plugin<Project> {
             }
         }
         project.artifacts.add(ARCHIVES_CONFIGURATION, cpbTaskProvider)
+        project.artifacts.add(CORDA_CPB_CONFIGURATION_NAME, cpbTaskProvider)
     }
 }
