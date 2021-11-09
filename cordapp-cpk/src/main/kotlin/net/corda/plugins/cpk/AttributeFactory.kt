@@ -59,9 +59,13 @@ internal class AttributeFactory(
         return this
     }
 
+    fun cpb(): AttributeFactory {
+        attrs.attribute(LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements::class.java, "cpb"))
+        return this
+    }
+
     fun withExternalDependencies(): AttributeFactory {
         attrs.attribute(BUNDLING_ATTRIBUTE, objects.named(Bundling::class.java, EXTERNAL))
         return this
     }
 }
-

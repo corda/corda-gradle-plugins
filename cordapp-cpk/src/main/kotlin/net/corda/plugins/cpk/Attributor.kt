@@ -47,4 +47,13 @@ internal class Attributor(private val objects: ObjectFactory) {
     fun forCpk(attrs: AttributeContainer) {
         AttributeFactory(attrs, objects).cpk()
     }
+
+
+    /**
+     * Dark Gradle Magic to declare that we
+     * consume or produce a CPB artifact.
+     */
+    fun forCpb(attrs: AttributeContainer) {
+        AttributeFactory(attrs, objects).cpb()
+    }
 }
