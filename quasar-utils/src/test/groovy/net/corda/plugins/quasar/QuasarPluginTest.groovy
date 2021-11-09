@@ -181,8 +181,6 @@ description 'Show quasar-core-osgi added to configurations'
     
 apply from: 'repositories.gradle'
 
-apply plugin: 'net.corda.plugins.quasar-utils'
-
 task show {
     doFirst {
         def configs = configurations.matching { it.name in [

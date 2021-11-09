@@ -42,8 +42,6 @@ quasar {
     instrumentTests = false
 }
 
-apply from: 'repositories.gradle'
-
 dependencies {
     testImplementation 'junit:junit:${JUNIT_VERSION}'
 }
@@ -72,8 +70,6 @@ quasar {
     version = '${quasarVersion}'
     instrumentJavaExec = false
 }
-
-apply from: 'repositories.gradle'
 
 dependencies {
     testImplementation 'junit:junit:${JUNIT_VERSION}'

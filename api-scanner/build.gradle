@@ -1,7 +1,8 @@
 plugins {
-    id 'java'
-    id 'jacoco'
+    id 'com.gradle.plugin-publish'
     id 'java-gradle-plugin'
+    id 'java-library'
+    id 'jacoco'
 }
 
 description "Generates a summary of the artifact's public API"

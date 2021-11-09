@@ -3,7 +3,9 @@ import static org.gradle.jvm.toolchain.JavaLanguageVersion.of
 plugins {
     id 'org.jetbrains.kotlin.jvm'
     id 'org.jetbrains.dokka'
+    id 'com.gradle.plugin-publish'
     id 'java-gradle-plugin'
+    id 'java-library'
     id 'jacoco'
 }
 
@@ -48,7 +50,9 @@ jacoco {
 }
 
 configurations {
-    jacocoRuntime
+    jacocoRuntime {
+        canBeConsumed = false
+    }
 }
 
 dependencies {
@@ -71,12 +75,6 @@ dependencies {
     testImplementation project(':jar-filter:unwanteds')
 
     jacocoRuntime "org.jacoco:org.jacoco.agent:${jacoco.toolVersion}:runtime"
-}
-
-tasks.register('kdocsJar', Jar) {
-    def dokka = tasks.named('dokkaHtml')
-    from dokka.flatMap { it.outputDirectory }
-    archiveClassifier = 'javadoc'
 }
 
 tasks.named('compileTestKotlin') {

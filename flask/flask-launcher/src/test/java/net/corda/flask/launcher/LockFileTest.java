@@ -19,7 +19,7 @@ public class LockFileTest {
     @TempDir
     public Path testDir;
 
-    private Path executablePath = Paths.get(System.getProperty("lockFileTest.executable.jar"));
+    private final Path executablePath = Paths.get(System.getProperty("lockFileTest.executable.jar"));
 
     @RequiredArgsConstructor
     private static class LockFileTestMainArgs {

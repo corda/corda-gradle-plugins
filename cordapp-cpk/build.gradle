@@ -2,9 +2,11 @@ import org.apache.tools.ant.filters.ReplaceTokens
 import static org.gradle.jvm.toolchain.JavaLanguageVersion.of
 
 plugins {
+    id 'com.gradle.plugin-publish'
     id 'org.jetbrains.kotlin.jvm'
     id 'org.jetbrains.dokka'
     id 'java-gradle-plugin'
+    id 'java-library'
 }
 
 description 'Configures this project to create a CPK CorDapp'
@@ -96,6 +98,10 @@ tasks.named('jar', Jar) {
     }
 }
 
+tasks.named('javadoc', Javadoc) {
+    enabled = false
+}
+
 processTestResources {
     filesMatching('gradle.properties') {
         expand([
@@ -110,16 +116,6 @@ processTestResources {
             'bnd_version': bnd_version
         ])
     }
-}
-
-tasks.register('kdocsJar', Jar) {
-    def dokka = tasks.named('dokkaHtml')
-    from dokka.flatMap { it.outputDirectory }
-    archiveClassifier = 'javadoc'
-}
-
-tasks.withType(Javadoc).configureEach {
-    options.showFromPackage()
 }
 
 tasks.withType(Test).configureEach {

@@ -14,7 +14,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 import java.util.stream.Collectors;
 
 @Getter
@@ -157,7 +160,7 @@ public class JavaProcessBuilder {
             try(Writer writer = Files.newBufferedWriter(argumentFile)) {
                 writer.write(generateArgumentFileString(cmd.subList(1, cmd.size())));
             }
-            return new ProcessBuilder(cmd.get(0), "@" + argumentFile.toString());
+            return new ProcessBuilder(cmd.get(0), "@" + argumentFile);
         }
     }
 }
