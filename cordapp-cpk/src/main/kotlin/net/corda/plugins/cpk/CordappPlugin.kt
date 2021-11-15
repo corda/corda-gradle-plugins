@@ -9,6 +9,7 @@ import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency.ARCHIVES_CONFIGURATION
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ProjectDependency
@@ -30,6 +31,7 @@ import org.osgi.framework.Constants.BUNDLE_LICENSE
 import org.osgi.framework.Constants.BUNDLE_NAME
 import org.osgi.framework.Constants.BUNDLE_SYMBOLICNAME
 import org.osgi.framework.Constants.BUNDLE_VENDOR
+import java.util.Collections.unmodifiableList
 import java.util.Properties
 import javax.inject.Inject
 import kotlin.math.max
@@ -51,6 +53,16 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
         private const val OSGI_EXTENSION_NAME = "osgi"
         private const val MIN_GRADLE_VERSION = "6.6"
         private const val UNKNOWN = "Unknown"
+
+        private val CORDAPP_BUILD_CONFIGURATIONS: List<String> = unmodifiableList(listOf(
+            /**
+             * Every CorDapp configuration is a super-configuration of at least one of these
+             * configurations. Hence every [ProjectDependency][org.gradle.api.artifacts.ProjectDependency]
+             * needed to build this CorDapp should exist somewhere beneath their umbrella.
+             */
+            CORDAPP_PACKAGING_CONFIGURATION_NAME,
+            CORDAPP_EXTERNAL_CONFIGURATION_NAME
+        ))
 
         private val bndVersion: String get() {
             val properties = Properties().also { props ->
@@ -193,7 +205,15 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
      */
     private fun configureCordappTasks(project: Project) {
         val calculatorTask = project.tasks.register(DEPENDENCY_CALCULATOR_TASK_NAME, DependencyCalculator::class.java) { task ->
-            task.dependsOnCordappConfigurations()
+            task.dependsOn(
+                /**
+                 * Every CorDapp configuration is a super-configuration of at least one of these
+                 * configurations. Hence every [ProjectDependency][org.gradle.api.artifacts.ProjectDependency]
+                 * needed to build this CorDapp should exist somewhere beneath their umbrella.
+                 */
+                CORDAPP_BUILD_CONFIGURATIONS.map(project.configurations::getByName)
+                    .mapTo(LinkedHashSet(), Configuration::getBuildDependencies)
+            )
         }
 
         /**

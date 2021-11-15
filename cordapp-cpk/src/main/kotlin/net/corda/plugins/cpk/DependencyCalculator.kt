@@ -15,9 +15,7 @@ import org.gradle.api.provider.Provider
 import org.gradle.api.specs.Specs.satisfyNone
 import org.gradle.api.tasks.OutputFiles
 import org.gradle.api.tasks.TaskAction
-import org.gradle.api.tasks.TaskDependency
 import java.io.File
-import java.util.Collections.unmodifiableList
 import java.util.Collections.unmodifiableSet
 import javax.inject.Inject
 
@@ -38,16 +36,6 @@ open class DependencyCalculator @Inject constructor(objects: ObjectFactory) : De
             "co.paralleluniverse" to "quasar-core",
             "co.paralleluniverse" to "quasar-core-osgi"
         ))
-
-        private val CORDAPP_BUILD_CONFIGURATIONS: List<String> = unmodifiableList(listOf(
-            /**
-             * Every CorDapp configuration is a super-configuration of at least one of these
-             * configurations. Hence every [ProjectDependency][org.gradle.api.artifacts.ProjectDependency]
-             * needed to build this CorDapp should exist somewhere beneath their umbrella.
-             */
-            CORDAPP_PACKAGING_CONFIGURATION_NAME,
-            CORDAPP_EXTERNAL_CONFIGURATION_NAME
-        ))
     }
 
     init {
@@ -62,7 +50,7 @@ open class DependencyCalculator @Inject constructor(objects: ObjectFactory) : De
      * Gradle's configuration cache forbids invoking [org.gradle.api.Task.getProject]
      * during the task execution phase. Although to be blunt, Gradle cannot serialise
      * a [ConfigurationContainer][org.gradle.api.artifacts.ConfigurationContainer]
-     * field either!
+     * field yet either!
      */
     private val configurations = project.configurations
 
@@ -121,20 +109,6 @@ open class DependencyCalculator @Inject constructor(objects: ObjectFactory) : De
     val externalJars: Provider<Set<FileSystemLocation>>
         @OutputFiles
         get() = _externalJars.elements
-
-    /**
-     * Sets this task's dependencies; to be invoked when the task is configured.
-     * (Deliberately NOT invoking this from the constructor because I'm unclear on
-     * where [Task][org.gradle.api.Task] construction fits into the Gradle lifecycle.
-     */
-    fun dependsOnCordappConfigurations() {
-        dependsOn(calculateTaskDependencies())
-    }
-
-    private fun calculateTaskDependencies(): Set<TaskDependency> {
-        return CORDAPP_BUILD_CONFIGURATIONS.map(configurations::getByName)
-            .mapTo(LinkedHashSet(), Configuration::getBuildDependencies)
-    }
 
     @TaskAction
     fun calculate() {
