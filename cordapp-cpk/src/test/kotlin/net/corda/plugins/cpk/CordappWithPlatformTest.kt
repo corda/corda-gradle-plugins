@@ -1,9 +1,6 @@
 package net.corda.plugins.cpk
 
-import java.nio.file.Files
-import java.nio.file.Path
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -15,6 +12,8 @@ import org.osgi.framework.Constants.BUNDLE_VERSION
 import org.osgi.framework.Constants.EXPORT_PACKAGE
 import org.osgi.framework.Constants.IMPORT_PACKAGE
 import org.osgi.framework.Constants.REQUIRE_CAPABILITY
+import java.nio.file.Files
+import java.nio.file.Path
 
 class CordappWithPlatformTest {
     companion object {
@@ -23,17 +22,17 @@ class CordappWithPlatformTest {
 
         private const val cordappVersion = "3.2.1-SNAPSHOT"
 
-        private lateinit var repositoryDir: Path
         private lateinit var publisherProject: GradleProject
         private lateinit var testProject: GradleProject
 
         @BeforeAll
         @JvmStatic
-        fun setup(@TempDir testProjectDir: Path, reporter: TestReporter) {
-            // JUnit 5.8+ should allow each use of @TempDir to create a
-            // brand new directory. Replicate this behaviour until then.
-            repositoryDir = Files.createTempDirectory(testProjectDir.parent, "maven")
-            val publisherProjectDir = Files.createTempDirectory(testProjectDir.parent, "publisher")
+        fun setup(
+            @TempDir publisherProjectDir: Path,
+            @TempDir testProjectDir: Path,
+            reporter: TestReporter
+        ) {
+            val repositoryDir = Files.createDirectory(testProjectDir.resolve("maven"))
             publisherProject = GradleProject(publisherProjectDir, reporter)
                 .withTestName("publish-platform")
                 .withTaskName("publishAllPublicationsToTestRepository")
@@ -50,15 +49,6 @@ class CordappWithPlatformTest {
                     "-Pcordapp_version=$cordappVersion",
                     "-Prepository_dir=$repositoryDir"
                 )
-        }
-
-        // Only needed until JUnit 5.8+ allows multiple @TempDir directories.
-        @Suppress("unused")
-        @AfterAll
-        @JvmStatic
-        fun destroy() {
-            repositoryDir.deleteAll()
-            publisherProject.delete()
         }
     }
 

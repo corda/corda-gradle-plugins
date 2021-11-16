@@ -1,19 +1,18 @@
 package net.corda.plugins.cpb
 
-import java.nio.file.Files
-import java.nio.file.Path
-import java.util.stream.Collectors.toList
 import net.corda.plugins.cpk.GradleProject
 import net.corda.plugins.cpk.allSHA256
 import net.corda.plugins.cpk.cordaApiVersion
 import net.corda.plugins.cpk.expectedCordappContractVersion
 import net.corda.plugins.cpk.toOSGi
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestReporter
 import org.junit.jupiter.api.io.TempDir
+import java.nio.file.Files
+import java.nio.file.Path
+import java.util.stream.Collectors.toList
 
 class CpbPlatformTest {
     companion object {
@@ -25,11 +24,12 @@ class CpbPlatformTest {
 
         @BeforeAll
         @JvmStatic
-        fun setup(@TempDir testProjectDir: Path, reporter: TestReporter) {
-            // JUnit 5.8+ should allow each use of @TempDir to create a
-            // brand new directory. Replicate this behaviour until then.
+        fun setup(
+            @TempDir externalCordappProjectDir: Path,
+            @TempDir testProjectDir: Path,
+            reporter: TestReporter
+        ) {
             val mavenRepoDir = Files.createDirectory(testProjectDir.resolve("maven"))
-            val externalCordappProjectDir = Files.createTempDirectory(testProjectDir.parent, "externalCordapp")
             externalProject = GradleProject(externalCordappProjectDir, reporter)
                 .withTestName("external-cordapp")
                 .withSubResource("corda-platform-cordapp/build.gradle")
@@ -47,13 +47,6 @@ class CpbPlatformTest {
                        "-Pcorda_api_version=$cordaApiVersion",
                        "-Pcordapp_version=$cordappVersion",
                        "-Pcordapp_contract_version=$expectedCordappContractVersion")
-        }
-
-        // Only needed until JUnit 5.8+ allows multiple @TempDir directories.
-        @AfterAll
-        @JvmStatic
-        fun tearDown() {
-            externalProject.delete()
         }
     }
 
