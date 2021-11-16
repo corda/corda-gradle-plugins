@@ -5,7 +5,6 @@ import net.corda.plugins.cpk.cordaApiVersion
 import net.corda.plugins.cpk.digestFor
 import net.corda.plugins.cpk.expectedCordappContractVersion
 import net.corda.plugins.cpk.hashFor
-import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -31,9 +30,12 @@ class CpbTest {
 
         @BeforeAll
         @JvmStatic
-        fun setup(@TempDir testDir: Path, reporter: TestReporter) {
+        fun setup(
+            @TempDir externalCordappProjectDir: Path,
+            @TempDir testDir: Path,
+            reporter: TestReporter
+        ) {
             val mavenRepoDir = Files.createDirectory(testDir.resolve("maven"))
-            val externalCordappProjectDir = Files.createTempDirectory(testDir.parent, "externalCordapp")
             val cpbProjectDir = Files.createDirectory(testDir.resolve("cpb"))
             externalProject = GradleProject(externalCordappProjectDir, reporter)
                 .withTestName("external-cordapp")
@@ -53,10 +55,6 @@ class CpbTest {
                     "-Pcordapp_version=$cordappVersion",
                     "-Pcordapp_contract_version=$expectedCordappContractVersion")
         }
-
-        @AfterAll
-        @JvmStatic
-        fun tearDown() = externalProject.delete()
 
         private fun ByteArray.toHex() = joinToString(separator = "") {
             String.format("%02X", it)
