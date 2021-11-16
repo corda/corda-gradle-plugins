@@ -1,12 +1,14 @@
 plugins {
     id 'net.corda.plugins.cordapp-cpk'
     id 'org.jetbrains.kotlin.jvm'
+    id 'maven-publish'
 }
 
-apply from: '../repositories.gradle'
-apply from: '../javaTarget.gradle'
-apply from: '../kotlin.gradle'
+apply from: 'repositories.gradle'
+apply from: 'javaTarget.gradle'
+apply from: 'kotlin.gradle'
 
+group = 'com.example'
 version = cordapp_version
 
 cordapp {
@@ -29,4 +31,60 @@ dependencies {
 
 tasks.named('jar', Jar) {
     archiveBaseName = 'cordapp'
+}
+
+tasks.withType(GenerateModuleMetadata).configureEach {
+    // Ensure our Maven Repository is "bare bones",
+    // i.e. has no sneaky extra Gradle metadata.
+    enabled = false
+}
+
+publishing {
+    publishing {
+        repositories {
+            maven {
+                name = 'Test'
+                url = repository_dir
+            }
+        }
+
+        publications {
+            maven(MavenPublication) {
+                pluginManager.withPlugin('java') {
+                    from components.java
+                }
+
+                // Publish any CPK that this project may have.
+                pluginManager.withPlugin('net.corda.plugins.cordapp-cpk') {
+                    artifact tasks.named('cpk', Jar)
+                }
+
+                pom {
+                    name = 'Hash Selection CorDapp'
+                    url = 'https://com.example.cordapp'
+                    scm {
+                        url = 'https://com.example.cordapp'
+                    }
+                    organization {
+                        name = 'Example-Name'
+                        url = 'https://example.com'
+                    }
+                    licenses {
+                        license {
+                            name = 'Apache-2.0'
+                            url = 'https://www.apache.org/licenses/LICENSE-2.0'
+                            distribution = 'repo'
+                        }
+                    }
+                    developers {
+                        developer {
+                            id = 'Example-Id'
+                            name = 'Example-Name'
+                            email = 'dev@example.com'
+                        }
+                    }
+                }
+            }
+        }
+    }
 }

@@ -7,6 +7,7 @@ import aQute.bnd.version.VersionRange
 import net.corda.plugins.cpk.xml.CPKDependency
 import net.corda.plugins.cpk.xml.DependencyConstraint
 import net.corda.plugins.cpk.xml.HashValue
+import net.corda.plugins.cpk.xml.SameAsMe
 import net.corda.plugins.cpk.xml.loadCPKDependencies
 import net.corda.plugins.cpk.xml.loadDependencyConstraints
 import org.assertj.core.api.Assertions.assertThat
@@ -71,7 +72,8 @@ fun createDocumentBuilderFactory() = XMLFactory.createDocumentBuilderFactory()
 
 val Path.manifest: Manifest get() = toFile().manifest
 
-val List<HashValue>.allSHA256: Boolean get() = isNotEmpty() && all(HashValue::isSHA256)
+val List<Any>.allSHA256: Boolean get() = isNotEmpty() && all { it is HashValue && it.isSHA256 }
+val List<Any>.isSameAsMe: Boolean get() = (size == 1) && all { it is SameAsMe }
 
 private const val HASH_ALGORITHM = "SHA-256"
 

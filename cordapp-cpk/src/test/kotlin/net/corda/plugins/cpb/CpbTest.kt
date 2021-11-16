@@ -5,10 +5,12 @@ import net.corda.plugins.cpk.cordaApiVersion
 import net.corda.plugins.cpk.digestFor
 import net.corda.plugins.cpk.expectedCordappContractVersion
 import net.corda.plugins.cpk.hashFor
-import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestReporter
+import org.junit.jupiter.api.fail
 import org.junit.jupiter.api.io.TempDir
 import java.io.InputStream
 import java.nio.file.Files
@@ -75,7 +77,7 @@ class CpbTest {
 
         val cordaPlatformCordappCpk = allCpks.singleOrNull {
             it.fileName.toString().startsWith("corda-platform-cordapp")
-        } ?: Assertions.fail("Corda platform CorDapp CPK not found")
+        } ?: fail("Corda platform CorDapp CPK not found")
 
         val expectedCpks = allCpks.filter { it != cordaPlatformCordappCpk }
             .associateByTo(TreeMap(), { it.fileName.toString() }, {Files.newInputStream(it).use(::sha256)})
@@ -83,24 +85,24 @@ class CpbTest {
         val assembledCpbFiles = testProject.artifacts.filter {
             it.fileName.toString().endsWith(".cpb")
         }
-        Assertions.assertEquals(1, assembledCpbFiles.size, "Expected a single cpb archive")
+        assertEquals(1, assembledCpbFiles.size, "Expected a single cpb archive")
         val cpbFile = assembledCpbFiles.first()
 
         testProject.cpkDependencies.singleOrNull {
             it.name == "net.corda.corda-platform-cordapp"
         }?.let {
-            Assertions.assertEquals(platformCordappVersion, it.version)
-            Assertions.assertEquals("corda-api", it.type)
-        } ?: Assertions.fail("'net.corda.corda-platform-cordapp' is expected to be listed in the META-INF/CPKDependencies file")
+            assertEquals(platformCordappVersion, it.version)
+            assertEquals("corda-api", it.type)
+        } ?: fail("'net.corda.corda-platform-cordapp' is expected to be listed in the META-INF/CPKDependencies file")
 
         val embeddedCpkFiles = TreeMap<String, String>()
         JarInputStream(Files.newInputStream(cpbFile), true).use { jarInputStream ->
-            Assertions.assertEquals("customName", jarInputStream.manifest.mainAttributes.getValue("Corda-CPB-Name"))
-            Assertions.assertEquals("customVersion", jarInputStream.manifest.mainAttributes.getValue("Corda-CPB-Version"))
+            assertEquals("customName", jarInputStream.manifest.mainAttributes.getValue("Corda-CPB-Name"))
+            assertEquals("customVersion", jarInputStream.manifest.mainAttributes.getValue("Corda-CPB-Version"))
             generateSequence(jarInputStream::getNextJarEntry).forEach { jarEntry ->
                 when {
                     jarEntry.name.endsWith(".cpk") -> {
-                        Assertions.assertEquals(-1, jarEntry.name.indexOf('/'),
+                        assertEquals(-1, jarEntry.name.indexOf('/'),
                             "All CPK files in a CPB must be in the root directory of the archive, found '${jarEntry.name}' instead")
                         embeddedCpkFiles += jarEntry.name to sha256(jarInputStream)
                     }
@@ -112,15 +114,15 @@ class CpbTest {
                         sha256(jarInputStream)
                     }
                 }
-                if(!jarEntry.name.startsWith("META-INF/")) {
-                    Assertions.assertEquals(cordaDevCertPrincipal, (jarEntry.certificates.single() as X509Certificate).subjectX500Principal)
+                if (!jarEntry.name.startsWith("META-INF/")) {
+                    assertEquals(cordaDevCertPrincipal, (jarEntry.certificates.single() as X509Certificate).subjectX500Principal)
                 }
             }
         }
-        Assertions.assertFalse(embeddedCpkFiles.containsKey(cordaPlatformCordappCpk.fileName.toString()),
+        assertFalse(embeddedCpkFiles.containsKey(cordaPlatformCordappCpk.fileName.toString()),
             "Corda platform CorDapp CPK is expected to be excluded from the generated CPB archive " +
                     "as it contains CPK-Type: corda-api in its manifest, it was found instead"
         )
-        Assertions.assertEquals(expectedCpks, embeddedCpkFiles)
+        assertEquals(expectedCpks, embeddedCpkFiles)
     }
 }
