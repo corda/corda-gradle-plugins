@@ -205,7 +205,7 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
      */
     private fun configureCordappTasks(project: Project) {
         val calculatorTask = project.tasks.register(DEPENDENCY_CALCULATOR_TASK_NAME, DependencyCalculator::class.java) { task ->
-            task.dependsOn(
+            task.setDependsOn(
                 /**
                  * Every CorDapp configuration is a super-configuration of at least one of these
                  * configurations. Hence every [ProjectDependency][org.gradle.api.artifacts.ProjectDependency]
@@ -290,7 +290,7 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
                 val attributes = t.manifest.attributes
                 // check whether metadata has been configured (not mandatory for non-flow, non-contract gradle build files)
                 if (cordapp.contract.isEmpty && cordapp.workflow.isEmpty) {
-                    throw InvalidUserDataException("Cordapp metadata not defined for this gradle build file. See https://docs.corda.net/head/cordapp-build-systems.html#separation-of-cordapp-contracts-flows-and-services")
+                    throw InvalidUserDataException("CorDapp metadata not defined for this Gradle build file. See https://docs.corda.net/head/cordapp-build-systems.html#separation-of-cordapp-contracts-flows-and-services")
                 }
 
                 // Compute the maximum platform version used by any "corda-provided"
@@ -336,6 +336,7 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
             task.destinationDirectory.convention(jarTask.flatMap(Jar::getDestinationDirectory))
             task.archiveBaseName.convention(jarTask.flatMap(Jar::getArchiveBaseName))
             task.archiveAppendix.convention(jarTask.flatMap(Jar::getArchiveAppendix))
+            task.archiveVersion.convention(jarTask.flatMap(Jar::getArchiveVersion))
 
             // Configure the CPK archive contents.
             task.setLibrariesFrom(constraintsTask)
