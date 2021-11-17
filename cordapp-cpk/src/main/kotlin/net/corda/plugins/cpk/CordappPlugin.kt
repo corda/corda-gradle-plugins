@@ -82,18 +82,20 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
     private lateinit var cordapp: CordappExtension
 
     override fun apply(project: Project) {
-        project.logger.info("Configuring ${project.name} as a cordapp")
+        project.logger.info("Configuring ${project.name} as a CorDapp")
 
         if (GradleVersion.current() < GradleVersion.version(MIN_GRADLE_VERSION)) {
-            throw GradleException("Gradle version ${GradleVersion.current().version} is below the supported minimum version $MIN_GRADLE_VERSION. Please update Gradle or consider using Gradle wrapper if it is provided with the project. More information about CorDapp build system can be found here: https://docs.corda.net/cordapp-build-systems.html")
+            throw GradleException("Gradle version ${GradleVersion.current().version} is below the supported minimum version $MIN_GRADLE_VERSION. Please update Gradle or consider using Gradle wrapper if it is provided with the project. More information about CorDapp build system can be found here: $CORDAPP_DOCUMENTATION_URL")
         }
 
-        // Apply the 'java-library' plugin on the assumption that we're building a JAR.
-        // This will also create the "api", "implementation", "compileOnly" and "runtimeOnly" configurations.
-        project.pluginManager.apply("java-library")
+        with(project.pluginManager) {
+            // Apply the 'java-library' plugin on the assumption that we're building a JAR.
+            // This will also create the "api", "implementation", "compileOnly" and "runtimeOnly" configurations.
+            apply("java-library")
 
-        // Apply the Bnd "builder" plugin to generate OSGi metadata for the CorDapp.
-        project.pluginManager.apply(BndBuilderPlugin::class.java)
+            // Apply the Bnd "builder" plugin to generate OSGi metadata for the CorDapp.
+            apply(BndBuilderPlugin::class.java)
+        }
 
         // Create our plugin's "cordapp" extension.
         cordapp = project.extensions.create(CORDAPP_EXTENSION_NAME, CordappExtension::class.java, bndVersion)
@@ -277,8 +279,10 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
 
             val allCordaProvided = objects.fileCollection()
                 .from(calculatorTask.flatMap(DependencyCalculator::providedJars))
-            val allCordapps = objects.fileCollection()
-                .from(calculatorTask.flatMap(DependencyCalculator::cordapps))
+            val allCordapps = objects.fileCollection().from(
+                calculatorTask.flatMap(DependencyCalculator::remoteCordapps),
+                calculatorTask.flatMap(DependencyCalculator::projectCordapps)
+            )
             jar.doFirst { t ->
                 t as Jar
                 t.fileMode = Integer.parseInt("444", 8)
@@ -295,7 +299,7 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
                 val attributes = t.manifest.attributes
                 // check whether metadata has been configured (not mandatory for non-flow, non-contract gradle build files)
                 if (cordapp.contract.isEmpty && cordapp.workflow.isEmpty) {
-                    throw InvalidUserDataException("CorDapp metadata not defined for this Gradle build file. See https://docs.corda.net/head/cordapp-build-systems.html#separation-of-cordapp-contracts-flows-and-services")
+                    throw InvalidUserDataException("CorDapp metadata not defined for this Gradle build file. See $CORDAPP_DOCUMENTATION_URL")
                 }
 
                 // Compute the maximum platform version used by any "corda-provided"

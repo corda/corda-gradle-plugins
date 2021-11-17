@@ -9,6 +9,3 @@ pluginManagement {
 }
 
 rootProject.name = 'hash-selection'
-
-include 'corda-api'
-project(':corda-api').projectDir = file('../resources/test/corda-api')

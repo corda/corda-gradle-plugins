@@ -19,10 +19,14 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.TaskProvider
 import org.osgi.framework.Constants.BUNDLE_SYMBOLICNAME
 import org.osgi.framework.Constants.BUNDLE_VERSION
+import org.w3c.dom.Document
+import org.w3c.dom.Element
+import java.io.File
 import java.io.IOException
 import java.io.InputStream
 import java.nio.file.Paths
 import java.security.CodeSigner
+import java.security.MessageDigest
 import java.security.cert.Certificate
 import java.util.Base64
 import java.util.jar.JarEntry
@@ -68,11 +72,17 @@ open class CPKDependenciesTask @Inject constructor(objects: ObjectFactory) : Def
     @get:Input
     val hashAlgorithm: Property<String> = objects.property(String::class.java)
 
-    private val _cpks: ConfigurableFileCollection = objects.fileCollection()
-    val cpks: FileCollection
+    private val _projectCpks: ConfigurableFileCollection = objects.fileCollection()
+    val projectCpks: FileCollection
         @PathSensitive(RELATIVE)
         @InputFiles
-        get() = _cpks
+        get() = _projectCpks
+
+    private val _remoteCpks: ConfigurableFileCollection = objects.fileCollection()
+    val remoteCpks: FileCollection
+        @PathSensitive(RELATIVE)
+        @InputFiles
+        get() = _remoteCpks
 
     @get:Internal
     val outputDir: DirectoryProperty = objects.directoryProperty()
@@ -85,8 +95,10 @@ open class CPKDependenciesTask @Inject constructor(objects: ObjectFactory) : Def
      * someone eagerly configures this [CPKDependenciesTask] by accident.
      */
     internal fun setCPKsFrom(task: TaskProvider<DependencyCalculator>) {
-        _cpks.setFrom(task.flatMap(DependencyCalculator::cordapps))
-        _cpks.disallowChanges()
+        _projectCpks.setFrom(task.flatMap(DependencyCalculator::projectCordapps))
+        _projectCpks.disallowChanges()
+        _remoteCpks.setFrom(task.flatMap(DependencyCalculator::remoteCordapps))
+        _remoteCpks.disallowChanges()
         dependsOn(task)
     }
 
@@ -96,45 +108,73 @@ open class CPKDependenciesTask @Inject constructor(objects: ObjectFactory) : Def
 
         try {
             val xmlDocument = createXmlDocument()
-            val cpkDependencies = xmlDocument.createRootElement(CPK_XML_NAMESPACE, "cpkDependencies")
-            val encoder = Base64.getEncoder()
+            val writer = DependencyWriter(xmlDocument, digest)
 
-            cpks.forEach { cpk ->
-                logger.info("CorDapp CPK dependency: {}", cpk.name)
-                JarFile(cpk).use { jar ->
-                    val mainAttributes = jar.manifest.mainAttributes
-                    val cpkDependency = cpkDependencies.appendElement("cpkDependency")
-                    cpkDependency.appendElement("name", mainAttributes.getValue(BUNDLE_SYMBOLICNAME))
-                    cpkDependency.appendElement("version", mainAttributes.getValue(BUNDLE_VERSION))
-                    mainAttributes.getValue(CORDA_CPK_TYPE)?.also { cpkType ->
-                        cpkDependency.appendElement("type", cpkType)
-                    }
+            projectCpks.forEach { cpk ->
+                logger.info("Project CorDapp CPK dependency: {}", cpk.name)
+                JarFile(cpk).use(writer::writeProjectDependency)
+            }
 
-                    val signerCertificates = signerCertificatesFor(jar)
-                    if (signerCertificates.size != 1) {
-                        logger.error("CPK {} signed by {} sets of signers:{}",
-                            cpk.name, signerCertificates.size,
-                            signerCertificates.joinToString(
-                                separator = System.lineSeparator(),
-                                prefix = System.lineSeparator(),
-                                transform = ::formatCertificates
-                            )
-                        )
-                        throw InvalidUserDataException("CPK ${cpk.name} must be signed by exactly one set of signers")
-                    }
-                    val signers = cpkDependency.appendElement("signers")
-                    signerCertificates.single().sortedWith(CompareCertificates()).forEach { certificate ->
-                        val signingKeyHash = digest.digest(certificate.publicKey.encoded)
-                        signers.appendElement("signer", encoder.encodeToString(signingKeyHash))
-                            .setAttribute("algorithm", digest.algorithm)
-                    }
-                }
+            remoteCpks.forEach { cpk ->
+                logger.info("Remote CorDapp CPK dependency: {}", cpk.name)
+                JarFile(cpk).use(writer::writeRemoteDependency)
             }
 
             // Write CPK dependency information as XML document.
             cpkOutput.get().asFile.bufferedWriter().use(xmlDocument::writeTo)
         } catch (e: Exception) {
             throw (e as? RuntimeException) ?: InvalidUserDataException(e.message ?: "", e)
+        }
+    }
+
+    private inner class DependencyWriter(
+        xmlDocument: Document,
+        private val digest: MessageDigest
+    ) {
+        private val cpkDependencies = xmlDocument.createRootElement(CPK_XML_NAMESPACE, "cpkDependencies")
+        private val encoder = Base64.getEncoder()
+
+        @Throws(IOException::class)
+        private fun writeCommonElements(jar: JarFile): Element {
+            val mainAttributes = jar.manifest.mainAttributes
+            val cpkDependency = cpkDependencies.appendElement("cpkDependency")
+            cpkDependency.appendElement("name", mainAttributes.getValue(BUNDLE_SYMBOLICNAME))
+            cpkDependency.appendElement("version", mainAttributes.getValue(BUNDLE_VERSION))
+            mainAttributes.getValue(CORDA_CPK_TYPE)?.also { cpkType ->
+                cpkDependency.appendElement("type", cpkType)
+            }
+            return cpkDependency.appendElement("signers")
+        }
+
+        @Throws(IOException::class)
+        fun writeProjectDependency(jar: JarFile) {
+            val signers = writeCommonElements(jar)
+            signers.appendElement("sameAsMe")
+        }
+
+        @Throws(IOException::class)
+        fun writeRemoteDependency(jar: JarFile) {
+            val signerCertificates = signerCertificatesFor(jar)
+            if (signerCertificates.size != 1) {
+                val cpkName = File(jar.name).name
+                logger.error(
+                    "CPK {} signed by {} sets of signers:{}",
+                    cpkName, signerCertificates.size,
+                    signerCertificates.joinToString(
+                        separator = System.lineSeparator(),
+                        prefix = System.lineSeparator(),
+                        transform = ::formatCertificates
+                    )
+                )
+                throw InvalidUserDataException("CPK $cpkName must be signed by exactly one set of signers")
+            }
+
+            val signers = writeCommonElements(jar)
+            signerCertificates.single().sortedWith(CompareCertificates()).forEach { certificate ->
+                val signingKeyHash = digest.digest(certificate.publicKey.encoded)
+                signers.appendElement("signer", encoder.encodeToString(signingKeyHash))
+                    .setAttribute("algorithm", digest.algorithm)
+            }
         }
     }
 

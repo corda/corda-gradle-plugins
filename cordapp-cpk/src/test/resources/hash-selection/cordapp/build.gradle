@@ -1,7 +1,6 @@
 plugins {
     id 'net.corda.plugins.cordapp-cpk'
     id 'org.jetbrains.kotlin.jvm'
-    id 'maven-publish'
 }
 
 apply from: 'repositories.gradle'
@@ -16,7 +15,7 @@ cordapp {
     minimumPlatformVersion = platform_version.toInteger()
 
     contract {
-        name = 'CorDapp'
+        name = 'Hash Selection CorDapp'
         versionId = cordapp_contract_version.toInteger()
         licence = 'Test-Licence'
         vendor = 'R3'
@@ -33,54 +32,58 @@ tasks.named('jar', Jar) {
     archiveBaseName = 'cordapp'
 }
 
-tasks.withType(GenerateModuleMetadata).configureEach {
-    // Ensure our Maven Repository is "bare bones",
-    // i.e. has no sneaky extra Gradle metadata.
-    enabled = false
-}
+allprojects {
+    apply plugin: 'maven-publish'
 
-publishing {
+    tasks.withType(GenerateModuleMetadata).configureEach {
+        // Ensure our Maven Repository is "bare bones",
+        // i.e. has no sneaky extra Gradle metadata.
+        enabled = false
+    }
+
     publishing {
-        repositories {
-            maven {
-                name = 'Test'
-                url = repository_dir
+        publishing {
+            repositories {
+                maven {
+                    name = 'Test'
+                    url = repository_dir
+                }
             }
-        }
 
-        publications {
-            maven(MavenPublication) {
-                pluginManager.withPlugin('java') {
-                    from components.java
-                }
+            publications {
+                maven(MavenPublication) {
+                    pluginManager.withPlugin('java') {
+                        from components.java
+                    }
 
-                // Publish any CPK that this project may have.
-                pluginManager.withPlugin('net.corda.plugins.cordapp-cpk') {
-                    artifact tasks.named('cpk', Jar)
-                }
+                    // Publish any CPK that this project may have.
+                    pluginManager.withPlugin('net.corda.plugins.cordapp-cpk') {
+                        artifact tasks.named('cpk', Jar)
+                    }
 
-                pom {
-                    name = 'Hash Selection CorDapp'
-                    url = 'https://com.example.cordapp'
-                    scm {
+                    pom {
+                        name = 'Hash Selection CorDapp'
                         url = 'https://com.example.cordapp'
-                    }
-                    organization {
-                        name = 'Example-Name'
-                        url = 'https://example.com'
-                    }
-                    licenses {
-                        license {
-                            name = 'Apache-2.0'
-                            url = 'https://www.apache.org/licenses/LICENSE-2.0'
-                            distribution = 'repo'
+                        scm {
+                            url = 'https://com.example.cordapp'
                         }
-                    }
-                    developers {
-                        developer {
-                            id = 'Example-Id'
+                        organization {
                             name = 'Example-Name'
-                            email = 'dev@example.com'
+                            url = 'https://example.com'
+                        }
+                        licenses {
+                            license {
+                                name = 'Apache-2.0'
+                                url = 'https://www.apache.org/licenses/LICENSE-2.0'
+                                distribution = 'repo'
+                            }
+                        }
+                        developers {
+                            developer {
+                                id = 'Example-Id'
+                                name = 'Example-Name'
+                                email = 'dev@example.com'
+                            }
                         }
                     }
                 }

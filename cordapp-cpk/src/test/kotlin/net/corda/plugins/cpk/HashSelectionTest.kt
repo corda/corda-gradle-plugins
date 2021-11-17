@@ -12,6 +12,7 @@ import net.corda.plugins.cpk.xml.HashValue
 class HashSelectionTest {
     companion object {
         const val cordappVersion = "1.2.5-SNAPSHOT"
+        const val hostVersion = "1.0-SNAPSHOT"
         const val SHA3_256 = "SHA3-256"
 
         private lateinit var cordappProject: GradleProject
@@ -41,10 +42,9 @@ class HashSelectionTest {
                 .withTestName("hash-selection")
                 .build(
                     "-Pcordapp_contract_version=$expectedCordappContractVersion",
-                    "-Pcorda_release_version=$cordaReleaseVersion",
                     "-Pcommons_codec_version=$commonsCodecVersion",
-                    "-Pcorda_api_version=$cordaApiVersion",
                     "-Pcordapp_version=$cordappVersion",
+                    "-Phost_version=$hostVersion",
                     "-Prepository_dir=$repositoryDir"
                 )
         }

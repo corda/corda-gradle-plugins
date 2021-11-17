@@ -12,7 +12,7 @@ apply from: 'repositories.gradle'
 apply from: 'javaTarget.gradle'
 
 group = 'com.example'
-version = cordapp_version
+version = host_version
 
 cordapp {
     targetPlatformVersion = platform_version.toInteger()

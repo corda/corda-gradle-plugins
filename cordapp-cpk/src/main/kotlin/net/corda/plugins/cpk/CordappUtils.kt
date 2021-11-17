@@ -84,6 +84,11 @@ const val CORDAPP_WORKFLOW_NAME = "Cordapp-Workflow-Name"
 const val CORDAPP_WORKFLOW_VERSION = "Cordapp-Workflow-Version"
 const val CORDA_CPK_TYPE = "Corda-CPK-Type"
 
+/**
+ * Location of official R3 documentation for building CPKs and CPBs.
+ */
+const val CORDAPP_DOCUMENTATION_URL = "https://docs.corda.net/cordapp-build-systems.html"
+
 @JvmField
 val SEPARATOR: String = System.lineSeparator() + "- "
 

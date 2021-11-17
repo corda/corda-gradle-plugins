@@ -80,7 +80,7 @@ class CpbTest {
         } ?: fail("Corda platform CorDapp CPK not found")
 
         val expectedCpks = allCpks.filter { it != cordaPlatformCordappCpk }
-            .associateByTo(TreeMap(), { it.fileName.toString() }, {Files.newInputStream(it).use(::sha256)})
+            .associateByTo(TreeMap(), { it.fileName.toString() }, { Files.newInputStream(it).use(::sha256) })
 
         val assembledCpbFiles = testProject.artifacts.filter {
             it.fileName.toString().endsWith(".cpb")
