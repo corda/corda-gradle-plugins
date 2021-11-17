@@ -105,6 +105,7 @@ class CpbPlugin : Plugin<Project> {
             cpbTask.destinationDirectory.convention(jarTask.flatMap(Jar::getDestinationDirectory))
             cpbTask.archiveBaseName.convention(jarTask.flatMap(Jar::getArchiveBaseName))
             cpbTask.archiveAppendix.convention(jarTask.flatMap(Jar::getArchiveAppendix))
+            cpbTask.archiveVersion.convention(jarTask.flatMap(Jar::getArchiveVersion))
 
             cpbTask.doLast {
                 if (cordappExtension.signing.enabled.get()) {
