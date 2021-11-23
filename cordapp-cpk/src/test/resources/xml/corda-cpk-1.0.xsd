@@ -14,8 +14,8 @@
     </xs:complexType>
 
     <xs:complexType name="cpkDependenciesType">
-        <xs:sequence>
-            <xs:element maxOccurs="unbounded" minOccurs="0" name="cpkDependency" type="cpk:cpkDependencyType"/>
+        <xs:sequence minOccurs="0" maxOccurs="unbounded">
+            <xs:element name="cpkDependency" type="cpk:cpkDependencyType"/>
         </xs:sequence>
     </xs:complexType>
 
@@ -29,14 +29,19 @@
     </xs:complexType>
 
     <xs:complexType name="signersType">
-        <xs:sequence>
-            <xs:element maxOccurs="unbounded" minOccurs="0" name="signer" type="cpk:hashType"/>
-        </xs:sequence>
+        <xs:choice minOccurs="0">
+            <xs:sequence maxOccurs="unbounded">
+                <xs:element name="signer" type="cpk:hashType"/>
+            </xs:sequence>
+            <xs:element name="sameAsMe" type="cpk:sameAsMeType"/>
+        </xs:choice>
     </xs:complexType>
 
+    <xs:complexType name="sameAsMeType"/>
+
     <xs:complexType name="dependencyConstraintsType">
-        <xs:sequence>
-            <xs:element maxOccurs="unbounded" minOccurs="0" name="dependencyConstraint" type="cpk:dependencyConstraintType"/>
+        <xs:sequence minOccurs="0" maxOccurs="unbounded">
+            <xs:element name="dependencyConstraint" type="cpk:dependencyConstraintType"/>
         </xs:sequence>
     </xs:complexType>
 

@@ -6,6 +6,7 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.FileCollectionDependency
 import org.gradle.api.artifacts.ModuleVersionIdentifier
+import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.artifacts.ResolvedConfiguration
 import org.gradle.api.file.ConfigurableFileCollection
@@ -66,10 +67,15 @@ open class DependencyCalculator @Inject constructor(objects: ObjectFactory) : De
      * These are the "main" jars from all of our dependent CorDapp CPKs,
      * including any transitive CPK dependencies.
      */
-    private val _cordapps: ConfigurableFileCollection = objects.fileCollection()
-    val cordapps: Provider<Set<FileSystemLocation>>
+    private val _projectCordapps: ConfigurableFileCollection = objects.fileCollection()
+    val projectCordapps: Provider<Set<FileSystemLocation>>
         @OutputFiles
-        get() = _cordapps.elements
+        get() = _projectCordapps.elements
+
+    private val _remoteCordapps: ConfigurableFileCollection = objects.fileCollection()
+    val remoteCordapps: Provider<Set<FileSystemLocation>>
+        @OutputFiles
+        get() = _remoteCordapps.elements
 
     /**
      * This is the resolved contents of the `cordaAllProvided` configuration,
@@ -99,16 +105,6 @@ open class DependencyCalculator @Inject constructor(objects: ObjectFactory) : De
     val unbundledJars: Provider<Set<FileSystemLocation>>
         @OutputFiles
         get() = _unbundledJars.elements
-
-    /**
-     * These jars do not belong to this CPK, but provide
-     * packages that the CPK will need at runtime.
-     * We use them to verify our bundle's OSGi metadata.
-     */
-    private val _externalJars: ConfigurableFileCollection = objects.fileCollection()
-    val externalJars: Provider<Set<FileSystemLocation>>
-        @OutputFiles
-        get() = _externalJars.elements
 
     @TaskAction
     fun calculate() {
@@ -164,20 +160,22 @@ open class DependencyCalculator @Inject constructor(objects: ObjectFactory) : De
         // We still ignore anything that was for "compile only", because we only want to validate packages
         // that will be available at runtime.
         val externalConfiguration = configurations.getByName(CORDAPP_EXTERNAL_CONFIGURATION_NAME).resolvedConfiguration
-        val providedDeps = configurations.getByName(CORDA_ALL_PROVIDED_CONFIGURATION_NAME).allDependencies
-        val providedFiles = externalConfiguration.resolveAllFilesFor(providedDeps)
         val cordappDeps = configurations.getByName(ALL_CORDAPPS_CONFIGURATION_NAME).allDependencies
         val cordappFiles = externalConfiguration.resolveFirstLevelFilesFor(cordappDeps)
-        _externalJars.apply {
-            setFrom(providedFiles, cordappFiles)
+        val projectCordappDeps = cordappDeps.filterIsInstance<ProjectDependency>()
+        val projectCordappFiles = externalConfiguration.resolveFirstLevel(projectCordappDeps).toFiles()
+        _projectCordapps.apply {
+            setFrom(projectCordappFiles)
             disallowChanges()
         }
 
-        _cordapps.apply {
-            setFrom(cordappFiles)
+        _remoteCordapps.apply {
+            setFrom(cordappFiles - projectCordappFiles)
             disallowChanges()
         }
 
+        val providedDeps = configurations.getByName(CORDA_ALL_PROVIDED_CONFIGURATION_NAME).allDependencies
+        val providedFiles = externalConfiguration.resolveAllFilesFor(providedDeps)
         _providedJars.apply {
             setFrom(providedFiles)
             disallowChanges()
@@ -219,7 +217,7 @@ open class DependencyCalculator @Inject constructor(objects: ObjectFactory) : De
                     group.length > nameLength && group[nameLength] == '.' ->
                         logger.warn("You appear to have included a Corda platform component '${artifact.moduleVersion}' (${artifact.file.name}). "
                             + "You probably want to use either the $CORDA_PROVIDED_CONFIGURATION_NAME or the $CORDAPP_CONFIGURATION_NAME configuration here. "
-                            + "See http://docs.corda.net/cordapp-build-systems.html"
+                            + "See $CORDAPP_DOCUMENTATION_URL"
                         )
                 }
             }

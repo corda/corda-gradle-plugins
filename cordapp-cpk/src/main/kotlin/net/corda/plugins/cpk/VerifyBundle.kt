@@ -59,7 +59,20 @@ open class VerifyBundle @Inject constructor(objects: ObjectFactory) : DefaultTas
      * someone eagerly configures this [VerifyBundle] by accident.
      */
     internal fun setDependenciesFrom(task: TaskProvider<DependencyCalculator>) {
-        _classpath.setFrom(task.flatMap(DependencyCalculator::externalJars), task.flatMap(DependencyCalculator::libraries))
+        _classpath.setFrom(
+            /**
+             * These jars do not belong to this CPK, but provide
+             * packages that the CPK will need at runtime.
+             */
+            task.flatMap(DependencyCalculator::providedJars),
+            task.flatMap(DependencyCalculator::remoteCordapps),
+            task.flatMap(DependencyCalculator::projectCordapps),
+
+            /**
+             * These jars are the contents of this CPK's lib folder.
+             */
+            task.flatMap(DependencyCalculator::libraries)
+        )
         _classpath.disallowChanges()
         dependsOn(task)
     }

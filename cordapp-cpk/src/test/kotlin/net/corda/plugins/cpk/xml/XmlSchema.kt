@@ -67,6 +67,8 @@ interface AbstractBuilder<T> {
     fun build(): T
 }
 
+class SameAsMe
+
 class HashValue(val value: ByteArray, val algorithm: String) {
     val isSHA256: Boolean
         get() = algorithm == "SHA-256" && value.size == 32
@@ -87,17 +89,27 @@ class HashValue(val value: ByteArray, val algorithm: String) {
     }
 }
 
-class SignersBuilder(private val node: Node) : AbstractBuilder<List<HashValue>> {
+class SignersBuilder(private val node: Node) : AbstractBuilder<List<Any>> {
     private val signers = mutableListOf<HashValue>()
+    private val sameAsMe = mutableListOf<SameAsMe>()
 
-    override fun build(): List<HashValue> {
+    override fun build(): List<Any> {
         for (childElement in node.childElements) {
             when (val tagName = childElement.tagName) {
                 "signer" -> signers.add(HashValue.Builder(childElement).build())
+                "sameAsMe" -> sameAsMe.add(SameAsMe())
                 else -> fail("Unknown XML element <$tagName>")
             }
         }
-        return unmodifiableList(signers)
+        return if (signers.isEmpty() && sameAsMe.isEmpty()) {
+            emptyList()
+        } else if (sameAsMe.isEmpty()) {
+            unmodifiableList(signers)
+        } else if (signers.isEmpty()) {
+            unmodifiableList(sameAsMe)
+        } else {
+            fail("<signers> cannot contain both <signer> and <sameAsMe/> elements.")
+        }
     }
 }
 
@@ -105,7 +117,7 @@ class CPKDependency(
     val name: String,
     val version: String,
     val type: String?,
-    val signers: List<HashValue>
+    val signers: List<Any>
 ) {
     override fun toString(): String {
         return """<cpkDependency>
@@ -131,15 +143,19 @@ class CPKDependency(
         }
     }
 
-    private fun formatSigner(signer: HashValue): String {
-        return """<signer algorithm="${signer.algorithm}">$signer</signer>"""
+    private fun formatSigner(signer: Any): String {
+        return when (signer) {
+            is HashValue -> """<signer algorithm="${signer.algorithm}">$signer</signer>"""
+            is SameAsMe -> "<sameAsMe/>"
+            else -> fail("Unknown <signer> element '$signer'")
+        }
     }
 
     class Builder(private val node: Node) : AbstractBuilder<CPKDependency> {
         private var name: String? = null
         private var version: String? = null
         private var type: String? = null
-        private var signers: List<HashValue>? = null
+        private var signers: List<Any>? = null
 
         override fun build(): CPKDependency {
             for (childElement in node.childElements) {

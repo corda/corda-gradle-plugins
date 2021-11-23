@@ -2,11 +2,17 @@ plugins {
     id 'net.corda.plugins.cordapp-cpk'
 }
 
+repositories {
+    maven {
+        name = 'Test'
+        url = repository_dir
+    }
+}
 apply from: 'repositories.gradle'
 apply from: 'javaTarget.gradle'
 
 group = 'com.example'
-version = cordapp_version
+version = host_version
 
 cordapp {
     targetPlatformVersion = platform_version.toInteger()
@@ -24,7 +30,7 @@ cordapp {
 
 dependencies {
     implementation "commons-codec:commons-codec:$commons_codec_version"
-    cordapp project(':cordapp')
+    cordapp "com.example:hash-selection-cordapp:$cordapp_version"
 }
 
 tasks.named('jar', Jar) {
