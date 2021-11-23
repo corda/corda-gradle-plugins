@@ -268,6 +268,11 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
 
                 // Add Bnd instructions to scan for any contracts, flows, schemas etc.
                 bnd(osgi.scanCordaClasses)
+
+                // Accessing the Gradle [Project] during the task execution
+                // phase is incompatible with Gradle's configuration cache.
+                // Prevent this task from accessing the project's properties.
+                properties.convention(emptyMap())
             }
 
             val allCordaProvided = objects.fileCollection()
