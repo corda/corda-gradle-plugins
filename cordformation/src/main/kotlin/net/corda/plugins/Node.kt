@@ -24,7 +24,7 @@ import javax.inject.Inject
 /**
  * Represents a node that will be installed.
  */
-@Suppress("unused", "UnstableApiUsage")
+@Suppress("unused", "UnstableApiUsage", "MemberVisibilityCanBePrivate")
 open class Node @Inject constructor(private val project: Project) {
     internal data class ResolvedCordapp(val jarFile: Path, val config: String?)
 
@@ -32,6 +32,10 @@ open class Node @Inject constructor(private val project: Project) {
         const val webJarName = "corda-testserver.jar"
         const val configFileProperty = "configFile"
         const val DEFAULT_HOST = "localhost"
+
+        private const val LOGS_DIR_NAME = "logs"
+
+        private val WHITESPACE = "\\s++".toRegex()
 
         /**
          * [ObjectFactory][org.gradle.api.model.ObjectFactory] refuses
@@ -72,7 +76,7 @@ open class Node @Inject constructor(private val project: Project) {
     private var p2pPort = 10002
     @get:Input
     val rpcPort: Provider<Int> = project.objects.property(Int::class.java).apply {
-        set(project.provider { rpcSettings.port })
+        set(project.provider(rpcSettings::port))
     }
 
     internal var config = ConfigFactory.empty()
@@ -184,7 +188,7 @@ open class Node @Inject constructor(private val project: Project) {
      * @param p2pPort The Artemis messaging queue port.
      */
     fun p2pPort(p2pPort: Int) {
-        p2pAddress(DEFAULT_HOST + ':'.toString() + p2pPort)
+        p2pAddress("$DEFAULT_HOST:$p2pPort")
         this.p2pPort = p2pPort
     }
 
@@ -447,24 +451,24 @@ open class Node @Inject constructor(private val project: Project) {
     }
 
     internal fun rootDir(rootDir: Path) {
-        if (name == null) {
+        val nodeName = name ?: run {
             project.logger.error("Node has a null name - cannot create node")
             throw IllegalStateException("Node has a null name - cannot create node")
         }
         // Parsing O= & OU= part directly because importing BouncyCastle provider in Cordformation causes problems
         // with loading our custom X509EdDSAEngine.
-        val attributes = name!!.trim().split(",").map(String::trim)
+        val attributes = nodeName.trim().split(",").map(String::trim)
         val organizationName = attributes.find { it.startsWith("O=") }?.substringAfter('=')
         val organizationUnit = attributes.find { it.startsWith("OU=") }?.substringAfter('=')
         val dirName = when {
-            organizationName.isNullOrBlank() -> name
+            organizationName.isNullOrBlank() -> nodeName
             organizationUnit.isNullOrBlank() -> organizationName
-            else -> organizationName + '_' + organizationUnit
+            else -> "${organizationName}_${organizationUnit}"
         }
 
-        containerName = dirName!!.replace("\\s++".toRegex(), "-").toLowerCase()
+        containerName = dirName.replace(WHITESPACE, "-").replace('_', '-').toLowerCase()
         this.rootDir = rootDir.toFile()
-        nodeDir = File(this.rootDir, dirName.replace("\\s++".toRegex(), ""))
+        nodeDir = File(this.rootDir, dirName.replace(WHITESPACE, ""))
         Files.createDirectories(nodeDir.toPath())
     }
 
@@ -536,8 +540,6 @@ open class Node @Inject constructor(private val project: Project) {
         project.logger.lifecycle("Run database schema migration scripts${if(allowHibernateToManageAppSchema) " - managing CorDapp schemas with hibernate" else ""}")
         runNodeJob(createSchemasCmd(), "node-schema-cordform.log")
     }
-
-    private val LOGS_DIR_NAME: String = "logs"
 
     private fun runNodeJob(command: List<String>, logfileName: String) {
         val logsDir = Files.createDirectories(nodeDir.toPath().resolve(LOGS_DIR_NAME))
@@ -780,9 +782,7 @@ open class Node @Inject constructor(private val project: Project) {
             when {
                 (it is ProjectDependency) && (cordapp.project !is CordaMock) -> it.dependencyProject == cordapp.project
                 cordapp.coordinates.isNotEmpty() -> {
-                    // Cordapps can sometimes contain a GString instance which fails the equality test with the Java string
-                    @Suppress("RemoveRedundantCallsOfConversionMethods")
-                    val coordinates = cordapp.coordinates.toString()
+                    val coordinates = cordapp.coordinates
                     coordinates == (it.group + ":" + it.name + ":" + it.version)
                 }
                 else -> false

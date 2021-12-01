@@ -4,6 +4,8 @@
 
 ### Version 5.0.15
 
+* `cordformtion`: Append OU to Docker container name using '-' instead of '_'.
+
 ### Version 5.0.14
 
 * `cordformation`: Replace `Closure` with `Action` in the DSL.
