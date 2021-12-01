@@ -4,7 +4,8 @@
 
 ### Version 5.0.15
 
-* `cordformtion`: Append OU to Docker container name using '-' instead of '_'.
+* `cordformation`: Append OU to Docker container name using '-' instead of '_'.
+* `cordformation`: Require Gradle 5.5+.
 
 ### Version 5.0.14
 

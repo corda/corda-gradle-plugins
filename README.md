@@ -54,7 +54,7 @@ for creating test deployments of multiple Corda nodes and their CorDapps. It
 also invokes the Network Bootstrapper over the deployment for you, and provides
 you with a `runnodes` script to boot it all up afterwards.
 
-    <sup>Requires Gradle 5.1</sup>
+    <sup>Requires Gradle 5.5</sup>
 
 - [`net.corda.plugins.quasar-utils`](quasar-utils/README.rst)\
 This plugin configures a Gradle module to use Quasar. Specifically:
