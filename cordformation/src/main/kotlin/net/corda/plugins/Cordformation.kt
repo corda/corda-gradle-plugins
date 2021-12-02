@@ -19,7 +19,7 @@ class Cordformation : Plugin<Project> {
     internal companion object {
         private const val CORDFORMATION_TYPE = "cordformationInternal"
         private const val DEFAULT_JOLOKIA_VERSION = "1.6.2"
-        private const val MINIMUM_GRADLE_VERSION = "5.1"
+        private const val MINIMUM_GRADLE_VERSION = "5.5"
 
         /**
          * Gets a resource file from this plugin's JAR file by creating an intermediate tmp dir

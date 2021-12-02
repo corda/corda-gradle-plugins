@@ -10,8 +10,8 @@ import net.corda.core.serialization.internal.SerializationEnvironment
 import net.corda.serialization.internal.AMQP_P2P_CONTEXT
 import net.corda.serialization.internal.SerializationFactoryImpl
 import org.assertj.core.api.Assertions.assertThat
-import org.gradle.testkit.runner.TaskOutcome
-import org.junit.jupiter.api.Assertions
+import org.gradle.testkit.runner.TaskOutcome.SUCCESS
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.time.Duration
 
@@ -30,7 +30,7 @@ class CordformTest : BaseformTest() {
 
         val result = runner.build()
 
-        assertThat(result.task(":deployNodes")!!.outcome).isEqualTo(TaskOutcome.SUCCESS)
+        assertThat(result.task(":deployNodes")!!.outcome).isEqualTo(SUCCESS)
         assertThat(getNodeCordappJar(notaryNodeName, "corda-finance-workflows-$financeReleaseVersion")).isRegularFile()
         assertThat(getNodeCordappJar(notaryNodeName, "corda-finance-contracts-$financeReleaseVersion")).isRegularFile()
         assertThat(getNetworkParameterOverrides(notaryNodeName)).isRegularFile()
@@ -46,10 +46,10 @@ class CordformTest : BaseformTest() {
         val deserializedNetworkParameterOverrides = serializedBytes.deserialize(SerializationDefaults.SERIALIZATION_FACTORY).raw.deserialize()
         val deserializedPackageOwnership = deserializedNetworkParameterOverrides.packageOwnership
         assertThat(deserializedPackageOwnership.containsKey("com.mypackagename")).isTrue()
-        Assertions.assertEquals(Duration.ofDays(2), deserializedNetworkParameterOverrides.eventHorizon)
-        Assertions.assertEquals(123456, deserializedNetworkParameterOverrides.maxMessageSize)
-        Assertions.assertEquals(2468, deserializedNetworkParameterOverrides.maxTransactionSize)
-        Assertions.assertEquals(3, deserializedNetworkParameterOverrides.minimumPlatformVersion)
+        assertEquals(Duration.ofDays(2), deserializedNetworkParameterOverrides.eventHorizon)
+        assertEquals(123456, deserializedNetworkParameterOverrides.maxMessageSize)
+        assertEquals(2468, deserializedNetworkParameterOverrides.maxTransactionSize)
+        assertEquals(3, deserializedNetworkParameterOverrides.minimumPlatformVersion)
     }
 
     @Test
@@ -58,7 +58,7 @@ class CordformTest : BaseformTest() {
 
         val result = runner.build()
 
-        assertThat(result.task(":deployNodes")!!.outcome).isEqualTo(TaskOutcome.SUCCESS)
+        assertThat(result.task(":deployNodes")!!.outcome).isEqualTo(SUCCESS)
         assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceWorkflowsJarName)).isRegularFile()
         assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceContractsJarName)).isRegularFile()
         assertThat(getNetworkParameterOverrides(notaryNodeName)).isRegularFile()
@@ -76,7 +76,7 @@ class CordformTest : BaseformTest() {
 
         val result = runner.build()
 
-        assertThat(result.task(":deployNodes")!!.outcome).isEqualTo(TaskOutcome.SUCCESS)
+        assertThat(result.task(":deployNodes")!!.outcome).isEqualTo(SUCCESS)
         assertThat(getNodeLogFile(notaryNodeName, "node-run-migration.log")).isRegularFile()
         assertThat(getNodeLogFile(notaryNodeName, "node-schema-cordform.log")).isRegularFile()
         assertThat(getNodeLogFile(notaryNodeName, "node-info-gen.log")).isRegularFile()
@@ -88,7 +88,7 @@ class CordformTest : BaseformTest() {
 
         val result = runner.build()
 
-        assertThat(result.task(":deployNodes")!!.outcome).isEqualTo(TaskOutcome.SUCCESS)
+        assertThat(result.task(":deployNodes")!!.outcome).isEqualTo(SUCCESS)
         assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceWorkflowsJarName)).isRegularFile()
         assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceContractsJarName)).isRegularFile()
         assertThat(getNetworkParameterOverrides(notaryNodeName)).isRegularFile()
@@ -101,7 +101,7 @@ class CordformTest : BaseformTest() {
         val result = runner.build()
         val notaryFullName = "${notaryNodeName}_${notaryNodeUnitName}"
 
-        assertThat(result.task(":deployNodes")!!.outcome).isEqualTo(TaskOutcome.SUCCESS)
+        assertThat(result.task(":deployNodes")!!.outcome).isEqualTo(SUCCESS)
         assertThat(getNodeCordappJar(notaryFullName, cordaFinanceWorkflowsJarName)).isRegularFile()
         assertThat(getNodeCordappJar(notaryFullName, cordaFinanceContractsJarName)).isRegularFile()
         assertThat(getNetworkParameterOverrides(notaryFullName)).isRegularFile()
@@ -113,7 +113,7 @@ class CordformTest : BaseformTest() {
 
         val result = runner.build()
 
-        assertThat(result.task(":deployNodes")!!.outcome).isEqualTo(TaskOutcome.SUCCESS)
+        assertThat(result.task(":deployNodes")!!.outcome).isEqualTo(SUCCESS)
         assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceWorkflowsJarName)).isRegularFile()
         assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceContractsJarName)).isRegularFile()
         assertThat(getNodeCordappConfig(notaryNodeName, cordaFinanceWorkflowsJarName)).isRegularFile()
@@ -126,7 +126,7 @@ class CordformTest : BaseformTest() {
 
         val result = runner.build()
 
-        assertThat(result.task(":deployNodes")!!.outcome).isEqualTo(TaskOutcome.SUCCESS)
+        assertThat(result.task(":deployNodes")!!.outcome).isEqualTo(SUCCESS)
         assertThat(getNodeCordappJar(notaryNodeName, localCordappJarName)).isRegularFile()
         assertThat(getNodeCordappConfig(notaryNodeName, localCordappJarName)).isRegularFile()
     }

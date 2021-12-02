@@ -4,6 +4,9 @@
 
 ### Version 5.0.15
 
+* `cordformation`: Append OU to Docker container name using '-' instead of '_'.
+* `cordformation`: Require Gradle 5.5+.
+
 ### Version 5.0.14
 
 * `cordformation`: Replace `Closure` with `Action` in the DSL.

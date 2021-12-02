@@ -1,8 +1,7 @@
 package net.corda.plugins
 
-
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
 
 class ConfigurationUtilsTest {
 
@@ -19,5 +18,10 @@ class ConfigurationUtilsTest {
     @Test
     fun `missing port value correctly identified in invalid address`() {
         assertEquals(-1, ConfigurationUtils.parsePort("localhost!"))
+    }
+
+    @Test
+    fun `parse port value when address has dashes`() {
+        assertEquals(10002, ConfigurationUtils.parsePort("notary-service-org-unit:10002"))
     }
 }
