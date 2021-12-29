@@ -423,6 +423,7 @@ open class Node @Inject constructor(private val project: Project) {
             installWebserverJar()
         }
         installAgentJar()
+        installShell()
         installDrivers()
         installCordapps()
         installCordappConfigs()
@@ -589,6 +590,17 @@ open class Node @Inject constructor(private val project: Project) {
         }.firstOrNull()
         agentJar?.let {
             project.logger.info("Jolokia agent jar: $it")
+            copyToDriversDir(it)
+        }
+    }
+
+    private fun installShell() {
+        val agentJar = project.configurations
+            .getByName(RUNTIME_CLASSPATH_CONFIGURATION_NAME)
+            .files { "corda-shell" in it.name }
+            .firstOrNull()
+        agentJar?.let {
+            project.logger.info("Corda shell: $it")
             copyToDriversDir(it)
         }
     }
