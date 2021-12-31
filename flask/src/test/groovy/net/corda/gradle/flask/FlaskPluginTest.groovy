@@ -14,7 +14,6 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardCopyOption
 import java.security.MessageDigest
-import java.util.concurrent.TimeUnit
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 
@@ -25,8 +24,10 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals
 import static org.junit.jupiter.api.Assertions.assertEquals
 import static org.junit.jupiter.api.Assertions.assertNotEquals
 import static org.junit.jupiter.api.Assertions.assertTrue
+import static java.util.concurrent.TimeUnit.MINUTES
 
 @CompileStatic
+@Timeout(value = 3L, unit = MINUTES)
 class FlaskPluginTest {
     private static final int EOF = -1
 
@@ -61,8 +62,7 @@ class FlaskPluginTest {
         }
     }
 
-    @TempDir
-    public Path testGradleHomeDir
+    private final String testGradleHomeDir = System.getProperty("test.gradle.user.home")
 
     @TempDir
     public Path testProjectDir
@@ -86,7 +86,7 @@ class FlaskPluginTest {
         GradleRunner runner = GradleRunner.create()
                 .withDebug(true)
                 .withProjectDir(testProjectDir.toFile())
-                .withArguments(taskName + ["-s", "--info", "-g", testGradleHomeDir.toString()])
+                .withArguments(taskName + ["-s", "--info", "-g", testGradleHomeDir])
                 .withPluginClasspath()
         println(runner.build().getOutput())
     }
@@ -181,7 +181,6 @@ class FlaskPluginTest {
     }
 
     @Test
-    @Timeout(value = 10L, unit = TimeUnit.SECONDS)
     @DisplayName("Check that shutdown hooks are executed on flask jars")
     void shutdownHookTest() {
         invokeGradle("shutdownHookTestJar")

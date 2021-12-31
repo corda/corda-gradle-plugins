@@ -1,13 +1,14 @@
 package net.corda.flask.launcher;
 
-import lombok.Getter;
-import lombok.SneakyThrows;
 import net.corda.flask.common.Flask;
 import net.corda.flask.common.LockFile;
+import net.corda.flask.common.ThrowingConsumer;
+import net.corda.flask.common.ThrowingFunction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
@@ -21,30 +22,22 @@ import java.util.Comparator;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
-import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 import java.util.stream.Stream;
 
 import static java.util.Collections.unmodifiableMap;
 
-class JarCache {
+final class JarCache {
     private static final Logger log = LoggerFactory.getLogger(JarCache.class);
 
-    @SneakyThrows
-    static void deletePath(Path path) {
-        Files.walk(path).sorted(Comparator.reverseOrder()).forEach(new Consumer<Path>() {
-            @Override
-            @SneakyThrows
-            public void accept(Path path) {
-                Files.delete(path);
-                log.trace("Deleted '{}'", path);
-            }
+    static void deletePath(Path path) throws IOException {
+        Files.walk(path).sorted(Comparator.reverseOrder()).forEach((ThrowingConsumer<Path>) path1 -> {
+            Files.delete(path1);
+            log.trace("Deleted '{}'", path1);
         });
     }
 
-    @SneakyThrows
     private static boolean validateCacheDirectory(Path candidate) {
         try {
             if (!Files.exists(candidate)) {
@@ -69,8 +62,7 @@ class JarCache {
         }
     }
 
-    @SneakyThrows
-    private static Path computeCacheDirectory(String appName) {
+    private static Path computeCacheDirectory(String appName) throws IOException {
         Stream<Optional<Path>> candidates = Stream.of(
             Optional.ofNullable(System.getProperty(Flask.JvmProperties.CACHE_DIR)).map(Paths::get),
             Optional.ofNullable(System.getenv("XDG_CACHE_HOME")).map(prefix -> Paths.get(prefix, appName)),
@@ -86,28 +78,41 @@ class JarCache {
                 .orElseThrow(() -> new FileNotFoundException("Unable to find a usable cache directory"));
     }
 
-    @Getter
     private final Path path;
 
-    @Getter
     private final Path libDir;
 
-    @Getter
     private final Path pidDir;
 
-    @Getter
     private final Path pidFile;
 
-    @Getter
     private final Path lockFile;
 
     private final Path extractionLock;
 
     private final Map<String, Path> extractedLibraries;
 
+    public Path getPath() {
+        return path;
+    }
 
-    @SneakyThrows
-    public JarCache(String appName) {
+    public Path getLibDir() {
+        return libDir;
+    }
+
+    public Path getPidDir() {
+        return pidDir;
+    }
+
+    public Path getPidFile() {
+        return pidFile;
+    }
+
+    public Path getLockFile() {
+        return lockFile;
+    }
+
+    public JarCache(String appName) throws IOException {
         path = computeCacheDirectory(appName);
         libDir = path.resolve("lib");
         pidDir = path.resolve("pid");
@@ -118,11 +123,10 @@ class JarCache {
         pidFile = Files.createTempFile(pidDir, null, ".pid");
     }
 
-    @SneakyThrows
-    public Map<String, Path> extract(Manifest manifest) {
+    public Map<String, Path> extract(Manifest manifest) throws IOException {
         byte[] buffer = new byte[Flask.Constants.BUFFER_SIZE];
         ClassLoader cl = Launcher.class.getClassLoader();
-        try (LockFile lf = LockFile.acquire(extractionLock, false)) {
+        try (LockFile ignored = LockFile.acquire(extractionLock, false)) {
             for (Map.Entry<String, Attributes> entry : manifest.getEntries().entrySet()) {
                 String jarEntryName = entry.getKey();
                 Attributes attributes = entry.getValue();
@@ -153,38 +157,29 @@ class JarCache {
         return unmodifiableMap(extractedLibraries);
     }
 
-    @SneakyThrows
     void touchLibraries() {
         FileTime now = FileTime.from(Instant.now());
         for(Path jarPath : extractedLibraries.values()) {
-            Files.setLastModifiedTime(jarPath, now);
+            try {
+                Files.setLastModifiedTime(jarPath, now);
+            } catch (IOException ignored) {
+            }
         }
     }
 
-    @SneakyThrows
-    void cleanLibDir() {
+    void cleanLibDir() throws IOException {
         LockFile lf = LockFile.tryAcquire(lockFile, false);
         if (lf != null) {
             log.debug("Starting library cache cleanup");
             try {
                 FileTime threshold = FileTime.from(Instant.now().minus(Duration.ofDays(7)));
                 log.trace("Removing all files that haven't been touched since {}", threshold);
-                Files.list(libDir).filter(Files::isDirectory).forEach(new Consumer<Path>() {
-                    @Override
-                    @SneakyThrows
-                    public void accept(Path hashFolder) {
-                        Optional<FileTime> mostRecent = Files.walk(hashFolder)
-                                .filter(Files::isRegularFile)
-                                .map(new Function<Path, FileTime>() {
-                                    @Override
-                                    @SneakyThrows
-                                    public FileTime apply(Path path) {
-                                        return Files.getLastModifiedTime(path);
-                                    }
-                                }).max(FileTime::compareTo);
-                        if (mostRecent.map(ft -> ft.compareTo(threshold) < 0).orElse(false)) {
-                            JarCache.deletePath(hashFolder);
-                        }
+                Files.list(libDir).filter(Files::isDirectory).forEach((ThrowingConsumer<Path>) hashFolder -> {
+                    Optional<FileTime> mostRecent = Files.walk(hashFolder)
+                        .filter(Files::isRegularFile)
+                        .map((ThrowingFunction<Path, FileTime>) Files::getLastModifiedTime).max(FileTime::compareTo);
+                    if (mostRecent.map(ft -> ft.compareTo(threshold) < 0).orElse(false)) {
+                        JarCache.deletePath(hashFolder);
                     }
                 });
             } finally {
@@ -194,7 +189,7 @@ class JarCache {
         }
     }
 
-    void wipeLibDir() {
+    void wipeLibDir() throws IOException {
         LockFile lockFile = LockFile.tryAcquire(this.lockFile, false);
         if (lockFile != null) {
             try {

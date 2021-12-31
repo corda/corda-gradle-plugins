@@ -1,6 +1,7 @@
 package net.corda.gradle.flask.test;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.nio.file.Files;
@@ -16,7 +17,7 @@ public class HangingMain {
             try {
                 Files.delete(file);
             } catch (IOException ioe) {
-                throw new RuntimeException(ioe);
+                throw new UncheckedIOException(ioe);
             }
         }));
         Files.createFile(file);

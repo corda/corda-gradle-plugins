@@ -1,12 +1,14 @@
 package net.corda.gradle.flask;
 
-import lombok.SneakyThrows;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.resources.ReadableResource;
 import org.gradle.api.resources.ResourceException;
 
 import javax.annotation.Nonnull;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 
 final class LauncherResource implements ReadableResource {
@@ -20,23 +22,32 @@ final class LauncherResource implements ReadableResource {
 
     @Override
     @Nonnull
-    @SneakyThrows
     public InputStream read() throws ResourceException {
-        return url.openStream();
+        try {
+            return url.openStream();
+        } catch (IOException e) {
+            throw new ResourceException(e.getMessage(), e);
+        }
     }
 
     @Override
+    @Nonnull
     public String getDisplayName() {
         return getBaseName() + ".tar";
     }
 
     @Override
-    @SneakyThrows
+    @Nonnull
     public URI getURI() {
-        return url.toURI();
+        try {
+            return url.toURI();
+        } catch (URISyntaxException e) {
+            throw new InvalidUserDataException(e.getMessage(), e);
+        }
     }
 
     @Override
+    @Nonnull
     public String getBaseName() {
         return "flask-launcher";
     }

@@ -1,12 +1,9 @@
 package net.corda.flask.launcher;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.SneakyThrows;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
 import java.nio.file.Files;
@@ -20,9 +17,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
-@Getter
-@Setter
-public class JavaProcessBuilder {
+public final class JavaProcessBuilder {
 
     private static final Logger log = LoggerFactory.getLogger(JavaProcessBuilder.class);
 
@@ -35,12 +30,22 @@ public class JavaProcessBuilder {
      */
     private static final int COMMAND_LINE_MAX_SIZE = 1024;
 
-    private static final String PATH_SEPARATOR = System.getProperty("path.separator");
-
-    @AllArgsConstructor
     public static class JavaAgent {
-        Path jar;
-        String args;
+        private final Path jar;
+        private final String args;
+
+        public JavaAgent(Path jar, String args) {
+            this.jar = jar;
+            this.args = args;
+        }
+
+        public Path getJar() {
+            return jar;
+        }
+
+        public String getArgs() {
+            return args;
+        }
     }
 
     private String mainClassName;
@@ -58,6 +63,62 @@ public class JavaProcessBuilder {
     private List<String> cliArgs = new ArrayList<>();
 
     private List<JavaAgent> javaAgents = new ArrayList<>();
+
+    public String getMainClassName() {
+        return mainClassName;
+    }
+
+    public void setMainClassName(String newValue) {
+        mainClassName = newValue;
+    }
+
+    public Path getExecutableJar() {
+        return executableJar;
+    }
+
+    public void setExecutableJar(Path newValue) {
+        executableJar = newValue;
+    }
+
+    public List<String> getJvmArgs() {
+        return jvmArgs;
+    }
+
+    public void setJvmArgs(List<String> newValue) {
+        jvmArgs = newValue;
+    }
+
+    public List<String> getClasspath() {
+        return classpath;
+    }
+
+    public void setClasspath(List<String> newValue) {
+        classpath = newValue;
+    }
+
+    public Properties getProperties() {
+        return properties;
+    }
+
+    public void setProperties(Properties newValue) {
+        properties = newValue;
+    }
+
+    public List<String> getCliArgs() {
+        return cliArgs;
+    }
+
+    public void setCliArgs(List<String> newValue) {
+        cliArgs = newValue;
+    }
+
+    public List<JavaAgent> getJavaAgents() {
+        return javaAgents;
+    }
+
+    public void setJavaAgents(List<JavaAgent> newValue) {
+        javaAgents = newValue;
+    }
 
     /**
      * Generate the argument file string according to the grammar specified
@@ -101,15 +162,14 @@ public class JavaProcessBuilder {
         return sb.toString();
     }
 
-    @SneakyThrows
-    public ProcessBuilder build() {
+    public ProcessBuilder build() throws IOException {
         ArrayList<String> cmd = new ArrayList<>();
         Path javaBin = Paths.get(javaHome, "bin", "java");
         cmd.add(javaBin.toString());
         cmd.addAll(jvmArgs);
         if(!classpath.isEmpty()) {
             cmd.add("-cp");
-            cmd.add(String.join(PATH_SEPARATOR, classpath));
+            cmd.add(String.join(File.pathSeparator, classpath));
         }
         for(Map.Entry<Object, Object> entry : properties.entrySet()) {
             cmd.add(String.format("-D%s=%s", entry.getKey(), entry.getValue()));

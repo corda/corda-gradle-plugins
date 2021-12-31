@@ -19,12 +19,6 @@ configurations {
 }
 
 dependencies {
-    ['', 'test', 'lockFileTest'].each {sourceSetName ->
-        ['compileOnly', 'annotationProcessor'].each { confBaseName ->
-            String configurationName = sourceSetName ? (sourceSetName + confBaseName.capitalize()) : confBaseName
-            add(configurationName, [group: "org.projectlombok", name: "lombok", version: lombok_version])
-        }
-    }
     implementation project(':flask:flask-common')
     implementation "org.slf4j:slf4j-api:$slf4j_version"
     implementation "org.slf4j:slf4j-simple:$slf4j_version"
