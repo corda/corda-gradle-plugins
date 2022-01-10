@@ -1,13 +1,24 @@
 package net.corda.flask.common;
 
-import lombok.SneakyThrows;
-
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
-import java.util.*;
+import java.security.NoSuchAlgorithmException;
+import java.util.AbstractMap;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Properties;
 import java.util.function.Supplier;
 import java.util.zip.CRC32;
 import java.util.zip.ZipEntry;
@@ -79,11 +90,10 @@ public class Flask {
         public static final String KILL_TIMEOUT_MILLIS = "net.corda.flask.kill.timeout.millis";
     }
 
-    @SneakyThrows
     public static void computeSizeAndCrc32(
             ZipEntry zipEntry,
             InputStream inputStream,
-            byte[] buffer) {
+            byte[] buffer) throws IOException {
         CRC32 crc32 = new CRC32();
         long sz = 0L;
         while (true) {
@@ -97,9 +107,8 @@ public class Flask {
         zipEntry.setCrc(crc32.getValue());
     }
 
-    @SneakyThrows
     public static void write2Stream(InputStream inputStream, OutputStream os,
-                                    byte[] buffer) {
+                                    byte[] buffer) throws IOException {
         while (true) {
             int read = inputStream.read(buffer);
             if (read < 0) break;
@@ -107,7 +116,7 @@ public class Flask {
         }
     }
 
-    public static void write2Stream(InputStream inputStream, OutputStream os) {
+    public static void write2Stream(InputStream inputStream, OutputStream os) throws IOException {
         write2Stream(inputStream, os, new byte[Constants.BUFFER_SIZE]);
     }
 
@@ -121,15 +130,13 @@ public class Flask {
         }
     }
 
-    @SneakyThrows
-    public static byte[] computeSHA256Digest(Supplier<InputStream> streamSupplier) {
+    public static byte[] computeSHA256Digest(Supplier<InputStream> streamSupplier) throws IOException, NoSuchAlgorithmException {
         byte[] buffer = new byte[Constants.BUFFER_SIZE];
         MessageDigest md = MessageDigest.getInstance("SHA-256");
         return computeDigest(streamSupplier, md, buffer);
     }
 
-    @SneakyThrows
-    public static byte[] computeDigest(Supplier<InputStream> streamSupplier, MessageDigest md, byte[] buffer) {
+    public static byte[] computeDigest(Supplier<InputStream> streamSupplier, MessageDigest md, byte[] buffer) throws IOException {
         try(InputStream stream = new DigestInputStream(streamSupplier.get(), md)) {
             while(stream.read(buffer) >= 0) {}
         }
@@ -146,8 +153,7 @@ public class Flask {
      * @param file the {@link File} to be opened
      * @return an open {@link InputStream} instance reading from the file
      */
-    @SneakyThrows
-    public static InputStream read(File file, boolean buffered) {
+    public static InputStream read(File file, boolean buffered) throws IOException {
         InputStream result = new FileInputStream(file);
         return buffered ? new BufferedInputStream(result) : result;
     }
@@ -158,19 +164,16 @@ public class Flask {
      * @param file the {@link File} to be opened
      * @return an open {@link OutputStream} instance writing to the file
      */
-    @SneakyThrows
-    public static OutputStream write(File file, boolean buffered) {
+    public static OutputStream write(File file, boolean buffered) throws IOException {
         OutputStream result = new FileOutputStream(file);
         return buffered ? new BufferedOutputStream(result) : result;
     }
 
-    @SneakyThrows
-    public static void storeProperties(Properties properties, OutputStream outputStream) {
+    public static void storeProperties(Properties properties, OutputStream outputStream) throws IOException {
         properties.storeToXML(outputStream, null, StandardCharsets.UTF_8.name());
     }
 
-    @SneakyThrows
-    public static void loadProperties(Properties properties, InputStream inputStream) {
+    public static void loadProperties(Properties properties, InputStream inputStream) throws IOException {
         properties.loadFromXML(inputStream);
     }
 }

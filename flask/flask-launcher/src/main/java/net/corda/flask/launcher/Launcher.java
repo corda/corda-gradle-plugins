@@ -1,14 +1,15 @@
 package net.corda.flask.launcher;
 
-import lombok.SneakyThrows;
 import net.corda.flask.common.Flask;
 import net.corda.flask.common.LockFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -32,19 +33,22 @@ public class Launcher {
     private static final Logger log = LoggerFactory.getLogger(Launcher.class);
     private static final Path currentJar = findCurrentJar();
 
-    @SneakyThrows
     private static Path findCurrentJar() {
         String launcherClassName = Launcher.class.getName();
         URL url = Launcher.class.getClassLoader().getResource(launcherClassName.replace('.', '/') + ".class");
         if (url == null || !"jar".equals(url.getProtocol()))
             throw new IllegalStateException(String.format("The class %s must be used inside a JAR file", launcherClassName));
         String path = url.getPath();
-        URI jarUri = new URI(path.substring(0, path.indexOf('!')));
+        URI jarUri;
+        try {
+            jarUri = new URI(path.substring(0, path.indexOf('!')));
+        } catch (URISyntaxException e) {
+            throw new InternalError(e.getMessage(), e);
+        }
         return Paths.get(jarUri);
     }
 
-    @SneakyThrows
-    private static List<String> listOfStringFromPropertyFile(InputStream is) {
+    private static List<String> listOfStringFromPropertyFile(InputStream is) throws IOException {
         Properties p = new Properties();
         Flask.loadProperties(p, is);
         return p.entrySet()
@@ -74,8 +78,7 @@ public class Launcher {
         return result;
     }
 
-    @SneakyThrows
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         Manifest manifest = new Manifest();
         List<String> jvmArgs = new ArrayList<>();
         List<String> javaAgents = null;
@@ -114,15 +117,14 @@ public class Launcher {
         System.exit(ctor.newInstance().launch(manifest, jvmArgs, javaAgents, cliArgs));
     }
 
-    @SneakyThrows
-    final int launch(Manifest manifest, List<String> jvmArgs, List<String> javaAgents, List<String> args) {
+    final int launch(Manifest manifest, List<String> jvmArgs, List<String> javaAgents, List<String> args) throws IOException, InterruptedException {
         JarCache cache = new JarCache(CACHE_FOLDER_DEFAULT_NAME);
         if(Boolean.getBoolean(Flask.JvmProperties.WIPE_CACHE)) {
             cache.wipeLibDir();
         } else if(Files.exists(cache.getLibDir())) {
             cache.cleanLibDir();
         }
-        try(LockFile lf = LockFile.acquire(cache.getLockFile(), true)) {
+        try(LockFile ignored = LockFile.acquire(cache.getLockFile(), true)) {
             Map<String, Path> extractedLibraries = cache.extract(manifest);
             JavaProcessBuilder builder = new JavaProcessBuilder();
             builder.setMainClassName(Optional.ofNullable(System.getProperty(Flask.JvmProperties.MAIN_CLASS))
@@ -179,7 +181,10 @@ public class Launcher {
                         if (process.isAlive()) {
                             process.destroyForcibly();
                         }
-                        processLock.close();
+                        try {
+                            processLock.close();
+                        } catch (IOException ignoredEx) {
+                        }
                     }
                 }
                 try {

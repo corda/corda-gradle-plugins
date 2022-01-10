@@ -1,8 +1,6 @@
 package net.corda.flask.launcher;
 
 
-import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -21,25 +19,28 @@ public class LockFileTest {
 
     private final Path executablePath = Paths.get(System.getProperty("lockFileTest.executable.jar"));
 
-    @RequiredArgsConstructor
     private static class LockFileTestMainArgs {
         final Path lockFilePath;
         final boolean shared;
         final boolean keep;
+
+        LockFileTestMainArgs(Path lockFilePath, boolean shared, boolean keep) {
+            this.lockFilePath = lockFilePath;
+            this.shared = shared;
+            this.keep = keep;
+        }
 
         public List<String> getArgs() {
             return Arrays.asList(lockFilePath.toString(), Boolean.toString(shared), Boolean.toString(keep));
         }
     }
 
-    @SneakyThrows
-    private static void kill(Process p) {
+    private static void kill(Process p) throws InterruptedException {
         if (p != null && p.isAlive()) p.destroyForcibly().waitFor();
     }
 
     @Test
-    @SneakyThrows
-    public void testExclusiveLockHeldOnFile() {
+    public void testExclusiveLockHeldOnFile() throws Exception {
         Path lockFilePath = Files.createFile(testDir.resolve("file.lock"));
         // try to acquire an exclusive lock and check that the process returns immediately
         JavaProcessBuilder javaProcessBuilder = new JavaProcessBuilder();

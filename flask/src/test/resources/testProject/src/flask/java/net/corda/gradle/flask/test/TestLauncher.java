@@ -21,8 +21,10 @@ public class TestLauncher extends Launcher {
             try (Writer writer = Files.newBufferedWriter(outputfile)) {
                 prop.store(writer, null);
             }
+        } catch (RuntimeException e) {
+            throw e;
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException(e.getMessage(), e);
         }
     }
 }

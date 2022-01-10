@@ -82,9 +82,6 @@ repositories {
 }
 
 dependencies {
-    ['compileOnly', 'annotationProcessor', 'testCompileOnly', 'testAnnotationProcessor'].each { conf ->
-        add(conf, [group: "org.projectlombok", name: "lombok", version: lombok_version])
-    }
     testImplementation project("flask-common")
     testImplementation "org.assertj:assertj-core:$assertj_version"
     testImplementation "org.junit.jupiter:junit-jupiter-api:$junit_jupiter_version"
