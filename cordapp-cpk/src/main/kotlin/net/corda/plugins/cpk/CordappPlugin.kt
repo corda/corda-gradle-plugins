@@ -356,8 +356,11 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
                 }
             }
         }
-        project.artifacts.add(ARCHIVES_CONFIGURATION, cpkTask)
-        project.artifacts.add(CORDA_CPK_CONFIGURATION_NAME, cpkTask)
+
+        with(project.artifacts) {
+            add(ARCHIVES_CONFIGURATION, cpkTask)
+            add(CORDA_CPK_CONFIGURATION_NAME, cpkTask)
+        }
     }
 
     private fun configureCordappAttributes(symbolicName: String, attributes: Attributes) {

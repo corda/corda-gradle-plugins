@@ -85,27 +85,27 @@ class CpbPlugin : Plugin<Project> {
         /**
          * @see [Gradle #17765](https://github.com/gradle/gradle/issues/17765).
          */
-        project.afterEvaluate {
-            // We MUST resolve the CPB configurations before
-            // Gradle builds the Task Execution Graph!
+        project.gradle.projectsEvaluated {
+            // We MUST resolve the CPB configurations after
+            // every project has been evaluated, but also
+            // before Gradle builds the Task Execution Graph!
             cpbPackaging.resolve()
         }
 
-        val cpkPath = project.tasks.named(CPK_TASK_NAME, PackagingTask::class.java)
-            .flatMap(PackagingTask::getArchiveFile)
+        val cpkTask = project.tasks.named(CPK_TASK_NAME, PackagingTask::class.java)
+        val cpkPath = cpkTask.flatMap(PackagingTask::getArchiveFile)
         val allCPKs = project.objects.fileCollection().from(cpkPath, cpbPackaging)
         val cpbTaskProvider = project.tasks.register(CPB_TASK_NAME, CpbTask::class.java) { cpbTask ->
             cpbTask.from(allCPKs)
             val cordappExtension = project.extensions.findByType(CordappExtension::class.java)
-                ?: throw GradleException("Cordapp extension not found")
+                ?: throw GradleException("cordapp extension not found")
             cpbTask.inputs.nested("cordappSigning", cordappExtension.signing)
 
             // Basic configuration of the CPB task.
-            val jarTask = project.tasks.named(JAR_TASK_NAME, Jar::class.java)
-            cpbTask.destinationDirectory.convention(jarTask.flatMap(Jar::getDestinationDirectory))
-            cpbTask.archiveBaseName.convention(jarTask.flatMap(Jar::getArchiveBaseName))
-            cpbTask.archiveAppendix.convention(jarTask.flatMap(Jar::getArchiveAppendix))
-            cpbTask.archiveVersion.convention(jarTask.flatMap(Jar::getArchiveVersion))
+            cpbTask.destinationDirectory.convention(cpkTask.flatMap(Jar::getDestinationDirectory))
+            cpbTask.archiveBaseName.convention(cpkTask.flatMap(Jar::getArchiveBaseName))
+            cpbTask.archiveAppendix.convention(cpkTask.flatMap(Jar::getArchiveAppendix))
+            cpbTask.archiveVersion.convention(cpkTask.flatMap(Jar::getArchiveVersion))
 
             cpbTask.doLast {
                 if (cordappExtension.signing.enabled.get()) {
@@ -113,7 +113,10 @@ class CpbPlugin : Plugin<Project> {
                 }
             }
         }
-        project.artifacts.add(ARCHIVES_CONFIGURATION, cpbTaskProvider)
-        project.artifacts.add(CORDA_CPB_CONFIGURATION_NAME, cpbTaskProvider)
+
+        with(project.artifacts) {
+            add(ARCHIVES_CONFIGURATION, cpbTaskProvider)
+            add(CORDA_CPB_CONFIGURATION_NAME, cpbTaskProvider)
+        }
     }
 }
