@@ -146,7 +146,17 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
                             // Gradle from adding any of these CorDapps' private library dependencies
                             // to our own compile classpath.
                             // WE ARE MUTATING THESE DEPENDENCIES FOR EVERY CONFIGURATION THEY APPEAR IN!
-                            dep.isTransitive = false
+                            if (dep.isTransitive) {
+                                // Synchronised to be sure! I don't know how multi-threaded Gradle is.
+                                synchronized(dep) {
+                                    if (dep is ProjectDependency) {
+                                        // Preserve the original setting so that
+                                        // CordappDependencyCollector can use it.
+                                        dep.attributes(attributor::forTransitive)
+                                    }
+                                    dep.isTransitive = false
+                                }
+                            }
 
                             // We also need to GUARANTEE that Gradle uses the jar artifact here.
                             // Only the jar contains the OSGi metadata we need.

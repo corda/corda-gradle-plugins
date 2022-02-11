@@ -59,17 +59,14 @@ class CpbPlugin : Plugin<Project> {
                     .filterNot(::isPlatformModule)
                     .forEach { dependency ->
                         val cpk = dependency.copy()
-                        when (dependency) {
-                            is ExternalDependency -> {
-                                cpk.artifact {
-                                    it.name = dependency.name
-                                    it.classifier = CPK_ARTIFACT_CLASSIFIER
-                                    it.type = CPK_FILE_EXTENSION
-                                }
+                        if (cpk is ExternalDependency && cpk.attributes.isEmpty) {
+                            cpk.artifact {
+                                it.name = dependency.name
+                                it.classifier = CPK_ARTIFACT_CLASSIFIER
+                                it.type = CPK_FILE_EXTENSION
                             }
-                            else -> {
-                                cpk.attributes(attributor::forCpk)
-                            }
+                        } else {
+                            cpk.attributes(attributor::forCpk)
                         }
                         dependencies.add(cpk)
                     }
@@ -82,19 +79,23 @@ class CpbPlugin : Plugin<Project> {
             .isCanBeResolved = false
 
         /**
+         * We MUST resolve the CPB configurations after every project has been
+         * evaluated, but also before Gradle builds its Task Execution Graph!
+         *
          * @see [Gradle #17765](https://github.com/gradle/gradle/issues/17765).
          */
-        project.gradle.projectsEvaluated {
-            // We MUST resolve the CPB configurations after
-            // every project has been evaluated, but also
-            // before Gradle builds the Task Execution Graph!
-            cpbPackaging.resolve()
+        val cpbResolution = project.provider {
+            with(cpbPackaging) {
+                resolve()
+                buildDependencies
+            }
         }
 
         val cpkTask = project.tasks.named(CPK_TASK_NAME, PackagingTask::class.java)
         val cpkPath = cpkTask.flatMap(PackagingTask::getArchiveFile)
         val allCPKs = project.objects.fileCollection().from(cpkPath, cpbPackaging)
         val cpbTaskProvider = project.tasks.register(CPB_TASK_NAME, CpbTask::class.java) { cpbTask ->
+            cpbTask.dependsOn(cpbResolution)
             cpbTask.from(allCPKs)
             val cordappExtension = project.extensions.findByType(CordappExtension::class.java)
                 ?: throw GradleException("cordapp extension not found")

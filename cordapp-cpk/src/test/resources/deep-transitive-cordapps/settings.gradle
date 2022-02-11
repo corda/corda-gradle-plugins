@@ -1,0 +1,21 @@
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+    }
+
+    plugins {
+        id 'org.jetbrains.kotlin.jvm' version kotlin_version
+    }
+}
+
+rootProject.name = 'deep-transitive-cordapps'
+
+include 'cpk-one'
+include 'cpk-two'
+include 'cpk-final'
+
+include 'corda-api'
+project(':corda-api').projectDir = file('../resources/test/corda-api')
+
+include 'corda-platform'
+project(':corda-platform').projectDir = file('../resources/test/corda-platform')

@@ -25,7 +25,7 @@ cordapp {
     }
 }
 
-jar {
+tasks.named('jar', Jar) {
     archiveBaseName = 'cordapp-api-library'
 }
 

@@ -48,12 +48,19 @@ internal class Attributor(private val objects: ObjectFactory) {
         AttributeFactory(attrs, objects).cpk()
     }
 
-
     /**
      * Dark Gradle Magic to declare that we
      * consume or produce a CPB artifact.
      */
     fun forCpb(attrs: AttributeContainer) {
         AttributeFactory(attrs, objects).cpb()
+    }
+
+    /**
+     * Darker Gradle Magic so that we can remember
+     * that a dependency was declared transitive.
+     */
+    fun forTransitive(attrs: AttributeContainer) {
+        AttributeFactory(attrs, objects).transitive()
     }
 }

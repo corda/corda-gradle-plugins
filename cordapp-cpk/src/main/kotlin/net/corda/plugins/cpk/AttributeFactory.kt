@@ -1,7 +1,9 @@
 @file:JvmName("AttributeUtils")
 package net.corda.plugins.cpk
 
+import org.gradle.api.Named
 import org.gradle.api.artifacts.ModuleDependency
+import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.attributes.Bundling
 import org.gradle.api.attributes.Bundling.BUNDLING_ATTRIBUTE
@@ -29,6 +31,15 @@ fun isPlatformModule(dependency: ModuleDependency): Boolean {
     val attributeName = (dependency.attributes.getAttribute(CATEGORY_ATTRIBUTE) ?: return false).name
     return attributeName == REGULAR_PLATFORM || attributeName == ENFORCED_PLATFORM
 }
+
+/**
+ * Internal Gradle [Attribute] to preserve a project
+ * dependency's original "transitive" setting.
+ */
+internal interface Transitive : Named
+
+@JvmField
+internal val TRANSITIVE_ATTRIBUTE: Attribute<Transitive> = Attribute.of(Transitive::class.java)
 
 internal class AttributeFactory(
     private val attrs: AttributeContainer,
@@ -66,6 +77,11 @@ internal class AttributeFactory(
 
     fun withExternalDependencies(): AttributeFactory {
         attrs.attribute(BUNDLING_ATTRIBUTE, objects.named(Bundling::class.java, EXTERNAL))
+        return this
+    }
+
+    fun transitive(): AttributeFactory {
+        attrs.attribute(TRANSITIVE_ATTRIBUTE, objects.named(Transitive::class.java, "transitive"))
         return this
     }
 }

@@ -54,7 +54,9 @@ internal class CordappDependencyCollector(
     }
 
     private fun hasCollectables(dependency: ModuleDependency): Boolean {
-        return dependency.isTransitive && !isPlatformModule(dependency)
+        return synchronized(dependency) {
+            dependency.isTransitive || dependency.attributes.contains(TRANSITIVE_ATTRIBUTE)
+        } && !isPlatformModule(dependency)
     }
 
     private fun collectFrom(dependencies: DependencySet) {

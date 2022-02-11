@@ -1,0 +1,27 @@
+plugins {
+    id 'net.corda.plugins.cordapp-cpb'
+    id 'org.jetbrains.kotlin.jvm'
+}
+
+apply from: '../repositories.gradle'
+apply from: '../javaTarget.gradle'
+apply from: '../kotlin.gradle'
+
+group = 'com.example'
+version = cpkFinal_version
+
+cordapp {
+    targetPlatformVersion = platform_version.toInteger()
+
+    contract {
+        name = 'CPK-Final'
+        versionId = cordapp_contract_version.toInteger()
+        licence = 'Test-Licence'
+        vendor = 'R3'
+    }
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-osgi-bundle:$kotlin_version"
+    cordapp project(':cpk-one')
+}
