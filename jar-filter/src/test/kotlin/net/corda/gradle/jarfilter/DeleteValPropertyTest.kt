@@ -12,27 +12,30 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
 import org.junit.jupiter.api.io.TempDir
 import org.objectweb.asm.Opcodes.ACC_PRIVATE
 import java.nio.file.Path
 import kotlin.reflect.full.declaredMemberProperties
 import kotlin.test.assertFailsWith
 
+@TestInstance(PER_CLASS)
 class DeleteValPropertyTest {
-    companion object {
+    private companion object {
         private const val PROPERTY_CLASS = "net.corda.gradle.HasValPropertyForDelete"
         private const val GETTER_CLASS = "net.corda.gradle.HasValGetterForDelete"
         private const val JVM_FIELD_CLASS = "net.corda.gradle.HasValJvmFieldForDelete"
 
         private val unwantedVal = isProperty("unwantedVal", String::class)
         private val getUnwantedVal = isMethod("getUnwantedVal", String::class.java)
-        private lateinit var testProject: JarFilterProject
+    }
 
-        @BeforeAll
-        @JvmStatic
-        fun setup(@TempDir testProjectDir: Path) {
-            testProject = JarFilterProject(testProjectDir, "delete-val-property").build()
-        }
+    private lateinit var testProject: JarFilterProject
+
+    @BeforeAll
+    fun setup(@TempDir testProjectDir: Path) {
+        testProject = JarFilterProject(testProjectDir, "delete-val-property").build()
     }
 
     @Test

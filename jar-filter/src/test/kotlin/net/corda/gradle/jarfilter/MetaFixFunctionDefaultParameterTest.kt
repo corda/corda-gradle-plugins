@@ -11,28 +11,29 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
 import kotlin.reflect.KFunction
 import kotlin.reflect.full.declaredFunctions
 
+@TestInstance(PER_CLASS)
 class MetaFixFunctionDefaultParameterTest {
-    companion object {
+    private companion object {
         private val logger: Logger = StdOutLogging(MetaFixFunctionDefaultParameterTest::class)
-        private val hasMandatoryParams
-                = isFunction("hasMandatoryParams", String::class, Long::class, Int::class, String::class)
-        private val hasOptionalParams
-                = isFunction("hasOptionalParams", String::class, String::class)
+        private val hasMandatoryParams =
+            isFunction("hasMandatoryParams", String::class, Long::class, Int::class, String::class)
+        private val hasOptionalParams = isFunction("hasOptionalParams", String::class, String::class)
+    }
 
-        lateinit var sourceClass: Class<out Any>
-        lateinit var fixedClass: Class<out Any>
+    lateinit var sourceClass: Class<out Any>
+    lateinit var fixedClass: Class<out Any>
 
-        @BeforeAll
-        @JvmStatic
-        fun setup() {
-            val bytecode = recodeMetadataFor<WithFunctionParameters, MetadataTemplate>()
-            sourceClass = bytecode.toClass<WithFunctionParameters, Any>()
-            fixedClass = bytecode.fixMetadata(logger, pathsOf(WithFunctionParameters::class))
-                    .toClass<WithFunctionParameters, Any>()
-        }
+    @BeforeAll
+    fun setup() {
+        val bytecode = recodeMetadataFor<WithFunctionParameters, MetadataTemplate>()
+        sourceClass = bytecode.toClass<WithFunctionParameters, Any>()
+        fixedClass = bytecode.fixMetadata(logger, pathsOf(WithFunctionParameters::class))
+                .toClass<WithFunctionParameters, Any>()
     }
 
     @Test

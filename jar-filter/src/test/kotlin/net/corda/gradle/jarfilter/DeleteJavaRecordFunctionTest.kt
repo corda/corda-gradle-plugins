@@ -7,25 +7,27 @@ import org.hamcrest.core.IsIterableContaining.hasItem
 import org.hamcrest.core.IsNot.not
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
 import org.junit.jupiter.api.condition.EnabledForJreRange
 import org.junit.jupiter.api.condition.JRE.JAVA_17
 import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Path
 
 @EnabledForJreRange(min = JAVA_17)
+@TestInstance(PER_CLASS)
 class DeleteJavaRecordFunctionTest {
-    companion object {
+    private companion object {
         private const val RECORD_CLASS = "net.corda.gradle.RecordWithFunction"
 
         private val getMessage = isMethod("getMessage", String::class.java)
+    }
 
-        private lateinit var testProject: JarFilterProject
+    private lateinit var testProject: JarFilterProject
 
-        @BeforeAll
-        @JvmStatic
-        fun setup(@TempDir testProjectDir: Path) {
-            testProject = JarFilterProject(testProjectDir, "delete-java-record-function").build()
-        }
+    @BeforeAll
+    fun setup(@TempDir testProjectDir: Path) {
+        testProject = JarFilterProject(testProjectDir, "delete-java-record-function").build()
     }
 
     @Test

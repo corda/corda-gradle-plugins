@@ -6,32 +6,34 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
 import org.junit.jupiter.api.io.TempDir
 import org.objectweb.asm.Opcodes.ACC_PRIVATE
 import org.objectweb.asm.Opcodes.ACC_PUBLIC
 import java.nio.file.Path
 import kotlin.test.assertFailsWith
 
+@TestInstance(PER_CLASS)
 class DeleteObjectTest {
-    companion object {
+    private companion object {
         private const val OBJECT_CLASS = "net.corda.gradle.HasObjects"
         private const val UNWANTED_FIELD_OBJ_FIELD = "unwantedFieldObj"
         private const val UNWANTED_GET_OBJ_METHOD = "getUnwantedGetObj"
         private const val UNWANTED_OBJ_METHOD = "getUnwantedObj"
         private const val UNWANTED_OBJ_FIELD = "unwantedObj"
         private const val UNWANTED_FUN_METHOD = "unwantedFun"
+    }
 
-        private lateinit var testProject: JarFilterProject
-        private lateinit var sourceClasses: List<String>
-        private lateinit var filteredClasses: List<String>
+    private lateinit var testProject: JarFilterProject
+    private lateinit var sourceClasses: List<String>
+    private lateinit var filteredClasses: List<String>
 
-        @BeforeAll
-        @JvmStatic
-        fun setup(@TempDir testProjectDir: Path) {
-            testProject = JarFilterProject(testProjectDir, "delete-object").build()
-            sourceClasses = testProject.sourceJar.getClassNames(OBJECT_CLASS)
-            filteredClasses = testProject.filteredJar.getClassNames(OBJECT_CLASS)
-        }
+    @BeforeAll
+    fun setup(@TempDir testProjectDir: Path) {
+        testProject = JarFilterProject(testProjectDir, "delete-object").build()
+        sourceClasses = testProject.sourceJar.getClassNames(OBJECT_CLASS)
+        filteredClasses = testProject.filteredJar.getClassNames(OBJECT_CLASS)
     }
 
     @Test

@@ -8,26 +8,28 @@ import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
 import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Path
 
+@TestInstance(PER_CLASS)
 class RemoveAnnotationsTest {
-    companion object {
+    private companion object {
         private const val ANNOTATED_CLASS = "net.corda.gradle.HasUnwantedAnnotations"
         private const val REMOVE_ME_CLASS = "net.corda.gradle.jarfilter.RemoveMe"
+    }
 
-        private lateinit var testProject: JarFilterProject
+    private lateinit var testProject: JarFilterProject
 
-        @BeforeAll
-        @JvmStatic
-        fun setup(@TempDir testProjectDir: Path) {
-            testProject = JarFilterProject(testProjectDir, "remove-annotations").build()
-        }
+    @BeforeAll
+    fun setup(@TempDir testProjectDir: Path) {
+        testProject = JarFilterProject(testProjectDir, "remove-annotations").build()
+    }
 
-        fun ClassLoader.loadAnnotation(className: String): Class<out Annotation> {
-            return load<Annotation>(className).apply {
-                assertTrue(isAnnotation)
-            }
+    fun ClassLoader.loadAnnotation(className: String): Class<out Annotation> {
+        return load<Annotation>(className).apply {
+            assertTrue(isAnnotation)
         }
     }
 

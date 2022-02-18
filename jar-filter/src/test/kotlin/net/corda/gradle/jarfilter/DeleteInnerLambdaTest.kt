@@ -9,29 +9,31 @@ import org.hamcrest.core.IsNot.not
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
 import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Path
 import kotlin.test.assertFailsWith
 
+@TestInstance(PER_CLASS)
 class DeleteInnerLambdaTest {
-    companion object {
+    private companion object {
         private const val LAMBDA_CLASS = "net.corda.gradle.HasInnerLambda"
         private const val SIZE = 64
 
         private val constructInt = isKonstructor(LAMBDA_CLASS, Int::class)
         private val constructBytes = isKonstructor(LAMBDA_CLASS, ByteArray::class)
+    }
 
-        private lateinit var testProject: JarFilterProject
-        private lateinit var sourceClasses: List<String>
-        private lateinit var filteredClasses: List<String>
+    private lateinit var testProject: JarFilterProject
+    private lateinit var sourceClasses: List<String>
+    private lateinit var filteredClasses: List<String>
 
-        @BeforeAll
-        @JvmStatic
-        fun setup(@TempDir testProjectDir: Path) {
-            testProject = JarFilterProject(testProjectDir, "delete-inner-lambda").build()
-            sourceClasses = testProject.sourceJar.getClassNames(LAMBDA_CLASS)
-            filteredClasses = testProject.filteredJar.getClassNames(LAMBDA_CLASS)
-        }
+    @BeforeAll
+    fun setup(@TempDir testProjectDir: Path) {
+        testProject = JarFilterProject(testProjectDir, "delete-inner-lambda").build()
+        sourceClasses = testProject.sourceJar.getClassNames(LAMBDA_CLASS)
+        filteredClasses = testProject.filteredJar.getClassNames(LAMBDA_CLASS)
     }
 
     @Test

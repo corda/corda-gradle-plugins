@@ -9,10 +9,12 @@ import org.hamcrest.core.IsIterableContaining.hasItem
 import org.hamcrest.core.IsNot.not
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
 import kotlin.reflect.full.declaredMemberProperties
 
 class MetaFixFieldVarPropertyTest {
-    companion object {
+    private companion object {
         private val logger: Logger = StdOutLogging(MetaFixVarPropertyTest::class)
         private val unwantedVar = isProperty("unwantedVar", String::class)
         private val wantedVar = isProperty("wantedVar", Int::class)

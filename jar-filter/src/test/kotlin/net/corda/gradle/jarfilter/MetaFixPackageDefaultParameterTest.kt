@@ -5,6 +5,8 @@ import net.corda.gradle.jarfilter.asm.toClass
 import org.gradle.api.logging.Logger
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
 import kotlin.reflect.full.declaredFunctions
 import kotlin.test.assertFailsWith
 
@@ -13,23 +15,23 @@ import kotlin.test.assertFailsWith
  * supports package metadata. Until then, we can only execute the code
  * paths to ensure they don't throw any exceptions.
  */
+@TestInstance(PER_CLASS)
 class MetaFixPackageDefaultParameterTest {
-    companion object {
+    private companion object {
         private const val TEMPLATE_CLASS = "net.corda.gradle.jarfilter.template.PackageWithDefaultParameters"
         private const val DEFAULT_PARAMETERS_CLASS = "net.corda.gradle.jarfilter.PackageWithDefaultParameters"
         private val logger: Logger = StdOutLogging(MetaFixPackageDefaultParameterTest::class)
+    }
 
-        lateinit var sourceClass: Class<out Any>
-        lateinit var fixedClass: Class<out Any>
+    lateinit var sourceClass: Class<out Any>
+    lateinit var fixedClass: Class<out Any>
 
-        @BeforeAll
-        @JvmStatic
-        fun setup() {
-            val defaultParametersClass = Class.forName(DEFAULT_PARAMETERS_CLASS)
-            val bytecode = defaultParametersClass.metadataAs(Class.forName(TEMPLATE_CLASS))
-            sourceClass = bytecode.toClass(defaultParametersClass, Any::class.java)
-            fixedClass = bytecode.fixMetadata(logger, setOf(DEFAULT_PARAMETERS_CLASS)).toClass(sourceClass, Any::class.java)
-        }
+    @BeforeAll
+    fun setup() {
+        val defaultParametersClass = Class.forName(DEFAULT_PARAMETERS_CLASS)
+        val bytecode = defaultParametersClass.metadataAs(Class.forName(TEMPLATE_CLASS))
+        sourceClass = bytecode.toClass(defaultParametersClass, Any::class.java)
+        fixedClass = bytecode.fixMetadata(logger, setOf(DEFAULT_PARAMETERS_CLASS)).toClass(sourceClass, Any::class.java)
     }
 
     @Test

@@ -9,6 +9,8 @@ import org.gradle.api.logging.Logger
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
 import org.objectweb.asm.ClassWriter.COMPUTE_MAXS
 import kotlin.reflect.jvm.jvmName
 import kotlin.test.assertFailsWith
@@ -18,35 +20,35 @@ import kotlin.test.assertFailsWith
  * Show that deleting some field references doesn't break the other
  * properties' initialisation code.
  */
+@TestInstance(PER_CLASS)
 class StaticFieldRemovalTest {
-    companion object {
+    private companion object {
         private val logger: Logger = StdOutLogging(StaticFieldRemovalTest::class)
         private const val FIELD_CLASS = "net.corda.gradle.jarfilter.StaticFields"
+    }
 
-        private lateinit var sourceClass: Class<out Any>
-        private lateinit var targetClass: Class<out Any>
+    private lateinit var sourceClass: Class<out Any>
+    private lateinit var targetClass: Class<out Any>
 
-        private fun <T : R, R : Any> transform(type: Class<in T>, asType: Class<out R>): Class<out R> {
-            val bytecode = type.bytecode.execute(COMPUTE_MAXS) { writer ->
-                FilterTransformer(
-                    visitor = writer,
-                    logger = logger,
-                    importExtra = { null },
-                    removeAnnotations = emptySet(),
-                    deleteAnnotations = setOf(Deletable::class.jvmName.descriptor),
-                    stubAnnotations = emptySet(),
-                    unwantedElements = UnwantedCache()
-                )
-            }
-            return bytecode.toClass(type, asType)
+    private fun <T : R, R : Any> transform(type: Class<in T>, asType: Class<out R>): Class<out R> {
+        val bytecode = type.bytecode.execute(COMPUTE_MAXS) { writer ->
+            FilterTransformer(
+                visitor = writer,
+                logger = logger,
+                importExtra = { null },
+                removeAnnotations = emptySet(),
+                deleteAnnotations = setOf(Deletable::class.jvmName.descriptor),
+                stubAnnotations = emptySet(),
+                unwantedElements = UnwantedCache()
+            )
         }
+        return bytecode.toClass(type, asType)
+    }
 
-        @JvmStatic
-        @BeforeAll
-        fun setup() {
-            sourceClass = Class.forName(FIELD_CLASS)
-            targetClass = transform(sourceClass, Any::class.java)
-        }
+    @BeforeAll
+    fun setup() {
+        sourceClass = Class.forName(FIELD_CLASS)
+        targetClass = transform(sourceClass, Any::class.java)
     }
 
     @Test

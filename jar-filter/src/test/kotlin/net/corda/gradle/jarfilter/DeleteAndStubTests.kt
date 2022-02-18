@@ -18,14 +18,17 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
 import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Path
 import kotlin.reflect.full.declaredMemberFunctions
 import kotlin.reflect.full.declaredMemberProperties
 import kotlin.test.assertFailsWith
 
+@TestInstance(PER_CLASS)
 class DeleteAndStubTests {
-    companion object {
+    private companion object {
         private const val VAR_PROPERTY_CLASS = "net.corda.gradle.HasVarPropertyForDeleteAndStub"
         private const val VAL_PROPERTY_CLASS = "net.corda.gradle.HasValPropertyForDeleteAndStub"
         private const val DELETED_FUN_CLASS = "net.corda.gradle.DeletedFunctionInsideStubbed"
@@ -46,13 +49,13 @@ class DeleteAndStubTests {
         private val getUnwantedVal = isMethod("getUnwantedVal", String::class.java)
         private val getUnwantedVar = isMethod("getUnwantedVar", String::class.java)
         private val setUnwantedVar = isMethod("setUnwantedVar", Void.TYPE, String::class.java)
-        private lateinit var testProject: JarFilterProject
+    }
 
-        @BeforeAll
-        @JvmStatic
-        fun setup(@TempDir testProjectDir: Path) {
-            testProject = JarFilterProject(testProjectDir, "delete-and-stub").build()
-        }
+    private lateinit var testProject: JarFilterProject
+
+    @BeforeAll
+    fun setup(@TempDir testProjectDir: Path) {
+        testProject = JarFilterProject(testProjectDir, "delete-and-stub").build()
     }
 
     @Test

@@ -11,6 +11,8 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
 import org.junit.jupiter.api.io.TempDir
 import java.lang.reflect.InvocationTargetException
 import java.nio.file.Path
@@ -18,25 +20,26 @@ import kotlin.jvm.kotlin
 import kotlin.reflect.full.primaryConstructor
 import kotlin.test.assertFailsWith
 
+@TestInstance(PER_CLASS)
 class SanitiseStubConstructorTest {
-    companion object {
+    private companion object {
         private const val COMPLEX_CONSTRUCTOR_CLASS = "net.corda.gradle.HasOverloadedComplexConstructorToStub"
         private const val COUNT_OVERLOADED = 1
         private const val COUNT_MULTIPLE = 2
-        private lateinit var testProject: JarFilterProject
+    }
 
-        @BeforeAll
-        @JvmStatic
-        fun setup(@TempDir testProjectDir: Path) {
-            testProject = JarFilterProject(testProjectDir, "sanitise-stub-constructor").build()
-        }
+    private lateinit var testProject: JarFilterProject
 
-        fun <T> newInstance(clazz: Class<T>): T {
-            return try {
-                clazz.getDeclaredConstructor().newInstance()
-            } catch (e: InvocationTargetException) {
-                throw e.targetException
-            }
+    @BeforeAll
+    fun setup(@TempDir testProjectDir: Path) {
+        testProject = JarFilterProject(testProjectDir, "sanitise-stub-constructor").build()
+    }
+
+    fun <T> newInstance(clazz: Class<T>): T {
+        return try {
+            clazz.getDeclaredConstructor().newInstance()
+        } catch (e: InvocationTargetException) {
+            throw e.targetException
         }
     }
 

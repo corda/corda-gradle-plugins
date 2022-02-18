@@ -14,7 +14,7 @@ import kotlin.reflect.jvm.jvmName
  * about what the MetaFixer task has done.
  */
 class MetaFixNestedClassTest {
-    companion object {
+    private companion object {
         private val logger: Logger = StdOutLogging(MetaFixNestedClassTest::class)
         private val WANTED_CLASS: String = WithNestedClass.Wanted::class.jvmName
         private val UNWANTED_CLASS: String = "${WithNestedClass::class.jvmName}\$Unwanted"

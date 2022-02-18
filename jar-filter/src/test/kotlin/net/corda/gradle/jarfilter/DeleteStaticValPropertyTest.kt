@@ -2,25 +2,28 @@ package net.corda.gradle.jarfilter
 
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
 import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Path
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
+@TestInstance(PER_CLASS)
 class DeleteStaticValPropertyTest {
-    companion object {
+    private companion object {
         private const val PROPERTY_CLASS = "net.corda.gradle.StaticValToDelete"
         private const val DEFAULT_BIG_NUMBER: Long = 123456789L
         private const val DEFAULT_NUMBER: Int = 123456
+
         private object LocalBlob
+    }
 
-        private lateinit var testProject: JarFilterProject
+    private lateinit var testProject: JarFilterProject
 
-        @BeforeAll
-        @JvmStatic
-        fun setup(@TempDir testProjectDir: Path) {
-            testProject = JarFilterProject(testProjectDir, "delete-static-val").build()
-        }
+    @BeforeAll
+    fun setup(@TempDir testProjectDir: Path) {
+        testProject = JarFilterProject(testProjectDir, "delete-static-val").build()
     }
 
     @Test

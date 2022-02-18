@@ -4,37 +4,40 @@ import net.corda.plugins.cpk.xml.loadDependencyConstraints
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotEquals
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
 import org.junit.jupiter.api.TestReporter
 import org.junit.jupiter.api.io.TempDir
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import java.nio.file.Path
 
+@TestInstance(PER_CLASS)
 class WithDependentCordappTest {
-    companion object {
+    private companion object {
         private const val CORDA_GUAVA_VERSION = "20.0"
         private const val librarySlf4jVersion = "1.7.21"
+    }
 
-        private fun buildProject(
-            guavaVersion: String,
-            libraryGuavaVersion: String,
-            testProjectDir: Path,
-            reporter: TestReporter
-        ): GradleProject {
-            return GradleProject(testProjectDir, reporter)
-                .withTestName("with-dependent-cordapp")
-                .withSubResource("library/build.gradle")
-                .withSubResource("cordapp/build.gradle")
-                .build(
-                    "-Pcordapp_workflow_version=$expectedCordappWorkflowVersion",
-                    "-Pcordapp_contract_version=$expectedCordappContractVersion",
-                    "-Pcommons_io_version=$commonsIoVersion",
-                    "-Pcorda_api_version=$cordaApiVersion",
-                    "-Plibrary_guava_version=$libraryGuavaVersion",
-                    "-Pguava_version=$guavaVersion",
-                    "-Pslf4j_version=$librarySlf4jVersion"
-                )
-        }
+    private fun buildProject(
+        guavaVersion: String,
+        libraryGuavaVersion: String,
+        testProjectDir: Path,
+        reporter: TestReporter
+    ): GradleProject {
+        return GradleProject(testProjectDir, reporter)
+            .withTestName("with-dependent-cordapp")
+            .withSubResource("library/build.gradle")
+            .withSubResource("cordapp/build.gradle")
+            .build(
+                "-Pcordapp_workflow_version=$expectedCordappWorkflowVersion",
+                "-Pcordapp_contract_version=$expectedCordappContractVersion",
+                "-Pcommons_io_version=$commonsIoVersion",
+                "-Pcorda_api_version=$cordaApiVersion",
+                "-Plibrary_guava_version=$libraryGuavaVersion",
+                "-Pguava_version=$guavaVersion",
+                "-Pslf4j_version=$librarySlf4jVersion"
+            )
     }
 
     @ParameterizedTest

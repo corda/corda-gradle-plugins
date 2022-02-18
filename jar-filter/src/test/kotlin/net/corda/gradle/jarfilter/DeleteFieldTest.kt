@@ -8,24 +8,26 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
 import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Path
 import kotlin.reflect.full.declaredMemberProperties
 import kotlin.test.assertFailsWith
 
+@TestInstance(PER_CLASS)
 class DeleteFieldTest {
-    companion object {
+    private companion object {
         private const val STRING_FIELD_CLASS = "net.corda.gradle.HasStringFieldToDelete"
         private const val INTEGER_FIELD_CLASS = "net.corda.gradle.HasIntFieldToDelete"
         private const val LONG_FIELD_CLASS = "net.corda.gradle.HasLongFieldToDelete"
+    }
 
-        private lateinit var testProject: JarFilterProject
+    private lateinit var testProject: JarFilterProject
 
-        @BeforeAll
-        @JvmStatic
-        fun setup(@TempDir testProjectDir: Path) {
-            testProject = JarFilterProject(testProjectDir, "delete-field").build()
-        }
+    @BeforeAll
+    fun setup(@TempDir testProjectDir: Path) {
+        testProject = JarFilterProject(testProjectDir, "delete-field").build()
     }
 
     @Test

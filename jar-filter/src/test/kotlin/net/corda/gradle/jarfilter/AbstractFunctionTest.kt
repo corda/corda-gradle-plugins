@@ -7,23 +7,25 @@ import org.hamcrest.core.IsNot.not
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
 import org.junit.jupiter.api.io.TempDir
 import java.lang.reflect.Modifier.ABSTRACT
 import java.nio.file.Path
 import kotlin.reflect.full.declaredFunctions
 import kotlin.test.assertFailsWith
 
+@TestInstance(PER_CLASS)
 class AbstractFunctionTest {
-    companion object {
+    private companion object {
         private const val FUNCTION_CLASS = "net.corda.gradle.AbstractFunctions"
+    }
 
-        private lateinit var testProject: JarFilterProject
+    private lateinit var testProject: JarFilterProject
 
-        @BeforeAll
-        @JvmStatic
-        fun setup(@TempDir testProjectDir: Path) {
-            testProject = JarFilterProject(testProjectDir, "abstract-function").build()
-        }
+    @BeforeAll
+    fun setup(@TempDir testProjectDir: Path) {
+        testProject = JarFilterProject(testProjectDir, "abstract-function").build()
     }
 
     @Test

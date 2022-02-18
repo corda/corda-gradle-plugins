@@ -5,6 +5,8 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
 import org.junit.jupiter.api.TestReporter
 import org.junit.jupiter.api.io.TempDir
 import org.osgi.framework.Constants.BUNDLE_CLASSPATH
@@ -20,29 +22,29 @@ import java.nio.file.Path
 import java.util.jar.JarEntry
 import java.util.jar.JarFile
 
+@TestInstance(PER_CLASS)
 class WithEmbeddedJarTest {
-    companion object {
+    private companion object {
         private const val RESOLUTION_OPTIONAL = "resolution:=optional"
         private const val SUPPRESS_VERSION = "version=[0,0)"
         private const val cordappVersion = "1.0.2-SNAPSHOT"
         private const val guavaVersion = "29.0-jre"
-        private lateinit var testProject: GradleProject
+    }
 
-        @Suppress("unused")
-        @BeforeAll
-        @JvmStatic
-        fun setup(@TempDir testProjectDir: Path, reporter: TestReporter) {
-            testProject = GradleProject(testProjectDir, reporter)
-                .withTestName("with-embedded-jar")
-                .withSubResource("library/build.gradle")
-                .withSubResource("library/src/main/java/com/example/library/ExampleApi.java")
-                .build(
-                    "-Pcordapp_version=$cordappVersion",
-                    "-Pcorda_api_version=$cordaApiVersion",
-                    "-Pcordapp_contract_version=$expectedCordappContractVersion",
-                    "-Pguava_version=$guavaVersion"
-                )
-        }
+    private lateinit var testProject: GradleProject
+
+    @BeforeAll
+    fun setup(@TempDir testProjectDir: Path, reporter: TestReporter) {
+        testProject = GradleProject(testProjectDir, reporter)
+            .withTestName("with-embedded-jar")
+            .withSubResource("library/build.gradle")
+            .withSubResource("library/src/main/java/com/example/library/ExampleApi.java")
+            .build(
+                "-Pcordapp_version=$cordappVersion",
+                "-Pcorda_api_version=$cordaApiVersion",
+                "-Pcordapp_contract_version=$expectedCordappContractVersion",
+                "-Pguava_version=$guavaVersion"
+            )
     }
 
     @Test

@@ -12,27 +12,27 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
 import kotlin.reflect.full.primaryConstructor
 
+@TestInstance(PER_CLASS)
 class MetaFixConstructorDefaultParameterTest {
-    companion object {
+    private companion object {
         private val logger: Logger = StdOutLogging(MetaFixConstructorDefaultParameterTest::class)
-        private val primaryCon
-                = isKonstructor(WithConstructorParameters::class, Long::class, Int::class, String::class)
-        private val secondaryCon
-                = isKonstructor(WithConstructorParameters::class, Char::class, String::class)
+        private val primaryCon = isKonstructor(WithConstructorParameters::class, Long::class, Int::class, String::class)
+        private val secondaryCon = isKonstructor(WithConstructorParameters::class, Char::class, String::class)
+    }
 
-        lateinit var sourceClass: Class<out HasAll>
-        lateinit var fixedClass: Class<out HasAll>
+    lateinit var sourceClass: Class<out HasAll>
+    lateinit var fixedClass: Class<out HasAll>
 
-        @BeforeAll
-        @JvmStatic
-        fun setup() {
-            val bytecode = recodeMetadataFor<WithConstructorParameters, MetadataTemplate>()
-            sourceClass = bytecode.toClass<WithConstructorParameters, HasAll>()
-            fixedClass = bytecode.fixMetadata(logger, pathsOf(WithConstructorParameters::class))
-                .toClass<WithConstructorParameters, HasAll>()
-        }
+    @BeforeAll
+    fun setup() {
+        val bytecode = recodeMetadataFor<WithConstructorParameters, MetadataTemplate>()
+        sourceClass = bytecode.toClass<WithConstructorParameters, HasAll>()
+        fixedClass = bytecode.fixMetadata(logger, pathsOf(WithConstructorParameters::class))
+            .toClass<WithConstructorParameters, HasAll>()
     }
 
     @Test

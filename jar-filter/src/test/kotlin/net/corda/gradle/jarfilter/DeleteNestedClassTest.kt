@@ -9,12 +9,15 @@ import org.hamcrest.core.IsNot.not
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
 import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Path
 import kotlin.test.assertFailsWith
 
+@TestInstance(PER_CLASS)
 class DeleteNestedClassTest {
-    companion object {
+    private companion object {
         private const val HOST_CLASS = "net.corda.gradle.HasNestedClasses"
         private const val KEPT_CLASS = "$HOST_CLASS\$OneToKeep"
         private const val DELETED_CLASS = "$HOST_CLASS\$OneToThrowAway"
@@ -34,14 +37,13 @@ class DeleteNestedClassTest {
         private val deletedClass = isKClass(DELETED_CLASS)
         private val wantedSubclass = isKClass(WANTED_SUBCLASS)
         private val unwantedSubclass = isKClass(UNWANTED_SUBCLASS)
+    }
 
-        private lateinit var testProject: JarFilterProject
+    private lateinit var testProject: JarFilterProject
 
-        @BeforeAll
-        @JvmStatic
-        fun setup(@TempDir testProjectDir: Path) {
-            testProject = JarFilterProject(testProjectDir, "delete-nested-class").build()
-        }
+    @BeforeAll
+    fun setup(@TempDir testProjectDir: Path) {
+        testProject = JarFilterProject(testProjectDir, "delete-nested-class").build()
     }
 
     @Test

@@ -10,13 +10,16 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.core.IsIterableContaining.hasItem
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
 import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Path
 import kotlin.reflect.full.declaredFunctions
 import kotlin.reflect.full.declaredMemberProperties
 
+@TestInstance(PER_CLASS)
 class JarFilterExecuteTest {
-    companion object {
+    private companion object {
         private const val EXAMPLE_CLASS = "net.corda.gradle.ExampleKotlin"
         private const val NESTED_CLASS = "net.corda.gradle.ExampleKotlin\$Nested"
         private const val INNER_CLASS = "net.corda.gradle.ExampleKotlin\$Inner"
@@ -30,14 +33,13 @@ class JarFilterExecuteTest {
         private val stringVar = isProperty("stringVar", String::class)
         private val longVar = isProperty("longVar", Long::class)
         private val intVar = isProperty("intVar", Int::class)
+    }
 
-        private lateinit var testProject: JarFilterProject
+    private lateinit var testProject: JarFilterProject
 
-        @BeforeAll
-        @JvmStatic
-        fun setup(@TempDir testProjectDir: Path) {
-            testProject = JarFilterProject(testProjectDir, "basic-execute").build()
-        }
+    @BeforeAll
+    fun setup(@TempDir testProjectDir: Path) {
+        testProject = JarFilterProject(testProjectDir, "basic-execute").build()
     }
 
     @Test
