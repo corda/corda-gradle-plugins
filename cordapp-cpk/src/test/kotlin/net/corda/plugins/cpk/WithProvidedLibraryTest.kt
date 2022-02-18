@@ -3,6 +3,8 @@ package net.corda.plugins.cpk
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
 import org.junit.jupiter.api.TestReporter
 import org.junit.jupiter.api.io.TempDir
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -13,24 +15,24 @@ import org.osgi.framework.Constants.BUNDLE_VENDOR
 import org.osgi.framework.Constants.BUNDLE_VERSION
 import java.nio.file.Path
 
+@TestInstance(PER_CLASS)
 class WithProvidedLibraryTest {
-    companion object {
+    private companion object {
         private const val cordappVersion = "1.0.2-SNAPSHOT"
-        private lateinit var testProject: GradleProject
+    }
 
-        @Suppress("unused")
-        @BeforeAll
-        @JvmStatic
-        fun setup(@TempDir testProjectDir: Path, reporter: TestReporter) {
-            testProject = GradleProject(testProjectDir, reporter)
-                .withTestName("with-provided-library")
-                .withSubResource("library/build.gradle")
-                .build(
-                    "-Pcordapp_version=$cordappVersion",
-                    "-Pcorda_api_version=$cordaApiVersion",
-                    "-Pcordapp_contract_version=$expectedCordappContractVersion"
-                )
-        }
+    private lateinit var testProject: GradleProject
+
+    @BeforeAll
+    fun setup(@TempDir testProjectDir: Path, reporter: TestReporter) {
+        testProject = GradleProject(testProjectDir, reporter)
+            .withTestName("with-provided-library")
+            .withSubResource("library/build.gradle")
+            .build(
+                "-Pcordapp_version=$cordappVersion",
+                "-Pcorda_api_version=$cordaApiVersion",
+                "-Pcordapp_contract_version=$expectedCordappContractVersion"
+            )
     }
 
     @Test

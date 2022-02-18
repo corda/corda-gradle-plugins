@@ -5,6 +5,8 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
 import org.junit.jupiter.api.TestReporter
 import org.junit.jupiter.api.io.TempDir
 import org.osgi.framework.Constants.BUNDLE_CLASSPATH
@@ -18,8 +20,9 @@ import java.nio.file.Path
 import java.util.jar.JarEntry
 import java.util.jar.JarFile
 
+@TestInstance(PER_CLASS)
 class CordappWithEmbeddedTransitivesTest {
-    companion object {
+    private companion object {
         private const val cordappVersion = "2.3.4-SNAPSHOT"
         private const val hostVersion = "1.2.3-SNAPSHOT"
         private const val slf4jVersion = "2.0.0-alpha1"
@@ -30,28 +33,26 @@ class CordappWithEmbeddedTransitivesTest {
         private const val cordaOsgiVersion = "version=\"[5.0,6)\""
         private const val cordappOsgiVersion = "version=\"[2.3,3)\""
         private const val hostOsgiVersion = "version=\"1.2.3\""
+    }
 
-        private lateinit var testProject: GradleProject
+    private lateinit var testProject: GradleProject
 
-        @Suppress("unused")
-        @BeforeAll
-        @JvmStatic
-        fun setup(@TempDir testProjectDir: Path, reporter: TestReporter) {
-            testProject = GradleProject(testProjectDir, reporter)
-                .withTestName("cordapp-embedded-transitives")
-                .withSubResource("src/main/kotlin/com/example/host/HostContract.kt")
-                .withSubResource("cordapp/build.gradle")
-                .withSubResource("cordapp/src/main/kotlin/com/example/cordapp/CordappContract.kt")
-                .build(
-                    "-Pcordapp_contract_version=$expectedCordappContractVersion",
-                    "-Pcommons_collections_version=$commonsCollectionsVersion",
-                    "-Pcommons_io_version=$commonsIoVersion",
-                    "-Pcorda_api_version=$cordaApiVersion",
-                    "-Pslf4j_version=$slf4jVersion",
-                    "-Pcordapp_version=$cordappVersion",
-                    "-Phost_version=$hostVersion"
-                )
-        }
+    @BeforeAll
+    fun setup(@TempDir testProjectDir: Path, reporter: TestReporter) {
+        testProject = GradleProject(testProjectDir, reporter)
+            .withTestName("cordapp-embedded-transitives")
+            .withSubResource("src/main/kotlin/com/example/host/HostContract.kt")
+            .withSubResource("cordapp/build.gradle")
+            .withSubResource("cordapp/src/main/kotlin/com/example/cordapp/CordappContract.kt")
+            .build(
+                "-Pcordapp_contract_version=$expectedCordappContractVersion",
+                "-Pcommons_collections_version=$commonsCollectionsVersion",
+                "-Pcommons_io_version=$commonsIoVersion",
+                "-Pcorda_api_version=$cordaApiVersion",
+                "-Pslf4j_version=$slf4jVersion",
+                "-Pcordapp_version=$cordappVersion",
+                "-Phost_version=$hostVersion"
+            )
     }
 
     @Test

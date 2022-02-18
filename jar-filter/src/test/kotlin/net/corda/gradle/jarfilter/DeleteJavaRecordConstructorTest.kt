@@ -7,6 +7,8 @@ import org.hamcrest.core.IsNot.not
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
 import org.junit.jupiter.api.condition.EnabledForJreRange
 import org.junit.jupiter.api.condition.JRE.JAVA_17
 import org.junit.jupiter.api.io.TempDir
@@ -14,19 +16,19 @@ import java.nio.file.Path
 import kotlin.test.assertFailsWith
 
 @EnabledForJreRange(min = JAVA_17)
+@TestInstance(PER_CLASS)
 class DeleteJavaRecordConstructorTest {
-    companion object {
+    private companion object {
         private const val RECORD_CLASS = "net.corda.gradle.RecordWithConstructor"
 
         private val noArgs = isConstructor(RECORD_CLASS)
+    }
 
-        private lateinit var testProject: JarFilterProject
+    private lateinit var testProject: JarFilterProject
 
-        @BeforeAll
-        @JvmStatic
-        fun setup(@TempDir testProjectDir: Path) {
-            testProject = JarFilterProject(testProjectDir, "delete-java-record-constructor").build()
-        }
+    @BeforeAll
+    fun setup(@TempDir testProjectDir: Path) {
+        testProject = JarFilterProject(testProjectDir, "delete-java-record-constructor").build()
     }
 
     @Test

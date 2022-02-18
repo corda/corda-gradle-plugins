@@ -4,6 +4,8 @@ import net.corda.gradle.jarfilter.matcher.isMethod
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
 import org.junit.jupiter.api.io.TempDir
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.core.IsIterableContaining.hasItem
@@ -12,19 +14,20 @@ import java.lang.reflect.InvocationTargetException
 import java.nio.file.Path
 import kotlin.test.assertFailsWith
 
+@TestInstance(PER_CLASS)
 class StubStaticFunctionTest {
-    companion object {
+    private companion object {
         private const val FUNCTION_CLASS = "net.corda.gradle.StaticFunctionsToStub"
 
         private val unwantedInline = isMethod("unwantedInlineToStub", Any::class.java, String::class.java, Class::class.java)
         private val defaultUnwantedInline = isMethod("unwantedInlineToStub\$default", Any::class.java, String::class.java, Class::class.java, Integer.TYPE, Any::class.java)
-        private lateinit var testProject: JarFilterProject
+    }
 
-        @BeforeAll
-        @JvmStatic
-        fun setup(@TempDir testProjectDir: Path) {
-            testProject = JarFilterProject(testProjectDir, "stub-static-function").build()
-        }
+    private lateinit var testProject: JarFilterProject
+
+    @BeforeAll
+    fun setup(@TempDir testProjectDir: Path) {
+        testProject = JarFilterProject(testProjectDir, "stub-static-function").build()
     }
 
     @Test

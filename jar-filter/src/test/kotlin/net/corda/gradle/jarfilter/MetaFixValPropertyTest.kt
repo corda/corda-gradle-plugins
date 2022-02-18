@@ -14,7 +14,7 @@ import kotlin.jvm.kotlin
 import kotlin.reflect.full.declaredMemberProperties
 
 class MetaFixValPropertyTest {
-    companion object {
+    private companion object {
         private val logger: Logger = StdOutLogging(MetaFixValPropertyTest::class)
         private val unwantedVal = isProperty("unwantedVal", String::class)
         private val intVal = isProperty("intVal", Int::class)

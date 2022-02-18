@@ -4,6 +4,8 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
 import org.junit.jupiter.api.TestReporter
 import org.junit.jupiter.api.io.TempDir
 import org.osgi.framework.Constants.BUNDLE_LICENSE
@@ -16,21 +18,18 @@ import org.osgi.framework.Constants.IMPORT_PACKAGE
 import org.osgi.framework.Constants.REQUIRE_CAPABILITY
 import java.nio.file.Path
 
+@TestInstance(PER_CLASS)
 class ComplexPackagesTest {
-    companion object {
-        private lateinit var testProject: GradleProject
+    private lateinit var testProject: GradleProject
 
-        @Suppress("unused")
-        @BeforeAll
-        @JvmStatic
-        fun setup(@TempDir testProjectDir: Path, reporter: TestReporter) {
-            testProject = GradleProject(testProjectDir, reporter)
-                .withTestName("complex-packages")
-                .withSubResource("src/main/java/com/example/cordapp/package-info.java")
-                .withSubResource("src/main/java/com/example/cordapp/sub1/Secret.java")
-                .withSubResource("src/main/java/com/example/cordapp/sub2/package-info.java")
-                .build("-Pcordapp_contract_version=$expectedCordappContractVersion")
-        }
+    @BeforeAll
+    fun setup(@TempDir testProjectDir: Path, reporter: TestReporter) {
+        testProject = GradleProject(testProjectDir, reporter)
+            .withTestName("complex-packages")
+            .withSubResource("src/main/java/com/example/cordapp/package-info.java")
+            .withSubResource("src/main/java/com/example/cordapp/sub1/Secret.java")
+            .withSubResource("src/main/java/com/example/cordapp/sub2/package-info.java")
+            .build("-Pcordapp_contract_version=$expectedCordappContractVersion")
     }
 
     @Test

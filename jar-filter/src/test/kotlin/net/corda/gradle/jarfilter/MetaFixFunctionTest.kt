@@ -14,7 +14,7 @@ import kotlin.jvm.kotlin
 import kotlin.reflect.full.declaredFunctions
 
 class MetaFixFunctionTest {
-    companion object {
+    private companion object {
         private val logger: Logger = StdOutLogging(MetaFixFunctionTest::class)
         private val longData = isFunction("longData", Long::class)
         private val unwantedFun = isFunction("unwantedFun", String::class, String::class)

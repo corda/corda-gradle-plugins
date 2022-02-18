@@ -9,6 +9,8 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
 import org.junit.jupiter.api.TestReporter
 import org.junit.jupiter.api.fail
 import org.junit.jupiter.api.io.TempDir
@@ -21,50 +23,50 @@ import java.util.jar.JarInputStream
 import javax.security.auth.x500.X500Principal
 import kotlin.streams.asSequence
 
+@TestInstance(PER_CLASS)
 class CpbTest {
-    companion object {
+    private companion object {
         private const val platformCordappVersion = "2.3.4"
         private const val cordappVersion = "1.2.1"
         private val cordaDevCertPrincipal = X500Principal("CN=Corda Dev Code Signer, OU=R3, O=Corda, L=London, C=GB")
+    }
 
-        private lateinit var externalProject: GradleProject
-        private lateinit var testProject: GradleProject
+    private lateinit var externalProject: GradleProject
+    private lateinit var testProject: GradleProject
 
-        @BeforeAll
-        @JvmStatic
-        fun setup(
-            @TempDir externalCordappProjectDir: Path,
-            @TempDir testDir: Path,
-            reporter: TestReporter
-        ) {
-            val mavenRepoDir = Files.createDirectory(testDir.resolve("maven"))
-            val cpbProjectDir = Files.createDirectory(testDir.resolve("cpb"))
-            externalProject = GradleProject(externalCordappProjectDir, reporter)
-                .withTestName("external-cordapp")
-                .withSubResource("corda-platform-cordapp/build.gradle")
-                .withSubResource("external-cordapp-transitive-dependency/build.gradle")
-                .withTaskName("publishAllPublicationsToTestRepository")
-                .build("-Pmaven_repository_dir=$mavenRepoDir",
-                    "-Pcorda_api_version=$cordaApiVersion",
-                    "-Pplatform_cordapp_version=$platformCordappVersion",
-                    "-Pcordapp_version=$cordappVersion",
-                    "-Pcordapp_contract_version=$expectedCordappContractVersion")
-            testProject = GradleProject(cpbProjectDir, reporter)
-                .withTestName("cordapp-cpb")
-                .withSubResource("project-dependency/build.gradle")
-                .build("-Pmaven_repository_dir=$mavenRepoDir",
-                    "-Pplatform_cordapp_version=$platformCordappVersion",
-                    "-Pcordapp_version=$cordappVersion",
-                    "-Pcordapp_contract_version=$expectedCordappContractVersion")
-        }
+    @BeforeAll
+    fun setup(
+        @TempDir externalCordappProjectDir: Path,
+        @TempDir testDir: Path,
+        reporter: TestReporter
+    ) {
+        val mavenRepoDir = Files.createDirectory(testDir.resolve("maven"))
+        val cpbProjectDir = Files.createDirectory(testDir.resolve("cpb"))
+        externalProject = GradleProject(externalCordappProjectDir, reporter)
+            .withTestName("external-cordapp")
+            .withSubResource("corda-platform-cordapp/build.gradle")
+            .withSubResource("external-cordapp-transitive-dependency/build.gradle")
+            .withTaskName("publishAllPublicationsToTestRepository")
+            .build("-Pmaven_repository_dir=$mavenRepoDir",
+                "-Pcorda_api_version=$cordaApiVersion",
+                "-Pplatform_cordapp_version=$platformCordappVersion",
+                "-Pcordapp_version=$cordappVersion",
+                "-Pcordapp_contract_version=$expectedCordappContractVersion")
+        testProject = GradleProject(cpbProjectDir, reporter)
+            .withTestName("cordapp-cpb")
+            .withSubResource("project-dependency/build.gradle")
+            .build("-Pmaven_repository_dir=$mavenRepoDir",
+                "-Pplatform_cordapp_version=$platformCordappVersion",
+                "-Pcordapp_version=$cordappVersion",
+                "-Pcordapp_contract_version=$expectedCordappContractVersion")
+    }
 
-        private fun ByteArray.toHex() = joinToString(separator = "") {
-            String.format("%02X", it)
-        }
+    private fun ByteArray.toHex() = joinToString(separator = "") {
+        String.format("%02X", it)
+    }
 
-        fun sha256(inputStream : InputStream) : String {
-            return digestFor(algorithmName = "SHA-256").hashFor(inputStream).toHex()
-        }
+    private fun sha256(inputStream : InputStream) : String {
+        return digestFor(algorithmName = "SHA-256").hashFor(inputStream).toHex()
     }
 
     @Test

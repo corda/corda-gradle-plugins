@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test
 import kotlin.reflect.jvm.jvmName
 
 class MetaFixSealedClassTest {
-    companion object {
+    private companion object {
         private val logger: Logger = StdOutLogging(MetaFixSealedClassTest::class)
         private val UNWANTED_CLASS: String = "${MetaSealedClass::class.jvmName}\$Unwanted"
         private val WANTED_CLASS: String = MetaSealedClass.Wanted::class.jvmName

@@ -9,6 +9,8 @@ import net.corda.gradle.jarfilter.matcher.isProperty
 import org.gradle.api.logging.Logger
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
 import kotlin.jvm.kotlin
 import kotlin.reflect.full.declaredFunctions
 import kotlin.reflect.full.declaredMembers
@@ -19,26 +21,26 @@ import kotlin.test.assertFailsWith
  * supports package metadata. Until then, we can only execute the code
  * paths to ensure they don't throw any exceptions.
  */
+@TestInstance(PER_CLASS)
 class MetaFixPackageTest {
-    companion object {
+    private companion object {
         private const val TEMPLATE_CLASS = "net.corda.gradle.jarfilter.PackageTemplate"
         private const val EMPTY_CLASS = "net.corda.gradle.jarfilter.EmptyPackage"
         private val logger: Logger = StdOutLogging(MetaFixPackageTest::class)
         private val staticVal = isProperty("templateVal", Long::class)
         private val staticVar = isProperty("templateVar", Int::class)
         private val staticFun = isFunction("templateFun", String::class)
+    }
 
-        private lateinit var sourceClass: Class<out Any>
-        private lateinit var fixedClass: Class<out Any>
+    private lateinit var sourceClass: Class<out Any>
+    private lateinit var fixedClass: Class<out Any>
 
-        @BeforeAll
-        @JvmStatic
-        fun setup() {
-            val emptyClass = Class.forName(EMPTY_CLASS)
-            val bytecode = emptyClass.metadataAs(Class.forName(TEMPLATE_CLASS))
-            sourceClass = bytecode.toClass(emptyClass, Any::class.java)
-            fixedClass = bytecode.fixMetadata(logger, setOf(EMPTY_CLASS)).toClass(sourceClass, Any::class.java)
-        }
+    @BeforeAll
+    fun setup() {
+        val emptyClass = Class.forName(EMPTY_CLASS)
+        val bytecode = emptyClass.metadataAs(Class.forName(TEMPLATE_CLASS))
+        sourceClass = bytecode.toClass(emptyClass, Any::class.java)
+        fixedClass = bytecode.fixMetadata(logger, setOf(EMPTY_CLASS)).toClass(sourceClass, Any::class.java)
     }
 
     @Test

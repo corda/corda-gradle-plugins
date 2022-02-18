@@ -11,28 +11,31 @@ import org.hamcrest.core.IsNot.not
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
 import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Path
 import kotlin.reflect.full.declaredMemberProperties
 import kotlin.test.assertFailsWith
 
+@TestInstance(PER_CLASS)
 class DeleteLazyTest {
-    companion object {
+    private companion object {
         private const val LAZY_VAL_CLASS = "net.corda.gradle.HasLazyVal"
 
         private val unwantedVal = isProperty("unwantedVal", String::class)
         private val getUnwantedVal = isMethod("getUnwantedVal", String::class.java)
-        private lateinit var testProject: JarFilterProject
-        private lateinit var sourceClasses: List<String>
-        private lateinit var filteredClasses: List<String>
+    }
 
-        @BeforeAll
-        @JvmStatic
-        fun setup(@TempDir testProjectDir: Path) {
-            testProject = JarFilterProject(testProjectDir, "delete-lazy").build()
-            sourceClasses = testProject.sourceJar.getClassNames(LAZY_VAL_CLASS)
-            filteredClasses = testProject.filteredJar.getClassNames(LAZY_VAL_CLASS)
-        }
+    private lateinit var testProject: JarFilterProject
+    private lateinit var sourceClasses: List<String>
+    private lateinit var filteredClasses: List<String>
+
+    @BeforeAll
+    fun setup(@TempDir testProjectDir: Path) {
+        testProject = JarFilterProject(testProjectDir, "delete-lazy").build()
+        sourceClasses = testProject.sourceJar.getClassNames(LAZY_VAL_CLASS)
+        filteredClasses = testProject.filteredJar.getClassNames(LAZY_VAL_CLASS)
     }
 
     @Test

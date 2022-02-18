@@ -3,6 +3,8 @@ package net.corda.plugins.cpk
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
 import org.junit.jupiter.api.TestReporter
 import org.junit.jupiter.api.io.TempDir
 import org.osgi.framework.Constants.BUNDLE_LICENSE
@@ -22,8 +24,9 @@ import org.junit.jupiter.api.Test
  * Verify that transitive cordapp and cordaProvided dependencies
  * are inherited by downstream CPK projects.
  */
+@TestInstance(PER_CLASS)
 class TransitiveRemoteCordappsTest {
-    companion object {
+    private companion object {
         private const val cordappVersion = "1.0.1-SNAPSHOT"
         private const val cpk1Version = "1.0-SNAPSHOT"
         private const val cpk2Version = "2.0-SNAPSHOT"
@@ -35,54 +38,53 @@ class TransitiveRemoteCordappsTest {
         private const val kotlinOsgiVersion = "version=\"[1.4,2)\""
         private const val cordaOsgiVersion = "version=\"[5.0,6)\""
         private const val cordappOsgiVersion = "version=\"1.0.1\""
+    }
 
-        private lateinit var publisherProject: GradleProject
-        private lateinit var testProject: GradleProject
+    private lateinit var publisherProject: GradleProject
+    private lateinit var testProject: GradleProject
 
-        @BeforeAll
-        @JvmStatic
-        fun setup(
-            @TempDir publisherProjectDir: Path,
-            @TempDir testProjectDir: Path,
-            reporter: TestReporter
-        ) {
-            val repositoryDir = Files.createDirectory(testProjectDir.resolve("maven"))
-            publisherProject = GradleProject(publisherProjectDir, reporter)
-                .withTestName("transitive-cordapps")
-                .withSubResource("src/main/kotlin/com/example/transitives/ExampleContract.kt")
-                .withSubResource("cpk-one/build.gradle")
-                .withSubResource("cpk-two/build.gradle")
-                .withSubResource("cpk-three/build.gradle")
-                .withTaskName("publishAllPublicationsToTestRepository")
-                .build(
-                    "-Pcordapp_contract_version=$expectedCordappContractVersion",
-                    "-Pcommons_io_version=$commonsIoVersion",
-                    "-Pcorda_api_version=$cordaApiVersion",
-                    "-Pcordapp_version=$cordappVersion",
-                    "-Pcpk1_version=$cpk1Version",
-                    "-Pcpk2_version=$cpk2Version",
-                    "-Pcpk3_version=$cpk3Version",
-                    "-Prepository_dir=$repositoryDir",
-                    "-Pcpk1_type=$cpk1Type",
-                    "-Pcpk2_type=$cpk2Type"
-                )
+    @BeforeAll
+    fun setup(
+        @TempDir publisherProjectDir: Path,
+        @TempDir testProjectDir: Path,
+        reporter: TestReporter
+    ) {
+        val repositoryDir = Files.createDirectory(testProjectDir.resolve("maven"))
+        publisherProject = GradleProject(publisherProjectDir, reporter)
+            .withTestName("transitive-cordapps")
+            .withSubResource("src/main/kotlin/com/example/transitives/ExampleContract.kt")
+            .withSubResource("cpk-one/build.gradle")
+            .withSubResource("cpk-two/build.gradle")
+            .withSubResource("cpk-three/build.gradle")
+            .withTaskName("publishAllPublicationsToTestRepository")
+            .build(
+                "-Pcordapp_contract_version=$expectedCordappContractVersion",
+                "-Pcommons_io_version=$commonsIoVersion",
+                "-Pcorda_api_version=$cordaApiVersion",
+                "-Pcordapp_version=$cordappVersion",
+                "-Pcpk1_version=$cpk1Version",
+                "-Pcpk2_version=$cpk2Version",
+                "-Pcpk3_version=$cpk3Version",
+                "-Prepository_dir=$repositoryDir",
+                "-Pcpk1_type=$cpk1Type",
+                "-Pcpk2_type=$cpk2Type"
+            )
 
-            // Check that we could still read all of Gradle's MavenPom properties.
-            assertThat(publisherProject.output.split(System.lineSeparator()))
-                .noneMatch { it.startsWith("INTERNAL API:") }
+        // Check that we could still read all of Gradle's MavenPom properties.
+        assertThat(publisherProject.output.split(System.lineSeparator()))
+            .noneMatch { it.startsWith("INTERNAL API:") }
 
-            testProject = GradleProject(testProjectDir, reporter)
-                .withTestName("transitive-remote-cordapps")
-                .withSubResource("src/main/kotlin/com/example/transitives/ExampleContract.kt")
-                .build(
-                    "-Pcordapp_contract_version=$expectedCordappContractVersion",
-                    "-Pcommons_io_version=$commonsIoVersion",
-                    "-Pcorda_api_version=$cordaApiVersion",
-                    "-Pcordapp_version=$cordappVersion",
-                    "-Pcpk3_version=$cpk3Version",
-                    "-Prepository_dir=$repositoryDir"
-                )
-        }
+        testProject = GradleProject(testProjectDir, reporter)
+            .withTestName("transitive-remote-cordapps")
+            .withSubResource("src/main/kotlin/com/example/transitives/ExampleContract.kt")
+            .build(
+                "-Pcordapp_contract_version=$expectedCordappContractVersion",
+                "-Pcommons_io_version=$commonsIoVersion",
+                "-Pcorda_api_version=$cordaApiVersion",
+                "-Pcordapp_version=$cordappVersion",
+                "-Pcpk3_version=$cpk3Version",
+                "-Prepository_dir=$repositoryDir"
+            )
     }
 
     @Test

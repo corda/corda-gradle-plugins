@@ -4,6 +4,8 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
 import org.junit.jupiter.api.TestReporter
 import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Path
@@ -11,55 +13,52 @@ import java.util.stream.Collectors.toList
 import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
 
+@TestInstance(PER_CLASS)
 class CordappGradleConfigurationsTest {
-    companion object {
-        private lateinit var testProject: GradleProject
-        private lateinit var poms: List<ZipEntry>
+    private lateinit var testProject: GradleProject
+    private lateinit var poms: List<ZipEntry>
 
-        @Suppress("unused")
-        @BeforeAll
-        @JvmStatic
-        fun setup(@TempDir testProjectDir: Path, reporter: TestReporter) {
-            testProject = GradleProject(testProjectDir, reporter)
-                .withBuildScript("""
-                    |plugins {
-                    |    id 'net.corda.plugins.cordapp'
-                    |}
-                    |
-                    |apply from: 'repositories.gradle'
-                    |
-                    |version = '1.0-SNAPSHOT'
-                    |group = 'com.example'
-                    |
-                    |dependencies {
-                    |    compile "org.slf4j:slf4j-api:1.7.26"
-                    |    runtime "commons-io:commons-io:2.6"
-                    |    cordaCompile "com.google.guava:guava:20.0"
-                    |    cordaRuntime "javax.servlet:javax.servlet-api:3.1.0"
-                    |    implementation "javax.persistence:javax.persistence-api:2.2"
-                    |    runtimeOnly "javax.validation:validation-api:1.1.0.Final"
-                    |}
-                    |
-                    |jar {
-                    |    archiveName = 'configurations.jar'
-                    |}
-                    |
-                    |cordapp {
-                    |    info {
-                    |        name = 'Testing'
-                    |        targetPlatformVersion = 5
-                    |    }
-                    |}
-                """.trimMargin())
-                .build()
+    @BeforeAll
+    fun setup(@TempDir testProjectDir: Path, reporter: TestReporter) {
+        testProject = GradleProject(testProjectDir, reporter)
+            .withBuildScript("""
+                |plugins {
+                |    id 'net.corda.plugins.cordapp'
+                |}
+                |
+                |apply from: 'repositories.gradle'
+                |
+                |version = '1.0-SNAPSHOT'
+                |group = 'com.example'
+                |
+                |dependencies {
+                |    compile "org.slf4j:slf4j-api:1.7.26"
+                |    runtime "commons-io:commons-io:2.6"
+                |    cordaCompile "com.google.guava:guava:20.0"
+                |    cordaRuntime "javax.servlet:javax.servlet-api:3.1.0"
+                |    implementation "javax.persistence:javax.persistence-api:2.2"
+                |    runtimeOnly "javax.validation:validation-api:1.1.0.Final"
+                |}
+                |
+                |jar {
+                |    archiveName = 'configurations.jar'
+                |}
+                |
+                |cordapp {
+                |    info {
+                |        name = 'Testing'
+                |        targetPlatformVersion = 5
+                |    }
+                |}
+            """.trimMargin())
+            .build()
 
-            val cordapp = testProject.pathOf("build", "libs", "configurations.jar")
-            assertThat(cordapp).isRegularFile()
+        val cordapp = testProject.pathOf("build", "libs", "configurations.jar")
+        assertThat(cordapp).isRegularFile()
 
-            poms = ZipFile(cordapp.toFile()).use { zip ->
-                zip.stream().filter { entry -> entry.name.endsWith("/pom.xml") }
-                   .collect(toList())
-            }
+        poms = ZipFile(cordapp.toFile()).use { zip ->
+            zip.stream().filter { entry -> entry.name.endsWith("/pom.xml") }
+               .collect(toList())
         }
     }
 

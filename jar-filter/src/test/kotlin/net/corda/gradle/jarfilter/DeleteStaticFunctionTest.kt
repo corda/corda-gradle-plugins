@@ -7,23 +7,26 @@ import org.hamcrest.core.IsIterableContaining.hasItem
 import org.hamcrest.core.IsNot.not
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
 import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Path
 import kotlin.test.assertFailsWith
 
+@TestInstance(PER_CLASS)
 class DeleteStaticFunctionTest {
-    companion object {
+    private companion object {
         private const val FUNCTION_CLASS = "net.corda.gradle.StaticFunctionsToDelete"
 
         private val unwantedInline = isMethod("unwantedInlineToDelete", Any::class.java, String::class.java, Class::class.java)
         private val defaultUnwantedInline = isMethod("unwantedInlineToDelete\$default", Any::class.java, String::class.java, Class::class.java, Integer.TYPE, Any::class.java)
-        private lateinit var testProject: JarFilterProject
+    }
 
-        @BeforeAll
-        @JvmStatic
-        fun setup(@TempDir testProjectDir: Path) {
-            testProject = JarFilterProject(testProjectDir, "delete-static-function").build()
-        }
+    private lateinit var testProject: JarFilterProject
+
+    @BeforeAll
+    fun setup(@TempDir testProjectDir: Path) {
+        testProject = JarFilterProject(testProjectDir, "delete-static-function").build()
     }
 
     @Test

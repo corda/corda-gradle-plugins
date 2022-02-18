@@ -4,6 +4,8 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
 import org.junit.jupiter.api.TestReporter
 import org.junit.jupiter.api.io.TempDir
 import org.osgi.framework.Constants.BUNDLE_LICENSE
@@ -14,37 +16,37 @@ import org.osgi.framework.Constants.BUNDLE_VERSION
 import org.osgi.framework.Constants.IMPORT_PACKAGE
 import java.nio.file.Path
 
+@TestInstance(PER_CLASS)
 class CordappApiLibraryTest {
-    companion object {
+    private companion object {
         private const val CONTRACT_CORDAPP_VERSION = "1.1.5-SNAPSHOT"
         private const val WORKFLOW_CORDAPP_VERSION = "2.6.3-SNAPSHOT"
         private const val expectedContractGuavaVersion = "29.0-jre"
         private const val expectedWorkflowGuavaVersion = "19.0"
-        private lateinit var testProject: GradleProject
+    }
 
-        @Suppress("unused")
-        @BeforeAll
-        @JvmStatic
-        fun setup(@TempDir testProjectDir: Path, reporter: TestReporter) {
-            // Check that the Workflow CorDapp is using a lower version
-            // of Guava than the Contract CorDapp.
-            assertThat(osgiVersion(expectedWorkflowGuavaVersion))
-                .isLessThan(osgiVersion(expectedContractGuavaVersion))
+    private lateinit var testProject: GradleProject
 
-            testProject = GradleProject(testProjectDir, reporter)
-                .withTestName("cordapp-api-library")
-                .withSubResource("src/main/kotlin/com/example/workflow/ExampleWorkflow.kt")
-                .withSubResource("cordapp/build.gradle")
-                .build(
-                    "-Pcorda_api_version=$cordaApiVersion",
-                    "-Pcordapp_contract_version=$expectedCordappContractVersion",
-                    "-Pcordapp_workflow_version=$expectedCordappWorkflowVersion",
-                    "-Pcontract_cordapp_version=$CONTRACT_CORDAPP_VERSION",
-                    "-Pcontract_guava_version=$expectedContractGuavaVersion",
-                    "-Pworkflow_cordapp_version=$WORKFLOW_CORDAPP_VERSION",
-                    "-Pworkflow_guava_version=$expectedWorkflowGuavaVersion"
-                )
-        }
+    @BeforeAll
+    fun setup(@TempDir testProjectDir: Path, reporter: TestReporter) {
+        // Check that the Workflow CorDapp is using a lower version
+        // of Guava than the Contract CorDapp.
+        assertThat(osgiVersion(expectedWorkflowGuavaVersion))
+            .isLessThan(osgiVersion(expectedContractGuavaVersion))
+
+        testProject = GradleProject(testProjectDir, reporter)
+            .withTestName("cordapp-api-library")
+            .withSubResource("src/main/kotlin/com/example/workflow/ExampleWorkflow.kt")
+            .withSubResource("cordapp/build.gradle")
+            .build(
+                "-Pcorda_api_version=$cordaApiVersion",
+                "-Pcordapp_contract_version=$expectedCordappContractVersion",
+                "-Pcordapp_workflow_version=$expectedCordappWorkflowVersion",
+                "-Pcontract_cordapp_version=$CONTRACT_CORDAPP_VERSION",
+                "-Pcontract_guava_version=$expectedContractGuavaVersion",
+                "-Pworkflow_cordapp_version=$WORKFLOW_CORDAPP_VERSION",
+                "-Pworkflow_guava_version=$expectedWorkflowGuavaVersion"
+            )
     }
 
     @Test

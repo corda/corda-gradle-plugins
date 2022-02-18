@@ -5,6 +5,8 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
 import org.junit.jupiter.api.TestReporter
 import org.junit.jupiter.api.io.TempDir
 import org.osgi.framework.Constants.BUNDLE_CLASSPATH
@@ -17,27 +19,26 @@ import java.nio.file.Path
 import java.util.jar.JarEntry
 import java.util.jar.JarFile
 
+@TestInstance(PER_CLASS)
 class EmbedTransitiveDependenciesTest {
-    companion object {
+    private companion object {
         private const val cordappVersion = "2.3.4-SNAPSHOT"
         private const val annotationsOsgiVersion = "version=\"$annotationsVersion\""
+    }
 
-        private lateinit var testProject: GradleProject
+    private lateinit var testProject: GradleProject
 
-        @Suppress("unused")
-        @BeforeAll
-        @JvmStatic
-        fun setup(@TempDir testProjectDir: Path, reporter: TestReporter) {
-            testProject = GradleProject(testProjectDir, reporter)
-                .withTestName("embed-transitive-deps")
-                .withSubResource("library/build.gradle")
-                .build(
-                    "-Pcordapp_contract_version=$expectedCordappContractVersion",
-                    "-Pannotations_version=$annotationsVersion",
-                    "-Pcommons_io_version=$commonsIoVersion",
-                    "-Pcordapp_version=$cordappVersion"
-                )
-        }
+    @BeforeAll
+    fun setup(@TempDir testProjectDir: Path, reporter: TestReporter) {
+        testProject = GradleProject(testProjectDir, reporter)
+            .withTestName("embed-transitive-deps")
+            .withSubResource("library/build.gradle")
+            .build(
+                "-Pcordapp_contract_version=$expectedCordappContractVersion",
+                "-Pannotations_version=$annotationsVersion",
+                "-Pcommons_io_version=$commonsIoVersion",
+                "-Pcordapp_version=$cordappVersion"
+            )
     }
 
     @Test

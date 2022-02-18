@@ -5,6 +5,8 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
 import org.junit.jupiter.api.TestReporter
 import org.junit.jupiter.api.io.TempDir
 import org.osgi.framework.Constants.BUNDLE_LICENSE
@@ -17,30 +19,29 @@ import org.osgi.framework.Constants.IMPORT_PACKAGE
 import org.osgi.framework.Constants.REQUIRE_CAPABILITY
 import java.nio.file.Path
 
+@TestInstance(PER_CLASS)
 class SimpleCordappTest {
-    companion object {
-        private lateinit var testProject: GradleProject
-
+    private companion object {
         private const val SIGNING_TAG = "Jar signing with following options:"
         private const val cordappVersion = "1.0.1-SNAPSHOT"
         private const val ioOsgiVersion = "version=\"[1.4,2)\""
         private const val cordaOsgiVersion = "version=\"[5.0,6)\""
         private const val cordappOsgiVersion = "version=\"1.0.1\""
+    }
 
-        @Suppress("unused")
-        @BeforeAll
-        @JvmStatic
-        fun setup(@TempDir testProjectDir: Path, reporter: TestReporter) {
-            testProject = GradleProject(testProjectDir, reporter)
-                .withTestName("simple-cordapp")
-                .withSubResource("src/main/java/com/example/contract/ExampleContract.java")
-                .build(
-                    "-Pcordapp_contract_version=$expectedCordappContractVersion",
-                    "-Pcommons_io_version=$commonsIoVersion",
-                    "-Pcorda_api_version=$cordaApiVersion",
-                    "-Pcordapp_version=$cordappVersion"
-                )
-        }
+    private lateinit var testProject: GradleProject
+
+    @BeforeAll
+    fun setup(@TempDir testProjectDir: Path, reporter: TestReporter) {
+        testProject = GradleProject(testProjectDir, reporter)
+            .withTestName("simple-cordapp")
+            .withSubResource("src/main/java/com/example/contract/ExampleContract.java")
+            .build(
+                "-Pcordapp_contract_version=$expectedCordappContractVersion",
+                "-Pcommons_io_version=$commonsIoVersion",
+                "-Pcorda_api_version=$cordaApiVersion",
+                "-Pcordapp_version=$cordappVersion"
+            )
     }
 
     @Test

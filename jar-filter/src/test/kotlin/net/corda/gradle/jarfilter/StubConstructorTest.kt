@@ -11,28 +11,30 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
 import org.junit.jupiter.api.io.TempDir
 import java.lang.reflect.InvocationTargetException
 import java.nio.file.Path
 import kotlin.reflect.full.primaryConstructor
 import kotlin.test.assertFailsWith
 
+@TestInstance(PER_CLASS)
 class StubConstructorTest {
-    companion object {
+    private companion object {
         private const val STRING_PRIMARY_CONSTRUCTOR_CLASS = "net.corda.gradle.PrimaryStringConstructorToStub"
         private const val LONG_PRIMARY_CONSTRUCTOR_CLASS = "net.corda.gradle.PrimaryLongConstructorToStub"
         private const val INT_PRIMARY_CONSTRUCTOR_CLASS = "net.corda.gradle.PrimaryIntConstructorToStub"
         private const val SECONDARY_CONSTRUCTOR_CLASS = "net.corda.gradle.HasConstructorToStub"
         private const val DEFAULT_VALUE_PRIMARY_CLASS = "net.corda.gradle.PrimaryConstructorWithDefaultToStub"
         private const val DEFAULT_VALUE_SECONDARY_CLASS = "net.corda.gradle.SecondaryConstructorWithDefaultToStub"
+    }
 
-        private lateinit var testProject: JarFilterProject
+    private lateinit var testProject: JarFilterProject
 
-        @BeforeAll
-        @JvmStatic
-        fun setup(@TempDir testProjectDir: Path) {
-            testProject = JarFilterProject(testProjectDir, "stub-constructor").build()
-        }
+    @BeforeAll
+    fun setup(@TempDir testProjectDir: Path) {
+        testProject = JarFilterProject(testProjectDir, "stub-constructor").build()
     }
 
     @Test

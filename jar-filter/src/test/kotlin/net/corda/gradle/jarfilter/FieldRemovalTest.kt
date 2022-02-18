@@ -23,7 +23,7 @@ import kotlin.test.assertFailsWith
  * one of their properties. (Check we haven't blown the constructor away!)
  */
 class FieldRemovalTest {
-    companion object {
+    private companion object {
         private val logger: Logger = StdOutLogging(FieldRemovalTest::class)
         private const val SHORT_NUMBER = 999.toShort()
         private const val BYTE_NUMBER = 99.toByte()

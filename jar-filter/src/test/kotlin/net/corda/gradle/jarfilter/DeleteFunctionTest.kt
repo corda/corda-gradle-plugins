@@ -11,27 +11,30 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
 import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Path
 import kotlin.jvm.kotlin
 import kotlin.reflect.full.declaredFunctions
 import kotlin.test.assertFailsWith
 
+@TestInstance(PER_CLASS)
 class DeleteFunctionTest {
-    companion object {
+    private companion object {
         private const val FUNCTION_CLASS = "net.corda.gradle.HasFunctionToDelete"
         private const val INDIRECT_CLASS = "net.corda.gradle.HasIndirectFunctionToDelete"
         private const val DEFAULT_VALUE_CLASS = "net.corda.gradle.HasFunctionWithDefaultParameter"
 
         private val unwantedFun = isFunction("unwantedFun", String::class, String::class)
         private val javaUnwantedFun = isMethod("unwantedFun", String::class.java, String::class.java)
-        private lateinit var testProject: JarFilterProject
+    }
 
-        @BeforeAll
-        @JvmStatic
-        fun setup(@TempDir testProjectDir: Path) {
-            testProject = JarFilterProject(testProjectDir, "delete-function").build()
-        }
+    private lateinit var testProject: JarFilterProject
+
+    @BeforeAll
+    fun setup(@TempDir testProjectDir: Path) {
+        testProject = JarFilterProject(testProjectDir, "delete-function").build()
     }
 
     @Test

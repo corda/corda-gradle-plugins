@@ -4,21 +4,24 @@ import net.corda.gradle.unwanted.HasUnwantedVar
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
 import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Path
 import kotlin.test.assertFailsWith
 
+@TestInstance(PER_CLASS)
 class StubVarPropertyTest {
-    companion object {
+    private companion object {
         private const val GETTER_CLASS = "net.corda.gradle.HasUnwantedGetForStub"
         private const val SETTER_CLASS = "net.corda.gradle.HasUnwantedSetForStub"
-        private lateinit var testProject: JarFilterProject
+    }
 
-        @BeforeAll
-        @JvmStatic
-        fun setup(@TempDir testProjectDir: Path) {
-            testProject = JarFilterProject(testProjectDir, "stub-var-property").build()
-        }
+    private lateinit var testProject: JarFilterProject
+
+    @BeforeAll
+    fun setup(@TempDir testProjectDir: Path) {
+        testProject = JarFilterProject(testProjectDir, "stub-var-property").build()
     }
 
     @Test

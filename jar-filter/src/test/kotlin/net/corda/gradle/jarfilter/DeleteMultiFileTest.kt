@@ -3,24 +3,26 @@ package net.corda.gradle.jarfilter
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
 import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Path
 import kotlin.test.assertFailsWith
 
+@TestInstance(PER_CLASS)
 class DeleteMultiFileTest {
-    companion object {
+    private companion object {
         private const val MULTIFILE_CLASS = "net.corda.gradle.HasMultiData"
         private const val STRING_METHOD = "stringToDelete"
         private const val LONG_METHOD = "longToDelete"
         private const val INT_METHOD = "intToDelete"
+    }
 
-        private lateinit var testProject: JarFilterProject
+    private lateinit var testProject: JarFilterProject
 
-        @BeforeAll
-        @JvmStatic
-        fun setup(@TempDir testProjectDir: Path) {
-            testProject = JarFilterProject(testProjectDir, "delete-multifile").build()
-        }
+    @BeforeAll
+    fun setup(@TempDir testProjectDir: Path) {
+        testProject = JarFilterProject(testProjectDir, "delete-multifile").build()
     }
 
     @Test

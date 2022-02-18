@@ -18,24 +18,27 @@ import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
 import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Path
 import kotlin.jvm.kotlin
 import kotlin.reflect.full.primaryConstructor
 import kotlin.test.assertFailsWith
 
+@TestInstance(PER_CLASS)
 class SanitiseDeleteConstructorTest {
-    companion object {
+    private companion object {
         private const val COMPLEX_CONSTRUCTOR_CLASS = "net.corda.gradle.HasOverloadedComplexConstructorToDelete"
 
         private val isDefaultConstructorMarker = equalTo("kotlin.jvm.internal.DefaultConstructorMarker")
-        private lateinit var testProject: JarFilterProject
+    }
 
-        @BeforeAll
-        @JvmStatic
-        fun setup(@TempDir testProjectDir: Path) {
-            testProject = JarFilterProject(testProjectDir, "sanitise-delete-constructor").build()
-        }
+    private lateinit var testProject: JarFilterProject
+
+    @BeforeAll
+    fun setup(@TempDir testProjectDir: Path) {
+        testProject = JarFilterProject(testProjectDir, "sanitise-delete-constructor").build()
     }
 
     @Test

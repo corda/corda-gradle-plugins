@@ -5,6 +5,8 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
 import org.junit.jupiter.api.TestReporter
 import org.junit.jupiter.api.io.TempDir
 import org.osgi.framework.Constants.BUNDLE_LICENSE
@@ -17,8 +19,9 @@ import org.osgi.framework.Constants.IMPORT_PACKAGE
 import org.osgi.framework.Constants.REQUIRE_CAPABILITY
 import java.nio.file.Path
 
+@TestInstance(PER_CLASS)
 class SimpleKotlinCordappTest {
-    companion object {
+    private companion object {
         private const val cordappVersion = "1.0.1-SNAPSHOT"
         private const val guavaVersion = "29.0-jre"
 
@@ -27,25 +30,23 @@ class SimpleKotlinCordappTest {
         private const val kotlinOsgiVersion = "version=\"[1.4,2)\""
         private const val cordaOsgiVersion = "version=\"[5.0,6)\""
         private const val cordappOsgiVersion = "version=\"1.0.1\""
+    }
 
-        private lateinit var testProject: GradleProject
+    private lateinit var testProject: GradleProject
 
-        @Suppress("unused")
-        @BeforeAll
-        @JvmStatic
-        fun setup(@TempDir testProjectDir: Path, reporter: TestReporter) {
-            testProject = GradleProject(testProjectDir, reporter)
-                .withTestName("simple-kotlin-cordapp")
-                .withSubResource("src/main/kotlin/com/example/contract/ExampleContract.kt")
-                .withSubResource("src/main/kotlin/com/example/contract/states/ExampleState.kt")
-                .build(
-                    "-Pcordapp_version=$cordappVersion",
-                    "-Pcordapp_contract_version=$expectedCordappContractVersion",
-                    "-Pcommons_io_version=$commonsIoVersion",
-                    "-Pcorda_api_version=$cordaApiVersion",
-                    "-Pguava_version=$guavaVersion"
-                )
-        }
+    @BeforeAll
+    fun setup(@TempDir testProjectDir: Path, reporter: TestReporter) {
+        testProject = GradleProject(testProjectDir, reporter)
+            .withTestName("simple-kotlin-cordapp")
+            .withSubResource("src/main/kotlin/com/example/contract/ExampleContract.kt")
+            .withSubResource("src/main/kotlin/com/example/contract/states/ExampleState.kt")
+            .build(
+                "-Pcordapp_version=$cordappVersion",
+                "-Pcordapp_contract_version=$expectedCordappContractVersion",
+                "-Pcommons_io_version=$commonsIoVersion",
+                "-Pcorda_api_version=$cordaApiVersion",
+                "-Pguava_version=$guavaVersion"
+            )
     }
 
     @Test

@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test
 import kotlin.jvm.kotlin
 
 class MetaFixConstructorTest {
-    companion object {
+    private companion object {
         private val logger: Logger = StdOutLogging(MetaFixConstructorTest::class)
         private val unwantedCon = isKonstructor(WithConstructor::class, Int::class, Long::class)
         private val wantedCon = isKonstructor(WithConstructor::class, Long::class)

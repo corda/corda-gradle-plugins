@@ -9,7 +9,7 @@ import org.hamcrest.core.IsIterableContaining.hasItem
 import org.junit.jupiter.api.Test
 
 class MetaFixAnnotationTest {
-    companion object {
+    private companion object {
         private val logger: Logger = StdOutLogging(MetaFixAnnotationTest::class)
         private val defaultCon = isKonstructor(
             returnType = SimpleAnnotation::class

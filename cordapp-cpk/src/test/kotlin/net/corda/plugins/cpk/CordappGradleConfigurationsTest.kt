@@ -4,6 +4,8 @@ import org.assertj.core.api.Assertions.assertThat
 import org.gradle.util.GradleVersion
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
 import org.junit.jupiter.api.TestReporter
 import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Path
@@ -11,59 +13,59 @@ import java.util.stream.Collectors.toList
 import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
 
+@TestInstance(PER_CLASS)
 class CordappGradleConfigurationsTest {
-    companion object {
+    private companion object {
         private val GRADLE_6_9 = GradleVersion.version("6.9")
-        private lateinit var testProject: GradleProject
-        private lateinit var dependencies: List<ZipEntry>
+    }
 
-        @Suppress("unused")
-        @BeforeAll
-        @JvmStatic
-        fun setup(@TempDir testProjectDir: Path, reporter: TestReporter) {
-            testProject = GradleProject(testProjectDir, reporter)
-                .withGradleVersion(GRADLE_6_9)
-                .withBuildScript("""\
-                    |plugins {
-                    |    id 'net.corda.plugins.cordapp-cpk'
-                    |}
-                    |
-                    |apply from: 'repositories.gradle'
-                    |
-                    |version = '1.0-SNAPSHOT'
-                    |group = 'com.example'
-                    |
-                    |dependencies {
-                    |    compile "javax.activation:javax.activation-api:1.2.0"
-                    |    runtime "commons-io:commons-io:2.7"
-                    |    cordaProvided "com.google.guava:guava:20.0"
-                    |    cordaRuntimeOnly "javax.servlet:javax.servlet-api:3.1.0"
-                    |    api "javax.annotation:javax.annotation-api:1.3.2"
-                    |    implementation "javax.persistence:javax.persistence-api:2.2"
-                    |    runtimeOnly "javax.validation:validation-api:1.1.0.Final"
-                    |}
-                    |
-                    |jar {
-                    |    archiveBaseName = 'configurations'
-                    |}
-                    |
-                    |cordapp {
-                    |    contract {
-                    |        name = 'Testing'
-                    |        versionId = 1
-                    |        targetPlatformVersion = 999
-                    |    }
-                    |}
-                """.trimMargin())
-                .build()
+    private lateinit var testProject: GradleProject
+    private lateinit var dependencies: List<ZipEntry>
 
-            val cordapp = testProject.artifacts.single { it.toString().endsWith(".cpk") }
-            assertThat(cordapp).isRegularFile()
+    @BeforeAll
+    fun setup(@TempDir testProjectDir: Path, reporter: TestReporter) {
+        testProject = GradleProject(testProjectDir, reporter)
+            .withGradleVersion(GRADLE_6_9)
+            .withBuildScript("""\
+                |plugins {
+                |    id 'net.corda.plugins.cordapp-cpk'
+                |}
+                |
+                |apply from: 'repositories.gradle'
+                |
+                |version = '1.0-SNAPSHOT'
+                |group = 'com.example'
+                |
+                |dependencies {
+                |    compile "javax.activation:javax.activation-api:1.2.0"
+                |    runtime "commons-io:commons-io:2.7"
+                |    cordaProvided "com.google.guava:guava:20.0"
+                |    cordaRuntimeOnly "javax.servlet:javax.servlet-api:3.1.0"
+                |    api "javax.annotation:javax.annotation-api:1.3.2"
+                |    implementation "javax.persistence:javax.persistence-api:2.2"
+                |    runtimeOnly "javax.validation:validation-api:1.1.0.Final"
+                |}
+                |
+                |jar {
+                |    archiveBaseName = 'configurations'
+                |}
+                |
+                |cordapp {
+                |    contract {
+                |        name = 'Testing'
+                |        versionId = 1
+                |        targetPlatformVersion = 999
+                |    }
+                |}
+            """.trimMargin())
+            .build()
 
-            dependencies = ZipFile(cordapp.toFile()).use { zip ->
-                zip.stream().filter { entry -> entry.name.startsWith("lib/") && !entry.isDirectory }
-                   .collect(toList())
-            }
+        val cordapp = testProject.artifacts.single { it.toString().endsWith(".cpk") }
+        assertThat(cordapp).isRegularFile()
+
+        dependencies = ZipFile(cordapp.toFile()).use { zip ->
+            zip.stream().filter { entry -> entry.name.startsWith("lib/") && !entry.isDirectory }
+               .collect(toList())
         }
     }
 

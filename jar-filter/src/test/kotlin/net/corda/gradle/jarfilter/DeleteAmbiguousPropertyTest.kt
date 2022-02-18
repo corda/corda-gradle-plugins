@@ -11,13 +11,16 @@ import org.hamcrest.core.IsNot.not
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
 import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Path
 import kotlin.reflect.full.declaredMemberExtensionProperties
 
 @RequiresKotlin14
+@TestInstance(PER_CLASS)
 class DeleteAmbiguousPropertyTest {
-    companion object {
+    private companion object {
         private const val PROPERTY_CLASS = "net.corda.gradle.DeleteAmbiguousValProperty"
 
         private val nameIntToInt = isMethod("nameIntToInt", String::class.java, Map::class.java)
@@ -29,14 +32,13 @@ class DeleteAmbiguousPropertyTest {
         private val mapIntToByteName = isExtensionProperty("name", String::class, typeOfMap(Int::class, Byte::class))
         private val collectionStringName = isExtensionProperty("name", String::class, typeOfCollection(String::class))
         private val collectionLongName = isExtensionProperty("name", String::class, typeOfCollection(Long::class))
+    }
 
-        private lateinit var testProject: JarFilterProject
+    private lateinit var testProject: JarFilterProject
 
-        @BeforeAll
-        @JvmStatic
-        fun setup(@TempDir testProjectDir: Path) {
-            testProject = JarFilterProject(testProjectDir, "delete-ambiguous-property").build()
-        }
+    @BeforeAll
+    fun setup(@TempDir testProjectDir: Path) {
+        testProject = JarFilterProject(testProjectDir, "delete-ambiguous-property").build()
     }
 
     @Test

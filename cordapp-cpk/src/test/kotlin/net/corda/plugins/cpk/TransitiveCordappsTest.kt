@@ -3,6 +3,8 @@ package net.corda.plugins.cpk
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
 import org.junit.jupiter.api.TestReporter
 import org.junit.jupiter.api.io.TempDir
 import org.junit.jupiter.params.ParameterizedTest
@@ -21,8 +23,9 @@ import java.nio.file.Path
  * Verify that transitive cordapp and cordaProvided dependencies
  * are inherited by downstream CPK projects.
  */
+@TestInstance(PER_CLASS)
 class TransitiveCordappsTest {
-    companion object {
+    private companion object {
         private const val cordappVersion = "1.0.1-SNAPSHOT"
         private const val cpk1Version = "1.0-SNAPSHOT"
         private const val cpk2Version = "2.0-SNAPSHOT"
@@ -34,33 +37,33 @@ class TransitiveCordappsTest {
         private const val kotlinOsgiVersion = "version=\"[1.4,2)\""
         private const val cordaOsgiVersion = "version=\"[5.0,6)\""
         private const val cordappOsgiVersion = "version=\"1.0.1\""
+    }
 
-        private fun buildProject(
-            taskName: String,
-            testProjectDir: Path,
-            reporter: TestReporter
-        ): GradleProject {
-            val repositoryDir = testProjectDir.resolve("maven")
-            return GradleProject(testProjectDir, reporter)
-                .withTestName("transitive-cordapps")
-                .withSubResource("src/main/kotlin/com/example/transitives/ExampleContract.kt")
-                .withSubResource("cpk-one/build.gradle")
-                .withSubResource("cpk-two/build.gradle")
-                .withSubResource("cpk-three/build.gradle")
-                .withTaskName(taskName)
-                .build(
-                    "-Pcordapp_contract_version=$expectedCordappContractVersion",
-                    "-Pcommons_io_version=$commonsIoVersion",
-                    "-Pcorda_api_version=$cordaApiVersion",
-                    "-Pcordapp_version=$cordappVersion",
-                    "-Pcpk1_version=$cpk1Version",
-                    "-Pcpk2_version=$cpk2Version",
-                    "-Pcpk3_version=$cpk3Version",
-                    "-Prepository_dir=$repositoryDir",
-                    "-Pcpk1_type=$cpk1Type",
-                    "-Pcpk2_type=$cpk2Type"
-                )
-        }
+    private fun buildProject(
+        taskName: String,
+        testProjectDir: Path,
+        reporter: TestReporter
+    ): GradleProject {
+        val repositoryDir = testProjectDir.resolve("maven")
+        return GradleProject(testProjectDir, reporter)
+            .withTestName("transitive-cordapps")
+            .withSubResource("src/main/kotlin/com/example/transitives/ExampleContract.kt")
+            .withSubResource("cpk-one/build.gradle")
+            .withSubResource("cpk-two/build.gradle")
+            .withSubResource("cpk-three/build.gradle")
+            .withTaskName(taskName)
+            .build(
+                "-Pcordapp_contract_version=$expectedCordappContractVersion",
+                "-Pcommons_io_version=$commonsIoVersion",
+                "-Pcorda_api_version=$cordaApiVersion",
+                "-Pcordapp_version=$cordappVersion",
+                "-Pcpk1_version=$cpk1Version",
+                "-Pcpk2_version=$cpk2Version",
+                "-Pcpk3_version=$cpk3Version",
+                "-Prepository_dir=$repositoryDir",
+                "-Pcpk1_type=$cpk1Type",
+                "-Pcpk2_type=$cpk2Type"
+            )
     }
 
     @ParameterizedTest

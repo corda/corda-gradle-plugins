@@ -8,25 +8,28 @@ import org.hamcrest.core.IsNot.not
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
 import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Path
 import kotlin.reflect.full.declaredFunctions
 import kotlin.test.assertFailsWith
 
+@TestInstance(PER_CLASS)
 class DeleteOverloadedFunctionTest {
-    companion object {
+    private companion object {
         private const val FUNCTION_CLASS = "net.corda.gradle.HasOverloadedFunction"
         private const val LAMBDA_CLASS = "net.corda.gradle.HasOverloadWithLambda"
 
         private val stringData1 = isFunction("stringData", String::class, String::class)
         private val stringData2 = isFunction("stringData", String::class, Int::class, String::class)
-        private lateinit var testProject: JarFilterProject
+    }
 
-        @BeforeAll
-        @JvmStatic
-        fun setup(@TempDir testProjectDir: Path) {
-            testProject = JarFilterProject(testProjectDir, "delete-overloaded-function").build()
-        }
+    private lateinit var testProject: JarFilterProject
+
+    @BeforeAll
+    fun setup(@TempDir testProjectDir: Path) {
+        testProject = JarFilterProject(testProjectDir, "delete-overloaded-function").build()
     }
 
     @Test

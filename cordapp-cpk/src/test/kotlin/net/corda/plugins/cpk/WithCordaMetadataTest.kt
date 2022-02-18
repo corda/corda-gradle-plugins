@@ -3,6 +3,8 @@ package net.corda.plugins.cpk
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
 import org.junit.jupiter.api.TestReporter
 import org.junit.jupiter.api.io.TempDir
 import org.osgi.framework.Constants.BUNDLE_LICENSE
@@ -13,8 +15,9 @@ import org.osgi.framework.Constants.DYNAMICIMPORT_PACKAGE
 import org.osgi.framework.Constants.IMPORT_PACKAGE
 import java.nio.file.Path
 
+@TestInstance(PER_CLASS)
 class WithCordaMetadataTest {
-    companion object {
+    private companion object {
         private const val CONTRACT_CORDAPP_NAME = "com.example.contracts"
         private const val CONTRACT_CORDAPP_VERSION = "1.1.1-SNAPSHOT"
         private const val WORKFLOW_CORDAPP_NAME = "com.example.workflows"
@@ -26,35 +29,33 @@ class WithCordaMetadataTest {
         private const val JAVAX_PERSISTENCE_PACKAGE = "javax.persistence"
         private const val TEST_LICENCE = "Test-Licence"
         private const val TEST_VENDOR = "R3"
+    }
 
-        private lateinit var testProject: GradleProject
+    private lateinit var testProject: GradleProject
 
-        @Suppress("unused")
-        @BeforeAll
-        @JvmStatic
-        fun setup(@TempDir testProjectDir: Path, reporter: TestReporter) {
-            testProject = GradleProject(testProjectDir, reporter)
-                .withTestName("with-corda-metadata")
-                .withSubResource("contracts/build.gradle")
-                .withSubResource("contracts/src/main/kotlin/com/example/metadata/contracts/ExampleContract.kt")
-                .withSubResource("contracts/src/main/kotlin/com/example/metadata/schemas/ExampleSchema.kt")
-                .withSubResource("workflows/build.gradle")
-                .withSubResource("workflows/src/main/kotlin/com/example/metadata/workflows/ExampleFlow.kt")
-                .withSubResource("services/build.gradle")
-                .withSubResource("services/src/main/kotlin/com/example/metadata/services/ExampleService.kt")
-                .build(
-                    "-Pcorda_api_version=$cordaApiVersion",
-                    "-Pcontract_name=With Contract Metadata",
-                    "-Pcordapp_contract_version=$expectedCordappContractVersion",
-                    "-Pcontract_cordapp_version=$CONTRACT_CORDAPP_VERSION",
-                    "-Pworkflow_name=With Workflow Metadata",
-                    "-Pcordapp_workflow_version=$expectedCordappWorkflowVersion",
-                    "-Pworkflow_cordapp_version=$WORKFLOW_CORDAPP_VERSION",
-                    "-Pservice_name=With Service Metadata",
-                    "-Pcordapp_service_version=$expectedCordappServiceVersion",
-                    "-Pservice_cordapp_version=$SERVICE_CORDAPP_VERSION"
-                )
-        }
+    @BeforeAll
+    fun setup(@TempDir testProjectDir: Path, reporter: TestReporter) {
+        testProject = GradleProject(testProjectDir, reporter)
+            .withTestName("with-corda-metadata")
+            .withSubResource("contracts/build.gradle")
+            .withSubResource("contracts/src/main/kotlin/com/example/metadata/contracts/ExampleContract.kt")
+            .withSubResource("contracts/src/main/kotlin/com/example/metadata/schemas/ExampleSchema.kt")
+            .withSubResource("workflows/build.gradle")
+            .withSubResource("workflows/src/main/kotlin/com/example/metadata/workflows/ExampleFlow.kt")
+            .withSubResource("services/build.gradle")
+            .withSubResource("services/src/main/kotlin/com/example/metadata/services/ExampleService.kt")
+            .build(
+                "-Pcorda_api_version=$cordaApiVersion",
+                "-Pcontract_name=With Contract Metadata",
+                "-Pcordapp_contract_version=$expectedCordappContractVersion",
+                "-Pcontract_cordapp_version=$CONTRACT_CORDAPP_VERSION",
+                "-Pworkflow_name=With Workflow Metadata",
+                "-Pcordapp_workflow_version=$expectedCordappWorkflowVersion",
+                "-Pworkflow_cordapp_version=$WORKFLOW_CORDAPP_VERSION",
+                "-Pservice_name=With Service Metadata",
+                "-Pcordapp_service_version=$expectedCordappServiceVersion",
+                "-Pservice_cordapp_version=$SERVICE_CORDAPP_VERSION"
+            )
     }
 
     @Test
