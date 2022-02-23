@@ -43,6 +43,7 @@ pipeline {
     stages {
         stage('Build') {
             steps {
+                authenticateGradleWrapper()
                 sh './gradlew --no-daemon -s --no-build-cache clean build'
             }
         }
