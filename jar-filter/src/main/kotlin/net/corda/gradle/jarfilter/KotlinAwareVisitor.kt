@@ -15,7 +15,6 @@ const val KOTLIN_METADATA_DATA_FIELD_NAME = "d1"
 const val KOTLIN_METADATA_STRINGS_FIELD_NAME = "d2"
 const val KOTLIN_KIND_FIELD_NAME = "k"
 const val KOTLIN_METADATA_VERSION_NAME = "mv"
-const val KOTLIN_BYTECODE_VERSION_NAME = "bv"
 const val KOTLIN_METADATA_EXTRA_INT_NAME = "xi"
 const val KOTLIN_METADATA_EXTRA_STRING_NAME = "xs"
 const val KOTLIN_METADATA_PACKAGE_NAME= "pn"
@@ -35,7 +34,6 @@ abstract class KotlinAwareVisitor(
     private var extraString: String? = null
     private var packageName: String? = null
     private var metadataVersion: IntArray? = null
-    private var bytecodeVersion: IntArray? = null
 
     open val hasUnwantedElements: Boolean get() = kotlinMetadata.isNotEmpty()
     protected open val level: LogLevel = LogLevel.INFO
@@ -58,7 +56,6 @@ abstract class KotlinAwareVisitor(
                 val header = KotlinClassHeader(
                     classKind,
                     metadataVersion,
-                    bytecodeVersion,
                     data1,
                     data2,
                     extraString,
@@ -121,7 +118,6 @@ abstract class KotlinAwareVisitor(
         override fun visit(name: String?, value: Any?) {
             when (name) {
                 KOTLIN_KIND_FIELD_NAME -> classKind = value as Int
-                KOTLIN_BYTECODE_VERSION_NAME -> bytecodeVersion = value as IntArray?
                 KOTLIN_METADATA_VERSION_NAME -> metadataVersion = value as IntArray?
                 KOTLIN_METADATA_PACKAGE_NAME -> packageName = value as String?
                 KOTLIN_METADATA_EXTRA_INT_NAME -> extraInt = value as Int?
