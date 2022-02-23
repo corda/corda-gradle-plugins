@@ -33,6 +33,9 @@ import java.util.jar.JarFile
 import java.util.jar.Manifest
 import java.util.stream.Collectors.toList
 
+const val VERIFY_BUNDLE_TASK_NAME = "verifyBundle"
+const val CPB_TASK_NAME = "cpb"
+
 const val testPlatformVersion = "1000"
 const val expectedCordappContractVersion = 2
 const val expectedCordappWorkflowVersion = 3
@@ -117,6 +120,7 @@ class GradleProject(private val projectDir: Path, private val reporter: TestRepo
     private var buildScript: String = ""
     private val subResources = mutableListOf<String>()
     private var taskName: String = DEFAULT_TASK_NAME
+    private var taskOutcome: TaskOutcome = SUCCESS
     private var testName: String = "."
 
     /**
@@ -143,6 +147,11 @@ class GradleProject(private val projectDir: Path, private val reporter: TestRepo
 
     fun withTaskName(taskName: String): GradleProject {
         this.taskName = taskName
+        return this
+    }
+
+    fun withTaskOutcome(taskOutcome: TaskOutcome): GradleProject {
+        this.taskOutcome = taskOutcome
         return this
     }
 
@@ -249,7 +258,7 @@ class GradleProject(private val projectDir: Path, private val reporter: TestRepo
     fun build(vararg args: String): GradleProject {
         configureGradle(GradleRunner::build, args)
         assertThat(buildDir).isDirectory()
-        assertEquals(SUCCESS, resultFor(taskName).outcome)
+        assertEquals(taskOutcome, resultFor(taskName).outcome)
         return this
     }
 

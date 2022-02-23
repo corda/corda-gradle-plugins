@@ -22,7 +22,6 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
-import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
@@ -47,7 +46,7 @@ open class VerifyBundle @Inject constructor(objects: ObjectFactory) : DefaultTas
 
     private val _classpath: ConfigurableFileCollection = objects.fileCollection()
     val classpath: FileCollection
-        @Classpath
+        @PathSensitive(RELATIVE)
         @InputFiles
         get() = _classpath
 
