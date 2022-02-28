@@ -338,6 +338,9 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
         val verifyBundle = project.tasks.register(VERIFY_BUNDLE_TASK_NAME, VerifyBundle::class.java) { verify ->
             verify.bundle.set(jarTask.flatMap(Jar::getArchiveFile))
             verify.setDependenciesFrom(calculatorTask)
+
+            // Disable this task if the jar task is disabled.
+            project.gradle.taskGraph.whenReady(copyJarEnabledTo(verify))
         }
         jarTask.configure { jar ->
             jar.finalizedBy(verifyBundle)
@@ -365,6 +368,9 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
                     t.sign(cordapp.signing.options, (t as PackagingTask).archiveFile.get().asFile)
                 }
             }
+
+            // Disable this task if the jar task is disabled.
+            project.gradle.taskGraph.whenReady(copyJarEnabledTo(task))
         }
 
         with(project.artifacts) {

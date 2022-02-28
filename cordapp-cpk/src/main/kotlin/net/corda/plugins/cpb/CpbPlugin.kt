@@ -9,6 +9,8 @@ import net.corda.plugins.cpk.CordappExtension
 import net.corda.plugins.cpk.CordappPlugin
 import net.corda.plugins.cpk.PackagingTask
 import net.corda.plugins.cpk.SignJar.Companion.sign
+import net.corda.plugins.cpk.copyCpkEnabledTo
+import net.corda.plugins.cpk.copyJarEnabledTo
 import net.corda.plugins.cpk.isPlatformModule
 import net.corda.plugins.cpk.nested
 import org.gradle.api.GradleException
@@ -111,6 +113,12 @@ class CpbPlugin : Plugin<Project> {
                 if (cordappExtension.signing.enabled.get()) {
                     cpbTask.sign(cordappExtension.signing.options, cpbTask.archiveFile.get().asFile)
                 }
+            }
+
+            // Disable this task if either the jar task or cpk task is disabled.
+            project.gradle.taskGraph.whenReady { graph ->
+                copyJarEnabledTo(cpbTask).execute(graph)
+                copyCpkEnabledTo(cpbTask).execute(graph)
             }
         }
 

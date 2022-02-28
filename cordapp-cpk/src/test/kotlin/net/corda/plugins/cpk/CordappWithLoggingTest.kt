@@ -39,7 +39,7 @@ class CordappWithLoggingTest {
         assertThat(testProject.outcomeOf("verifyBundle")).isEqualTo(FAILED)
         assertThat(testProject.output).contains(
             "Bundle cordapp-with-logging-${cordappVersion}.jar has validation errors:",
-            "Import Package clause requires package [org.slf4j] with version '[2.0,3)', but version(s) '1.7.32' exported"
+            "Import Package clause requires package [org.slf4j] with version '[2.0,3)', but version(s) '1.7.36' exported"
         )
     }
 }

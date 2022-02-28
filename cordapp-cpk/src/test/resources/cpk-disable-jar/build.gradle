@@ -1,0 +1,29 @@
+plugins {
+    id 'net.corda.plugins.cordapp-cpk'
+}
+
+apply from: 'repositories.gradle'
+apply from: 'javaTarget.gradle'
+
+group = 'com.example'
+version = cordapp_version
+
+cordapp {
+    targetPlatformVersion = platform_version.toInteger()
+    minimumPlatformVersion = platform_version.toInteger()
+
+    contract {
+        name = 'CPK Disable Jar'
+        versionId = cordapp_contract_version.toInteger()
+        licence = 'Test-Licence'
+        vendor = 'R3'
+    }
+}
+
+dependencies {
+    cordaProvided project(':corda-api')
+}
+
+tasks.named('jar', Jar) {
+    enabled = false
+}
