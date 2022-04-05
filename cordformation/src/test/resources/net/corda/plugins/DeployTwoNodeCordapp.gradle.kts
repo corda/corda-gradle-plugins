@@ -14,9 +14,9 @@ val slf4j_version: String by project
 dependencies {
     cordapp("$corda_group:corda-finance-contracts:$corda_release_version")
     cordapp("$corda_group:corda-finance-workflows:$corda_release_version")
-    cordaRuntimeOnly("$corda_group:corda:$corda_release_version")
-    cordaRuntimeOnly("$corda_group:corda-node-api:$corda_release_version")
-    cordaRuntimeOnly("org.slf4j:slf4j-simple:$slf4j_version")
+    corda("$corda_group:corda:$corda_release_version")
+    cordaBootstrapper("$corda_group:corda-node-api:$corda_release_version")
+    cordaBootstrapper("org.slf4j:slf4j-simple:$slf4j_version")
 }
 
 tasks.register<Cordform>("deployNodes") {

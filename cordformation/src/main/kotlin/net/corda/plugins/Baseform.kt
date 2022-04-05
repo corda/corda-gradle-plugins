@@ -13,13 +13,9 @@ import org.gradle.api.model.ObjectFactory
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.file.ProjectLayout
-import org.gradle.api.plugins.JavaPlugin.JAR_TASK_NAME
-import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
-import org.gradle.api.tasks.SourceSet.MAIN_SOURCE_SET_NAME
-import org.gradle.api.tasks.bundling.Jar
 import org.gradle.work.DisableCachingByDefault
 import java.io.File
 import java.lang.reflect.InvocationTargetException
@@ -50,12 +46,18 @@ abstract class Baseform(
 
     init {
         group = GROUP_NAME
-        project.pluginManager.withPlugin(CORDAPP_PLUGIN_ID) {
-            dependsOn(project.tasks.named(JAR_TASK_NAME, Jar::class.java))
-        }
-        // Ensure everything in the cordapp configuration that needs
+        // Ensure everything in our configurations that needs
         // to be built is available before this task executes.
-        dependsOn(project.configurations.getByName(DEPLOY_CORDAPP_CONFIGURATION_NAME).buildDependencies)
+        with(project.configurations) {
+            dependsOn(getByName(DEPLOY_BOOTSTRAPPER_CONFIGURATION_NAME).buildDependencies,
+                getByName(DEPLOY_CORDFORMATION_CONFIGURATION_NAME).buildDependencies,
+                getByName(DEPLOY_CORDAPP_CONFIGURATION_NAME).buildDependencies
+            )
+
+            project.pluginManager.withPlugin(CORDAPP_PLUGIN_ID) {
+                dependsOn(getByName(CORDA_CORDAPP_CONFIGURATION_NAME).buildDependencies)
+            }
+        }
     }
 
     @get:Internal
@@ -149,8 +151,7 @@ abstract class Baseform(
      * so we load it manually via sourceSets.main.runtimeClasspath.
      */
     private fun createNetworkBootstrapperLoader(): URLClassLoader {
-        val plugin = project.extensions.getByType(JavaPluginExtension::class.java)
-        val classpath = plugin.sourceSets.getByName(MAIN_SOURCE_SET_NAME).runtimeClasspath
+        val classpath = project.configurations.getByName(DEPLOY_BOOTSTRAPPER_CONFIGURATION_NAME).resolvedConfiguration
         val urls = classpath.files.map { it.toURI().toURL() }.toTypedArray()
         // This classloader should be self-contained. Don't assign Gradle's classloader as its parent.
         return URLClassLoader(urls, null)

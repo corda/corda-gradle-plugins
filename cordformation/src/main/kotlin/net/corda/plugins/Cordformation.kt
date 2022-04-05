@@ -5,8 +5,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.ModuleDependency
-import org.gradle.api.plugins.JavaPlugin
-import org.gradle.api.plugins.JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME
+import org.gradle.api.plugins.JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME
 import org.gradle.util.GradleVersion
 import java.io.File
 
@@ -49,7 +48,7 @@ class Cordformation : Plugin<Project> {
                     ?: throw IllegalStateException("Could not find a valid declaration of \"corda_release_version\"")
             // need to cater for optional classifier (eg. corda-4.3-jdk11.jar)
             val pattern = "\\Q$jarName\\E(-enterprise)?-\\Q$releaseVersion\\E(-.+)?\\.jar\$".toRegex()
-            val maybeJar = project.configurations.getByName(RUNTIME_CLASSPATH_CONFIGURATION_NAME).filter {
+            val maybeJar = project.configurations.getByName(DEPLOY_CORDFORMATION_CONFIGURATION_NAME).filter {
                 it.toString().contains(pattern)
             }
             if (maybeJar.isEmpty) {
@@ -66,35 +65,50 @@ class Cordformation : Plugin<Project> {
 
     override fun apply(project: Project) {
         if (GradleVersion.current() < GradleVersion.version(MINIMUM_GRADLE_VERSION)) {
-            throw GradleException("The Cordformation plugin requires Gradle $MINIMUM_GRADLE_VERSION or newer.")
+            throw GradleException("The cordformation plugin requires Gradle $MINIMUM_GRADLE_VERSION or newer.")
         }
 
-        // Apply the Java plugin on the assumption that we're building a JAR.
-        // This will also create the "compile", "compileOnly" and "runtime" configurations.
-        project.pluginManager.apply(JavaPlugin::class.java)
-
         project.configurations.apply {
-            val cordapp = createImplementationConfiguration(CORDAPP_CONFIGURATION_NAME)
-            val cordaRuntimeOnly = createRuntimeOnlyConfiguration(CORDA_RUNTIME_ONLY_CONFIGURATION_NAME)
-
-            createChildConfiguration(CORDFORMATION_TYPE, cordaRuntimeOnly).withDependencies { dependencies ->
+            val cordformation = createBasicConfiguration(CORDFORMATION_TYPE).withDependencies { dependencies ->
                 // TODO: improve how we re-use existing declared external variables from root gradle.build
                 val jolokiaVersion = project.findRootProperty("jolokia_version") ?: DEFAULT_JOLOKIA_VERSION
                 val jolokia = project.dependencies.create("org.jolokia:jolokia-jvm:$jolokiaVersion:agent")
                 // The Jolokia agent is a fat jar really, so we don't want its transitive dependencies.
-                (jolokia as ModuleDependency).isTransitive = false
+                (jolokia as? ModuleDependency)?.isTransitive = false
                 dependencies.add(jolokia)
             }
 
+            val cordaBootstrapper = createBasicConfiguration(CORDA_BOOTSTRAPPER_CONFIGURATION_NAME)
+            val cordapp = createBasicConfiguration(CORDAPP_CONFIGURATION_NAME)
+            val corda = createBasicConfiguration(CORDA_CONFIGURATION_NAME)
+
             create(CORDA_DRIVER_CONFIGURATION_NAME) {
                 it.isCanBeConsumed = false
+                it.isTransitive = true
                 it.isVisible = false
+            }
+            create(DEPLOY_BOOTSTRAPPER_CONFIGURATION_NAME) {
+                it.isCanBeConsumed = false
+                it.isTransitive = true
+                it.isVisible = false
+                it.extendsFrom(cordaBootstrapper)
             }
             create(DEPLOY_CORDAPP_CONFIGURATION_NAME) {
                 it.isCanBeConsumed = false
                 it.isTransitive = false
                 it.isVisible = false
                 it.extendsFrom(cordapp)
+            }
+            create(DEPLOY_CORDFORMATION_CONFIGURATION_NAME) {
+                it.isCanBeConsumed = false
+                it.isTransitive = false
+                it.isVisible = false
+                it.extendsFrom(corda, cordformation)
+            }
+
+            // Adjust these configurations if this project has also applied the 'java' plugin.
+            project.pluginManager.withPlugin("java") {
+                getByName(IMPLEMENTATION_CONFIGURATION_NAME).extendsFrom(cordapp)
             }
         }
     }

@@ -1,6 +1,4 @@
 @file:JvmName("CordformationUtils")
-@file:Suppress("deprecation")
-
 package net.corda.plugins
 
 import com.typesafe.config.Config
@@ -9,16 +7,18 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.file.FileSystemLocationProperty
-import org.gradle.api.plugins.JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME
-import org.gradle.api.plugins.JavaPlugin.RUNTIME_ONLY_CONFIGURATION_NAME
 import java.nio.file.Path
 
 const val CORDAPP_PLUGIN_ID = "net.corda.plugins.cordapp"
+const val CORDA_BOOTSTRAPPER_CONFIGURATION_NAME = "cordaBootstrapper"
 const val CORDA_RUNTIME_ONLY_CONFIGURATION_NAME = "cordaRuntimeOnly"
 const val CORDA_CORDAPP_CONFIGURATION_NAME = "cordaCordapp"
 const val CORDA_DRIVER_CONFIGURATION_NAME = "cordaDriver"
+const val DEPLOY_BOOTSTRAPPER_CONFIGURATION_NAME = "deployBootstrapper"
 const val DEPLOY_CORDAPP_CONFIGURATION_NAME = "deployCordapp"
+const val DEPLOY_CORDFORMATION_CONFIGURATION_NAME = "deployCordformation"
 const val CORDAPP_CONFIGURATION_NAME = "cordapp"
+const val CORDA_CONFIGURATION_NAME = "corda"
 
 /**
  * Mimics the "project.ext" functionality in groovy which provides a direct
@@ -28,23 +28,14 @@ fun Project.findRootProperty(name: String): String? {
     return rootProject.findProperty(name)?.toString()
 }
 
-fun ConfigurationContainer.createChildConfiguration(name: String, parent: Configuration): Configuration {
+fun ConfigurationContainer.createBasicConfiguration(name: String): Configuration {
     return maybeCreate(name)
         .setTransitive(false)
         .setVisible(false)
         .also { configuration ->
             configuration.isCanBeConsumed = false
             configuration.isCanBeResolved = false
-            parent.extendsFrom(configuration)
         }
-}
-
-fun ConfigurationContainer.createImplementationConfiguration(name: String): Configuration {
-    return createChildConfiguration(name, getByName(IMPLEMENTATION_CONFIGURATION_NAME))
-}
-
-fun ConfigurationContainer.createRuntimeOnlyConfiguration(name: String): Configuration {
-    return createChildConfiguration(name, getByName(RUNTIME_ONLY_CONFIGURATION_NAME))
 }
 
 val FileSystemLocationProperty<*>.asPath: Path get() {
