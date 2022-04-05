@@ -1,5 +1,8 @@
 plugins {
     id 'net.corda.plugins.cordformation'
+
+    // We should really be apply the `net.corda.plugins.cordapp` plugin here.
+    id 'java-library'
 }
 
 configurations {
@@ -9,9 +12,9 @@ configurations {
 }
 
 dependencies {
-    cordaRuntimeOnly "$corda_group:corda:$corda_release_version"
-    cordaRuntimeOnly "$corda_group:corda-node-api:$corda_release_version"
-    cordaRuntimeOnly "org.slf4j:slf4j-simple:$slf4j_version"
+    corda "$corda_group:corda:$corda_release_version"
+    cordaBootstrapper "$corda_group:corda-node-api:$corda_release_version"
+    cordaBootstrapper "org.slf4j:slf4j-simple:$slf4j_version"
 }
 
 def jar = tasks.named('jar', Jar) {
@@ -22,7 +25,8 @@ artifacts {
     cordaCordapp jar
 }
 
-task deployNodes(type: net.corda.plugins.Cordform, dependsOn: [jar]) {
+tasks.register('deployNodes', net.corda.plugins.Cordform) {
+    dependsOn jar
     node {
         name 'O=Notary Service,L=Zurich,C=CH'
         notary = [validating : true]

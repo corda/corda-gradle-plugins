@@ -12,7 +12,6 @@ import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.model.ObjectFactory
-import org.gradle.api.plugins.JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
@@ -540,7 +539,7 @@ open class Node @Inject constructor(
      * Installs the jolokia monitoring agent JAR to the node/drivers directory
      */
     private fun installAgentJar() {
-        val agentJar = task.project.configurations.getByName(RUNTIME_CLASSPATH_CONFIGURATION_NAME).files {
+        val agentJar = task.project.configurations.getByName(DEPLOY_CORDFORMATION_CONFIGURATION_NAME).files {
             (it.group == "org.jolokia") && (it.name == "jolokia-jvm")
             // TODO: revisit when classifier attribute is added. eg && (it.classifier = "agent")
         }.firstOrNull()
@@ -738,19 +737,11 @@ open class Node @Inject constructor(
         val cordappFile = cordappConfiguration.firstLevelModuleDependencies.flatMapTo(LinkedHashSet<File>()) { dep ->
             when {
                 cordapp.projectPath != null ->
-                    if (dep.configuration == CORDA_CORDAPP_CONFIGURATION_NAME) {
-                        dep.moduleArtifacts.filter { artifact ->
-                            val componentId = artifact.id.componentIdentifier
-                            componentId is ProjectComponentIdentifier && componentId.projectPath == cordapp.projectPath
-                        }.map(ResolvedArtifact::getFile)
-                    } else {
-                        emptyList()
-                    }
+                    dep.moduleArtifacts.filter { artifact ->
+                        val componentId = artifact.id.componentIdentifier
+                        componentId is ProjectComponentIdentifier && componentId.projectPath == cordapp.projectPath
+                    }.map(ResolvedArtifact::getFile)
                 cordapp.coordinates.isNotEmpty() -> {
-//<<<<<<< HEAD
-//                    val coordinates = cordapp.coordinates
-//                    coordinates == (it.group + ":" + it.name + ":" + it.version)
-//=======
                     val moduleCoordinates = with(dep) {
                         "$moduleGroup:$moduleName:$moduleVersion"
                     }
