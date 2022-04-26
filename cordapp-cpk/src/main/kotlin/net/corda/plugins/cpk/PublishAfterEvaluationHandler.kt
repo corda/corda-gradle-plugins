@@ -69,6 +69,7 @@ class PublishAfterEvaluationHandler(rootProject: Project) : Action<Gradle> {
                     cpk.groupId = toCompanionGroupId(pub.groupId, pub.artifactId)
                     cpk.artifactId = toCompanionArtifactId(pub.artifactId)
                     cpk.version = pub.version
+                    cpk.maybeSetAlias(true)
                     cpk.pom { pom ->
                         val pubPom = pub.pom
 
@@ -127,6 +128,19 @@ class PublishAfterEvaluationHandler(rootProject: Project) : Action<Gradle> {
                     publish(project.tasks, pub, publicationProvider)
                 }
             }
+    }
+
+    /**
+     * The [setAlias][org.gradle.api.publish.maven.internal.publication.MavenPublicationInternal.setAlias]
+     * method belongs to Gradle's internal API, and so we cannot rely on it existing. We therefore try to
+     * invoke it using reflection.
+     */
+    private fun MavenPublication.maybeSetAlias(alias: Boolean) {
+        try {
+            this::class.java.getMethod("setAlias", Boolean::class.javaPrimitiveType).invoke(this, alias)
+        } catch (e: Exception) {
+            logger.warn("INTERNAL API: Cannot set alias for MavenPublication[$name]", e)
+        }
     }
 
     /**

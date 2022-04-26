@@ -1,6 +1,3 @@
-apply from: 'repositories.gradle'
-apply from: 'javaTarget.gradle'
-
 group = 'com.example'
 
 allprojects {
@@ -18,23 +15,6 @@ allprojects {
                 maven {
                     name = 'Test'
                     url = repository_dir
-                }
-            }
-
-            publications {
-                maven(MavenPublication) {
-                    pluginManager.withPlugin('java-platform') {
-                        from components.javaPlatform
-                    }
-
-                    pluginManager.withPlugin('java') {
-                        from components.java
-                    }
-
-                    // Publish any CPK that this project may have.
-                    pluginManager.withPlugin('net.corda.plugins.cordapp-cpk') {
-                        artifact tasks.named('cpk', Jar)
-                    }
                 }
             }
         }
