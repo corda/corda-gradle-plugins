@@ -4,6 +4,8 @@
 
 ### Version 5.0.16
 
+* `quasar-utils`: Upgrade default Quasar version to 0.7.15_r3.
+
 ### Version 5.0.15
 
 * `cordformation`: Append OU to Docker container name using '-' instead of '_'.

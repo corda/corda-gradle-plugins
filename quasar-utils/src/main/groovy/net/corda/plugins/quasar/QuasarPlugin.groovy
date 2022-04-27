@@ -26,7 +26,7 @@ class QuasarPlugin implements Plugin<Project> {
     private static final String QUASAR = "quasar"
     private static final String MINIMUM_GRADLE_VERSION = "5.1"
     @PackageScope static final String defaultGroup = "co.paralleluniverse"
-    @PackageScope static final String defaultVersion = "0.7.13_r3"
+    @PackageScope static final String defaultVersion = "0.7.15_r3"
     @PackageScope static final String defaultClassifier = ""
 
     private final ObjectFactory objects
