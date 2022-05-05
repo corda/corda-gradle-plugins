@@ -59,7 +59,7 @@ class CordappPlugin @Inject constructor(
         private const val CORDAPP_COMPONENT_NAME = "cordapp"
         private const val CORDAPP_EXTENSION_NAME = "cordapp"
         private const val OSGI_EXTENSION_NAME = "osgi"
-        private const val MIN_GRADLE_VERSION = "6.6"
+        private const val MIN_GRADLE_VERSION = "6.7"
         private const val UNKNOWN = "Unknown"
 
         private val CORDAPP_BUILD_CONFIGURATIONS: List<String> = unmodifiableList(listOf(
