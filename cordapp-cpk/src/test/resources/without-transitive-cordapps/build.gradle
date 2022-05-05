@@ -24,19 +24,10 @@ allprojects {
             }
         }
 
-        publications {
-            maven(MavenPublication) {
-                pluginManager.withPlugin('java-library') {
-                    from components.java
-                }
-
-                pluginManager.withPlugin('java-platform') {
-                    from components.javaPlatform
-                }
-
-                // Publish any CPK that this project may have.
-                pluginManager.withPlugin('net.corda.plugins.cordapp-cpk') {
-                    artifact tasks.named('cpk', Jar)
+        pluginManager.withPlugin('net.corda.plugins.cordapp-cpk') {
+            publications {
+                maven(MavenPublication) {
+                    from components.cordapp
                 }
             }
         }

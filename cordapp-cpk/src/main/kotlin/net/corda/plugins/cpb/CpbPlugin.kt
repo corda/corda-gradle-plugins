@@ -37,6 +37,7 @@ class CpbPlugin : Plugin<Project> {
         val attributor = Attributor(project.objects)
 
         val cpbConfiguration = project.configurations.create(CPB_CONFIGURATION_NAME)
+            .setDescription("Additional CPK dependencies to include inside the CPB.")
             .extendsFrom(allCordappsConfiguration)
             .setVisible(false)
             .apply {
@@ -76,7 +77,7 @@ class CpbPlugin : Plugin<Project> {
                 isCanBeConsumed = false
             }
 
-        project.configurations.maybeCreate(CORDA_CPB_CONFIGURATION_NAME)
+        project.configurations.create(CORDA_CPB_CONFIGURATION_NAME)
             .attributes(attributor::forCpb)
             .isCanBeResolved = false
 

@@ -13,10 +13,14 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency.ARCHIVES_CONFIGURATION
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ProjectDependency
+import org.gradle.api.component.ConfigurationVariantDetails
+import org.gradle.api.component.SoftwareComponentFactory
 import org.gradle.api.file.DuplicatesStrategy.FAIL
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.java.archives.Attributes
 import org.gradle.api.plugins.AppliedPlugin
+import org.gradle.api.plugins.JavaBasePlugin.UNPUBLISHABLE_VARIANT_ARTIFACTS
+import org.gradle.api.plugins.JavaPlugin.API_ELEMENTS_CONFIGURATION_NAME
 import org.gradle.api.plugins.JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME
 import org.gradle.api.plugins.JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME
 import org.gradle.api.plugins.JavaPlugin.JAR_TASK_NAME
@@ -40,7 +44,10 @@ import kotlin.math.max
  * Generate a new CPK format CorDapp for use in Corda.
  */
 @Suppress("Unused", "UnstableApiUsage")
-class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plugin<Project> {
+class CordappPlugin @Inject constructor(
+    private val layouts: ProjectLayout,
+    private val softwareComponentFactory: SoftwareComponentFactory
+): Plugin<Project> {
     private companion object {
         private const val UNKNOWN_PLATFORM_VERSION = -1
         private const val CORDA_PLATFORM_VERSION = "Corda-Platform-Version"
@@ -49,9 +56,10 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
         private const val DEPENDENCY_CALCULATOR_TASK_NAME = "cordappDependencyCalculator"
         private const val CPK_DEPENDENCIES_TASK_NAME = "cordappCPKDependencies"
         private const val VERIFY_BUNDLE_TASK_NAME = "verifyBundle"
+        private const val CORDAPP_COMPONENT_NAME = "cordapp"
         private const val CORDAPP_EXTENSION_NAME = "cordapp"
         private const val OSGI_EXTENSION_NAME = "osgi"
-        private const val MIN_GRADLE_VERSION = "6.6"
+        private const val MIN_GRADLE_VERSION = "6.7"
         private const val UNKNOWN = "Unknown"
 
         private val CORDAPP_BUILD_CONFIGURATIONS: List<String> = unmodifiableList(listOf(
@@ -82,7 +90,7 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
     private lateinit var cordapp: CordappExtension
 
     override fun apply(project: Project) {
-        project.logger.info("Configuring ${project.name} as a CorDapp")
+        project.logger.info("Configuring {} as a CorDapp", project.name)
 
         if (GradleVersion.current() < GradleVersion.version(MIN_GRADLE_VERSION)) {
             throw GradleException("Gradle version ${GradleVersion.current().version} is below the supported minimum version $MIN_GRADLE_VERSION. Please update Gradle or consider using Gradle wrapper if it is provided with the project. More information about CorDapp build system can be found here: $CORDAPP_DOCUMENTATION_URL")
@@ -105,11 +113,21 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
             // Gradle resolves project dependencies into the correct artifacts.
             val attributor = Attributor(project.objects)
 
+            // Create the outgoing configuration, and add it to custom software component.
+            val cordaCPK = create(CORDA_CPK_CONFIGURATION_NAME)
+                .attributes(attributor::forCpk)
+                .also {
+                    it.isCanBeResolved = false
+                }
+            val component = softwareComponentFactory.adhoc(CORDAPP_COMPONENT_NAME).also { adhoc ->
+                adhoc.addVariantsFromConfiguration(getByName(API_ELEMENTS_CONFIGURATION_NAME), CordappVariantMapping("compile"))
+                adhoc.addVariantsFromConfiguration(getByName(RUNTIME_ELEMENTS_CONFIGURATION_NAME), CordappVariantMapping("runtime"))
+                adhoc.addVariantsFromConfiguration(cordaCPK) {}
+            }
+            project.components.add(component)
+
             // This definition of cordaRuntimeOnly must be kept aligned with the one in the quasar-utils plugin.
             createRuntimeOnlyConfiguration(CORDA_RUNTIME_ONLY_CONFIGURATION_NAME)
-            maybeCreate(CORDA_CPK_CONFIGURATION_NAME)
-                .attributes(attributor::forCpk)
-                .isCanBeResolved = false
 
             getByName(COMPILE_ONLY_CONFIGURATION_NAME).withDependencies { dependencies ->
                 val bndDependency = project.dependencies.create("biz.aQute.bnd:biz.aQute.bnd.annotation:" + cordapp.bndVersion.get())
@@ -437,6 +455,15 @@ class CordappPlugin @Inject constructor(private val layouts: ProjectLayout): Plu
             throw InvalidUserDataException("CorDapp `versionId` must not be smaller than 1.")
         }
         return value
+    }
+}
+
+private class CordappVariantMapping(private val mavenScope: String) : Action<ConfigurationVariantDetails> {
+    override fun execute(variant: ConfigurationVariantDetails) {
+        if (variant.configurationVariant.artifacts.any { it.type in UNPUBLISHABLE_VARIANT_ARTIFACTS }) {
+            variant.skip()
+        }
+        variant.mapToMavenScope(mavenScope)
     }
 }
 

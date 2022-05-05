@@ -2,6 +2,7 @@ plugins {
     id 'org.jetbrains.kotlin.jvm'
     id 'biz.aQute.bnd.builder'
     id 'java-library'
+    id 'maven-publish'
 }
 apply from: '../javaTarget.gradle'
 apply from: '../kotlin.gradle'
@@ -34,5 +35,17 @@ tasks.named('jar', Jar) {
 Bundle-SymbolicName: net.corda.api
 Bundle-Name: Fake Corda APIs
 '''
+    }
+}
+
+publishing {
+    publications {
+        cordaApi(MavenPublication) {
+            from components.kotlin
+
+            pom {
+                name = 'Corda API'
+            }
+        }
     }
 }

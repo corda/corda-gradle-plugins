@@ -1,6 +1,7 @@
 package net.corda.plugins.cpk
 
 import org.assertj.core.api.Assertions.assertThat
+import org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -39,6 +40,7 @@ class CordappWithPlatformTest {
         publisherProject = GradleProject(publisherProjectDir, reporter)
             .withTestName("publish-platform")
             .withTaskName("publishAllPublicationsToTestRepository")
+            .withTaskOutcome(UP_TO_DATE)
             .build(
                 "-Pcorda_api_version=$cordaApiVersion",
                 "-Prepository_dir=$repositoryDir"

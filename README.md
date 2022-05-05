@@ -52,7 +52,7 @@ file. Both the OSGi bundle and the CPK archive are signed. The plugin also
 provides a `cordapp` Gradle extension so that you can configure your CorDapp's
 metadata.
 
-    <sup>Requires Gradle 6.6</sup>
+    <sup>Requires Gradle 6.7</sup>
 
 - [`net.corda.plugins.cordapp`](cordapp/README.md)\
 This plugin packages your CorDapp classes into a single jar file, along with

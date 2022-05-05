@@ -1,5 +1,6 @@
 plugins {
     id 'java-platform'
+    id 'maven-publish'
 }
 
 group = 'net.corda'
@@ -19,6 +20,18 @@ rootProject.allprojects {
         pluginManager.withPlugin('java-library') {
             dependencies {
                 api platform(project(':corda-platform'))
+            }
+        }
+    }
+}
+
+publishing {
+    publications {
+        cordaPlatform(MavenPublication) {
+            from components.javaPlatform
+
+            pom {
+                name = 'Corda Platform'
             }
         }
     }
