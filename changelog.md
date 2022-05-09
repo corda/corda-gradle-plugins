@@ -4,11 +4,11 @@
 
 ### Version 6.0.0
 
-* Compatible with Gradle 6.6+.
+* Compatible with Gradle 6.7+.
 * `quasar-utils`: Upgrade to use Quasar 0.8.7_r3 OSGi bundles.
 * `quasar-utils`: Support configurable `@Suspendable` annotation.
 * `quasar-utils`: Optional instrumentation of `Test` and `JavaExec` tasks.
-* `cordapp-cpk`: Generate CPK format CorDapps. Requires Gradle 6.6+.
+* `cordapp-cpk`: Generate CPK format CorDapps. Requires Gradle 6.7+.
 * `cordapp-cpb`: Generate CorDapp CPBs from CPKs.
 * `flask`: Package an application as an executable jar of jars.
 * Retire the `cordformation` and `publish-utils` plugins.

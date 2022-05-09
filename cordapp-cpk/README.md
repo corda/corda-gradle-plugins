@@ -1,5 +1,5 @@
 # Cordapp CPK Gradle Plugin.
-<sup>Requires Gradle 6.6</sup>
+<sup>Requires Gradle 6.7</sup>
 
 ## Purpose.
 Applying this plugin to a project declares that the project should create a CPK-format CorDapp. The CPK-format
@@ -188,6 +188,25 @@ It replaces the legacy `cordaRuntime` configuration.
 
 The legacy `cordaCompile` and `cordaRuntime` configurations are built upon Gradle's deprecated
 `compile` and `runtime` configurations, which have finally been removed in Gradle 7.0.
+
+# Publishing
+
+The `cordapp-cpk` plugin creates a new Gradle `SoftwareComponent` named "cordapp", which you
+can use to create a `MavenPublication`:
+```groovy
+plugins {
+    id 'net.corda.plugins.cordapp-cpk'
+    id 'maven-publish'
+}
+
+publishing {
+    publications {
+        myCorDapp(MavenPublication) {
+            from components.cordapp
+        }
+    }
+}
+```
 
 # Tasks.
 
