@@ -51,7 +51,7 @@ class CordappPlugin @Inject constructor(
     private companion object {
         private const val UNKNOWN_PLATFORM_VERSION = -1
         private const val CORDA_PLATFORM_VERSION = "Corda-Platform-Version"
-        private const val BNDLIB_PROPERTIES = "META-INF/maven/biz.aQute.bnd/biz.aQute.bndlib/pom.properties"
+        private const val PLUGIN_PROPERTIES = "cordapp-cpk.properties"
         private const val DEPENDENCY_CONSTRAINTS_TASK_NAME = "cordappDependencyConstraints"
         private const val DEPENDENCY_CALCULATOR_TASK_NAME = "cordappDependencyCalculator"
         private const val CPK_DEPENDENCIES_TASK_NAME = "cordappCPKDependencies"
@@ -72,11 +72,10 @@ class CordappPlugin @Inject constructor(
             CORDAPP_EXTERNAL_CONFIGURATION_NAME
         ))
 
-        private val bndVersion: String get() {
-            val properties = Properties().also { props ->
-                this::class.java.classLoader.getResourceAsStream(BNDLIB_PROPERTIES)?.use(props::load)
+        private val pluginProperties: Properties get() {
+            return Properties().also { props ->
+                this::class.java.getResourceAsStream(PLUGIN_PROPERTIES)?.use(props::load)
             }
-            return properties.getValue("version")
         }
 
         private fun Properties.getValue(name: String): String {
@@ -106,7 +105,9 @@ class CordappPlugin @Inject constructor(
         }
 
         // Create our plugin's "cordapp" extension.
-        cordapp = project.extensions.create(CORDAPP_EXTENSION_NAME, CordappExtension::class.java, bndVersion)
+        cordapp = with(pluginProperties) {
+            project.extensions.create(CORDAPP_EXTENSION_NAME, CordappExtension::class.java, getValue("osgiVersion"), getValue("bndVersion"))
+        }
 
         project.configurations.apply {
             // Generator object for variant attributes. We need this to ensure
@@ -132,6 +133,9 @@ class CordappPlugin @Inject constructor(
             getByName(COMPILE_ONLY_CONFIGURATION_NAME).withDependencies { dependencies ->
                 val bndDependency = project.dependencies.create("biz.aQute.bnd:biz.aQute.bnd.annotation:" + cordapp.bndVersion.get())
                 dependencies.add(bndDependency)
+
+                val osgiDependency = project.dependencies.create("org.osgi:osgi.annotation:" + cordapp.osgiVersion.get())
+                dependencies.add(osgiDependency)
             }
 
             // We will ALWAYS want to compile against bundles, and not classes.
