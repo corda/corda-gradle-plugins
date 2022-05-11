@@ -20,8 +20,10 @@ import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.testing.Test
 import org.gradle.util.GradleVersion
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.stream.StreamSupport
 import javax.inject.Inject
 
+import static java.util.stream.Collectors.toList
 import static org.gradle.api.plugins.JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME
 import static org.gradle.api.plugins.JavaPlugin.RUNTIME_ONLY_CONFIGURATION_NAME
 
@@ -66,7 +68,10 @@ class QuasarPlugin implements Plugin<Project> {
             throw new InvalidUserDataException("quasar_classloader_exclusions property must be an Iterable<String>")
         }
         def quasarExtension = project.extensions.create(QUASAR, QuasarExtension, objects,
-            quasarGroup, quasarVersion, quasarSuspendable, quasarPackageExclusions, quasarClassLoaderExclusions)
+            quasarGroup, quasarVersion, quasarSuspendable,
+            toStrings(quasarPackageExclusions as Iterable<?>),
+            toStrings(quasarClassLoaderExclusions as Iterable<?>)
+        )
 
         QuasarAdapter quasarAdapter = new QuasarAdapter(quasarExtension, project.dependencies, project.logger)
         addQuasarDependencies(project, quasarAdapter)
@@ -154,6 +159,12 @@ class QuasarPlugin implements Plugin<Project> {
         configuration.canBeConsumed = false
         configuration.canBeResolved = false
         return configuration
+    }
+
+    private static List<String> toStrings(Iterable<?> items) {
+        return StreamSupport.stream(items.spliterator(), false)
+            .map { it?.toString()?.trim() }
+            .collect(toList())
     }
 
     /**
