@@ -11,7 +11,6 @@ import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.artifacts.ResolvedConfiguration
 import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.plugins.JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME
-import org.gradle.api.plugins.JavaPlugin.RUNTIME_ONLY_CONFIGURATION_NAME
 import org.gradle.api.specs.Spec
 import org.w3c.dom.Document
 import org.w3c.dom.Element
@@ -100,19 +99,13 @@ fun Dependency.toMaven(): String {
     return builder.toString()
 }
 
-private fun ConfigurationContainer.createChildConfiguration(name: String, parent: Configuration): Configuration {
+fun ConfigurationContainer.createBasicConfiguration(name: String): Configuration {
     return maybeCreate(name)
-        .setTransitive(false)
         .setVisible(false)
         .also { configuration ->
             configuration.isCanBeConsumed = false
             configuration.isCanBeResolved = false
-            parent.extendsFrom(configuration)
         }
-}
-
-fun ConfigurationContainer.createRuntimeOnlyConfiguration(name: String): Configuration {
-    return createChildConfiguration(name, getByName(RUNTIME_ONLY_CONFIGURATION_NAME))
 }
 
 /**
@@ -125,16 +118,12 @@ fun ConfigurationContainer.createCompileConfiguration(name: String): Configurati
 }
 
 private fun ConfigurationContainer.createCompileConfiguration(name: String, testSuffix: String): Configuration {
-    return maybeCreate(name)
-        .setVisible(false)
-        .also { configuration ->
-            configuration.isCanBeConsumed = false
-            configuration.isCanBeResolved = false
-            getByName(COMPILE_ONLY_CONFIGURATION_NAME).extendsFrom(configuration)
-            matching { it.name.endsWith(testSuffix) }.configureEach { cfg ->
-                cfg.extendsFrom(configuration)
-            }
+    return createBasicConfiguration(name).also { configuration ->
+        getByName(COMPILE_ONLY_CONFIGURATION_NAME).extendsFrom(configuration)
+        matching { it.name.endsWith(testSuffix) }.configureEach { cfg ->
+            cfg.extendsFrom(configuration)
         }
+    }
 }
 
 /**

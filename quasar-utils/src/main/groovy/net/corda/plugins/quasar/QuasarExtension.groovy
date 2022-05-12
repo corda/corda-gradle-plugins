@@ -1,5 +1,6 @@
 package net.corda.plugins.quasar
 
+import groovy.transform.CompileStatic
 import groovy.transform.PackageScope
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ListProperty
@@ -9,6 +10,7 @@ import javax.inject.Inject
 
 import static net.corda.plugins.quasar.QuasarPlugin.QUASAR_ARTIFACT_NAME
 
+@CompileStatic
 class QuasarExtension {
 
     /**
@@ -70,13 +72,13 @@ class QuasarExtension {
         String defaultGroup,
         String defaultVersion,
         String defaultSuspendable,
-        Iterable<? extends String> initialPackageExclusions,
-        Iterable<? extends String> initialClassLoaderExclusions
+        Iterable<String> initialPackageExclusions,
+        Iterable<String> initialClassLoaderExclusions
     ) {
         group = objects.property(String).convention(defaultGroup)
         version = objects.property(String).convention(defaultVersion)
         dependency = group.zip(version) { grp, ver ->
-            [ group: grp, name: QUASAR_ARTIFACT_NAME, version: ver, ext: 'jar' ]
+            [ group: grp, name: QUASAR_ARTIFACT_NAME, version: ver, ext: 'jar' ] as Map<String, String>
         }
         agent = dependency.map {
             it['classifier'] = 'agent'
@@ -92,12 +94,12 @@ class QuasarExtension {
         excludePackages.set(initialPackageExclusions)
         excludeClassLoaders = objects.listProperty(String)
         excludeClassLoaders.set(initialClassLoaderExclusions)
-        options = excludePackages.flatMap { packages ->
-            excludeClassLoaders.flatMap { classLoaders ->
+        options = excludePackages.flatMap { List<String> packages ->
+            excludeClassLoaders.flatMap { List<String> classLoaders ->
                 debug.flatMap { isDebug ->
                     verbose.flatMap { isVerbose ->
                         suspendableAnnotation.orElse('').map { ann ->
-                            def builder = new StringBuilder('=')
+                            final def builder = new StringBuilder('=')
                             if (isDebug) {
                                 builder.append('d')
                             }

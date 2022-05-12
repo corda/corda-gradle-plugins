@@ -25,6 +25,7 @@ import org.gradle.api.plugins.JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME
 import org.gradle.api.plugins.JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME
 import org.gradle.api.plugins.JavaPlugin.JAR_TASK_NAME
 import org.gradle.api.plugins.JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME
+import org.gradle.api.plugins.JavaPlugin.RUNTIME_ONLY_CONFIGURATION_NAME
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.SourceSet.MAIN_SOURCE_SET_NAME
@@ -128,7 +129,10 @@ class CordappPlugin @Inject constructor(
             project.components.add(component)
 
             // This definition of cordaRuntimeOnly must be kept aligned with the one in the quasar-utils plugin.
-            createRuntimeOnlyConfiguration(CORDA_RUNTIME_ONLY_CONFIGURATION_NAME)
+            val cordaRuntimeOnly = createBasicConfiguration(CORDA_RUNTIME_ONLY_CONFIGURATION_NAME)
+                .setDescription("Runtime-only dependencies which do not belong to this CorDapp.")
+                .setTransitive(false)
+            getByName(RUNTIME_ONLY_CONFIGURATION_NAME).extendsFrom(cordaRuntimeOnly)
 
             getByName(COMPILE_ONLY_CONFIGURATION_NAME).withDependencies { dependencies ->
                 val bndDependency = project.dependencies.create("biz.aQute.bnd:biz.aQute.bnd.annotation:" + cordapp.bndVersion.get())

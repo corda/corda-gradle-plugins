@@ -1,5 +1,6 @@
 package net.corda.plugins.quasar
 
+import groovy.transform.CompileStatic
 import groovy.transform.PackageScope
 import org.gradle.api.Action
 import org.gradle.api.GradleException
@@ -10,6 +11,7 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencySet
+import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.logging.Logger
 import org.gradle.api.model.ObjectFactory
@@ -18,14 +20,17 @@ import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.testing.Test
 import org.gradle.util.GradleVersion
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.stream.StreamSupport
 import javax.inject.Inject
 
+import static java.util.stream.Collectors.toList
 import static org.gradle.api.plugins.JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME
 import static org.gradle.api.plugins.JavaPlugin.RUNTIME_ONLY_CONFIGURATION_NAME
 
 /**
  * QuasarPlugin creates "quasar" and "quasarAgent" configurations and adds Quasar as a dependency.
  */
+@CompileStatic
 class QuasarPlugin implements Plugin<Project> {
 
     private static final String QUASAR = 'quasar'
@@ -63,7 +68,10 @@ class QuasarPlugin implements Plugin<Project> {
             throw new InvalidUserDataException("quasar_classloader_exclusions property must be an Iterable<String>")
         }
         def quasarExtension = project.extensions.create(QUASAR, QuasarExtension, objects,
-            quasarGroup, quasarVersion, quasarSuspendable, quasarPackageExclusions, quasarClassLoaderExclusions)
+            quasarGroup, quasarVersion, quasarSuspendable,
+            toStrings(quasarPackageExclusions as Iterable<?>),
+            toStrings(quasarClassLoaderExclusions as Iterable<?>)
+        )
 
         QuasarAdapter quasarAdapter = new QuasarAdapter(quasarExtension, project.dependencies, project.logger)
         addQuasarDependencies(project, quasarAdapter)
@@ -71,96 +79,99 @@ class QuasarPlugin implements Plugin<Project> {
     }
 
     private void addQuasarDependencies(Project project, QuasarAdapter adapter) {
-        def quasar = project.configurations.create(QUASAR)
-        quasar.visible = false
-        quasar.withDependencies { dependencies ->
-            def quasarDependency = adapter.createDependency { dep ->
-                dep.transitive = false
+        def configurations = project.configurations
+        configurations.create(QUASAR)
+            .setVisible(false)
+            .withDependencies { dependencies ->
+                def quasarDependency = adapter.createDependency { ModuleDependency dep ->
+                    dep.transitive = false
+                }
+                dependencies.add(quasarDependency)
             }
-            dependencies.add(quasarDependency)
-        }
 
-        def quasarAgent = project.configurations.create(QUASAR_AGENT)
-        quasarAgent.visible = false
-        quasarAgent.withDependencies { dependencies ->
-            def quasarAgentDependency = adapter.createAgent { dep ->
-                dep.transitive = false
+        configurations.create(QUASAR_AGENT)
+            .setVisible(false)
+            .withDependencies { dependencies ->
+                def quasarAgentDependency = adapter.createAgent { ModuleDependency dep ->
+                    dep.transitive = false
+                }
+                dependencies.add(quasarAgentDependency)
             }
-            dependencies.add(quasarAgentDependency)
-        }
 
-        // If we're building a JAR then also add the Quasar bundle to the appropriate configurations.
-        project.pluginManager.withPlugin('java') {
-            // Add Quasar bundle to the compile classpath WITHOUT any of its transitive dependencies.
-            // This definition of cordaProvided must be kept aligned with the one in the corda-cpk plugin.
-            def cordaProvided = createCompileConfiguration(CORDA_PROVIDED_CONFIGURATION_NAME, project.configurations)
-            cordaProvided.withDependencies(new QuasarAction(adapter, false))
-
+        // This definition of cordaRuntimeOnly must be consistent with the one in the cordapp-cpk plugin.
+        def cordaRuntimeOnly = createBasicConfiguration(CORDA_RUNTIME_ONLY_CONFIGURATION_NAME, configurations)
             // Instrumented code needs both the Quasar bundle and its transitive dependencies at runtime.
-            // The definition of cordaRuntimeOnly must be kept aligned with the one in the corda-cpk plugin.
-            def cordaRuntimeOnly = createRuntimeOnlyConfiguration(CORDA_RUNTIME_ONLY_CONFIGURATION_NAME, project.configurations)
-            cordaRuntimeOnly.withDependencies(new QuasarAction(adapter, true))
+            .withDependencies(new QuasarAction(adapter, true))
+            .setTransitive(false)
+
+        // This definition of cordaProvided must be consistent with the one in the cordapp-cpk plugin.
+        def cordaProvided = createBasicConfiguration(CORDA_PROVIDED_CONFIGURATION_NAME, configurations)
+            // Add Quasar bundle WITHOUT any of its transitive dependencies.
+            .withDependencies(new QuasarAction(adapter, false))
+
+        // If we're building a JAR then also add the Quasar bundle to the appropriate Java configurations.
+        // This is also consistent with the cordapp-cpk plugin, which applies the 'java' plugin too.
+        project.pluginManager.withPlugin('java') {
+            // Adds the Quasar bundle to the compileClasspath WITHOUT its transitive dependencies.
+            configurations[COMPILE_ONLY_CONFIGURATION_NAME].extendsFrom(cordaProvided)
+
+            // These are "testing" configurations, e.g. 'testImplementation'.
+            configurations.matching { Configuration cfg -> cfg.name.endsWith('Implementation') }.configureEach { cfg ->
+                cfg.extendsFrom(cordaProvided)
+            }
+
+            // Adds the Quasar bundle to the runtimeClasspath WITH its transitive dependencies.
+            configurations[RUNTIME_ONLY_CONFIGURATION_NAME].extendsFrom(cordaRuntimeOnly)
         }
     }
 
     private void configureQuasarTasks(Project project, QuasarAdapter adapter) {
         def quasarAgent = project.configurations[QUASAR_AGENT]
-        project.tasks.withType(Test).configureEach {
-            doFirst {
+        project.tasks.withType(Test).configureEach { Test task ->
+            task.doFirst { Test t ->
                 if (adapter.instrumentingTests) {
                     if (adapter.withoutSuspendableAnnotation) {
                         adapter.warnNoSuspendableAnnotation()
                     }
 
-                    jvmArgs "-javaagent:${quasarAgent.singleFile}${adapter.options}",
+                    t.jvmArgs "-javaagent:${quasarAgent.singleFile}${adapter.options}",
                             "-Dco.paralleluniverse.fibers.verifyInstrumentation"
                 }
             }
         }
-        project.tasks.withType(JavaExec).configureEach {
-            doFirst {
+        project.tasks.withType(JavaExec).configureEach { JavaExec task ->
+            task.doFirst { JavaExec je ->
                 if (adapter.instrumentingJavaExec) {
                     if (adapter.withoutSuspendableAnnotation) {
                         adapter.warnNoSuspendableAnnotation()
                     }
 
-                    jvmArgs "-javaagent:${quasarAgent.singleFile}${adapter.options}",
+                    je.jvmArgs "-javaagent:${quasarAgent.singleFile}${adapter.options}",
                             "-Dco.paralleluniverse.fibers.verifyInstrumentation"
                 }
             }
         }
     }
 
-    private static Configuration createRuntimeOnlyConfiguration(String name, ConfigurationContainer configurations) {
-        Configuration configuration = configurations.maybeCreate(name)
-            .setTransitive(false)
-            .setVisible(false)
-        configuration.canBeConsumed = false
-        configuration.canBeResolved = false
-        configurations.getByName(RUNTIME_ONLY_CONFIGURATION_NAME).extendsFrom(configuration)
-        return configuration
-    }
-
-    private static Configuration createCompileConfiguration(String name, ConfigurationContainer configurations) {
-        return createCompileConfiguration(name, "Implementation", configurations)
-    }
-
-    private static Configuration createCompileConfiguration(String name, String testSuffix, ConfigurationContainer configurations) {
+    private static Configuration createBasicConfiguration(String name, ConfigurationContainer configurations) {
         Configuration configuration = configurations.maybeCreate(name)
             .setVisible(false)
         configuration.canBeConsumed = false
         configuration.canBeResolved = false
-        configurations.getByName(COMPILE_ONLY_CONFIGURATION_NAME).extendsFrom(configuration)
-        configurations.matching { it.name.endsWith(testSuffix) }.configureEach { cfg ->
-            cfg.extendsFrom(configuration)
-        }
         return configuration
+    }
+
+    private static List<String> toStrings(Iterable<?> items) {
+        return StreamSupport.stream(items.spliterator(), false)
+            .map { it?.toString()?.trim() }
+            .collect(toList())
     }
 
     /**
      * Define operations to perform using {@link QuasarExtension}
      * once Gradle's configuration phase is complete.
      */
+    @CompileStatic
     private static final class QuasarAdapter {
         private final AtomicBoolean warnFlag
         private final QuasarExtension quasar
@@ -213,6 +224,7 @@ Adding ${QUASAR_ARTIFACT_NAME} to the classpath, to make Quasar's built-in @Susp
         }
     }
 
+    @CompileStatic
     private static final class QuasarAction implements Action<DependencySet> {
         private final QuasarAdapter adapter
         private final boolean isTransitive
@@ -227,7 +239,7 @@ Adding ${QUASAR_ARTIFACT_NAME} to the classpath, to make Quasar's built-in @Susp
         void execute(DependencySet dependencies) {
             if (adapter.withoutSuspendableAnnotation) {
                 adapter.warnNoSuspendableAnnotation()
-                def quasarDependency = adapter.createDependency { dep ->
+                def quasarDependency = adapter.createDependency { ModuleDependency dep ->
                     dep.transitive = isTransitive
                 }
                 dependencies.add(quasarDependency)
