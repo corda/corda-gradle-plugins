@@ -102,6 +102,15 @@ tasks.named('javadoc', Javadoc) {
     enabled = false
 }
 
+processResources {
+    filesMatching('**/cordapp-cpk.properties') {
+        expand([
+            'osgi_version': osgi_version,
+            'bnd_version': bnd_version
+        ])
+    }
+}
+
 processTestResources {
     filesMatching('gradle.properties') {
         expand([

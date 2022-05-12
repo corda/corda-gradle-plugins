@@ -241,7 +241,7 @@ enabled to ensure that every `Import-Package` element has an associated version 
 The `cordapp-cpk` plugin automatically adds these dependencies to the CorDapp:
 ```groovy
 compileOnly "biz.aQute.bnd:biz.aQute.bnd.annotation:$bndVersion"
-compileOnly "org.osgi:osgi.annotation:8.0.0"
+compileOnly "org.osgi:osgi.annotation:8.1.0"
 ```
 
 These annotations [control how Bnd will generate OSGi metadata](https://bnd.bndtools.org/chapters/230-manifest-annotations.html)

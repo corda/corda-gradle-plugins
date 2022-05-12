@@ -28,6 +28,7 @@ fun TaskInputs.nested(nestName: String, cordapp: CordappExtension) {
 open class CordappExtension @Inject constructor(
     objects: ObjectFactory,
     providers: ProviderFactory,
+    osgiVersion: String,
     bndVersion: String
 ) {
     /**
@@ -68,6 +69,9 @@ open class CordappExtension @Inject constructor(
 
     @get:Input
     val bndVersion: Property<String> = objects.property(String::class.java).convention(bndVersion)
+
+    @get:Input
+    val osgiVersion: Property<String> = objects.property(String::class.java).convention(osgiVersion)
 
     /**
      * This property only provides the default value for [CPKDependenciesTask.hashAlgorithm]
