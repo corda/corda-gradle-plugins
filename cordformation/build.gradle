@@ -23,14 +23,6 @@ repositories {
 
 configurations {
     noderunner
-
-    all {
-        resolutionStrategy {
-            dependencySubstitution {
-                substitute module('commons-logging:commons-logging') with module("org.slf4j:jcl-over-slf4j:$slf4j_version")
-            }
-        }
-    }
 }
 
 /**
@@ -103,7 +95,10 @@ dependencies {
     // Docker-compose file generation
     implementation "org.yaml:snakeyaml:$snake_yaml_version"
     // DockerFile Generation
-    implementation "com.spotify:docker-client:$docker_client_version"
+    implementation("com.spotify:docker-client:$docker_client_version") {
+        exclude group: 'commons-logging', module: 'commons-logging'
+    }
+    implementation "org.slf4j:jcl-over-slf4j:$slf4j_version"
 
     noderunner "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 
