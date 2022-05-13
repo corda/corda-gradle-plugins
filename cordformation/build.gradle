@@ -23,6 +23,14 @@ repositories {
 
 configurations {
     noderunner
+
+    all {
+        resolutionStrategy {
+            dependencySubstitution {
+                substitute module('commons-logging:commons-logging') with module("org.slf4j:jcl-over-slf4j:$slf4j_version")
+            }
+        }
+    }
 }
 
 /**
@@ -76,11 +84,26 @@ pluginBundle {
 }
 
 dependencies {
+    constraints {
+        implementation "org.slf4j:slf4j-api:$slf4j_version"
+        implementation('org.apache.commons:commons-compress:1.21') {
+            because 'CVE-2021-35515, CVE-2021-35516, CVE-2021-35517, CVE-2021-36090'
+        }
+        testRuntimeOnly('org.apache.logging.log4j:log4j-core:2.17.2') {
+            because 'CVE-2021-44228, CVE-2021-45046, CVE-2021-45105, CVE-2021-44832'
+        }
+    }
+
     // Gradle plugins written in Kotlin will always use Gradle's
     // own provided Kotlin libraries at runtime. So ensure that
     // we don't add Kotlin as a dependency in our published POM.
     compileOnly 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
     implementation "com.typesafe:config:$typesafe_config_version"
+
+    // Docker-compose file generation
+    implementation "org.yaml:snakeyaml:$snake_yaml_version"
+    // DockerFile Generation
+    implementation "com.spotify:docker-client:$docker_client_version"
 
     noderunner "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 
@@ -92,10 +115,6 @@ dependencies {
     testImplementation "org.assertj:assertj-core:$assertj_version"
     testImplementation "net.corda:corda-serialization:$corda_release_version"
     testRuntimeOnly "net.corda:corda-node-api:$corda_release_version"
-    // Docker-compose file generation
-    implementation "org.yaml:snakeyaml:$snake_yaml_version"
-    //DockerFile Generation
-    implementation "com.spotify:docker-client:$docker_client_version"
 }
 
 tasks.named('validateTaskProperties', ValidateTaskProperties) {
