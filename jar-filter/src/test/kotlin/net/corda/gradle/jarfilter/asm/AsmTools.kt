@@ -9,7 +9,11 @@ import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.ClassWriter.COMPUTE_MAXS
 import java.io.ByteArrayInputStream
+import java.io.IOException
 import java.io.InputStream
+import java.net.MalformedURLException
+import java.net.URL
+import java.security.ProtectionDomain
 
 
 fun ByteArray.accept(visitor: (ClassVisitor) -> ClassVisitor): ByteArray {
@@ -30,19 +34,44 @@ val Class<*>.descriptor: String get() = name.descriptor
 inline fun <reified T: R, reified R: Any> ByteArray.toClass(): Class<out R> = toClass(T::class.java, R::class.java)
 
 fun <T: R, R: Any> ByteArray.toClass(type: Class<in T>, asType: Class<out R>): Class<out R>
-    = BytecodeClassLoader(this, type.name, type.classLoader).createClass().asSubclass(asType)
+    = BytecodeClassLoader(this, type.name, type.protectionDomain, type.classLoader).createClass().asSubclass(asType)
 
 private class BytecodeClassLoader(
     private val bytecode: ByteArray,
     private val className: String,
+    private val protectionDomain: ProtectionDomain,
     parent: ClassLoader
 ) : ClassLoader(parent) {
     fun createClass(): Class<*> {
-        return defineClass(className, bytecode, 0, bytecode.size).apply(::resolveClass)
+        return defineClass(className, bytecode, 0, bytecode.size, protectionDomain).apply(::resolveClass)
+    }
+
+    override fun findResource(name: String): URL? {
+        return if (name == className.resourceName) {
+            try {
+                URL("file", "bytecode", className.resourceName)
+            } catch (_: MalformedURLException) {
+                null
+            }
+        } else {
+            null
+        }
     }
 
     // Ensure that the class we create also honours Class<*>.bytecode (above).
     override fun getResourceAsStream(name: String): InputStream? {
-        return if (name == className.resourceName) ByteArrayInputStream(bytecode) else super.getResourceAsStream(name)
+        return getResource(name)?.let { resource ->
+            if (resource.protocol == "file"
+                && resource.host == "bytecode"
+                && resource.file == className.resourceName) {
+                ByteArrayInputStream(bytecode)
+            } else {
+                try {
+                    resource.openStream()
+                } catch (_: IOException) {
+                    null
+                }
+            }
+        }
     }
 }
