@@ -16,22 +16,11 @@ gradlePlugin {
         apiScannerPlugin {
             id = 'net.corda.plugins.api-scanner'
             implementationClass = 'net.corda.plugins.apiscanner.ApiScanner'
+            displayName = 'Corda API Scanner Plugin'
+            description = 'Corda API Scanner Plugin'
         }
     }
     automatedPublishing = false
-}
-
-pluginBundle {
-    website = project.vcsUrl
-    vcsUrl = project.vcsUrl
-    description = 'Corda API Scanner Plugin'
-    tags = ['corda']
-
-    plugins {
-        apiScannerPlugin {
-            displayName = 'Corda API Scanner Plugin'
-        }
-    }
 }
 
 configurations {

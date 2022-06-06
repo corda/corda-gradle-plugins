@@ -18,22 +18,11 @@ gradlePlugin {
         quasarPlugin {
             id = 'net.corda.plugins.quasar-utils'
             implementationClass = 'net.corda.plugins.quasar.QuasarPlugin'
+            displayName = 'Corda Quasar Utils Plugin'
+            description = 'Corda Quasar Utils Plugin'
         }
     }
     automatedPublishing = false
-}
-
-pluginBundle {
-    website = project.vcsUrl
-    vcsUrl = project.vcsUrl
-    description = 'Corda Quasar Utils Plugin'
-    tags = ['corda']
-
-    plugins {
-        quasarPlugin {
-            displayName = 'Corda Quasar Utils Plugin'
-        }
-    }
 }
 
 dependencies {

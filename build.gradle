@@ -45,6 +45,12 @@ subprojects {
                     into 'META-INF'
                 }
             }
+
+            pluginBundle {
+                website = project.vcsUrl
+                vcsUrl = project.vcsUrl
+                tags = ['corda']
+            }
         }
     }
 

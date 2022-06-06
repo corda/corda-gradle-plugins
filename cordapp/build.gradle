@@ -14,22 +14,11 @@ gradlePlugin {
         cordappPlugin {
             id = 'net.corda.plugins.cordapp'
             implementationClass = 'net.corda.plugins.CordappPlugin'
+            displayName = 'Corda Cordapp Plugin'
+            description = 'Corda Cordapp Builder Plugin'
         }
     }
     automatedPublishing = false
-}
-
-pluginBundle {
-    website = project.vcsUrl
-    vcsUrl = project.vcsUrl
-    description = 'Corda Cordapp Builder Plugin'
-    tags = ['corda']
-
-    plugins {
-        cordappPlugin {
-            displayName = 'Corda Cordapp Plugin'
-        }
-    }
 }
 
 sourceSets {

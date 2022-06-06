@@ -26,22 +26,11 @@ gradlePlugin {
         jarFilterPlugin {
             id = 'net.corda.plugins.jar-filter'
             implementationClass = 'net.corda.gradle.jarfilter.JarFilterPlugin'
+            displayName = 'Corda JAR Filter Plugin'
+            description = 'Corda JAR Filter Plugin'
         }
     }
     automatedPublishing = false
-}
-
-pluginBundle {
-    website = project.vcsUrl
-    vcsUrl = project.vcsUrl
-    description = 'Corda JAR Filter Plugin'
-    tags = ['corda']
-
-    plugins {
-        jarFilterPlugin {
-            displayName = 'Corda JAR Filter Plugin'
-        }
-    }
 }
 
 jacoco {

@@ -59,22 +59,11 @@ gradlePlugin {
         flaskPlugin {
             id = 'net.corda.plugins.flask'
             implementationClass = 'net.corda.gradle.flask.FlaskPlugin'
+            displayName = 'Corda Flask Plugin'
+            description = 'Corda Flask Plugin'
         }
     }
     automatedPublishing = false
-}
-
-pluginBundle {
-    website = project.vcsUrl
-    vcsUrl = project.vcsUrl
-    description = 'Corda Flask Plugin'
-    tags = ['corda']
-
-    plugins {
-        flaskPlugin {
-            displayName = 'Corda Flask Plugin'
-        }
-    }
 }
 
 repositories {
