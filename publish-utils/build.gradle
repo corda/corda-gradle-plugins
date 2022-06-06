@@ -17,6 +17,8 @@ gradlePlugin {
         publishUtilsPlugin {
             id = 'net.corda.plugins.publish-utils'
             implementationClass = 'net.corda.plugins.publish.PublishPlugin'
+            displayName = 'Corda Publishing Plugin'
+            description = 'Corda Publishing Plugin'
         }
     }
     automatedPublishing = false
@@ -26,12 +28,5 @@ gradlePlugin {
 pluginBundle {
     website = project.vcsUrl
     vcsUrl = project.vcsUrl
-    description = 'Corda Publishing Plugin'
     tags = ['corda']
-
-    plugins {
-        publishUtilsPlugin {
-            displayName = 'Corda Publishing Plugin'
-        }
-    }
 }

@@ -29,29 +29,17 @@ gradlePlugin {
         cordappCpkPlugin {
             id = 'net.corda.plugins.cordapp-cpk'
             implementationClass = 'net.corda.plugins.cpk.CordappPlugin'
+            displayName = 'Corda CorDapp CPK Plugin'
+            description = 'Corda CorDapp CPK Builder Plugin'
         }
         cordappCpbPlugin {
             id = 'net.corda.plugins.cordapp-cpb'
             implementationClass = 'net.corda.plugins.cpb.CpbPlugin'
+            displayName = 'Corda CorDapp CPB Plugin'
+            description = 'Corda CorDapp CPB Builder Plugin'
         }
     }
     automatedPublishing = false
-}
-
-pluginBundle {
-    website = project.vcsUrl
-    vcsUrl = project.vcsUrl
-    description = 'Corda CorDapp Builder Plugins'
-    tags = ['corda']
-
-    plugins {
-        cordappCpkPlugin {
-            displayName = 'Corda CorDapp CPK Plugin'
-        }
-        cordappCpbPlugin {
-            displayName = 'Corda CorDapp CPB Plugin'
-        }
-    }
 }
 
 /**
