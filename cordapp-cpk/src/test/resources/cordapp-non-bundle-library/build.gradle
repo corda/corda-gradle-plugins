@@ -10,9 +10,10 @@ version = cordapp_version
 
 cordapp {
     targetPlatformVersion = platform_version.toInteger()
+    minimumPlatformVersion = platform_version.toInteger()
 
     contract {
-        name = 'CorDapp With Guava'
+        name = 'CorDapp Non-Bundle Library'
         versionId = cordapp_contract_version.toInteger()
         licence = 'Test-Licence'
         vendor = 'R3'
@@ -20,13 +21,9 @@ cordapp {
 }
 
 dependencies {
-    cordaProvided project(':corda-api')
-    implementation "org.jetbrains.kotlin:kotlin-osgi-bundle:$kotlin_version"
-    implementation("com.google.guava:guava:$guava_version") {
-        transitive = false
-    }
+    implementation project(':embeddable-library')
 }
 
-tasks.named('jar', Jar) {
-    archiveBaseName = 'cordapp-with-guava'
+jar {
+    archiveBaseName = 'cordapp-non-bundle-library'
 }

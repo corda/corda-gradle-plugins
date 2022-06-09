@@ -71,7 +71,7 @@ class TransitiveRemoteCordappsTest {
             )
 
         // Check that we could still read all of Gradle's MavenPom properties.
-        assertThat(publisherProject.output.split(System.lineSeparator()))
+        assertThat(publisherProject.outputLines)
             .noneMatch { it.startsWith("INTERNAL API:") }
 
         testProject = GradleProject(testProjectDir, reporter)

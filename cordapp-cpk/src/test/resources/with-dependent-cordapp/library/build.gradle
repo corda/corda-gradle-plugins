@@ -12,7 +12,9 @@ jar {
 
 dependencies {
     // Corda depends on Guava via Quasar.
-    implementation "com.google.guava:guava:$library_guava_version"
+    implementation("com.google.guava:guava:$library_guava_version") {
+        transitive = false
+    }
 
     // Corda depends on a more recent version of SLF4J API.
     api "org.slf4j:slf4j-api:$slf4j_version"

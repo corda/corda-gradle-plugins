@@ -90,7 +90,7 @@ class SimpleCordappTest {
 
     @Test
     fun `test signing passwords are not logged`() {
-        assertThat(testProject.output.split(System.lineSeparator())).anyMatch { line ->
+        assertThat(testProject.outputLines).anyMatch { line ->
             line.startsWith(SIGNING_TAG)
         }.noneMatch { line ->
             line.startsWith(SIGNING_TAG)
