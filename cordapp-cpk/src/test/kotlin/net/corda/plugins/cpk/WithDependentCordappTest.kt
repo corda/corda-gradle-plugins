@@ -59,7 +59,7 @@ class WithDependentCordappTest {
         assertEquals(CORDA_GUAVA_VERSION, testProject.properties.getProperty("corda_guava_version"))
         assertNotEquals(cordaSlf4jVersion, librarySlf4jVersion)
 
-        assertThat(testProject.output.split(System.lineSeparator()))
+        assertThat(testProject.outputLines)
             .contains("COMPILE-WORKFLOW> biz.aQute.bnd.annotation-${bndVersion}.jar")
             .contains("COMPILE-WORKFLOW> guava-${guavaVersion}.jar")
             .contains("COMPILE-WORKFLOW> cordapp.jar")

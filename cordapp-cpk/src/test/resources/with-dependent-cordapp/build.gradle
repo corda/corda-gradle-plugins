@@ -36,7 +36,9 @@ jar {
 dependencies {
     cordapp project(':cordapp')
     cordaProvided project(':corda-api')
-    implementation "com.google.guava:guava:$guava_version"
+    implementation("com.google.guava:guava:$guava_version") {
+        transitive = false
+    }
 }
 
 // Copy the DependencyConstraints XML from ':cordapp' into our build directory.

@@ -221,6 +221,9 @@ class GradleProject(private val projectDir: Path, private val reporter: TestRepo
     var output: String = ""
         private set
 
+    val outputLines: List<String>
+        get() = output.split(System.lineSeparator())
+
     fun resultFor(taskName: String): BuildTask {
         return result.task(":$taskName") ?: fail("No outcome for $taskName task")
     }

@@ -27,6 +27,9 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-osgi-bundle:$kotlin_version"
     implementation "commons-io:commons-io:$commons_io_version"
     implementation "com.google.guava:guava:$guava_version"
+    cordaEmbedded 'com.google.errorprone:error_prone_annotations'
+    cordaEmbedded 'com.google.j2objc:j2objc-annotations'
+    cordaEmbedded 'com.google.guava:listenablefuture'
 }
 
 jar {

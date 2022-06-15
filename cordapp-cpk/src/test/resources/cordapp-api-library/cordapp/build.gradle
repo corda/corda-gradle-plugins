@@ -26,4 +26,7 @@ tasks.named('jar', Jar) {
 dependencies {
     cordaProvided project(':corda-api')
     api "com.google.guava:guava:$contract_guava_version"
+    cordaEmbedded 'com.google.errorprone:error_prone_annotations'
+    cordaEmbedded 'com.google.j2objc:j2objc-annotations'
+    cordaEmbedded 'com.google.guava:listenablefuture'
 }

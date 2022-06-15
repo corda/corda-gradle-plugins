@@ -56,6 +56,7 @@ class CordappPlugin @Inject constructor(
         private const val DEPENDENCY_CONSTRAINTS_TASK_NAME = "cordappDependencyConstraints"
         private const val DEPENDENCY_CALCULATOR_TASK_NAME = "cordappDependencyCalculator"
         private const val CPK_DEPENDENCIES_TASK_NAME = "cordappCPKDependencies"
+        private const val VERIFY_LIBRARIES_TASK_NAME = "verifyLibraries"
         private const val VERIFY_BUNDLE_TASK_NAME = "verifyBundle"
         private const val CORDAPP_COMPONENT_NAME = "cordapp"
         private const val CORDAPP_EXTENSION_NAME = "cordapp"
@@ -359,6 +360,13 @@ class CordappPlugin @Inject constructor(
         }
 
         /**
+         * Check that all of this CPK's libraries are actually bundles.
+         */
+        val verifyLibraries = project.tasks.register(VERIFY_LIBRARIES_TASK_NAME, VerifyLibraries::class.java) { verify ->
+            verify.setDependenciesFrom(calculatorTask)
+        }
+
+        /**
          * Ask Bnd to "sanity-check" this new bundle.
          */
         val verifyBundle = project.tasks.register(VERIFY_BUNDLE_TASK_NAME, VerifyBundle::class.java) { verify ->
@@ -369,6 +377,7 @@ class CordappPlugin @Inject constructor(
             project.gradle.taskGraph.whenReady(copyJarEnabledTo(verify))
         }
         jarTask.configure { jar ->
+            jar.dependsOn(verifyLibraries)
             jar.finalizedBy(verifyBundle)
         }
 

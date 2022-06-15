@@ -94,11 +94,15 @@ class SimpleKotlinCordappTest {
                 "com.example.contract;uses:=\"kotlin,net.corda.v5.ledger.contracts,net.corda.v5.ledger.transactions\";$cordappOsgiVersion",
                 "com.example.contract.states;uses:=\"kotlin,net.corda.v5.application.identity,net.corda.v5.ledger.contracts\";$cordappOsgiVersion"
             )
+            assertThatHeader(getValue("Private-Package")).containsAll(
+                "com.google.errorprone.annotations;",
+                "com.google.errorprone.annotations.concurrent;",
+                "com.google.j2objc.annotations;"
+            )
             assertEquals("osgi.ee;filter:=\"(&(osgi.ee=JavaSE)(version=11))\"", getValue(REQUIRE_CAPABILITY))
             assertEquals("Test-Licence", getValue(BUNDLE_LICENSE))
             assertEquals("R3", getValue(BUNDLE_VENDOR))
             assertEquals("true", getValue("Sealed"))
-            assertNull(getValue("Private-Package"))
         }
     }
 }
