@@ -34,9 +34,6 @@ class ComplexPackagesTest {
 
     @Test
     fun complexPackageTest() {
-        // We need the OSGi @Export annotation, but must ignore its dependency.
-        assertThat(testProject.dependencyConstraints).isEmpty()
-
         val artifacts = testProject.artifacts
         assertThat(artifacts).hasSize(2)
 

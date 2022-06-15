@@ -51,10 +51,6 @@ class CordappApiLibraryTest {
 
     @Test
     fun hasCordappApiLibrary() {
-        assertThat(testProject.dependencyConstraints)
-            .anyMatch { it.fileName == "guava-${expectedWorkflowGuavaVersion}.jar" }
-            .allMatch { it.hash.isSHA256 }
-            .hasSizeGreaterThanOrEqualTo(1)
         assertThat(testProject.cpkDependencies)
             .anyMatch { it.name == "com.example.cordapp" && it.version == toOSGi(CONTRACT_CORDAPP_VERSION) }
             .allMatch { it.signers.isSameAsMe }

@@ -41,15 +41,4 @@ class CordappWithConstraintTest {
                 "-Pcommons_compress_version=$commonsCompressVersion"
             )
     }
-
-    @Test
-    fun testLibrariesWithConstraints() {
-        assertThat(testProject.dependencyConstraints)
-            .noneMatch { it.fileName.startsWith("commons-compress-") }
-            .noneMatch { it.fileName.startsWith("library1-") }
-            .anyMatch { it.fileName == "commons-io-$commonsIoVersion.jar" }
-            .anyMatch { it.fileName == "commons-codec-$commonsCodecVersion.jar" }
-            .anyMatch { it.fileName == "library2-$library2Version.jar" }
-            .hasSizeGreaterThanOrEqualTo(3)
-    }
 }

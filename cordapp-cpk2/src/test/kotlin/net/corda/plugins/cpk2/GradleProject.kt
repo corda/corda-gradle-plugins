@@ -5,11 +5,9 @@ import aQute.bnd.version.MavenVersion.parseMavenString
 import aQute.bnd.version.Version
 import aQute.bnd.version.VersionRange
 import net.corda.plugins.cpk2.xml.CPKDependency
-import net.corda.plugins.cpk2.xml.DependencyConstraint
 import net.corda.plugins.cpk2.xml.HashValue
 import net.corda.plugins.cpk2.xml.SameAsMe
 import net.corda.plugins.cpk2.xml.loadCPKDependencies
-import net.corda.plugins.cpk2.xml.loadDependencyConstraints
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.api.JavaVersion.current
 import org.gradle.api.JavaVersion.VERSION_15
@@ -193,18 +191,6 @@ class GradleProject(private val projectDir: Path, private val reporter: TestRepo
             assertThat(artifactDir).isDirectory
             return Files.list(artifactDir).collect(toList())
         }
-
-    val dependencyConstraintsFile: Path = buildDir.resolve("generated-constraints")
-        .resolve(META_INF_DIR).resolve("DependencyConstraints")
-    val dependencyConstraints: List<DependencyConstraint>
-        @Throws(IOException::class)
-        get() = dependencyConstraintsStream.buffered().use(::loadDependencyConstraints)
-    val dependencyConstraintsHash: ByteArray
-        @Throws(IOException::class)
-        get() = dependencyConstraintsStream.use(digestFor(HASH_ALGORITHM)::hashFor)
-    private val dependencyConstraintsStream: InputStream
-        @Throws(IOException::class)
-        get() = dependencyConstraintsFile.toFile().inputStream()
 
     val cpkDependenciesFile: Path = buildDir.resolve("cpk-dependencies")
         .resolve(META_INF_DIR).resolve("CPKDependencies")

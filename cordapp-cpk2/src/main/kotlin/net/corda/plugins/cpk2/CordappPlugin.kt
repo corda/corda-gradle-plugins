@@ -53,7 +53,6 @@ class CordappPlugin @Inject constructor(
         private const val UNKNOWN_PLATFORM_VERSION = -1
         private const val CORDA_PLATFORM_VERSION = "Corda-Platform-Version"
         private const val PLUGIN_PROPERTIES = "cordapp-cpk2.properties"
-        private const val DEPENDENCY_CONSTRAINTS_TASK_NAME = "cordappDependencyConstraints"
         private const val DEPENDENCY_CALCULATOR_TASK_NAME = "cordappDependencyCalculator"
         private const val CPK_DEPENDENCIES_TASK_NAME = "cordappCPKDependencies"
         private const val VERIFY_LIBRARIES_TASK_NAME = "verifyLibraries"
@@ -256,16 +255,6 @@ class CordappPlugin @Inject constructor(
         }
 
         /**
-         * Generate an extra resource file containing constraints for all of this CorDapp's dependencies.
-         */
-        val constraintsDir = layouts.buildDirectory.dir("generated-constraints")
-        val constraintsTask = project.tasks.register(DEPENDENCY_CONSTRAINTS_TASK_NAME, DependencyConstraintsTask::class.java) { task ->
-            task.setLibrariesFrom(calculatorTask)
-            task.constraintsDir.set(constraintsDir)
-            task.hashAlgorithm.set(cordapp.hashAlgorithm)
-        }
-
-        /**
          * Generate an extra resource file listing this CorDapp's CPK dependencies.
          */
         val cpkDependenciesDir = layouts.buildDirectory.dir("cpk-dependencies")
@@ -278,7 +267,6 @@ class CordappPlugin @Inject constructor(
         val sourceSets = project.extensions.getByType(SourceSetContainer::class.java)
         sourceSets.getByName(MAIN_SOURCE_SET_NAME) { main ->
             main.output.apply {
-                dir(mapOf("builtBy" to constraintsTask), constraintsDir)
                 dir(mapOf("builtBy" to cpkDependenciesTask), cpkDependenciesDir)
             }
         }
@@ -396,7 +384,7 @@ class CordappPlugin @Inject constructor(
             task.archiveVersion.convention(jarTask.flatMap(Jar::getArchiveVersion))
 
             // Configure the CPK archive contents.
-            task.setLibrariesFrom(constraintsTask)
+            task.setLibrariesFrom(calculatorTask)
             task.cordapp.set(jarTask.flatMap(Jar::getArchiveFile))
             task.doLast { t ->
                 if (cordapp.signing.enabled.get()) {

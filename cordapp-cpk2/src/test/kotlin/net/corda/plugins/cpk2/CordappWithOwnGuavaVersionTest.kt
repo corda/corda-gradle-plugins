@@ -49,10 +49,6 @@ class CordappWithOwnGuavaVersionTest {
 
     @Test
     fun conflictingGuavaVersionsTest() {
-        assertThat(testProject.dependencyConstraints)
-            .noneMatch { it.fileName == "guava-$cordaGuavaVersion.jar" }
-            .anyMatch { it.fileName == "guava-$guavaVersion.jar" }
-            .hasSizeGreaterThanOrEqualTo(1)
         assertThat(testProject.cpkDependencies).isEmpty()
 
         val artifacts = testProject.artifacts

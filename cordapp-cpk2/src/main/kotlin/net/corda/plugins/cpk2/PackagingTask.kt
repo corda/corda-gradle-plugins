@@ -44,12 +44,12 @@ open class PackagingTask @Inject constructor(objects: ObjectFactory) : Jar() {
         get() = _libraries
 
     /**
-     * Don't eagerly configure the [DependencyConstraintsTask] task, even
+     * Don't eagerly configure the [DependencyCalculator] task, even
      * if someone eagerly configures this [PackagingTask] by accident.
      */
-    internal fun setLibrariesFrom(task: TaskProvider<DependencyConstraintsTask>) {
+    internal fun setLibrariesFrom(task: TaskProvider<DependencyCalculator>) {
         // This should also automatically make us depend on the task.
-        _libraries.setFrom(task.map(DependencyConstraintsTask::libraries))
+        _libraries.setFrom(task.flatMap(DependencyCalculator::libraries))
         _libraries.disallowChanges()
     }
 

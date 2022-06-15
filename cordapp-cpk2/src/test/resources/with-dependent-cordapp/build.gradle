@@ -40,13 +40,3 @@ dependencies {
         transitive = false
     }
 }
-
-// Copy the DependencyConstraints XML from ':cordapp' into our build directory.
-def copy = tasks.register('copy', Copy) {
-    into project.layout.buildDirectory
-    from project(':cordapp').tasks.named('cordappDependencyConstraints')
-}
-
-tasks.named('assemble') {
-    dependsOn copy
-}

@@ -75,13 +75,6 @@ class TransitiveCordappsTest {
     ) {
         val testProject = buildProject(taskName, testProjectDir, reporter)
 
-        assertThat(testProject.dependencyConstraints)
-            .noneMatch { it.fileName == "cpk-one-${cpk1Version}.jar" }
-            .noneMatch { it.fileName == "cpk-two-${cpk2Version}.jar" }
-            .noneMatch { it.fileName == "cpk-three-${cpk3Version}.jar" }
-            .anyMatch { it.fileName == "commons-io-$commonsIoVersion.jar" }
-            .allMatch { it.hash.isSHA256 }
-            .hasSize(1)
         assertThat(testProject.cpkDependencies)
             .anyMatch { it.name == "com.example.cpk-one" && it.version == toOSGi(cpk1Version) && it.type == cpk1Type }
             .anyMatch { it.name == "com.example.cpk-two" && it.version == toOSGi(cpk2Version) && it.type == cpk2Type }

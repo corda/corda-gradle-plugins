@@ -228,8 +228,6 @@ These tasks perform intermediate steps as part of creating a CPK.
 
 - `cordappDependencyCalculator`: Calculates which jars belong to which part of a CPK's packaging.
 
-- `cordappDependencyConstraints`: Generates the "main" jar's `META-INF/DependencyConstraints` file.
-
 - `cordappCPKDependencies`: Generates the "main" jar's `META-INF/CPKDependencies` file.
 
 - `verifyBundle`: Verifies that the "main" jar's OSGi metadata is consistent with the packages

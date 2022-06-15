@@ -34,7 +34,6 @@ class CordappWithLoggingTest {
 
     @Test
     fun conflictingLoggingVersionsTest() {
-        assertThat(testProject.dependencyConstraints).isEmpty()
         assertThat(testProject.cpkDependencies).isEmpty()
         assertThat(testProject.outcomeOf("verifyBundle")).isEqualTo(FAILED)
         assertThat(testProject.output).contains(

@@ -55,7 +55,6 @@ const val CORDA_EMBEDDED_CONFIGURATION_NAME = "cordaEmbedded"
 const val ALL_CORDAPPS_CONFIGURATION_NAME = "allCordapps"
 const val CORDA_CPK_CONFIGURATION_NAME = "cordaCPK"
 
-const val DEPENDENCY_CONSTRAINTS = "META-INF/DependencyConstraints"
 const val CPK_DEPENDENCIES = "META-INF/CPKDependencies"
 
 // These tags are for the CPK file.

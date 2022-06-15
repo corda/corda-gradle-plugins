@@ -37,11 +37,6 @@ class CordappTransitiveDependencyTest {
 
     @Test
     fun testCordappTransitiveDependencies() {
-        assertThat(testProject.dependencyConstraints)
-            .anyMatch { it.fileName == "commons-codec-$commonsCodecVersion.jar" }
-            .noneMatch { it.fileName == "cordapp-$cordappVersion.jar" }
-            .allMatch { it.hash.isSHA256 }
-            .hasSize(1)
         assertThat(testProject.cpkDependencies)
             .anyMatch { it.name == "com.example.cordapp" && it.version == toOSGi(cordappVersion) }
             .allMatch { it.signers.isSameAsMe }

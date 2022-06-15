@@ -53,10 +53,6 @@ class HashSelectionTest {
 
     @Test
     fun usesCorrectHashAlgorithm() {
-        assertThat(testProject.dependencyConstraints)
-            .anyMatch { it.fileName == "commons-codec-$commonsCodecVersion.jar" }
-            .allMatch { it.hash.algorithm == SHA3_256 }
-            .hasSize(1)
         assertThat(testProject.cpkDependencies)
             .allMatch { dep ->
                 dep.signers.isNotEmpty() && dep.signers.all { it is HashValue && it.algorithm == SHA3_256 }
