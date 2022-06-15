@@ -5,11 +5,9 @@ import aQute.bnd.version.MavenVersion.parseMavenString
 import aQute.bnd.version.Version
 import aQute.bnd.version.VersionRange
 import net.corda.plugins.cpk2.xml.CPKDependency
-import net.corda.plugins.cpk2.xml.DependencyConstraint
 import net.corda.plugins.cpk2.xml.HashValue
 import net.corda.plugins.cpk2.xml.SameAsMe
 import net.corda.plugins.cpk2.xml.loadCPKDependencies
-import net.corda.plugins.cpk2.xml.loadDependencyConstraints
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.api.JavaVersion.current
 import org.gradle.api.JavaVersion.VERSION_15
@@ -30,6 +28,7 @@ import java.nio.file.Path
 import java.nio.file.StandardCopyOption.REPLACE_EXISTING
 import java.util.Properties
 import java.util.jar.JarFile
+import java.util.jar.JarInputStream
 import java.util.jar.Manifest
 import java.util.stream.Collectors.toList
 
@@ -191,20 +190,25 @@ class GradleProject(private val projectDir: Path, private val reporter: TestRepo
         @Throws(IOException::class)
         get() {
             assertThat(artifactDir).isDirectory
-            return Files.list(artifactDir).collect(toList())
+            return Files.list(artifactDir).use { it.collect(toList()) }
         }
 
-    val dependencyConstraintsFile: Path = buildDir.resolve("generated-constraints")
-        .resolve(META_INF_DIR).resolve("DependencyConstraints")
-    val dependencyConstraints: List<DependencyConstraint>
+    val libraries: List<String>
         @Throws(IOException::class)
-        get() = dependencyConstraintsStream.buffered().use(::loadDependencyConstraints)
-    val dependencyConstraintsHash: ByteArray
-        @Throws(IOException::class)
-        get() = dependencyConstraintsStream.use(digestFor(HASH_ALGORITHM)::hashFor)
-    private val dependencyConstraintsStream: InputStream
-        @Throws(IOException::class)
-        get() = dependencyConstraintsFile.toFile().inputStream()
+        get() {
+            return artifacts
+                .single { it.fileName.toString().endsWith(".cpk") }
+                .let { cpk ->
+                    JarInputStream(cpk.toFile().inputStream(), false).use {
+                        generateSequence { it.nextJarEntry }
+                            .filter { !it.isDirectory }
+                            .map { it.name }
+                            .filter { it.startsWith("lib/") }
+                            .map { it.removePrefix("lib/") }
+                            .toList()
+                    }
+                }
+        }
 
     val cpkDependenciesFile: Path = buildDir.resolve("cpk-dependencies")
         .resolve(META_INF_DIR).resolve("CPKDependencies")

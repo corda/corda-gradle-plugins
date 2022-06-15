@@ -192,49 +192,6 @@ class CPKDependenciesBuilder(private val node: Node) : AbstractBuilder<List<CPKD
     }
 }
 
-class DependencyConstraint(val fileName: String, val hash: HashValue) {
-    override fun toString(): String {
-        return """<dependencyConstraint>
-    <fileName>$fileName</fileName>
-    <hash algorithm="${hash.algorithm}">$hash</hash>
-</dependencyConstraint>"""
-    }
-
-    class Builder(private val node: Node) : AbstractBuilder<DependencyConstraint> {
-        private var fileName: String? = null
-        private var hash: HashValue? = null
-
-        override fun build(): DependencyConstraint {
-            for (childElement in node.childElements) {
-                when (val tagName = childElement.tagName) {
-                    "fileName" -> fileName = childElement.textContent
-                    "hash" -> hash = HashValue.Builder(childElement).build()
-                    else -> fail("Unknown XML element <$tagName>")
-                }
-            }
-            return DependencyConstraint(
-                fileName = fileName ?: fail("dependencyConstraint.fileName missing"),
-                hash = hash ?: fail("dependencyConstraint.hash missing")
-            )
-        }
-    }
-}
-
-class DependencyConstraintsBuilder(private val node: Node): AbstractBuilder<List<DependencyConstraint>> {
-    private val constraints = mutableListOf<DependencyConstraint>()
-
-    override fun build(): List<DependencyConstraint> {
-        for (childElement in node.childElements) {
-            when (val tagName = childElement.tagName) {
-                "dependencyConstraint" ->
-                    constraints.add(DependencyConstraint.Builder(childElement).build())
-                else -> fail("Unknown XML element <$tagName>")
-            }
-        }
-        return unmodifiableList(constraints)
-    }
-}
-
 private fun loadDocumentFrom(input: InputStream): Document {
     return documentBuilderFactory.newDocumentBuilder().apply {
         setErrorHandler(UnforgivingErrorHandler())
@@ -261,8 +218,3 @@ fun loadCPKDependencies(input: InputStream): List<CPKDependency> {
     return CPKDependenciesBuilder(nodes.item(0)).build()
 }
 
-fun loadDependencyConstraints(input: InputStream): List<DependencyConstraint> {
-    val nodes = loadDocumentFrom(input).getElementsByTagName("dependencyConstraints")
-    assertEquals(1, nodes.length)
-    return DependencyConstraintsBuilder(nodes.item(0)).build()
-}

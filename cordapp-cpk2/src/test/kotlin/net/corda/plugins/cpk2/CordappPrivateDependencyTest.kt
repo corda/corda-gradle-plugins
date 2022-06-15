@@ -37,7 +37,7 @@ class CordappPrivateDependencyTest {
 
     @Test
     fun testCordappPrivateDependencies() {
-        assertThat(testProject.dependencyConstraints)
+        assertThat(testProject.libraries)
             .isEmpty()
         assertThat(testProject.cpkDependencies)
             .anyMatch { it.name == "com.example.cordapp" && it.version == toOSGi(cordappVersion) }

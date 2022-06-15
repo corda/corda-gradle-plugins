@@ -89,12 +89,11 @@ class TransitiveRemoteCordappsTest {
 
     @Test
     fun remoteTransitivesTest() {
-        assertThat(testProject.dependencyConstraints)
-            .noneMatch { it.fileName == "cpk-one-$cpk1Version.jar" }
-            .noneMatch { it.fileName == "cpk-two-$cpk2Version.jar" }
-            .noneMatch { it.fileName == "cpk-three-$cpk3Version.jar" }
-            .anyMatch { it.fileName == "commons-io-$commonsIoVersion.jar" }
-            .allMatch { it.hash.isSHA256 }
+        assertThat(testProject.libraries)
+            .noneMatch { it == "cpk-one-$cpk1Version.jar" }
+            .noneMatch { it == "cpk-two-$cpk2Version.jar" }
+            .noneMatch { it == "cpk-three-$cpk3Version.jar" }
+            .anyMatch { it == "commons-io-$commonsIoVersion.jar" }
             .hasSize(1)
         assertThat(testProject.cpkDependencies)
             .anyMatch { it.name == "com.example.cpk-one" && it.version == toOSGi(cpk1Version) && it.type == cpk1Type }

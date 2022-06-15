@@ -37,7 +37,7 @@ class WithProvidedLibraryTest {
 
     @Test
     fun hasProvidedLibrary() {
-        assertThat(testProject.dependencyConstraints).isEmpty()
+        assertThat(testProject.libraries).isEmpty()
         assertThat(testProject.cpkDependencies).isEmpty()
 
         val artifacts = testProject.artifacts

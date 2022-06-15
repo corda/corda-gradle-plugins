@@ -14,7 +14,7 @@ import java.nio.file.Path
 @TestInstance(PER_CLASS)
 class EagerDependenciesTest {
     private companion object {
-        private const val taskName = "cordappDependencyConstraints"
+        private const val taskName = "cpk"
     }
 
     private lateinit var testProject: GradleProject
@@ -35,9 +35,8 @@ class EagerDependenciesTest {
         val result = testProject.resultFor(taskName)
         assertEquals(SUCCESS, result.outcome)
 
-        assertThat(testProject.dependencyConstraints)
-            .anyMatch { it.fileName == "commons-io-$commonsIoVersion.jar" }
-            .allMatch { it.hash.isSHA256 }
+        assertThat(testProject.libraries)
+            .anyMatch { it == "commons-io-$commonsIoVersion.jar" }
             .hasSize(1)
     }
 }

@@ -53,10 +53,9 @@ class VerifyCordappDependencyTest {
 
     @Test
     fun verifyCordappDependency() {
-        assertThat(testProject.dependencyConstraints)
-            .noneMatch { it.fileName == "cordapp-$cordappVersion.jar" }
-            .anyMatch { it.fileName == "commons-collections-$commonsCollectionsVersion.jar" }
-            .allMatch { it.hash.isSHA256 }
+        assertThat(testProject.libraries)
+            .noneMatch { it == "cordapp-$cordappVersion.jar" }
+            .anyMatch { it == "commons-collections-$commonsCollectionsVersion.jar" }
             .hasSize(1)
         assertThat(testProject.cpkDependencies)
             .anyMatch { it.name == "com.example.cordapp" && it.version == toOSGi(cordappVersion) }

@@ -1,6 +1,5 @@
 package net.corda.plugins.cpk2
 
-import net.corda.plugins.cpk2.xml.loadDependencyConstraints
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotEquals
@@ -85,15 +84,14 @@ class WithDependentCordappTest {
                 "COMPILE-WORKFLOW> library.jar"
             )
 
-        assertThat(testProject.dependencyConstraints)
-            .anyMatch { it.fileName == "guava-$guavaVersion.jar" }
-            .noneMatch { it.fileName == "commons-io-$commonsIoVersion.jar" }
-            .noneMatch { it.fileName == "slf4j-api-${cordaSlf4jVersion}.jar" }
-            .noneMatch { it.fileName == "slf4j-api-${librarySlf4jVersion}.jar" }
-            .noneMatch { it.fileName == "biz.aQute.bnd.annotation-${bndVersion}.jar" }
-            .noneMatch { it.fileName == "library.jar" }
-            .noneMatch { it.fileName == "cordapp.jar" }
-            .allMatch { it.hash.isSHA256 }
+        assertThat(testProject.libraries)
+            .anyMatch { it == "guava-$guavaVersion.jar" }
+            .noneMatch { it == "commons-io-$commonsIoVersion.jar" }
+            .noneMatch { it == "slf4j-api-${cordaSlf4jVersion}.jar" }
+            .noneMatch { it == "slf4j-api-${librarySlf4jVersion}.jar" }
+            .noneMatch { it == "biz.aQute.bnd.annotation-${bndVersion}.jar" }
+            .noneMatch { it == "library.jar" }
+            .noneMatch { it == "cordapp.jar" }
             .hasSizeGreaterThanOrEqualTo(1)
         assertThat(testProject.cpkDependencies)
             .anyMatch { it.name == "com.example.cordapp" && it.version == toOSGi("0") }
@@ -101,8 +99,8 @@ class WithDependentCordappTest {
             .hasSize(1)
 
         if (libraryGuavaVersion != guavaVersion) {
-            assertThat(testProject.dependencyConstraints)
-                .noneMatch { it.fileName == "guava-${libraryGuavaVersion}.jar" }
+            assertThat(testProject.libraries)
+                .noneMatch { it == "guava-${libraryGuavaVersion}.jar" }
         }
 
         val artifacts = testProject.artifacts
@@ -114,16 +112,12 @@ class WithDependentCordappTest {
         val cpk = artifacts.single { it.toString().endsWith(".cpk") }
         assertThat(cpk).isRegularFile
 
-        val cordappDepsFile = testProject.buildDir.resolve("DependencyConstraints")
-        assertThat(cordappDepsFile).isRegularFile
-        val cordappDependencyConstraints = cordappDepsFile.toFile().inputStream()
-            .use(::loadDependencyConstraints)
-        assertThat(cordappDependencyConstraints)
-            .noneMatch { it.fileName == "biz.aQute.bnd.annotation-${bndVersion}.jar" }
-            .noneMatch { it.fileName == "slf4j-api-${librarySlf4jVersion}.jar" }
-            .noneMatch { it.fileName == "slf4j-api-${cordaSlf4jVersion}.jar" }
-            .anyMatch { it.fileName == "guava-${libraryGuavaVersion}.jar" }
-            .anyMatch { it.fileName == "commons-io-$commonsIoVersion.jar" }
-            .anyMatch { it.fileName == "library.jar" }
+        assertThat(testProject.libraries)
+            .noneMatch { it == "biz.aQute.bnd.annotation-${bndVersion}.jar" }
+            .noneMatch { it == "slf4j-api-${librarySlf4jVersion}.jar" }
+            .noneMatch { it == "slf4j-api-${cordaSlf4jVersion}.jar" }
+            .anyMatch { it == "guava-${libraryGuavaVersion}.jar" }
+            .anyMatch { it == "commons-io-$commonsIoVersion.jar" }
+            .anyMatch { it == "library.jar" }
     }
 }

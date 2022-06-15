@@ -55,7 +55,7 @@ class WithoutTransitiveCordappsTest {
     ) {
         val testProject = buildProject(taskName, testProjectDir, reporter)
 
-        assertThat(testProject.dependencyConstraints)
+        assertThat(testProject.libraries)
             .isEmpty()
         assertThat(testProject.cpkDependencies)
             .anyMatch { it.name == "com.example.cpk-two" && it.version == toOSGi(cpk2Version) }

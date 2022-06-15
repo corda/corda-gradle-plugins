@@ -51,10 +51,9 @@ class SimpleKotlinCordappTest {
 
     @Test
     fun simpleTest() {
-        assertThat(testProject.dependencyConstraints)
-            .anyMatch { it.fileName == "commons-io-$commonsIoVersion.jar" }
-            .anyMatch { it.fileName == "guava-$guavaVersion.jar" }
-            .allMatch { it.hash.isSHA256 }
+        assertThat(testProject.libraries)
+            .anyMatch { it == "commons-io-$commonsIoVersion.jar" }
+            .anyMatch { it == "guava-$guavaVersion.jar" }
             .hasSizeGreaterThanOrEqualTo(2)
         assertThat(testProject.cpkDependencies).isEmpty()
 
@@ -68,8 +67,6 @@ class SimpleKotlinCordappTest {
         assertThat(cordapp).isRegularFile
         assertThat(cordapp.hashOfEntry(CPK_DEPENDENCIES))
             .isEqualTo(testProject.cpkDependenciesHash)
-        assertThat(cordapp.hashOfEntry(DEPENDENCY_CONSTRAINTS))
-            .isEqualTo(testProject.dependencyConstraintsHash)
 
         val jarManifest = cordapp.manifest
         println(jarManifest.mainAttributes.entries)
