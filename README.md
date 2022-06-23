@@ -101,7 +101,7 @@ although this is configurable. Its goal is to alert Corda developers to
 accidental breaks in our public ABI for those Corda modules we have
 declared to be "stable", and is used by the Continuous Integration builds.
 
-    <sup>Requires Gradle 5.6</sup>
+    <sup>Requires Gradle 6.6</sup>
 
 - [`net.corda.plugins.jar-filter`](jar-filter/README.md)\
 This plugin allows us to delete certain annotated classes, methods and
