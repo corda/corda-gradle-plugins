@@ -158,7 +158,7 @@ val File.manifest: Manifest get() = JarFile(this).use(JarFile::getManifest)
  * to have an integer value.
  */
 fun Iterable<File>.maxOf(attributeName: String): Int? {
-    return mapNotNull { it.manifest.mainAttributes.getValue(attributeName)?.toIntOrNull() }.max()
+    return mapNotNull { it.manifest.mainAttributes.getValue(attributeName)?.toIntOrNull() }.maxOrNull()
 }
 
 /**

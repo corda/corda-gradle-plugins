@@ -53,10 +53,10 @@ class VerifyCordaProvidedDependencyTest {
         assertThat(artifacts).hasSize(2)
 
         val cpk = artifacts.single { it.toString().endsWith(".cpk") }
-        assertThat(cpk).isRegularFile()
+        assertThat(cpk).isRegularFile
 
         val cordapp = artifacts.single { it.toString().endsWith(".jar") }
-        assertThat(cordapp).isRegularFile()
+        assertThat(cordapp).isRegularFile
 
         val jarManifest = cordapp.manifest
         println(jarManifest.mainAttributes.entries)

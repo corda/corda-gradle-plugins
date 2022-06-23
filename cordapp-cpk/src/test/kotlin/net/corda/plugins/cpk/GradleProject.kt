@@ -190,7 +190,7 @@ class GradleProject(private val projectDir: Path, private val reporter: TestRepo
     val artifacts: List<Path>
         @Throws(IOException::class)
         get() {
-            assertThat(artifactDir).isDirectory()
+            assertThat(artifactDir).isDirectory
             return Files.list(artifactDir).collect(toList())
         }
 
@@ -260,7 +260,7 @@ class GradleProject(private val projectDir: Path, private val reporter: TestRepo
 
     fun build(vararg args: String): GradleProject {
         configureGradle(GradleRunner::build, args)
-        assertThat(buildDir).isDirectory()
+        assertThat(buildDir).isDirectory
         assertEquals(taskOutcome, resultFor(taskName).outcome)
         return this
     }

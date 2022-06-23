@@ -41,7 +41,7 @@ class VerifyNotProvidedDependencyTest {
         assertThat(artifacts).hasSize(1)
 
         val cordapp = artifacts.single { it.toString().endsWith(".jar") }
-        assertThat(cordapp).isRegularFile()
+        assertThat(cordapp).isRegularFile
 
         assertThat(testProject.outcomeOf("cpk")).isNull()
 

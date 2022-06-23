@@ -26,7 +26,7 @@ import org.gradle.api.plugins.JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME
 import org.gradle.api.plugins.JavaPlugin.JAR_TASK_NAME
 import org.gradle.api.plugins.JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME
 import org.gradle.api.plugins.JavaPlugin.RUNTIME_ONLY_CONFIGURATION_NAME
-import org.gradle.api.plugins.JavaPluginConvention
+import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.SourceSet.MAIN_SOURCE_SET_NAME
 import org.gradle.api.tasks.bundling.Jar
@@ -61,7 +61,7 @@ class CordappPlugin @Inject constructor(
         private const val CORDAPP_COMPONENT_NAME = "cordapp"
         private const val CORDAPP_EXTENSION_NAME = "cordapp"
         private const val OSGI_EXTENSION_NAME = "osgi"
-        private const val MIN_GRADLE_VERSION = "6.7"
+        private const val MIN_GRADLE_VERSION = "7.2"
         private const val UNKNOWN = "Unknown"
 
         private val CORDAPP_BUILD_CONFIGURATIONS: List<String> = unmodifiableList(listOf(
@@ -275,7 +275,7 @@ class CordappPlugin @Inject constructor(
             task.hashAlgorithm.set(cordapp.hashAlgorithm)
         }
 
-        val sourceSets = project.convention.getPlugin(JavaPluginConvention::class.java).sourceSets
+        val sourceSets = project.extensions.getByType(JavaPluginExtension::class.java).sourceSets
         sourceSets.getByName(MAIN_SOURCE_SET_NAME) { main ->
             main.output.apply {
                 dir(mapOf("builtBy" to constraintsTask), constraintsDir)

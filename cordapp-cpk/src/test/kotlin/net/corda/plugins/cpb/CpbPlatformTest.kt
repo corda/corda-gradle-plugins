@@ -66,7 +66,7 @@ class CpbPlatformTest {
         assertThat(artifacts).hasSize(3)
 
         val cpb = artifacts.single { it.toString().endsWith(".cpb") }
-        assertThat(cpb).isRegularFile()
+        assertThat(cpb).isRegularFile
 
         val cpks = Files.list(testProject.buildDir.resolve("cpks")).collect(toList())
         assertThat(cpks)

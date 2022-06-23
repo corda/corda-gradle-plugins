@@ -20,6 +20,7 @@ import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity.RELATIVE
 import org.gradle.api.tasks.SkipWhenEmpty
 import org.gradle.api.tasks.TaskAction
+import org.gradle.work.DisableCachingByDefault
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
@@ -28,6 +29,7 @@ import java.nio.file.StandardCopyOption.REPLACE_EXISTING
 import javax.inject.Inject
 
 @Suppress("Unused", "UnstableApiUsage", "MemberVisibilityCanBePrivate")
+@DisableCachingByDefault
 open class SignJar @Inject constructor(objects: ObjectFactory) : DefaultTask() {
     companion object {
         private const val DUMMY_VALUE = "****"

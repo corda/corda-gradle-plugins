@@ -15,11 +15,13 @@ import org.gradle.api.tasks.PathSensitivity.RELATIVE
 import org.gradle.api.tasks.SkipWhenEmpty
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.TaskProvider
+import org.gradle.work.DisableCachingByDefault
 import org.osgi.framework.Constants.BUNDLE_MANIFESTVERSION
 import org.osgi.framework.Constants.BUNDLE_SYMBOLICNAME
 import org.osgi.framework.Constants.BUNDLE_VERSION
 
 @Suppress("UnstableApiUsage", "MemberVisibilityCanBePrivate")
+@DisableCachingByDefault
 open class VerifyLibraries @Inject constructor(objects: ObjectFactory) : DefaultTask() {
     init {
         description = "Verifies that a CPK's libraries are all bundles."

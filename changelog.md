@@ -1,5 +1,7 @@
 # Changelog
 
+## Version 7
+
 ## Version 6
 
 ### Version 6.0.0

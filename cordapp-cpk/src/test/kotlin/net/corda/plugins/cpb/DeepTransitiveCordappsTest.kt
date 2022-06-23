@@ -51,7 +51,7 @@ class DeepTransitiveCordappsTest {
         assertThat(artifacts).hasSize(1)
 
         val cpb = artifacts.single { it.toString().endsWith(".cpb") }
-        assertThat(cpb).isRegularFile()
+        assertThat(cpb).isRegularFile
 
         val cpks = JarFile(cpb.toFile()).use { jar ->
             jar.entries().asSequence()

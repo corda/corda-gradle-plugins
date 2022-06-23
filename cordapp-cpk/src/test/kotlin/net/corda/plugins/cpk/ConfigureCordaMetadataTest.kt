@@ -46,7 +46,7 @@ class ConfigureCordaMetadataTest {
     @Test
     fun verifyCustomMetadata() {
         val contractJar = testProject.artifacts.single { it.toString().endsWith("cordapp-$CORDAPP_VERSION.jar") }
-        assertThat(contractJar).isRegularFile()
+        assertThat(contractJar).isRegularFile
         with(contractJar.manifest.mainAttributes) {
             assertThat(getValue("Corda-Other-Contract-Classes"))
                 .isEqualTo("com.example.metadata.custom.ExampleContract,com.example.metadata.custom.ExampleContract\$NestedContract")

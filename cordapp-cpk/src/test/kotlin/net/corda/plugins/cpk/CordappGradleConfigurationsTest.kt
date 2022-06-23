@@ -16,7 +16,7 @@ import java.util.zip.ZipFile
 @TestInstance(PER_CLASS)
 class CordappGradleConfigurationsTest {
     private companion object {
-        private val GRADLE_6_9 = GradleVersion.version("6.9")
+        private val GRADLE_7_2 = GradleVersion.version("7.2")
     }
 
     private lateinit var testProject: GradleProject
@@ -25,7 +25,7 @@ class CordappGradleConfigurationsTest {
     @BeforeAll
     fun setup(@TempDir testProjectDir: Path, reporter: TestReporter) {
         testProject = GradleProject(testProjectDir, reporter)
-            .withGradleVersion(GRADLE_6_9)
+            .withGradleVersion(GRADLE_7_2)
             .withBuildScript("""\
                 |plugins {
                 |    id 'net.corda.plugins.cordapp-cpk'
@@ -37,8 +37,6 @@ class CordappGradleConfigurationsTest {
                 |group = 'com.example'
                 |
                 |dependencies {
-                |    compile "javax.activation:javax.activation-api:1.2.0"
-                |    runtime "commons-io:commons-io:2.7"
                 |    cordaProvided "com.google.guava:guava:20.0"
                 |    cordaRuntimeOnly "javax.servlet:javax.servlet-api:3.1.0"
                 |    api "javax.annotation:javax.annotation-api:1.3.2"
@@ -61,7 +59,7 @@ class CordappGradleConfigurationsTest {
             .build()
 
         val cordapp = testProject.artifacts.single { it.toString().endsWith(".cpk") }
-        assertThat(cordapp).isRegularFile()
+        assertThat(cordapp).isRegularFile
 
         dependencies = ZipFile(cordapp.toFile()).use { zip ->
             zip.stream().filter { entry -> entry.name.startsWith("lib/") && !entry.isDirectory }
@@ -71,7 +69,7 @@ class CordappGradleConfigurationsTest {
 
     @Test
     fun testCorrectNumberOfIncludes() {
-        assertThat(dependencies).hasSize(5)
+        assertThat(dependencies).hasSize(3)
     }
 
     @Test
@@ -80,22 +78,6 @@ class CordappGradleConfigurationsTest {
             .contains("CorDapp library dependency: javax.annotation-api-1.3.2.jar")
         assertThat(dependencies)
             .anyMatch { it.name == "lib/javax.annotation-api-1.3.2.jar" }
-    }
-
-    @Test
-    fun testCompileIncluded() {
-        assertThat(testProject.output)
-            .contains("CorDapp library dependency: javax.activation-api-1.2.0.jar")
-        assertThat(dependencies)
-            .anyMatch { it.name == "lib/javax.activation-api-1.2.0.jar" }
-    }
-
-    @Test
-    fun testRuntimeIncluded() {
-        assertThat(testProject.output)
-            .contains("CorDapp library dependency: commons-io-2.7.jar")
-        assertThat(dependencies)
-            .anyMatch { it.name == "lib/commons-io-2.7.jar" }
     }
 
     @Test
