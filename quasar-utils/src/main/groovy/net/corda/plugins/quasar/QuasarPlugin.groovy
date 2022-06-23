@@ -116,7 +116,7 @@ class QuasarPlugin implements Plugin<Project> {
             configurations[COMPILE_ONLY_CONFIGURATION_NAME].extendsFrom(cordaProvided)
 
             // These are "testing" configurations, e.g. 'testImplementation'.
-            configurations.matching { Configuration cfg -> cfg.name.endsWith('Implementation') }.configureEach { cfg ->
+            configurations.matching { Configuration cfg -> cfg.name.endsWith('Implementation') }.configureEach { Configuration cfg ->
                 cfg.extendsFrom(cordaProvided)
             }
 
