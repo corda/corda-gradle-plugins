@@ -1,8 +1,6 @@
 package net.corda.plugins.cpb2
 
-import java.nio.file.Path
 import net.corda.plugins.cpk2.CPB_TASK_NAME
-import net.corda.plugins.cpk2.CPK_TASK_NAME
 import net.corda.plugins.cpk2.GradleProject
 import net.corda.plugins.cpk2.VERIFY_BUNDLE_TASK_NAME
 import net.corda.plugins.cpk2.cordaApiVersion
@@ -19,6 +17,7 @@ import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
 import org.junit.jupiter.api.TestReporter
 import org.junit.jupiter.api.io.TempDir
+import java.nio.file.Path
 
 @TestInstance(PER_CLASS)
 class CpbDisableJarTest {
@@ -54,11 +53,6 @@ class CpbDisableJarTest {
     @Test
     fun testVerifyIsSkipped() {
         assertThat(testProject.outcomeOf(VERIFY_BUNDLE_TASK_NAME)).isEqualTo(SKIPPED)
-    }
-
-    @Test
-    fun testCpkIsSkipped() {
-        assertThat(testProject.outcomeOf(CPK_TASK_NAME)).isEqualTo(SKIPPED)
     }
 
     @Test

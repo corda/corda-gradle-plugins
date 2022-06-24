@@ -58,11 +58,11 @@ class CordappGradleConfigurationsTest {
             """.trimMargin())
             .build()
 
-        val cordapp = testProject.artifacts.single { it.toString().endsWith(".cpk") }
+        val cordapp = testProject.artifacts.single { it.toString().endsWith(".jar") }
         assertThat(cordapp).isRegularFile
 
         dependencies = ZipFile(cordapp.toFile()).use { zip ->
-            zip.stream().filter { entry -> entry.name.startsWith("lib/") && !entry.isDirectory }
+            zip.stream().filter { entry -> entry.name.startsWith("META-INF/privatelib/") && !entry.isDirectory }
                .collect(toList())
         }
     }
@@ -77,7 +77,7 @@ class CordappGradleConfigurationsTest {
         assertThat(testProject.output)
             .contains("CorDapp library dependency: javax.annotation-api-1.3.2.jar")
         assertThat(dependencies)
-            .anyMatch { it.name == "lib/javax.annotation-api-1.3.2.jar" }
+            .anyMatch { it.name == "META-INF/privatelib/javax.annotation-api-1.3.2.jar" }
     }
 
     @Test
@@ -85,7 +85,7 @@ class CordappGradleConfigurationsTest {
         assertThat(testProject.output)
             .contains("CorDapp library dependency: javax.persistence-api-2.2.jar")
         assertThat(dependencies)
-            .anyMatch { it.name == "lib/javax.persistence-api-2.2.jar" }
+            .anyMatch { it.name == "META-INF/privatelib/javax.persistence-api-2.2.jar" }
     }
 
     @Test
@@ -93,7 +93,7 @@ class CordappGradleConfigurationsTest {
         assertThat(testProject.output)
             .contains("CorDapp library dependency: validation-api-1.1.0.Final.jar")
         assertThat(dependencies)
-            .anyMatch { it.name == "lib/validation-api-1.1.0.Final.jar" }
+            .anyMatch { it.name == "META-INF/privatelib/validation-api-1.1.0.Final.jar" }
     }
 
     @Test
@@ -101,7 +101,7 @@ class CordappGradleConfigurationsTest {
         assertThat(testProject.output)
             .doesNotContain("CorDapp library dependency: javax.servlet-api-3.1.0.jar")
         assertThat(dependencies)
-            .noneMatch { it.name == "lib/javax.servlet-api-3.1.0.jar" }
+            .noneMatch { it.name == "META-INF/privatelib/javax.servlet-api-3.1.0.jar" }
     }
 
     @Test
@@ -109,6 +109,6 @@ class CordappGradleConfigurationsTest {
         assertThat(testProject.output)
             .doesNotContain("CorDapp library dependency: guava-20.0.jar")
         assertThat(dependencies)
-            .noneMatch { it.name == "lib/guava-20.0.jar" }
+            .noneMatch { it.name == "META-INF/privatelib/guava-20.0.jar" }
     }
 }

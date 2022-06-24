@@ -2,6 +2,7 @@ package net.corda.plugins.cpk2
 
 import aQute.bnd.gradle.BndBuilderPlugin
 import aQute.bnd.gradle.BundleTaskExtension
+import aQute.bnd.version.MavenVersion
 import net.corda.plugins.cpk2.SignJar.Companion.sign
 import org.gradle.api.Action
 import org.gradle.api.GradleException
@@ -117,7 +118,7 @@ class CordappPlugin @Inject constructor(
 
             // Create the outgoing configuration, and add it to custom software component.
             val cordaCPK = create(CORDA_CPK_CONFIGURATION_NAME)
-                .attributes(attributor::forCpk)
+                .attributes(attributor::forJar)
                 .also {
                     it.isCanBeResolved = false
                 }
@@ -275,6 +276,11 @@ class CordappPlugin @Inject constructor(
         val jarTask = project.tasks.named(JAR_TASK_NAME, Jar::class.java) { jar ->
             jar.inputs.nested(CORDAPP_EXTENSION_NAME, cordapp)
 
+            // Prepare list of libraries
+            val libraries = objects.fileCollection()
+            libraries.setFrom(calculatorTask.flatMap(DependencyCalculator::libraries))
+            libraries.disallowChanges()
+
             val osgi = jar.extensions.create(OSGI_EXTENSION_NAME, OsgiExtension::class.java, objects, jar)
             osgi.embed(calculatorTask.flatMap(DependencyCalculator::embeddedJars))
             jar.inputs.nested(OSGI_EXTENSION_NAME, osgi)
@@ -308,6 +314,10 @@ class CordappPlugin @Inject constructor(
                 calculatorTask.flatMap(DependencyCalculator::remoteCordapps),
                 calculatorTask.flatMap(DependencyCalculator::projectCordapps)
             )
+            // Add libraries
+            jar.from(libraries) { libs ->
+                libs.into("/META-INF/privatelib/")
+            }
             jar.doFirst { t ->
                 t as Jar
                 t.fileMode = Integer.parseInt("444", 8)
@@ -335,8 +345,10 @@ class CordappPlugin @Inject constructor(
                 )
                 if (platformVersion > UNKNOWN_PLATFORM_VERSION) {
                     attributes[CORDAPP_PLATFORM_VERSION] = platformVersion
+                    attributes[CPK_PLATFORM_VERSION] = platformVersion
                 }
 
+                attributes[CPK_CORDAPP_VERSION] = MavenVersion(project.version.toString()).osGiVersion
                 configureCordappAttributes(osgi.symbolicName.get(), attributes)
             }.doLast { t ->
                 if (cordapp.signing.enabled.get()) {
@@ -369,41 +381,16 @@ class CordappPlugin @Inject constructor(
             jar.finalizedBy(verifyBundle)
         }
 
-        /**
-         * Package the CorDapp and all of its dependencies into a Jar archive with CPK extension.
-         * The CPK artifact should have the same base-name and appendix as the CorDapp's [Jar] task.
-         */
-        val cpkTask = project.tasks.register(CPK_TASK_NAME, PackagingTask::class.java) { task ->
-            task.inputs.nested("signing", cordapp.signing)
-            task.mustRunAfter(verifyBundle)
-
-            // Basic configuration of the packaging task.
-            task.destinationDirectory.convention(jarTask.flatMap(Jar::getDestinationDirectory))
-            task.archiveBaseName.convention(jarTask.flatMap(Jar::getArchiveBaseName))
-            task.archiveAppendix.convention(jarTask.flatMap(Jar::getArchiveAppendix))
-            task.archiveVersion.convention(jarTask.flatMap(Jar::getArchiveVersion))
-
-            // Configure the CPK archive contents.
-            task.setLibrariesFrom(calculatorTask)
-            task.cordapp.set(jarTask.flatMap(Jar::getArchiveFile))
-            task.doLast { t ->
-                if (cordapp.signing.enabled.get()) {
-                    t.sign(cordapp.signing.options, (t as PackagingTask).archiveFile.get().asFile)
-                }
-            }
-
-            // Disable this task if the jar task is disabled.
-            project.gradle.taskGraph.whenReady(copyJarEnabledTo(task))
-        }
-
         with(project.artifacts) {
-            add(ARCHIVES_CONFIGURATION, cpkTask)
-            add(CORDA_CPK_CONFIGURATION_NAME, cpkTask)
+            add(ARCHIVES_CONFIGURATION, jarTask)
+            add(CORDA_CPK_CONFIGURATION_NAME, jarTask)
         }
     }
 
     private fun configureCordappAttributes(symbolicName: String, attributes: Attributes) {
         attributes[BUNDLE_SYMBOLICNAME] = symbolicName
+        attributes[CPK_CORDAPP_NAME] = symbolicName
+        attributes[CPK_FORMAT_TAG] = CPK_FORMAT
 
         if (!cordapp.contract.isEmpty) {
             val contractName = cordapp.contract.name.getOrElse(symbolicName)
@@ -429,6 +416,8 @@ class CordappPlugin @Inject constructor(
             attributes["Cordapp-Workflow-Vendor"] = vendor
             attributes["Cordapp-Workflow-Licence"] = licence
         }
+        attributes[CPK_CORDAPP_VENDOR] = attributes[BUNDLE_VENDOR]
+        attributes[CPK_CORDAPP_LICENCE] = attributes[BUNDLE_LICENSE]
 
         val (targetPlatformVersion, minimumPlatformVersion) = checkPlatformVersionInfo()
         attributes["Target-Platform-Version"] = targetPlatformVersion

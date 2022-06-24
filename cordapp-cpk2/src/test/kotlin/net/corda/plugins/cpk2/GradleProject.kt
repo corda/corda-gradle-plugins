@@ -87,12 +87,14 @@ fun Path.hashOfEntry(entryName: String): ByteArray {
     }
 }
 
+private const val LIB_FOLDER = "META-INF/privatelib/"
+
 fun listLibrariesForCpk(cpk: Path) = JarInputStream(cpk.toFile().inputStream().buffered()).use { jar ->
     generateSequence(jar::getNextJarEntry)
         .filterNot(JarEntry::isDirectory)
         .map(JarEntry::getName)
-        .filter { it.startsWith("lib/") }
-        .map { it.removePrefix("lib/") }
+        .filter { it.startsWith(LIB_FOLDER) }
+        .map { it.removePrefix(LIB_FOLDER) }
         .toList()
 }
 
@@ -207,7 +209,7 @@ class GradleProject(private val projectDir: Path, private val reporter: TestRepo
         @Throws(IOException::class)
         get() {
             return artifacts
-                .singleOrNull { it.fileName.toString().endsWith(".cpk") }
+                .singleOrNull { it.fileName.toString().endsWith(".jar") }
                 ?.let(::listLibrariesForCpk) ?: emptyList()
         }
 

@@ -41,7 +41,7 @@ dependencies {
     cordapp 'net.corda:corda-platform-cordapp'
 
     cpks platform("net.corda:corda-platform:$corda_api_version")
-    cpks 'net.corda:corda-platform-cordapp::cordapp@cpk'
+    cpks 'net.corda:corda-platform-cordapp'
 }
 
 def cpkDir = layout.buildDirectory.dir('cpks')
