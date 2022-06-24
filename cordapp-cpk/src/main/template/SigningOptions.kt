@@ -108,9 +108,7 @@ open class SigningOptions @Inject constructor(objects: ObjectFactory, providers:
     @get:Optional
     @get:Input
     val keyStore: Property<URI> = objects.property(URI::class.java).convention(
-        providers.systemProperty(SYSTEM_PROPERTY_PREFIX + Key.KEYSTORE)
-            .forUseAtConfigurationTime()
-            .map(URI::create)
+        providers.systemProperty(SYSTEM_PROPERTY_PREFIX + Key.KEYSTORE).map(URI::create)
     )
 
     fun setKeyStore(value: RegularFile?) {
@@ -132,15 +130,12 @@ open class SigningOptions @Inject constructor(objects: ObjectFactory, providers:
 
     @get:Internal
     val keyPassword: Property<String> = objects.property(String::class.java).convention(
-        providers.systemProperty(SYSTEM_PROPERTY_PREFIX + Key.KEYPASS)
-            .forUseAtConfigurationTime()
-            .orElse(storePassword)
+        providers.systemProperty(SYSTEM_PROPERTY_PREFIX + Key.KEYPASS).orElse(storePassword)
     )
 
     @get:Input
     val signatureFileName: Property<String> = objects.property(String::class.java).convention(
         providers.systemProperty(SYSTEM_PROPERTY_PREFIX + Key.SIGFILE)
-            .forUseAtConfigurationTime()
             .orElse(alias.map { aliasValue ->
                 if (aliasValue == DEFAULT_ALIAS) {
                     DEFAULT_SIGFILE

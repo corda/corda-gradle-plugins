@@ -16,9 +16,9 @@ repositories {
 }
 
 ext {
-    kotlin_metadata_version = '0.3.0'
+    kotlin_metadata_version = '0.4.2'
     test_kotlin_api_version = '1.4'
-    test_kotlin_version = '1.4.32'
+    test_kotlin_version = '1.7.0'
 }
 
 gradlePlugin {
@@ -35,7 +35,7 @@ gradlePlugin {
 
 jacoco {
     // Upgrade to a version that is compatible with Java 17.
-    toolVersion = '0.8.7'
+    toolVersion = '0.8.8'
 }
 
 configurations {

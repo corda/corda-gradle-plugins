@@ -74,7 +74,7 @@ class WithCordaMetadataTest {
     fun verifyContractMetadata() {
         val persistenceApiVersion = testProject.properties.getProperty("persistence_api_version")
         val contractJar = testProject.artifacts.single { it.toString().endsWith("contracts-$CONTRACT_CORDAPP_VERSION.jar") }
-        assertThat(contractJar).isRegularFile()
+        assertThat(contractJar).isRegularFile
         with(contractJar.manifest.mainAttributes) {
             assertThat(getValue(CORDAPP_PLATFORM_VERSION))
                 .isEqualTo(testPlatformVersion)
@@ -108,7 +108,7 @@ class WithCordaMetadataTest {
     @Test
     fun verifyContractCPKMetadata() {
         val contractCPK = testProject.artifacts.single { it.toString().endsWith("contracts-$CONTRACT_CORDAPP_VERSION-cordapp.cpk") }
-        assertThat(contractCPK).isRegularFile()
+        assertThat(contractCPK).isRegularFile
         with(contractCPK.manifest.mainAttributes) {
             assertThat(getValue(CPK_FORMAT_TAG)).isEqualTo(CPK_FORMAT)
             assertThat(getValue(CPK_CORDAPP_NAME)).isEqualTo(CONTRACT_CORDAPP_NAME)
@@ -122,7 +122,7 @@ class WithCordaMetadataTest {
     @Test
     fun verifyWorkflowMetadata() {
         val workflowJar = testProject.artifacts.single { it.toString().endsWith("workflows-$WORKFLOW_CORDAPP_VERSION.jar") }
-        assertThat(workflowJar).isRegularFile()
+        assertThat(workflowJar).isRegularFile
         with(workflowJar.manifest.mainAttributes) {
             assertThat(getValue(CORDAPP_PLATFORM_VERSION))
                 .isEqualTo(testPlatformVersion)
@@ -154,7 +154,7 @@ class WithCordaMetadataTest {
     @Test
     fun verifyWorkflowCPKMetadata() {
         val workflowCPK = testProject.artifacts.single { it.toString().endsWith("workflows-$WORKFLOW_CORDAPP_VERSION-cordapp.cpk") }
-        assertThat(workflowCPK).isRegularFile()
+        assertThat(workflowCPK).isRegularFile
         with(workflowCPK.manifest.mainAttributes) {
             assertThat(getValue(CPK_FORMAT_TAG)).isEqualTo(CPK_FORMAT)
             assertThat(getValue(CPK_CORDAPP_NAME)).isEqualTo(WORKFLOW_CORDAPP_NAME)
@@ -168,7 +168,7 @@ class WithCordaMetadataTest {
     @Test
     fun verifyServiceMetadata() {
         val serviceJar = testProject.artifacts.single { it.toString().endsWith("services-$SERVICE_CORDAPP_VERSION.jar") }
-        assertThat(serviceJar).isRegularFile()
+        assertThat(serviceJar).isRegularFile
         with(serviceJar.manifest.mainAttributes) {
             assertThat(getValue(CORDAPP_PLATFORM_VERSION))
                 .isEqualTo(testPlatformVersion)
@@ -200,7 +200,7 @@ class WithCordaMetadataTest {
     @Test
     fun verifyServiceCPKMetadata() {
         val serviceCPK = testProject.artifacts.single { it.toString().endsWith("services-$SERVICE_CORDAPP_VERSION-cordapp.cpk") }
-        assertThat(serviceCPK).isRegularFile()
+        assertThat(serviceCPK).isRegularFile
         with(serviceCPK.manifest.mainAttributes) {
             assertThat(getValue(CPK_FORMAT_TAG)).isEqualTo(CPK_FORMAT)
             assertThat(getValue(CPK_CORDAPP_NAME)).isEqualTo(SERVICE_CORDAPP_NAME)

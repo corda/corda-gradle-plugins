@@ -15,12 +15,12 @@ import java.util.Objects;
 
 import static org.gradle.api.plugins.JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME;
 
-@SuppressWarnings({"unused", "UnstableApiUsage"})
+@SuppressWarnings("unused")
 public class ApiScanner implements Plugin<Project> {
     private static final String CLASSIFIER_PROPERTY_NAME = "cordaScanApiClassifier";
     private static final String DEFAULT_CLASSIFIER = "";
     private static final String SCAN_TASK_NAME = "scanApi";
-    private static final String MINIMUM_GRADLE_VERSION = "5.6";
+    private static final String MINIMUM_GRADLE_VERSION = "7.2";
     static final String GROUP_NAME = "Corda API";
 
     /**

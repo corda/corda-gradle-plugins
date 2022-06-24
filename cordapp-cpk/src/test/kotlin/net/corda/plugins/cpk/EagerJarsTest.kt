@@ -34,9 +34,9 @@ class EagerJarsTest {
         assertThat(artifacts).hasSize(2)
 
         val cordapp = artifacts.single { it.toString().endsWith(".jar") }
-        assertThat(cordapp).isRegularFile()
+        assertThat(cordapp).isRegularFile
 
         val cpk = artifacts.single { it.toString().endsWith(".cpk") }
-        assertThat(cpk).isRegularFile()
+        assertThat(cpk).isRegularFile
     }
 }

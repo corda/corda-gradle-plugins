@@ -19,6 +19,7 @@ import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity.RELATIVE
 import org.gradle.api.tasks.SkipWhenEmpty
 import org.gradle.api.tasks.TaskAction
+import org.gradle.work.DisableCachingByDefault
 import java.io.Closeable
 import java.io.File
 import java.io.IOException
@@ -31,6 +32,7 @@ import java.util.zip.ZipOutputStream
 import javax.inject.Inject
 
 @Suppress("Unused", "UnstableApiUsage")
+@DisableCachingByDefault
 open class MetaFixerTask @Inject constructor(objects: ObjectFactory, layouts: ProjectLayout) : DefaultTask() {
     init {
         description = "Rewrites kotlin.Metadata annotations to match their classes' methods and fields."

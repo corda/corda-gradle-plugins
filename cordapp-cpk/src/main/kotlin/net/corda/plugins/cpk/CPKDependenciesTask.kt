@@ -17,6 +17,7 @@ import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity.RELATIVE
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.TaskProvider
+import org.gradle.work.DisableCachingByDefault
 import org.osgi.framework.Constants.BUNDLE_SYMBOLICNAME
 import org.osgi.framework.Constants.BUNDLE_VERSION
 import org.w3c.dom.Document
@@ -34,6 +35,7 @@ import java.util.jar.JarFile
 import javax.inject.Inject
 
 @Suppress("UnstableApiUsage", "MemberVisibilityCanBePrivate")
+@DisableCachingByDefault
 open class CPKDependenciesTask @Inject constructor(objects: ObjectFactory) : DefaultTask() {
     private companion object {
         private const val EOF = -1
@@ -194,7 +196,7 @@ open class CPKDependenciesTask @Inject constructor(objects: ObjectFactory) : Def
             if (certificates.isNullOrEmpty()) {
                 if (entry.isSignable) {
                     logger.warn("{}:{} is unsigned", Paths.get(jar.name).fileName, entry.name)
-                    emptySet<Certificate>()
+                    emptySet()
                 } else {
                     null
                 }

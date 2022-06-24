@@ -56,7 +56,7 @@ class CordappClassesDependencyTest {
         assertThat(artifacts).hasSize(2)
 
         val cordapp = artifacts.single { it.toString().endsWith(".jar") }
-        assertThat(cordapp).isRegularFile()
+        assertThat(cordapp).isRegularFile
 
         val jarManifest = cordapp.manifest
         println(jarManifest.mainAttributes.entries)

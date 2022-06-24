@@ -21,7 +21,7 @@ import kotlin.math.max
 import kotlin.text.RegexOption.IGNORE_CASE
 
 const val GROUP_NAME = "JarFilter"
-const val MINIMUM_GRADLE_VERSION = "5.6"
+const val MINIMUM_GRADLE_VERSION = "7.2"
 const val FILTER_FLAGS = SKIP_DEBUG and SKIP_FRAMES
 
 const val ASM_API = ASM9

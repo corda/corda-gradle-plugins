@@ -7,10 +7,12 @@ import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.tasks.AbstractCopyTask
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.bundling.ZipEntryCompression
+import org.gradle.work.DisableCachingByDefault
 import java.nio.file.Files
 import java.util.jar.JarInputStream
 import java.util.zip.ZipInputStream
 
+@DisableCachingByDefault
 open class CpbTask : Jar() {
 
     companion object {

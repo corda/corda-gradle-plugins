@@ -15,7 +15,7 @@ Until `v4.0`, the version number was tracking the Corda version number it was bu
 This was broken from `v4.3` onwards (Corda 4.3 and plugins 5.0). The major version number will change when there is a breaking change,
 for example when the minimum (major) version of Gradle changes.
 
-Corda 5 requires Corda Gradle Plugins 6.x.
+Corda 5 requires Corda Gradle Plugins 7.x.
 
 ## Getting started
 
@@ -52,7 +52,7 @@ file. Both the OSGi bundle and the CPK archive are signed. The plugin also
 provides a `cordapp` Gradle extension so that you can configure your CorDapp's
 metadata.
 
-    <sup>Requires Gradle 6.7</sup>
+    <sup>Requires Gradle 7.2</sup>
 
 - [`net.corda.plugins.cordapp`](cordapp/README.md)\
 This plugin packages your CorDapp classes into a single jar file, along with
@@ -87,7 +87,7 @@ configuration without any of its transitive dependencies.
     - Provides a `quasar` Gradle extension so that you can configure
 which packages the Quasar Java agent should not instrument at runtime.
 
-    <sup>Requires Gradle 6.6</sup>
+    <sup>Requires Gradle 7.2</sup>
 
 ### Internal Corda plugins.
 These plugins are unlikely to be useful to CorDapp developers outside of R3.
@@ -101,17 +101,16 @@ although this is configurable. Its goal is to alert Corda developers to
 accidental breaks in our public ABI for those Corda modules we have
 declared to be "stable", and is used by the Continuous Integration builds.
 
-    <sup>Requires Gradle 5.6</sup>
+    <sup>Requires Gradle 7.2</sup>
 
 - [`net.corda.plugins.jar-filter`](jar-filter/README.md)\
 This plugin allows us to delete certain annotated classes, methods and
 fields from the compiled byte-code inside a jar file. It can also rewrite
 Kotlin classes' `@kotlin.Metadata` annotations to make them consistent 
-again with their revised byte-code. It is currently used in Corda's
-`core-deterministic` and `serialization-deterministic` modules, and has
-been successfully tested with Kotlin 1.2.x - 1.4.32.
+again with their revised byte-code. It has been successfully tested with
+Kotlin 1.4.32 and 1.7.0.
 
-    <sup>Requires Gradle 6.8</sup>
+    <sup>Requires Gradle 7.2</sup>
 
 - [`net.corda.plugins.publish-utils`](publish-utils/README.rst)\
 **_Here be Dragons!_**

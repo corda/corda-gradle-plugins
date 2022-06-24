@@ -17,12 +17,14 @@ import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity.RELATIVE
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.TaskProvider
+import org.gradle.work.DisableCachingByDefault
 import java.io.File
 import java.security.MessageDigest
 import java.util.Base64
 import javax.inject.Inject
 
 @Suppress("UnstableApiUsage")
+@DisableCachingByDefault
 open class DependencyConstraintsTask @Inject constructor(objects: ObjectFactory) : DefaultTask() {
     init {
         description = "Computes the constraints for this CorDapp's library dependencies."

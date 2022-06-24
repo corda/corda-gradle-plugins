@@ -16,6 +16,7 @@ import org.gradle.api.tasks.PathSensitivity.RELATIVE
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.bundling.ZipEntryCompression.DEFLATED
+import org.gradle.work.DisableCachingByDefault
 import org.osgi.framework.Constants.BUNDLE_LICENSE
 import org.osgi.framework.Constants.BUNDLE_SYMBOLICNAME
 import org.osgi.framework.Constants.BUNDLE_VENDOR
@@ -24,6 +25,7 @@ import java.util.Collections.unmodifiableList
 import javax.inject.Inject
 
 @Suppress("UnstableApiUsage", "MemberVisibilityCanBePrivate")
+@DisableCachingByDefault
 open class PackagingTask @Inject constructor(objects: ObjectFactory) : Jar() {
     private companion object {
         private val MANIFEST_MAPPING = unmodifiableList(listOf(

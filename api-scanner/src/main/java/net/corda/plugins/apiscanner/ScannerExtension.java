@@ -9,7 +9,7 @@ import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import java.util.List;
 
-@SuppressWarnings({"unused", "rawtypes", "WeakerAccess", "UnstableApiUsage"})
+@SuppressWarnings({"unused", "rawtypes", "WeakerAccess"})
 public class ScannerExtension {
 
     private boolean enabled = true;

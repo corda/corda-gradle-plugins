@@ -22,6 +22,7 @@ import org.gradle.api.tasks.OutputFiles;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.work.DisableCachingByDefault;
 
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
@@ -59,7 +60,8 @@ import static java.util.stream.Collectors.toSet;
 import static net.corda.plugins.apiscanner.ApiScanner.GROUP_NAME;
 import static org.gradle.api.tasks.PathSensitivity.RELATIVE;
 
-@SuppressWarnings({"unused", "rawtypes", "WeakerAccess", "UnstableApiUsage"})
+@SuppressWarnings({"unused", "rawtypes", "WeakerAccess"})
+@DisableCachingByDefault
 class ScanApi extends DefaultTask {
     private static final int CLASS_MASK = Modifier.classModifiers();
     private static final int INTERFACE_MASK = Modifier.interfaceModifiers() & ~Modifier.ABSTRACT;

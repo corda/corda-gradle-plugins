@@ -29,11 +29,13 @@ import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity.RELATIVE
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.TaskProvider
+import org.gradle.work.DisableCachingByDefault
 import java.io.File
 import java.util.function.Function
 import javax.inject.Inject
 
 @Suppress("UnstableApiUsage", "MemberVisibilityCanBePrivate")
+@DisableCachingByDefault
 open class VerifyBundle @Inject constructor(objects: ObjectFactory) : DefaultTask() {
     init {
         description = "Verifies that a bundle's OSGi meta-data is consistent."

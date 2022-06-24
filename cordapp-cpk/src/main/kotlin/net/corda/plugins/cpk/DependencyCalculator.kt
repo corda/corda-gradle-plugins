@@ -16,11 +16,13 @@ import org.gradle.api.provider.Provider
 import org.gradle.api.specs.Specs.satisfyNone
 import org.gradle.api.tasks.OutputFiles
 import org.gradle.api.tasks.TaskAction
+import org.gradle.work.DisableCachingByDefault
 import java.io.File
 import java.util.Collections.unmodifiableSet
 import javax.inject.Inject
 
 @Suppress("UnstableApiUsage")
+@DisableCachingByDefault
 open class DependencyCalculator @Inject constructor(objects: ObjectFactory) : DefaultTask() {
     private companion object {
         private const val NON_CORDA = false

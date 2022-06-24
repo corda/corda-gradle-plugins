@@ -35,7 +35,7 @@ class QuasarPlugin implements Plugin<Project> {
 
     private static final String QUASAR = 'quasar'
     private static final String QUASAR_AGENT = 'quasarAgent'
-    private static final String MINIMUM_GRADLE_VERSION = '6.6'
+    private static final String MINIMUM_GRADLE_VERSION = '7.2'
     private static final String CORDA_PROVIDED_CONFIGURATION_NAME = 'cordaProvided'
     private static final String CORDA_RUNTIME_ONLY_CONFIGURATION_NAME = 'cordaRuntimeOnly'
     @PackageScope static final String QUASAR_ARTIFACT_NAME = 'quasar-core-osgi'
@@ -116,7 +116,7 @@ class QuasarPlugin implements Plugin<Project> {
             configurations[COMPILE_ONLY_CONFIGURATION_NAME].extendsFrom(cordaProvided)
 
             // These are "testing" configurations, e.g. 'testImplementation'.
-            configurations.matching { Configuration cfg -> cfg.name.endsWith('Implementation') }.configureEach { cfg ->
+            configurations.matching { Configuration cfg -> cfg.name.endsWith('Implementation') }.configureEach { Configuration cfg ->
                 cfg.extendsFrom(cordaProvided)
             }
 

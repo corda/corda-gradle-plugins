@@ -20,6 +20,7 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.util.GradleVersion;
+import org.gradle.work.DisableCachingByDefault;
 
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
@@ -52,10 +53,11 @@ import static net.corda.flask.common.Flask.Constants.LIBRARIES_FOLDER;
 import static net.corda.flask.common.Flask.Constants.METADATA_FOLDER;
 import static net.corda.flask.common.Flask.Constants.ZIP_ENTRIES_DEFAULT_TIMESTAMP;
 
-@SuppressWarnings({ "UnstableApiUsage", "unused" })
+@SuppressWarnings("unused")
+@DisableCachingByDefault
 public class FlaskJarTask extends AbstractArchiveTask {
 
-    private static final String MINIMUM_GRADLE_VERSION = "6.0";
+    private static final String MINIMUM_GRADLE_VERSION = "7.0";
 
     static {
         if (GradleVersion.current().compareTo(GradleVersion.version(MINIMUM_GRADLE_VERSION)) < 0) {
