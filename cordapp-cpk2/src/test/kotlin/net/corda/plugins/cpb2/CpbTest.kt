@@ -77,7 +77,7 @@ class CpbTest {
         val allCpks = (Files.list(testProject.buildDir.resolve("cpks"))
             .asSequence() +
             Files.list(testProject.artifactDir).asSequence().filter {
-                it.fileName.toString().endsWith(".cpk")
+                it.fileName.toString().endsWith(".jar")
             }).toList()
 
         val cordaPlatformCordappCpk = allCpks.singleOrNull {
@@ -107,7 +107,7 @@ class CpbTest {
             assertEquals(CPB_CURRENT_FORMAT_VERSION, jarInputStream.manifest.mainAttributes.getValue(CPB_FORMAT_VERSION))
             generateSequence(jarInputStream::getNextJarEntry).forEach { jarEntry ->
                 when {
-                    jarEntry.name.endsWith(".cpk") -> {
+                    jarEntry.name.endsWith(".jar") -> {
                         assertEquals(-1, jarEntry.name.indexOf('/'),
                             "All CPK files in a CPB must be in the root directory of the archive, found '${jarEntry.name}' instead")
                         embeddedCpkFiles += jarEntry.name to sha256(jarInputStream)

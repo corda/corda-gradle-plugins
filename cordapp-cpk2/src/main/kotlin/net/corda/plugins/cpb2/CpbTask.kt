@@ -60,19 +60,10 @@ open class CpbTask : Jar() {
                     ?.file
                     ?.toPath()
                     ?.let {
-                        ZipInputStream(Files.newInputStream(it)).use { cpkStream ->
-                            generateSequence(cpkStream.nextEntry) { cpkStream.nextEntry }
-                                .find { zipEntry ->
-                                    // Check this entry represent the CPK's main jar
-                                    val slash = zipEntry.name.lastIndexOf('/')
-                                    zipEntry.name.endsWith(JAR_FILE_SUFFIX) && (slash == -1)
-                                }?.let {
-                                    JarInputStream(cpkStream).use { mainJarInputStream ->
-                                        mainJarInputStream.manifest.mainAttributes.getValue(CORDA_CPK_TYPE)
-                                            ?.let { cpkType ->
-                                                cpkType.toLowerCase() in EXCLUDED_CPK_TYPES
-                                            }
-                                    }
+                        JarInputStream(Files.newInputStream(it)).use { cpkStream ->
+                            cpkStream.manifest.mainAttributes.getValue(CORDA_CPK_TYPE)
+                                ?.let { cpkType ->
+                                    cpkType.toLowerCase() in EXCLUDED_CPK_TYPES
                                 }
                         }
                     } ?: false

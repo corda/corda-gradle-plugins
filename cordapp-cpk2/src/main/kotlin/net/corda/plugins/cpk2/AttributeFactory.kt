@@ -65,11 +65,6 @@ internal class AttributeFactory(
         return this
     }
 
-    fun cpk(): AttributeFactory {
-        attrs.attribute(LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements::class.java, "cpk"))
-        return this
-    }
-
     fun cpb(): AttributeFactory {
         attrs.attribute(LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements::class.java, "cpb"))
         return this

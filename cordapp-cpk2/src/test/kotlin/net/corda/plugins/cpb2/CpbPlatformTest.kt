@@ -63,7 +63,7 @@ class CpbPlatformTest {
             .hasSize(1)
 
         val artifacts = testProject.artifacts
-        assertThat(artifacts).hasSize(3)
+        assertThat(artifacts).hasSize(2)
 
         val cpb = artifacts.single { it.toString().endsWith(".cpb") }
         assertThat(cpb).isRegularFile
@@ -71,7 +71,7 @@ class CpbPlatformTest {
         val cpks = Files.list(testProject.buildDir.resolve("cpks")).collect(toList())
         assertThat(cpks)
             .anyMatch { cpk ->
-                cpk.fileName.toString() == "corda-platform-cordapp-$platformCordappVersion-cordapp.cpk" }
+                cpk.fileName.toString() == "corda-platform-cordapp-$platformCordappVersion.jar" }
             .hasSize(1)
     }
 }

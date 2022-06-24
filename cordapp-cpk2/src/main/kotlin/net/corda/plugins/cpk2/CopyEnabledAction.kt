@@ -9,8 +9,6 @@ import org.gradle.api.tasks.bundling.Jar
 
 fun copyJarEnabledTo(target: Task): Action<TaskExecutionGraph>
         = CopyEnabledAction(target, Jar::class.java, JAR_TASK_NAME)
-fun copyCpkEnabledTo(target: Task): Action<TaskExecutionGraph>
-        = CopyEnabledAction(target, PackagingTask::class.java, CPK_TASK_NAME)
 
 /**
  * Check whether task [target] exists in Gradle's [TaskExecutionGraph].

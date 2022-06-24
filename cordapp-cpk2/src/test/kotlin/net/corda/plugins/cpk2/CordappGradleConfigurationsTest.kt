@@ -58,11 +58,11 @@ class CordappGradleConfigurationsTest {
             """.trimMargin())
             .build()
 
-        val cordapp = testProject.artifacts.single { it.toString().endsWith(".cpk") }
+        val cordapp = testProject.artifacts.single { it.toString().endsWith(".jar") }
         assertThat(cordapp).isRegularFile
 
         dependencies = ZipFile(cordapp.toFile()).use { zip ->
-            zip.stream().filter { entry -> entry.name.startsWith("lib/") && !entry.isDirectory }
+            zip.stream().filter { entry -> entry.name.startsWith("META-INF/privatelib/") && !entry.isDirectory }
                .collect(toList())
         }
     }
@@ -75,30 +75,30 @@ class CordappGradleConfigurationsTest {
     @Test
     fun testApiIncluded() {
         assertThat(dependencies)
-            .anyMatch { it.name == "lib/javax.annotation-api-1.3.2.jar" }
+            .anyMatch { it.name == "META-INF/privatelib/javax.annotation-api-1.3.2.jar" }
     }
 
     @Test
     fun testImplementationIncluded() {
         assertThat(dependencies)
-            .anyMatch { it.name == "lib/javax.persistence-api-2.2.jar" }
+            .anyMatch { it.name == "META-INF/privatelib/javax.persistence-api-2.2.jar" }
     }
 
     @Test
     fun testRuntimeOnlyIncluded() {
         assertThat(dependencies)
-            .anyMatch { it.name == "lib/validation-api-1.1.0.Final.jar" }
+            .anyMatch { it.name == "META-INF/privatelib/validation-api-1.1.0.Final.jar" }
     }
 
     @Test
     fun testCordaRuntimeOnlyExcluded() {
         assertThat(dependencies)
-            .noneMatch { it.name == "lib/javax.servlet-api-3.1.0.jar" }
+            .noneMatch { it.name == "META-INF/privatelib/javax.servlet-api-3.1.0.jar" }
     }
 
     @Test
     fun testCordaProvidedExcluded() {
         assertThat(dependencies)
-            .noneMatch { it.name == "lib/guava-20.0.jar" }
+            .noneMatch { it.name == "META-INF/privatelib/guava-20.0.jar" }
     }
 }
