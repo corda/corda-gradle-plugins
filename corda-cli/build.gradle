@@ -1,0 +1,24 @@
+import static org.gradle.jvm.toolchain.JavaLanguageVersion.of
+
+plugins {
+    id 'com.gradle.plugin-publish'
+    id 'java-gradle-plugin'
+    id 'java-library'
+    id 'groovy'
+}
+
+repositories {
+    mavenCentral()
+}
+
+gradlePlugin {
+    plugins {
+        quasarPlugin {
+            id = 'net.corda.plugins.corda-cli'
+            implementationClass = 'net.corda.plugins.cli.CliPluginGeneratorPlugin'
+            displayName = 'Corda Cli Plugin Generator Plugin'
+            description = 'Corda Cli Plugin Generator Plugin'
+        }
+    }
+    automatedPublishing = false
+}

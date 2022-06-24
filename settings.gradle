@@ -39,3 +39,5 @@ gradleEnterprise {
         termsOfServiceAgree = 'yes'
     }
 }
+include 'corda-cli'
+
