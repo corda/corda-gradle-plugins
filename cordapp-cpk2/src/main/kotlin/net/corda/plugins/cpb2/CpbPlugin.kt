@@ -2,14 +2,9 @@ package net.corda.plugins.cpb2
 
 import net.corda.plugins.cpk2.ALL_CORDAPPS_CONFIGURATION_NAME
 import net.corda.plugins.cpk2.Attributor
-import net.corda.plugins.cpk2.CPK_ARTIFACT_CLASSIFIER
-import net.corda.plugins.cpk2.CPK_FILE_EXTENSION
-import net.corda.plugins.cpk2.CPK_TASK_NAME
 import net.corda.plugins.cpk2.CordappExtension
 import net.corda.plugins.cpk2.CordappPlugin
-import net.corda.plugins.cpk2.PackagingTask
 import net.corda.plugins.cpk2.SignJar.Companion.sign
-import net.corda.plugins.cpk2.copyCpkEnabledTo
 import net.corda.plugins.cpk2.copyJarEnabledTo
 import net.corda.plugins.cpk2.isPlatformModule
 import net.corda.plugins.cpk2.nested
@@ -19,6 +14,7 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.Dependency.ARCHIVES_CONFIGURATION
 import org.gradle.api.artifacts.ExternalDependency
 import org.gradle.api.artifacts.ModuleDependency
+import org.gradle.api.plugins.JavaPlugin.JAR_TASK_NAME
 import org.gradle.api.tasks.bundling.Jar
 
 @Suppress("Unused", "UnstableApiUsage")
@@ -65,11 +61,9 @@ class CpbPlugin : Plugin<Project> {
                         if (cpk is ExternalDependency && cpk.attributes.isEmpty) {
                             cpk.artifact {
                                 it.name = dependency.name
-                                it.classifier = CPK_ARTIFACT_CLASSIFIER
-                                it.type = CPK_FILE_EXTENSION
                             }
                         } else {
-                            cpk.attributes(attributor::forCpk)
+                            cpk.attributes(attributor::forJar)
                         }
                         dependencies.add(cpk)
                     }
@@ -94,8 +88,8 @@ class CpbPlugin : Plugin<Project> {
             }
         }
 
-        val cpkTask = project.tasks.named(CPK_TASK_NAME, PackagingTask::class.java)
-        val cpkPath = cpkTask.flatMap(PackagingTask::getArchiveFile)
+        val cpkTask = project.tasks.named(JAR_TASK_NAME, Jar::class.java)
+        val cpkPath = cpkTask.flatMap(Jar::getArchiveFile)
         val allCPKs = project.objects.fileCollection().from(cpkPath, cpbPackaging)
         val cpbTaskProvider = project.tasks.register(CPB_TASK_NAME, CpbTask::class.java) { cpbTask ->
             cpbTask.dependsOn(cpbResolution)
@@ -119,7 +113,6 @@ class CpbPlugin : Plugin<Project> {
             // Disable this task if either the jar task or cpk task is disabled.
             project.gradle.taskGraph.whenReady { graph ->
                 copyJarEnabledTo(cpbTask).execute(graph)
-                copyCpkEnabledTo(cpbTask).execute(graph)
             }
         }
 

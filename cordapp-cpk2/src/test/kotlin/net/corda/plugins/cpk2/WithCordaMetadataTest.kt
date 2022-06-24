@@ -62,12 +62,9 @@ class WithCordaMetadataTest {
     fun testAllArtifactsPresent() {
         assertThat(testProject.artifacts)
             .anyMatch { it.toString().endsWith("contracts-$CONTRACT_CORDAPP_VERSION.jar") }
-            .anyMatch { it.toString().endsWith("contracts-$CONTRACT_CORDAPP_VERSION-cordapp.cpk") }
             .anyMatch { it.toString().endsWith("workflows-$WORKFLOW_CORDAPP_VERSION.jar") }
-            .anyMatch { it.toString().endsWith("workflows-$WORKFLOW_CORDAPP_VERSION-cordapp.cpk") }
             .anyMatch { it.toString().endsWith("services-$SERVICE_CORDAPP_VERSION.jar") }
-            .anyMatch { it.toString().endsWith("services-$SERVICE_CORDAPP_VERSION-cordapp.cpk") }
-            .hasSize(6)
+            .hasSize(3)
     }
 
     @Test
@@ -107,7 +104,7 @@ class WithCordaMetadataTest {
 
     @Test
     fun verifyContractCPKMetadata() {
-        val contractCPK = testProject.artifacts.single { it.toString().endsWith("contracts-$CONTRACT_CORDAPP_VERSION-cordapp.cpk") }
+        val contractCPK = testProject.artifacts.single { it.toString().endsWith("contracts-$CONTRACT_CORDAPP_VERSION.jar") }
         assertThat(contractCPK).isRegularFile
         with(contractCPK.manifest.mainAttributes) {
             assertThat(getValue(CPK_FORMAT_TAG)).isEqualTo(CPK_FORMAT)
@@ -153,7 +150,7 @@ class WithCordaMetadataTest {
 
     @Test
     fun verifyWorkflowCPKMetadata() {
-        val workflowCPK = testProject.artifacts.single { it.toString().endsWith("workflows-$WORKFLOW_CORDAPP_VERSION-cordapp.cpk") }
+        val workflowCPK = testProject.artifacts.single { it.toString().endsWith("workflows-$WORKFLOW_CORDAPP_VERSION.jar") }
         assertThat(workflowCPK).isRegularFile
         with(workflowCPK.manifest.mainAttributes) {
             assertThat(getValue(CPK_FORMAT_TAG)).isEqualTo(CPK_FORMAT)
@@ -199,7 +196,7 @@ class WithCordaMetadataTest {
 
     @Test
     fun verifyServiceCPKMetadata() {
-        val serviceCPK = testProject.artifacts.single { it.toString().endsWith("services-$SERVICE_CORDAPP_VERSION-cordapp.cpk") }
+        val serviceCPK = testProject.artifacts.single { it.toString().endsWith("services-$SERVICE_CORDAPP_VERSION.jar") }
         assertThat(serviceCPK).isRegularFile
         with(serviceCPK.manifest.mainAttributes) {
             assertThat(getValue(CPK_FORMAT_TAG)).isEqualTo(CPK_FORMAT)

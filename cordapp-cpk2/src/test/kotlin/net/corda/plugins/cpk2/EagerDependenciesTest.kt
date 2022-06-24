@@ -14,7 +14,7 @@ import java.nio.file.Path
 @TestInstance(PER_CLASS)
 class EagerDependenciesTest {
     private companion object {
-        private const val taskName = "cpk"
+        private const val taskName = "jar"
     }
 
     private lateinit var testProject: GradleProject
