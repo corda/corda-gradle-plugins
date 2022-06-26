@@ -26,9 +26,9 @@ import org.gradle.api.plugins.JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME
 import org.gradle.api.plugins.JavaPlugin.JAR_TASK_NAME
 import org.gradle.api.plugins.JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME
 import org.gradle.api.plugins.JavaPlugin.RUNTIME_ONLY_CONFIGURATION_NAME
-import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.SourceSet.MAIN_SOURCE_SET_NAME
+import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.bundling.ZipEntryCompression.DEFLATED
 import org.gradle.util.GradleVersion
@@ -275,7 +275,7 @@ class CordappPlugin @Inject constructor(
             task.hashAlgorithm.set(cordapp.hashAlgorithm)
         }
 
-        val sourceSets = project.extensions.getByType(JavaPluginExtension::class.java).sourceSets
+        val sourceSets = project.extensions.getByType(SourceSetContainer::class.java)
         sourceSets.getByName(MAIN_SOURCE_SET_NAME) { main ->
             main.output.apply {
                 dir(mapOf("builtBy" to constraintsTask), constraintsDir)
