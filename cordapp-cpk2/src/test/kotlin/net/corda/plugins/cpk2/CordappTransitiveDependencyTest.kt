@@ -39,7 +39,7 @@ class CordappTransitiveDependencyTest {
     fun testCordappTransitiveDependencies() {
         assertThat(testProject.cpkDependencies)
             .anyMatch { it.name == "com.example.cordapp" && it.version == toOSGi(cordappVersion) }
-            .allMatch { it.signers.isSameAsMe }
+            .allMatch { it.verifySameSignerAsMe }
             .hasSize(1)
 
         val artifacts = testProject.artifacts

@@ -1,7 +1,6 @@
 @file:JvmName("CordappUtils")
 package net.corda.plugins.cpk2
 
-import net.corda.plugins.cpk2.XMLFactory.createDocumentBuilderFactory
 import net.corda.plugins.cpk2.XMLFactory.createTransformerFactory
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.Configuration
@@ -257,18 +256,6 @@ fun MessageDigest.hashFor(input: InputStream): ByteArray {
         update(buffer, 0, length)
     }
     return digest()
-}
-
-/**
- * Helper functions for XML documents.
- * Note that creating factories is EXPENSIVE.
- */
-private val documentBuilderFactory = createDocumentBuilderFactory()
-
-fun createXmlDocument(): Document {
-    return documentBuilderFactory.newDocumentBuilder().newDocument().apply {
-        xmlStandalone = true
-    }
 }
 
 private val transformerFactory = createTransformerFactory()

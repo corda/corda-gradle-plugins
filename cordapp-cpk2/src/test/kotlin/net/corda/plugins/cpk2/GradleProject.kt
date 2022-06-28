@@ -4,13 +4,11 @@ package net.corda.plugins.cpk2
 import aQute.bnd.version.MavenVersion.parseMavenString
 import aQute.bnd.version.Version
 import aQute.bnd.version.VersionRange
-import net.corda.plugins.cpk2.xml.CPKDependency
-import net.corda.plugins.cpk2.xml.HashValue
-import net.corda.plugins.cpk2.xml.SameAsMe
-import net.corda.plugins.cpk2.xml.loadCPKDependencies
+import net.corda.plugins.cpk2.json.CPKDependenciesReader
+import net.corda.plugins.cpk2.json.CPKDependency
 import org.assertj.core.api.Assertions.assertThat
-import org.gradle.api.JavaVersion.current
 import org.gradle.api.JavaVersion.VERSION_15
+import org.gradle.api.JavaVersion.current
 import org.gradle.api.plugins.BasePlugin.ASSEMBLE_TASK_NAME
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.BuildTask
@@ -69,12 +67,7 @@ fun toOSGiRange(mavenVersion: String): String {
     }
 }
 
-fun createDocumentBuilderFactory() = XMLFactory.createDocumentBuilderFactory()
-
 val Path.manifest: Manifest get() = toFile().manifest
-
-val List<Any>.allSHA256: Boolean get() = isNotEmpty() && all { it is HashValue && it.isSHA256 }
-val List<Any>.isSameAsMe: Boolean get() = (size == 1) && all { it is SameAsMe }
 
 private const val HASH_ALGORITHM = "SHA-256"
 
@@ -196,7 +189,7 @@ class GradleProject(private val projectDir: Path, private val reporter: TestRepo
         .resolve(META_INF_DIR).resolve("CPKDependencies")
     val cpkDependencies: List<CPKDependency>
         @Throws(IOException::class)
-        get() = cpkDependenciesStream.buffered().use(::loadCPKDependencies)
+        get() = cpkDependenciesStream.buffered().use { CPKDependenciesReader.loadCPKDependencies(it) }
     val cpkDependenciesHash: ByteArray
         @Throws(IOException::class)
         get() = cpkDependenciesStream.use(digestFor(HASH_ALGORITHM)::hashFor)

@@ -58,7 +58,7 @@ class WithoutTransitiveCordappsTest {
         assertThat(testProject.cpkDependencies)
             .anyMatch { it.name == "com.example.cpk-two" && it.version == toOSGi(cpk2Version) }
             .noneMatch { it.name == "com.example.cpk-one" }
-            .allMatch { it.signers.isSameAsMe }
+            .allMatch { it.verifySameSignerAsMe }
             .hasSize(1)
 
         val artifacts = testProject.artifacts
