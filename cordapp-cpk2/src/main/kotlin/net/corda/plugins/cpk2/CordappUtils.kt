@@ -1,8 +1,6 @@
 @file:JvmName("CordappUtils")
 package net.corda.plugins.cpk2
 
-import net.corda.plugins.cpk2.XMLFactory.createDocumentBuilderFactory
-import net.corda.plugins.cpk2.XMLFactory.createTransformerFactory
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
@@ -12,28 +10,17 @@ import org.gradle.api.artifacts.ResolvedConfiguration
 import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.plugins.JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME
 import org.gradle.api.specs.Spec
-import org.w3c.dom.Document
 import org.w3c.dom.Element
 import java.io.File
 import java.io.IOException
 import java.io.InputStream
-import java.io.Writer
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
 import java.util.jar.JarFile
 import java.util.jar.Manifest
-import javax.xml.transform.OutputKeys.ENCODING
-import javax.xml.transform.OutputKeys.INDENT
-import javax.xml.transform.OutputKeys.METHOD
-import javax.xml.transform.OutputKeys.OMIT_XML_DECLARATION
-import javax.xml.transform.OutputKeys.STANDALONE
-import javax.xml.transform.TransformerException
-import javax.xml.transform.dom.DOMSource
-import javax.xml.transform.stream.StreamResult
 
 const val CORDAPP_CPK_PLUGIN_ID = "net.corda.plugins.cordapp-cpk2"
 const val CORDAPP_TASK_GROUP = "Cordapp"
-const val CPK_XML_NAMESPACE = "urn:corda-cpk"
 
 const val CORDA_API_GROUP = "net.corda"
 const val ENTERPRISE_API_GROUP = "com.r3.corda"
@@ -41,7 +28,6 @@ const val ENTERPRISE_API_GROUP = "com.r3.corda"
 const val CORDAPP_SEALING_SYSTEM_PROPERTY_NAME = "net.corda.cordapp.sealing.enabled"
 
 const val CPK_FILE_EXTENSION = "jar"
-const val CPK_ARTIFACT_CLASSIFIER = "cordapp"
 
 const val CORDAPP_CONFIGURATION_NAME = "cordapp"
 const val CORDAPP_EXTERNAL_CONFIGURATION_NAME = "cordappExternal"
@@ -257,37 +243,6 @@ fun MessageDigest.hashFor(input: InputStream): ByteArray {
         update(buffer, 0, length)
     }
     return digest()
-}
-
-/**
- * Helper functions for XML documents.
- * Note that creating factories is EXPENSIVE.
- */
-private val documentBuilderFactory = createDocumentBuilderFactory()
-
-fun createXmlDocument(): Document {
-    return documentBuilderFactory.newDocumentBuilder().newDocument().apply {
-        xmlStandalone = true
-    }
-}
-
-private val transformerFactory = createTransformerFactory()
-
-@Throws(TransformerException::class)
-fun Document.writeTo(writer: Writer) {
-    val transformer = transformerFactory.newTransformer()
-    transformer.setOutputProperty(METHOD, "xml")
-    transformer.setOutputProperty(ENCODING, "UTF-8")
-    transformer.setOutputProperty(INDENT, "yes")
-    transformer.setOutputProperty(STANDALONE, "yes")
-    transformer.setOutputProperty(OMIT_XML_DECLARATION, "no")
-    transformer.transform(DOMSource(this), StreamResult(writer))
-}
-
-fun Document.createRootElement(namespace: String, name: String): Element {
-    val rootElement = createElementNS(namespace, name)
-    appendChild(rootElement)
-    return rootElement
 }
 
 fun Element.appendElement(name: String): Element {

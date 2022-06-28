@@ -99,7 +99,7 @@ class TransitiveRemoteCordappsTest {
             .anyMatch { it.name == "com.example.cpk-one" && it.version == toOSGi(cpk1Version) && it.type == cpk1Type }
             .anyMatch { it.name == "com.example.cpk-two" && it.version == toOSGi(cpk2Version) && it.type == cpk2Type }
             .anyMatch { it.name == "com.example.cpk-three" && it.version == toOSGi(cpk3Version) && it.type == null }
-            .allMatch { it.signers.allSHA256 }
+            .allMatch { it.verifySameSignerAsMe == false }
             .hasSize(3)
 
         val artifacts = testProject.artifacts

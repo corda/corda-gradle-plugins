@@ -1,4 +1,4 @@
-package net.corda.plugins.cpk2.xml;
+package net.corda.plugins.cpk2.json;
 
 import org.jetbrains.annotations.NotNull;
 import org.xml.sax.SAXException;
