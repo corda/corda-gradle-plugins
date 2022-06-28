@@ -1,0 +1,14 @@
+pluginManagement {
+    plugins {
+        id 'org.jetbrains.kotlin.jvm' version kotlin_version
+    }
+}
+
+rootProject.name = 'cordapp-transitive-deps'
+
+include 'cordapp'
+include 'corda-api'
+project(':corda-api').projectDir = file('../resources/test/corda-api')
+
+include 'annotations'
+project(':annotations').projectDir = file('../resources/test/annotations')

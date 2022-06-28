@@ -1,0 +1,2 @@
+rootProject.name = 'with-deep-embedded-corda'
+include 'library'

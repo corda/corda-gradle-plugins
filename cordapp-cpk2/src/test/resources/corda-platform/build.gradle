@@ -1,0 +1,38 @@
+plugins {
+    id 'java-platform'
+    id 'maven-publish'
+}
+
+group = 'net.corda'
+version = corda_api_version
+
+// Share the source files, but not the output files.
+buildDir = rootProject.file('platformBuild')
+
+dependencies {
+    constraints {
+        api project(':corda-api')
+    }
+}
+
+rootProject.allprojects {
+    if (path == ':corda-api') {
+        pluginManager.withPlugin('java-library') {
+            dependencies {
+                api platform(project(':corda-platform'))
+            }
+        }
+    }
+}
+
+publishing {
+    publications {
+        cordaPlatform(MavenPublication) {
+            from components.javaPlatform
+
+            pom {
+                name = 'Corda Platform'
+            }
+        }
+    }
+}

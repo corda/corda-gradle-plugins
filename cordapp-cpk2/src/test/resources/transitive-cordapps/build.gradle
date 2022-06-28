@@ -1,0 +1,83 @@
+plugins {
+    id 'net.corda.plugins.cordapp-cpk'
+    id 'org.jetbrains.kotlin.jvm'
+}
+
+apply from: 'repositories.gradle'
+apply from: 'javaTarget.gradle'
+apply from: 'kotlin.gradle'
+
+allprojects {
+    apply plugin: 'maven-publish'
+
+    tasks.withType(GenerateModuleMetadata).configureEach {
+        // Ensure our Maven Repository is "bare bones",
+        // i.e. has no sneaky extra Gradle metadata.
+        enabled = false
+    }
+
+    publishing {
+        publishing {
+            repositories {
+                maven {
+                    name = 'Test'
+                    url = repository_dir
+                }
+            }
+
+            pluginManager.withPlugin('net.corda.plugins.cordapp-cpk') {
+                publications {
+                    maven(MavenPublication) {
+                        from components.cordapp
+
+                        pom {
+                            name = 'Transitive CorDapps'
+                            url = 'https://com.example.cordapp'
+                            scm {
+                                url = 'https://com.example.cordapp'
+                            }
+                            organization {
+                                name = 'Example-Name'
+                                url = 'https://example.com'
+                            }
+                            licenses {
+                                license {
+                                    name = 'Apache-2.0'
+                                    url = 'https://www.apache.org/licenses/LICENSE-2.0'
+                                    distribution = 'repo'
+                                }
+                            }
+                            developers {
+                                developer {
+                                    id = 'Example-Id'
+                                    name = 'Example-Name'
+                                    email = 'dev@example.com'
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+group = 'com.example'
+version = cordapp_version
+
+cordapp {
+    targetPlatformVersion = platform_version.toInteger()
+
+    contract {
+        name = 'Transitive CorDapps'
+        versionId = cordapp_contract_version.toInteger()
+        licence = 'Test-Licence'
+        vendor = 'R3'
+    }
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-osgi-bundle:$kotlin_version"
+    implementation "commons-io:commons-io:$commons_io_version"
+    cordapp project(':cpk-three')
+}

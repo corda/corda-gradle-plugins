@@ -1,0 +1,16 @@
+pluginManagement {
+    plugins {
+        id 'org.jetbrains.kotlin.jvm' version kotlin_version
+    }
+}
+
+rootProject.name = 'external-cordapp'
+
+include 'corda-platform-cordapp'
+include 'external-cordapp-transitive-dependency'
+
+include 'corda-api'
+project(':corda-api').projectDir = file('../resources/test/corda-api')
+
+include 'corda-platform'
+project(':corda-platform').projectDir = file('../resources/test/corda-platform')

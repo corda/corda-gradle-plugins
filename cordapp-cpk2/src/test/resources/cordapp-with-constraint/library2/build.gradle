@@ -1,0 +1,19 @@
+plugins {
+    id 'biz.aQute.bnd.builder'
+    id 'java-library'
+}
+
+apply from: '../repositories.gradle'
+apply from: '../javaTarget.gradle'
+
+group = 'org.testing'
+version = library2_version
+
+dependencies {
+    constraints {
+        api "commons-io:commons-io:$commons_io_version"
+    }
+
+    compileOnly "org.osgi:osgi.annotation:$osgi_version"
+    api 'commons-io:commons-io'
+}

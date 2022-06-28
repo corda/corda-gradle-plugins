@@ -1,0 +1,9 @@
+repositories {
+    mavenCentral()
+    maven {
+        url "$artifactory_contextUrl/corda"
+        mavenContent {
+            releasesOnly()
+        }
+    }
+}

@@ -1,0 +1,57 @@
+plugins {
+    id 'net.corda.plugins.cordapp-cpk'
+}
+
+allprojects {
+    apply plugin: 'maven-publish'
+
+    tasks.withType(GenerateModuleMetadata).configureEach {
+        // Ensure our Maven Repository is "bare bones",
+        // i.e. has no sneaky extra Gradle metadata.
+        enabled = false
+    }
+
+    pluginManager.withPlugin('net.corda.plugins.cordapp-cpk') {
+        apply from: "$rootDir/repositories.gradle"
+        apply from: "$rootDir/javaTarget.gradle"
+
+        version = cordapp_version
+    }
+
+    publishing {
+        repositories {
+            maven {
+                name = 'Test'
+                url = maven_repository_dir
+            }
+        }
+
+        pluginManager.withPlugin('net.corda.plugins.cordapp-cpk') {
+            publications {
+                maven(MavenPublication) {
+                    from components.cordapp
+                }
+            }
+        }
+    }
+}
+
+group = 'com.example'
+
+cordapp {
+    targetPlatformVersion = platform_version.toInteger()
+
+    contract {
+        name = 'External CorDapp'
+        versionId = cordapp_contract_version.toInteger()
+        licence = 'Test-Licence'
+        vendor = 'R3'
+    }
+}
+
+dependencies {
+    cordaProvided project(':corda-api')
+
+    cordapp project('corda-platform-cordapp')
+    cordapp project('external-cordapp-transitive-dependency')
+}

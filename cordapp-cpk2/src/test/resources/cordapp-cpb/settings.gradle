@@ -1,0 +1,9 @@
+pluginManagement {
+    plugins {
+        id 'org.jetbrains.kotlin.jvm' version kotlin_version
+    }
+}
+
+rootProject.name = 'cordapp-cpb'
+
+include 'project-dependency'

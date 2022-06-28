@@ -1,0 +1,31 @@
+plugins {
+    id 'net.corda.cordapp.cordapp-configuration'
+    id 'base'
+}
+
+subprojects {
+    group 'com.example'
+}
+
+configurations {
+    testArtifacts {
+        canBeConsumed = false
+        transitive = false
+    }
+}
+
+dependencies {
+    testArtifacts project(':cordapp')
+}
+
+def artifactDir = layout.buildDirectory.dir('libs')
+def copy = tasks.register('copy', Copy) {
+    into artifactDir
+    from configurations.testArtifacts
+}
+
+artifacts {
+    archives(artifactDir) {
+        builtBy copy
+    }
+}

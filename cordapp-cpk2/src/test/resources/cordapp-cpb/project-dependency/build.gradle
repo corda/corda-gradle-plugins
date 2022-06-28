@@ -1,0 +1,22 @@
+plugins {
+    id 'net.corda.plugins.cordapp-cpk'
+    id 'org.jetbrains.kotlin.jvm'
+}
+
+apply from: '../javaTarget.gradle'
+apply from: '../kotlin.gradle'
+
+cordapp {
+    targetPlatformVersion = platform_version.toInteger()
+
+    contract {
+        name = 'Project CorDapp'
+        versionId = cordapp_contract_version.toInteger()
+        licence = 'Test-Licence'
+        vendor = 'R3'
+    }
+}
+
+tasks.named('jar', Jar) {
+    archiveBaseName = 'project-cordapp'
+}

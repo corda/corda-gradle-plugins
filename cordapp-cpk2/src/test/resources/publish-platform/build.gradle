@@ -1,0 +1,22 @@
+group = 'com.example'
+
+allprojects {
+    apply plugin: 'maven-publish'
+
+    tasks.withType(GenerateModuleMetadata).configureEach {
+        // Ensure our Maven Repository is "bare bones",
+        // i.e. has no sneaky extra Gradle metadata.
+        enabled = false
+    }
+
+    publishing {
+        publishing {
+            repositories {
+                maven {
+                    name = 'Test'
+                    url = repository_dir
+                }
+            }
+        }
+    }
+}
