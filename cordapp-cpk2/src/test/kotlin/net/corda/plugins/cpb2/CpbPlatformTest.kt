@@ -1,7 +1,6 @@
 package net.corda.plugins.cpb2
 
 import net.corda.plugins.cpk2.GradleProject
-import net.corda.plugins.cpk2.allSHA256
 import net.corda.plugins.cpk2.cordaApiVersion
 import net.corda.plugins.cpk2.expectedCordappContractVersion
 import net.corda.plugins.cpk2.toOSGi
@@ -59,7 +58,7 @@ class CpbPlatformTest {
                 cpk.name == "net.corda.corda-platform-cordapp"
                     && cpk.version == toOSGi(platformCordappVersion)
                     && cpk.type == "corda-api" }
-            .allMatch { it.signers.allSHA256 }
+            .allMatch { it?.verifyFileHash?.algorithm == "SHA-256" }
             .hasSize(1)
 
         val artifacts = testProject.artifacts
