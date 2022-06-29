@@ -1,4 +1,4 @@
-package net.corda.plugins.cpb
+package net.corda.plugins.cpb2
 
 import net.corda.plugins.cpk.CORDAPP_TASK_GROUP
 import net.corda.plugins.cpk.CORDA_CPK_TYPE

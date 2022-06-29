@@ -1,4 +1,4 @@
-package net.corda.plugins.cpb
+package net.corda.plugins.cpb2
 
 import java.nio.file.Path
 import net.corda.plugins.cpk.CPB_TASK_NAME

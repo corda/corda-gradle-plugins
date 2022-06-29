@@ -1,4 +1,4 @@
-package net.corda.plugins.cpb
+package net.corda.plugins.cpb2
 
 import net.corda.plugins.cpk.ALL_CORDAPPS_CONFIGURATION_NAME
 import net.corda.plugins.cpk.Attributor
