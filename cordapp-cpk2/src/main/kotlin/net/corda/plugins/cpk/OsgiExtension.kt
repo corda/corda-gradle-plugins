@@ -302,7 +302,7 @@ open class OsgiExtension(objects: ObjectFactory, jar: Jar) {
          * ```
          * This will allow us to keep our Bnd metadata instructions
          * up-to-date with future versions of Corda without also needing
-         * to update the `cordapp-cpk` plugin itself. (Hopefully, anyway.)
+         * to update the `cordapp-cpk2` plugin itself. (Hopefully, anyway.)
          */
         configure(project.rootProject)
     }

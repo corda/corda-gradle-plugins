@@ -18,7 +18,7 @@ plugins {
 ```
 
 You must also apply the `net.corda.cordapp.cordapp-configuration` plugin to your "root" Gradle project,
-to configure the `cordapp-cpk` plugin for your version of Corda:
+to configure the `cordapp-cpk2` plugin for your version of Corda:
 ```gradle
 plugins {
     id 'net.corda.cordapp.cordapp-configuration'
@@ -48,8 +48,8 @@ cpkPluginVersion = '6.0.0'
 cordaReleaseVersion = '5.0.0'
 ```
 
-Applying the `cordapp-cpk` plugin implicitly applies both Gradle's `java-library` plugin and Bnd's `builder` plugin,
-which means that the output of the `jar` task will also become an OSGi bundle. The `cordapp-cpk` plugin assigns
+Applying the `cordapp-cpk2` plugin implicitly applies both Gradle's `java-library` plugin and Bnd's `builder` plugin,
+which means that the output of the `jar` task will also become an OSGi bundle. The `cordapp-cpk2` plugin assigns
 the following default OSGi attributes to the bundle:
 
 - `Bundle-SymbolicName`: `${project.group}.${archiveBaseName}[-${archiveAppendix}][-${archiveClassifier}]`
@@ -120,7 +120,7 @@ OSGi manifest tags respectively.
 
 ### Configurations.
 
-Applying `cordapp-cpk` creates the following new Gradle configurations:
+Applying `cordapp-cpk2` creates the following new Gradle configurations:
 
 - `cordaProvided`: This configuration declares a dependency that the CorDapp needs to compile against,
 but which should not become part of the CPK since it will be provided by the Corda node at runtime.
@@ -157,7 +157,7 @@ dependency on CorDapp `A`, and then CorDapp `C` declares a `cordapp` dependency 
 then CorDapp `C` will acquire compile-time dependencies on the "main" jars of both CorDapps `A`
 and `B`. The `cordaProvided` dependencies of both `A` and `B` will also be added to CorDapp `C`'s
 `cordaProvided` configuration. This piece of _Dark Magic_ is achieved by publishing each CPK with
-a "companion" POM that contains the extra dependency information. The `cordapp-cpk` plugin resolves
+a "companion" POM that contains the extra dependency information. The `cordapp-cpk2` plugin resolves
 these "companion" POMs transparently to the user so that CorDapps have the transitive relationships
 that everyone expects.
 
@@ -191,7 +191,7 @@ The legacy `cordaCompile` and `cordaRuntime` configurations are built upon Gradl
 
 # Publishing
 
-The `cordapp-cpk` plugin creates a new Gradle `SoftwareComponent` named "cordapp", which you
+The `cordapp-cpk2` plugin creates a new Gradle `SoftwareComponent` named "cordapp", which you
 can use to create a `MavenPublication`:
 ```groovy
 plugins {
@@ -238,7 +238,7 @@ enabled to ensure that every `Import-Package` element has an associated version 
 
 # OSGi Metadata.
 
-The `cordapp-cpk` plugin automatically adds these dependencies to the CorDapp:
+The `cordapp-cpk2` plugin automatically adds these dependencies to the CorDapp:
 ```groovy
 compileOnly "biz.aQute.bnd:biz.aQute.bnd.annotation:$bndVersion"
 compileOnly "org.osgi:osgi.annotation:8.1.0"
@@ -249,7 +249,7 @@ for the "main" jar. In practice, the plugin already tries to handle the typical 
 
 ## Package Exports
 
-The `cordapp-cpk` plugin creates a Bnd `-exportcontents` command to generate the "main" jar's OSGi
+The `cordapp-cpk2` plugin creates a Bnd `-exportcontents` command to generate the "main" jar's OSGi
 `Export-Package` header. By default, it will automatically add every package inside the "main" jar to this
 `-exportcontents` command. The assumption here is that a CorDapp will not have a complicated package structure,
 and that Corda's OSGi sandboxes will provide additional CorDapp isolation anyway.
@@ -279,7 +279,7 @@ tasks.named('jar', Jar) {
 
 In an ideal world, Bnd would generate the correct OSGi `Import-Package` manifest header automatically. That being
 said, Bnd will occasionally also notice unexpected package references from unused code-paths within the byte-code.
-The `cordapp-cpk` plugin provides the following options to override the detected package settings:
+The `cordapp-cpk2` plugin provides the following options to override the detected package settings:
 ```groovy
 tasks.named('jar', Jar) {
     osgi {
@@ -320,7 +320,7 @@ public, static and non-abstract, which allows Corda to instantiate them. Empty t
 excluded from the final manifest, and so not every tag is guaranteed to be present.
 
 The plugin generates these lists using Bnd's `${classes}` macro. However, we may also need to
-update these macros as Corda evolves, and would prefer not to need to update the `cordapp-cpk`
+update these macros as Corda evolves, and would prefer not to need to update the `cordapp-cpk2`
 plugin at the same time. We can therefore update the macros by modifying the
 ```
 net/corda/cordapp/cordapp-configuration.properties
@@ -334,7 +334,7 @@ generate a new manifest tag (or replace an existing tag). E.g.
 ```
 Corda-Contract-Classes=IMPLEMENTS;net.corda.v10.ledger.contracts.Contract
 ```
-The `cordapp-cpk` plugin will append additional clauses to each filter to ensure that it still
+The `cordapp-cpk2` plugin will append additional clauses to each filter to ensure that it still
 only selects public static non-abstract classes, since we don't expect this requirement to change.
 
 ### Dynamic Imports
@@ -364,7 +364,7 @@ Note that doing this will completely override the plugin's hard-coded list of pa
 ### Corda API Imports
 
 Our goal is for any CPK written for Corda 5.x to be compatible with every release of Corda 5.x.
-This requires the `cordapp-cpk` plugin to apply an explicit OSGi "consumer policy" for every
+This requires the `cordapp-cpk2` plugin to apply an explicit OSGi "consumer policy" for every
 Corda API package that the CPK may use:
 ```
 version='${range;[=,+);${@}}'
@@ -373,7 +373,7 @@ We identify Corda's API packages using the `Import-Policy-Packages` property:
 ```
 Import-Policy-Packages=net.corda.v5.*
 ```
-You can prevent the `cordapp-cpk` plugin from applying this policy by settings:
+You can prevent the `cordapp-cpk2` plugin from applying this policy by settings:
 ```gradle
 jar {
     osgi {

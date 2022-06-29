@@ -88,7 +88,7 @@ open class SignJar @Inject constructor(objects: ObjectFactory) : DefaultTask() {
     @get:Nested
     val signing: SigningOptions = objects.newInstance(SigningOptions::class.java).values(
         (project.extensions.findByType(CordappExtension::class.java)
-            ?: throw GradleException("Please apply cordapp-cpk plugin to create cordapp DSL extension.")
+            ?: throw GradleException("Please apply cordapp-cpk2 plugin to create cordapp DSL extension.")
         ).signing.options
     )
 
