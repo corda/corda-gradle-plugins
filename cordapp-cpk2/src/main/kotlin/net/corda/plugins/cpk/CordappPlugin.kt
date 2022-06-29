@@ -52,7 +52,7 @@ class CordappPlugin @Inject constructor(
     private companion object {
         private const val UNKNOWN_PLATFORM_VERSION = -1
         private const val CORDA_PLATFORM_VERSION = "Corda-Platform-Version"
-        private const val PLUGIN_PROPERTIES = "cordapp-cpk.properties"
+        private const val PLUGIN_PROPERTIES = "cordapp-cpk2.properties"
         private const val DEPENDENCY_CONSTRAINTS_TASK_NAME = "cordappDependencyConstraints"
         private const val DEPENDENCY_CALCULATOR_TASK_NAME = "cordappDependencyCalculator"
         private const val CPK_DEPENDENCIES_TASK_NAME = "cordappCPKDependencies"

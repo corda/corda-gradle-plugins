@@ -91,7 +91,7 @@ tasks.named('javadoc', Javadoc) {
 }
 
 processResources {
-    filesMatching('**/cordapp-cpk.properties') {
+    filesMatching('**/cordapp-cpk2.properties') {
         expand([
             'osgi_version': osgi_version,
             'bnd_version': bnd_version
