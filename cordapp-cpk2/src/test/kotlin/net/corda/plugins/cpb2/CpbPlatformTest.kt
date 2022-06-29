@@ -1,10 +1,10 @@
 package net.corda.plugins.cpb2
 
-import net.corda.plugins.cpk.GradleProject
-import net.corda.plugins.cpk.allSHA256
-import net.corda.plugins.cpk.cordaApiVersion
-import net.corda.plugins.cpk.expectedCordappContractVersion
-import net.corda.plugins.cpk.toOSGi
+import net.corda.plugins.cpk2.GradleProject
+import net.corda.plugins.cpk2.allSHA256
+import net.corda.plugins.cpk2.cordaApiVersion
+import net.corda.plugins.cpk2.expectedCordappContractVersion
+import net.corda.plugins.cpk2.toOSGi
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test

@@ -1,10 +1,10 @@
 package net.corda.plugins.cpb2
 
-import net.corda.plugins.cpk.GradleProject
-import net.corda.plugins.cpk.cordaApiVersion
-import net.corda.plugins.cpk.digestFor
-import net.corda.plugins.cpk.expectedCordappContractVersion
-import net.corda.plugins.cpk.hashFor
+import net.corda.plugins.cpk2.GradleProject
+import net.corda.plugins.cpk2.cordaApiVersion
+import net.corda.plugins.cpk2.digestFor
+import net.corda.plugins.cpk2.expectedCordappContractVersion
+import net.corda.plugins.cpk2.hashFor
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.BeforeAll

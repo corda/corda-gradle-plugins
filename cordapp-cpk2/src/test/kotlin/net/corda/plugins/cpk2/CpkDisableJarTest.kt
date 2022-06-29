@@ -1,17 +1,12 @@
-package net.corda.plugins.cpb2
+package net.corda.plugins.cpk2
 
 import java.nio.file.Path
-import net.corda.plugins.cpk2.CPB_TASK_NAME
-import net.corda.plugins.cpk2.CPK_TASK_NAME
-import net.corda.plugins.cpk2.GradleProject
-import net.corda.plugins.cpk2.VERIFY_BUNDLE_TASK_NAME
-import net.corda.plugins.cpk2.cordaApiVersion
-import net.corda.plugins.cpk2.expectedCordappContractVersion
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.api.plugins.JavaPlugin.COMPILE_JAVA_TASK_NAME
 import org.gradle.api.plugins.JavaPlugin.JAR_TASK_NAME
 import org.gradle.testkit.runner.TaskOutcome.SKIPPED
 import org.gradle.testkit.runner.TaskOutcome.SUCCESS
+import org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -20,7 +15,7 @@ import org.junit.jupiter.api.TestReporter
 import org.junit.jupiter.api.io.TempDir
 
 @TestInstance(PER_CLASS)
-class CpbDisableCpkTest {
+class CpkDisableJarTest {
     private companion object {
         private const val cordappVersion = "1.0.1-SNAPSHOT"
     }
@@ -30,8 +25,9 @@ class CpbDisableCpkTest {
     @BeforeAll
     fun setup(@TempDir testProjectDir: Path, reporter: TestReporter) {
         testProject = GradleProject(testProjectDir, reporter)
-            .withTestName("cpb-disable-cpk")
-            .withSubResource("src/main/java/com/example/cpb/nocpk/ExampleContract.java")
+            .withTestName("cpk-disable-jar")
+            .withTaskOutcome(UP_TO_DATE)
+            .withSubResource("src/main/java/com/example/nojar/ExampleContract.java")
             .build(
                 "-Pcordapp_version=$cordappVersion",
                 "-Pcordapp_contract_version=$expectedCordappContractVersion",
@@ -45,22 +41,17 @@ class CpbDisableCpkTest {
     }
 
     @Test
-    fun testJarIsBuilt() {
-        assertThat(testProject.outcomeOf(JAR_TASK_NAME)).isEqualTo(SUCCESS)
+    fun testJarIsSkipped() {
+        assertThat(testProject.outcomeOf(JAR_TASK_NAME)).isEqualTo(SKIPPED)
     }
 
     @Test
-    fun testJarIsVerified() {
-        assertThat(testProject.outcomeOf(VERIFY_BUNDLE_TASK_NAME)).isEqualTo(SUCCESS)
+    fun testVerifyIsSkipped() {
+        assertThat(testProject.outcomeOf(VERIFY_BUNDLE_TASK_NAME)).isEqualTo(SKIPPED)
     }
 
     @Test
     fun testCpkIsSkipped() {
         assertThat(testProject.outcomeOf(CPK_TASK_NAME)).isEqualTo(SKIPPED)
-    }
-
-    @Test
-    fun testCpbIsSkipped() {
-        assertThat(testProject.outcomeOf(CPB_TASK_NAME)).isEqualTo(SKIPPED)
     }
 }

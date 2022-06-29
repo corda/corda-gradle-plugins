@@ -1,8 +1,8 @@
 package net.corda.plugins.cpb2
 
-import net.corda.plugins.cpk.CORDAPP_TASK_GROUP
-import net.corda.plugins.cpk.CORDA_CPK_TYPE
-import net.corda.plugins.cpk.CPK_FILE_EXTENSION
+import net.corda.plugins.cpk2.CORDAPP_TASK_GROUP
+import net.corda.plugins.cpk2.CORDA_CPK_TYPE
+import net.corda.plugins.cpk2.CPK_FILE_EXTENSION
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.tasks.AbstractCopyTask
 import org.gradle.api.tasks.bundling.Jar

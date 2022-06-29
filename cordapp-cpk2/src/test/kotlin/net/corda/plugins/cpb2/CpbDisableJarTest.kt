@@ -1,12 +1,12 @@
 package net.corda.plugins.cpb2
 
 import java.nio.file.Path
-import net.corda.plugins.cpk.CPB_TASK_NAME
-import net.corda.plugins.cpk.CPK_TASK_NAME
-import net.corda.plugins.cpk.GradleProject
-import net.corda.plugins.cpk.VERIFY_BUNDLE_TASK_NAME
-import net.corda.plugins.cpk.cordaApiVersion
-import net.corda.plugins.cpk.expectedCordappContractVersion
+import net.corda.plugins.cpk2.CPB_TASK_NAME
+import net.corda.plugins.cpk2.CPK_TASK_NAME
+import net.corda.plugins.cpk2.GradleProject
+import net.corda.plugins.cpk2.VERIFY_BUNDLE_TASK_NAME
+import net.corda.plugins.cpk2.cordaApiVersion
+import net.corda.plugins.cpk2.expectedCordappContractVersion
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.api.plugins.JavaPlugin.COMPILE_JAVA_TASK_NAME
 import org.gradle.api.plugins.JavaPlugin.JAR_TASK_NAME
