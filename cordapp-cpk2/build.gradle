@@ -33,7 +33,7 @@ gradlePlugin {
             description = 'Corda CorDapp CPK Builder Plugin'
         }
         cordappCpbPlugin {
-            id = 'net.corda.plugins.cordapp-cpb'
+            id = 'net.corda.plugins.cordapp-cpb2'
             implementationClass = 'net.corda.plugins.cpb.CpbPlugin'
             displayName = 'Corda CorDapp CPB Plugin'
             description = 'Corda CorDapp CPB Builder Plugin'
