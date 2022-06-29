@@ -1,4 +1,0 @@
-rootProject.name = 'cordapp-non-bundle-library'
-
-include 'embeddable-library'
-project(':embeddable-library').projectDir = file('../resources/test/embeddable-library')

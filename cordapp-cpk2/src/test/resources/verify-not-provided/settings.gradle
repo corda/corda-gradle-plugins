@@ -1,4 +1,0 @@
-rootProject.name = 'verify-not-provided'
-
-include 'annotations'
-project(':annotations').projectDir = file('../resources/test/annotations')

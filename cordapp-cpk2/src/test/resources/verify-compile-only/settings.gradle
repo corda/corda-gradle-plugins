@@ -1,4 +1,0 @@
-rootProject.name = 'verify-compile-only'
-
-include 'annotations'
-project(':annotations').projectDir = file('../resources/test/annotations')
