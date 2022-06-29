@@ -13,7 +13,7 @@ Include these lines at the top of the `build.gradle` file of your CorDapp Gradle
 
 ```gradle
 plugins {
-    id 'net.corda.plugins.cordapp-cpk'
+    id 'net.corda.plugins.cordapp-cpk2'
 }
 ```
 
@@ -29,7 +29,7 @@ If your Gradle project only contains a single module then you would apply both p
 ```gradle
 plugins {
     id 'net.corda.cordapp.cordapp-configuration'
-    id 'net.corda.plugins.cordapp-cpk'
+    id 'net.corda.plugins.cordapp-cpk2'
 }
 ```
 
@@ -38,7 +38,7 @@ You will also need to declare both plugins' versions in `settings.gradle`:
 pluginManagement {
     plugins {
         id 'net.corda.cordapp.cordapp-configuration' version cordaReleaseVersion
-        id 'net.corda.plugins.cordapp-cpk' version cpkPluginVersion
+        id 'net.corda.plugins.cordapp-cpk2' version cpkPluginVersion
     }
 }
 ```
@@ -195,7 +195,7 @@ The `cordapp-cpk` plugin creates a new Gradle `SoftwareComponent` named "cordapp
 can use to create a `MavenPublication`:
 ```groovy
 plugins {
-    id 'net.corda.plugins.cordapp-cpk'
+    id 'net.corda.plugins.cordapp-cpk2'
     id 'maven-publish'
 }
 

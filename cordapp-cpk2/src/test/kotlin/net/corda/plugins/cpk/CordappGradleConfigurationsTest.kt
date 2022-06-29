@@ -28,7 +28,7 @@ class CordappGradleConfigurationsTest {
             .withGradleVersion(GRADLE_7_2)
             .withBuildScript("""\
                 |plugins {
-                |    id 'net.corda.plugins.cordapp-cpk'
+                |    id 'net.corda.plugins.cordapp-cpk2'
                 |}
                 |
                 |apply from: 'repositories.gradle'

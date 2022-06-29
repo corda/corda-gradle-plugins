@@ -1,5 +1,5 @@
 plugins {
-    id 'net.corda.plugins.cordapp-cpk'
+    id 'net.corda.plugins.cordapp-cpk2'
 }
 
 allprojects {
@@ -11,7 +11,7 @@ allprojects {
         enabled = false
     }
 
-    pluginManager.withPlugin('net.corda.plugins.cordapp-cpk') {
+    pluginManager.withPlugin('net.corda.plugins.cordapp-cpk2') {
         apply from: "$rootDir/repositories.gradle"
         apply from: "$rootDir/javaTarget.gradle"
 
@@ -26,7 +26,7 @@ allprojects {
             }
         }
 
-        pluginManager.withPlugin('net.corda.plugins.cordapp-cpk') {
+        pluginManager.withPlugin('net.corda.plugins.cordapp-cpk2') {
             publications {
                 maven(MavenPublication) {
                     from components.cordapp

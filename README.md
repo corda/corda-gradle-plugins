@@ -41,7 +41,7 @@ The plugins themselves fall into two categories: those intended for developing C
 
 ### Plugins for CorDapp development.
 
-- [`net.corda.plugins.cordapp-cpk`](cordapp-cpk/README.md)\
+- [`net.corda.plugins.cordapp-cpk2`](cordapp-cpk2/README.md)\
 This plugin generates CPK-format CorDapps that are compatible with Corda 5,
 and supercedes Corda's original `cordapp` plugin. It will package your
 CorDapp classes into an OSGi bundle (a jar whose manifest contains OSGi

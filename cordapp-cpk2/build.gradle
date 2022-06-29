@@ -27,7 +27,7 @@ repositories {
 gradlePlugin {
     plugins {
         cordappCpkPlugin {
-            id = 'net.corda.plugins.cordapp-cpk'
+            id = 'net.corda.plugins.cordapp-cpk2'
             implementationClass = 'net.corda.plugins.cpk.CordappPlugin'
             displayName = 'Corda CorDapp CPK Plugin'
             description = 'Corda CorDapp CPK Builder Plugin'

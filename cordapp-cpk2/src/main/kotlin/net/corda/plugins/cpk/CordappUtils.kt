@@ -31,7 +31,7 @@ import javax.xml.transform.TransformerException
 import javax.xml.transform.dom.DOMSource
 import javax.xml.transform.stream.StreamResult
 
-const val CORDAPP_CPK_PLUGIN_ID = "net.corda.plugins.cordapp-cpk"
+const val CORDAPP_CPK_PLUGIN_ID = "net.corda.plugins.cordapp-cpk2"
 const val CORDAPP_TASK_GROUP = "Cordapp"
 const val CPK_XML_NAMESPACE = "urn:corda-cpk"
 

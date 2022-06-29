@@ -1,5 +1,5 @@
-cordapp-cpk
-cordapp-cpk/net.corda.plugins.cordapp-cpk.gradle.plugin
+cordapp-cpk2
+cordapp-cpk2/net.corda.plugins.cordapp-cpk2.gradle.plugin
 cordapp-cpb/net.corda.plugins.cordapp-cpb.gradle.plugin
 flask
 flask/net.corda.plugins.flask.gradle.plugin

@@ -1,5 +1,5 @@
 plugins {
-    id 'net.corda.plugins.cordapp-cpk'
+    id 'net.corda.plugins.cordapp-cpk2'
     id 'org.jetbrains.kotlin.jvm'
 }
 
@@ -50,7 +50,7 @@ allprojects {
                 }
             }
 
-            pluginManager.withPlugin('net.corda.plugins.cordapp-cpk') {
+            pluginManager.withPlugin('net.corda.plugins.cordapp-cpk2') {
                 publications {
                     maven(MavenPublication) {
                         from components.cordapp
