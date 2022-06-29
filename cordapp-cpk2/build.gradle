@@ -28,13 +28,13 @@ gradlePlugin {
     plugins {
         cordappCpkPlugin {
             id = 'net.corda.plugins.cordapp-cpk2'
-            implementationClass = 'net.corda.plugins.cpk.CordappPlugin'
+            implementationClass = 'net.corda.plugins.cpk2.CordappPlugin'
             displayName = 'Corda CorDapp CPK Plugin'
             description = 'Corda CorDapp CPK Builder Plugin'
         }
         cordappCpbPlugin {
             id = 'net.corda.plugins.cordapp-cpb2'
-            implementationClass = 'net.corda.plugins.cpb.CpbPlugin'
+            implementationClass = 'net.corda.plugins.cpb2.CpbPlugin'
             displayName = 'Corda CorDapp CPB Plugin'
             description = 'Corda CorDapp CPB Builder Plugin'
         }
