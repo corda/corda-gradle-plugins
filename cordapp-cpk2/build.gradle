@@ -51,8 +51,8 @@ gradlePlugin {
 def generatedSourceDir = layout.buildDirectory.dir('generated-source')
 def generateSource = tasks.register('generateSource', Copy) {
     from 'src/main/template'
-    filter(ReplaceTokens, tokens: [root_package: 'net.corda.plugins.cpk'])
-    into generatedSourceDir.map { it.dir('net/corda/plugins/cpk/signing') }
+    filter(ReplaceTokens, tokens: [root_package: 'net.corda.plugins.cpk2'])
+    into generatedSourceDir.map { it.dir('net/corda/plugins/cpk2/signing') }
 }
 
 sourceSets {
