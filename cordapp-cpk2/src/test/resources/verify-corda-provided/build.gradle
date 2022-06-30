@@ -1,0 +1,29 @@
+plugins {
+    id 'net.corda.plugins.cordapp-cpk2'
+}
+
+apply from: 'repositories.gradle'
+apply from: 'javaTarget.gradle'
+
+group = 'com.example'
+version = cordapp_version
+
+cordapp {
+    targetPlatformVersion = platform_version.toInteger()
+    minimumPlatformVersion = platform_version.toInteger()
+
+    contract {
+        name = 'Verify Corda Provided'
+        versionId = cordapp_contract_version.toInteger()
+        licence = 'Test-Licence'
+        vendor = 'R3'
+    }
+}
+
+dependencies {
+    cordaProvided project(':annotations')
+}
+
+jar {
+    archiveBaseName = 'verify-corda-provided'
+}

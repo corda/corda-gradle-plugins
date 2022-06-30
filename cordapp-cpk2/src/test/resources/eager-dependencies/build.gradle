@@ -1,0 +1,31 @@
+plugins {
+    id 'net.corda.plugins.cordapp-cpk2'
+}
+
+apply from: 'repositories.gradle'
+apply from: 'javaTarget.gradle'
+
+cordapp {
+    targetPlatformVersion = platform_version.toInteger()
+    minimumPlatformVersion = platform_version.toInteger()
+
+    contract {
+        name = 'Eager Dependencies'
+        versionId = cordapp_contract_version.toInteger()
+        licence = 'Test-Licence'
+        vendor = 'R3'
+    }
+}
+
+jar {
+    archiveBaseName = 'eager-dependencies'
+}
+
+dependencies {
+    cordaProvided project(':corda-api')
+    implementation "commons-io:commons-io:$commons_io_version"
+}
+
+tasks.withType(net.corda.plugins.cpk2.DependencyConstraintsTask) {
+    println "Eagerly configuring DependencyConstraints task '$name'"
+}

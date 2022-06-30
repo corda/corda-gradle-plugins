@@ -1,0 +1,30 @@
+plugins {
+    id 'net.corda.plugins.cordapp-cpk2'
+}
+
+apply from: 'repositories.gradle'
+apply from: 'javaTarget.gradle'
+
+allprojects {
+    group = 'com.example'
+}
+
+cordapp {
+    targetPlatformVersion = platform_version.toInteger()
+    minimumPlatformVersion = platform_version.toInteger()
+
+    contract {
+        name = 'With Corda Dependency'
+        versionId = cordapp_contract_version.toInteger()
+        licence = 'Test-Licence'
+        vendor = 'R3'
+    }
+}
+
+jar {
+    archiveBaseName = 'with-corda-dependency'
+}
+
+dependencies {
+    implementation project(':library')
+}

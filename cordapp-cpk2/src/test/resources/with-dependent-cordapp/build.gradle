@@ -1,0 +1,52 @@
+plugins {
+    id 'net.corda.plugins.cordapp-cpk2'
+}
+
+apply from: 'repositories.gradle'
+apply from: 'javaTarget.gradle'
+
+allprojects {
+    group = 'com.example'
+}
+
+cordapp {
+    targetPlatformVersion = platform_version.toInteger()
+    minimumPlatformVersion = platform_version.toInteger()
+
+    workflow {
+        name = 'With Dependent CorDapp'
+        versionId = cordapp_workflow_version.toInteger()
+        licence = 'Test-Licence'
+        vendor = 'R3'
+    }
+}
+
+jar {
+    archiveBaseName = 'with-dependent-cordapp'
+    doFirst {
+        configurations.compileClasspath.forEach { dep ->
+            println "COMPILE-WORKFLOW> ${dep.name}"
+        }
+        configurations.cordappExternal.forEach { dep ->
+            println "EXTERNAL-WORKFLOW> ${dep.name}"
+        }
+    }
+}
+
+dependencies {
+    cordapp project(':cordapp')
+    cordaProvided project(':corda-api')
+    implementation("com.google.guava:guava:$guava_version") {
+        transitive = false
+    }
+}
+
+// Copy the DependencyConstraints XML from ':cordapp' into our build directory.
+def copy = tasks.register('copy', Copy) {
+    into project.layout.buildDirectory
+    from project(':cordapp').tasks.named('cordappDependencyConstraints')
+}
+
+tasks.named('assemble') {
+    dependsOn copy
+}

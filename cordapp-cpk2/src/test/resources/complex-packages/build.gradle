@@ -1,0 +1,28 @@
+plugins {
+    id 'net.corda.plugins.cordapp-cpk2'
+}
+
+apply from: 'repositories.gradle'
+apply from: 'javaTarget.gradle'
+
+group = 'com.example'
+version = '1.0.1-SNAPSHOT'
+
+cordapp {
+    targetPlatformVersion = platform_version.toInteger()
+    minimumPlatformVersion = platform_version.toInteger()
+
+    contract {
+        name = 'Complex Packages'
+        versionId = cordapp_contract_version.toInteger()
+        licence = 'Test-Licence'
+        vendor = 'R3'
+    }
+}
+
+jar {
+    archiveBaseName = 'complex-packages'
+    osgi {
+        autoExport = false
+    }
+}

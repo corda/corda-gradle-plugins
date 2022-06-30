@@ -98,19 +98,19 @@ class QuasarPlugin implements Plugin<Project> {
                 dependencies.add(quasarAgentDependency)
             }
 
-        // This definition of cordaRuntimeOnly must be consistent with the one in the cordapp-cpk plugin.
+        // This definition of cordaRuntimeOnly must be consistent with the one in the cordapp-cpk2 plugin.
         def cordaRuntimeOnly = createBasicConfiguration(CORDA_RUNTIME_ONLY_CONFIGURATION_NAME, configurations)
             // Instrumented code needs both the Quasar bundle and its transitive dependencies at runtime.
             .withDependencies(new QuasarAction(adapter, true))
             .setTransitive(false)
 
-        // This definition of cordaProvided must be consistent with the one in the cordapp-cpk plugin.
+        // This definition of cordaProvided must be consistent with the one in the cordapp-cpk2 plugin.
         def cordaProvided = createBasicConfiguration(CORDA_PROVIDED_CONFIGURATION_NAME, configurations)
             // Add Quasar bundle WITHOUT any of its transitive dependencies.
             .withDependencies(new QuasarAction(adapter, false))
 
         // If we're building a JAR then also add the Quasar bundle to the appropriate Java configurations.
-        // This is also consistent with the cordapp-cpk plugin, which applies the 'java' plugin too.
+        // This is also consistent with the cordapp-cpk2 plugin, which applies the 'java' plugin too.
         project.pluginManager.withPlugin('java') {
             // Adds the Quasar bundle to the compileClasspath WITHOUT its transitive dependencies.
             configurations[COMPILE_ONLY_CONFIGURATION_NAME].extendsFrom(cordaProvided)

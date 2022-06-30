@@ -1,0 +1,32 @@
+plugins {
+    id 'net.corda.plugins.cordapp-cpk2'
+    id 'org.jetbrains.kotlin.jvm'
+}
+
+apply from: '../repositories.gradle'
+apply from: '../javaTarget.gradle'
+apply from: '../kotlin.gradle'
+
+cordapp {
+    targetPlatformVersion = platform_version.toInteger()
+    minimumPlatformVersion = platform_version.toInteger()
+
+    workflow {
+        name = service_name
+        versionId = cordapp_service_version.toInteger()
+        licence = 'Test-Licence'
+        vendor = 'R3'
+    }
+}
+
+version = service_cordapp_version
+
+jar {
+    archiveBaseName = 'services'
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-osgi-bundle:$kotlin_version"
+    cordaProvided project(':corda-api')
+    cordapp project(':workflows')
+}

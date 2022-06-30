@@ -1,0 +1,37 @@
+plugins {
+    id 'net.corda.plugins.cordapp-cpk2'
+    id 'org.jetbrains.kotlin.jvm'
+}
+
+apply from: 'repositories.gradle'
+apply from: 'javaTarget.gradle'
+apply from: 'kotlin.gradle'
+
+allprojects {
+    group = 'com.example'
+}
+
+version = host_version
+
+cordapp {
+    targetPlatformVersion = platform_version.toInteger()
+    minimumPlatformVersion = platform_version.toInteger()
+
+    contract {
+        name = 'Verify CorDapp Dependency'
+        versionId = cordapp_contract_version.toInteger()
+        licence = 'Test-Licence'
+        vendor = 'R3'
+    }
+}
+
+dependencies {
+    cordapp project(':cordapp')
+    cordaProvided project(':corda-api')
+    implementation "org.jetbrains.kotlin:kotlin-osgi-bundle:$kotlin_version"
+    implementation "commons-collections:commons-collections:$commons_collections_version"
+}
+
+jar {
+    archiveBaseName = 'verify-cordapp-dependency'
+}

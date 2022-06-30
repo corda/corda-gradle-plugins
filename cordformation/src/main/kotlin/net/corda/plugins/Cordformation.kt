@@ -24,7 +24,7 @@ class Cordformation : Plugin<Project> {
         const val CORDFORMATION_TYPE = "cordformationInternal"
         const val CORDA_CPK_CONFIGURATION_NAME = "cordaCPK"
         const val CPK_CLASSIFIER = "cordapp"
-        const val CORDA_CPK_PLUGIN_ID = "net.corda.plugins.cordapp-cpk"
+        const val CORDA_CPK_PLUGIN_ID = "net.corda.plugins.cordapp-cpk2"
         const val DEFAULT_JOLOKIA_VERSION = "1.6.2"
         const val MINIMUM_GRADLE_VERSION = "5.1"
 

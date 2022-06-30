@@ -1,0 +1,40 @@
+plugins {
+    id 'net.corda.plugins.cordapp-cpk2'
+}
+
+apply from: 'repositories.gradle'
+apply from: 'javaTarget.gradle'
+
+version = cordapp_version
+
+allprojects {
+    group = 'com.example'
+}
+
+cordapp {
+    targetPlatformVersion = platform_version.toInteger()
+    minimumPlatformVersion = platform_version.toInteger()
+
+    contract {
+        name = 'With Embedded Jar'
+        versionId = cordapp_contract_version.toInteger()
+        licence = 'Test-Licence'
+        vendor = 'R3'
+    }
+}
+
+jar {
+    archiveBaseName = 'with-embedded-jar'
+
+    osgi {
+        optionalImport 'sun.misc;version=\"[0,9999)\"'
+        suppressImportVersion 'com.google.apphosting.api',
+            'com.google.appengine.api',
+            'com.google.appengine.api.utils'
+    }
+}
+
+dependencies {
+    cordaProvided project(':corda-api')
+    cordaEmbedded project(':library')
+}

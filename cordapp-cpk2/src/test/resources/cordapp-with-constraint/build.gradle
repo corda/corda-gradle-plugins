@@ -1,0 +1,43 @@
+plugins {
+    id 'net.corda.plugins.cordapp-cpk2'
+    id 'org.jetbrains.kotlin.jvm'
+}
+
+apply from: 'repositories.gradle'
+apply from: 'javaTarget.gradle'
+apply from: 'kotlin.gradle'
+
+group = 'com.example'
+version = cordapp_version
+
+cordapp {
+    targetPlatformVersion = platform_version.toInteger()
+
+    contract {
+        name = 'CorDapp With Constraint'
+        versionId = cordapp_contract_version.toInteger()
+        licence = 'Test-Licence'
+        vendor = 'R3'
+    }
+}
+
+configurations {
+    standalone {
+        canBeConsumed = false
+        visible = false
+    }
+}
+
+dependencies {
+    constraints {
+        standalone "commons-codec:commons-codec:$commons_codec_version"
+    }
+
+    cordaProvided "org.jetbrains.kotlin:kotlin-osgi-bundle:$kotlin_version"
+    cordaProvided project(':corda-api')
+    cordaProvided project(':library1')
+    implementation project(':library2')
+    implementation files(configurations.standalone)
+
+    standalone "commons-codec:commons-codec"
+}
