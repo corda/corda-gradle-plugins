@@ -23,6 +23,8 @@ open class CpbTask : Jar() {
         private val EXCLUDED_CPK_TYPES = setOf("corda-api")
         const val CPB_NAME_ATTRIBUTE = "Corda-CPB-Name"
         const val CPB_VERSION_ATTRIBUTE = "Corda-CPB-Version"
+        const val CPB_FORMAT_VERSION = "Corda-CPB-Format"
+        const val CPB_CURRENT_FORMAT_VERSION = "2.0"
     }
 
 
@@ -45,6 +47,7 @@ open class CpbTask : Jar() {
         isZip64 = true
 
         manifest { m ->
+            m.attributes[CPB_FORMAT_VERSION] = CPB_CURRENT_FORMAT_VERSION
             m.attributes[CPB_NAME_ATTRIBUTE] = archiveBaseName
             m.attributes[CPB_VERSION_ATTRIBUTE] = archiveVersion
         }

@@ -1,5 +1,7 @@
 package net.corda.plugins.cpb2
 
+import net.corda.plugins.cpb2.CpbTask.Companion.CPB_FORMAT_VERSION
+import net.corda.plugins.cpb2.CpbTask.Companion.CPB_VERSION_ATTRIBUTE
 import net.corda.plugins.cpk2.GradleProject
 import net.corda.plugins.cpk2.cordaApiVersion
 import net.corda.plugins.cpk2.digestFor
@@ -100,7 +102,8 @@ class CpbTest {
         val embeddedCpkFiles = TreeMap<String, String>()
         JarInputStream(Files.newInputStream(cpbFile), true).use { jarInputStream ->
             assertEquals("customName", jarInputStream.manifest.mainAttributes.getValue("Corda-CPB-Name"))
-            assertEquals("customVersion", jarInputStream.manifest.mainAttributes.getValue("Corda-CPB-Version"))
+            assertEquals("customVersion", jarInputStream.manifest.mainAttributes.getValue(CPB_VERSION_ATTRIBUTE))
+            assertEquals("2.0", jarInputStream.manifest.mainAttributes.getValue(CPB_FORMAT_VERSION))
             generateSequence(jarInputStream::getNextJarEntry).forEach { jarEntry ->
                 when {
                     jarEntry.name.endsWith(".cpk") -> {
