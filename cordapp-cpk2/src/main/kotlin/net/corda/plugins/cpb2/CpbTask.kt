@@ -19,7 +19,6 @@ open class CpbTask : Jar() {
         private const val CPB_ARTIFACT_CLASSIFIER = "package"
         const val CPB_FILE_EXTENSION = "cpb"
         private const val CPK_FILE_SUFFIX = ".$CPK_FILE_EXTENSION"
-        private const val JAR_FILE_SUFFIX = ".jar"
         private val EXCLUDED_CPK_TYPES = setOf("corda-api")
         const val CPB_NAME_ATTRIBUTE = "Corda-CPB-Name"
         const val CPB_VERSION_ATTRIBUTE = "Corda-CPB-Version"
