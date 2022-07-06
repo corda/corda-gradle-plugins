@@ -504,7 +504,7 @@ private class CordappPublishing(private val rootProject: Project) : Action<Appli
     }
 
     override fun execute(plugin: AppliedPlugin) {
-        if (setExtraProperty("_net_corda_cordapp_cpk_publish_")) {
+        if (setExtraProperty("_net_corda_cordapp_cpk2_publish_")) {
             rootProject.gradle.projectsEvaluated(PublishAfterEvaluationHandler(rootProject))
         }
     }

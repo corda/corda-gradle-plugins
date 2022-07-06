@@ -65,7 +65,7 @@ const val CPK_CORDAPP_VERSION = "Corda-CPK-Cordapp-Version"
 const val CPK_CORDAPP_LICENCE = "Corda-CPK-Cordapp-Licence"
 const val CPK_CORDAPP_VENDOR = "Corda-CPK-Cordapp-Vendor"
 const val CPK_FORMAT_TAG = "Corda-CPK-Format"
-const val CPK_FORMAT = "1.0"
+const val CPK_FORMAT = "2.0"
 
 // These tags are for the "main" JAR file.
 const val PLATFORM_VERSION_X = 999
