@@ -271,6 +271,11 @@ class GradleProject(private val projectDir: Path, private val reporter: TestRepo
     }
 
     private fun getGradleArgs(args: Array<out String>): List<String> {
-        return arrayListOf(taskName, "--info", "--stacktrace", "-g", testGradleUserHome, *args)
+        return arrayListOf(taskName, "--info", "--stacktrace",
+            // We only need to set org.gradle.java.home if we're not debugging.
+            "-Porg.gradle.java.home=${System.getProperty("java.home")}",
+            "-g", testGradleUserHome,
+            *args
+        )
     }
 }

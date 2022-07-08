@@ -35,7 +35,7 @@ gradlePlugin {
 
 jacoco {
     // Upgrade to a version that is compatible with Java 17.
-    toolVersion = '0.8.7'
+    toolVersion = '0.8.8'
 }
 
 configurations {
@@ -76,7 +76,6 @@ tasks.named('compileTestKotlin') {
 processTestResources {
     filesMatching('gradle.properties') {
         expand(['jacocoAgent': configurations.jacocoRuntime.asPath.replace('\\', '/'),
-                'java_home': System.getProperty('java.home'),
                 'javax_annotations_version': javax_annotations_version,
                 'kotlin_api_version': test_kotlin_api_version,
                 'kotlin_version': test_kotlin_version,
