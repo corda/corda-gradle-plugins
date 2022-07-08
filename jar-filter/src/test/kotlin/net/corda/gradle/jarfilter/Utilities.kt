@@ -37,7 +37,13 @@ private val testGradleUserHome: String get() = testGradleUserHomeValue
     ?: throw TestAbortedException("System property 'test.gradle.user.home' not set.")
 
 fun getGradleArgsForTasks(vararg taskNames: String): MutableList<String> = getBasicArgsForTasks(*taskNames).apply { add("--info") }
-fun getBasicArgsForTasks(vararg taskNames: String): MutableList<String> = mutableListOf(*taskNames, "--stacktrace", "-g", testGradleUserHome)
+fun getBasicArgsForTasks(vararg taskNames: String): MutableList<String> = mutableListOf(
+    *taskNames,
+    // We only need to set org.gradle.java.home if we're not debugging.
+    "-Porg.gradle.java.home=${System.getProperty("java.home")}",
+    "-g", testGradleUserHome,
+    "--stacktrace"
+)
 
 /**
  * We must execute [GradleRunner][org.gradle.testkit.runner.GradleRunner]

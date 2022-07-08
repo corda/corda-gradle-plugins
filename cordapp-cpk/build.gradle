@@ -12,10 +12,10 @@ plugins {
 description 'Configures this project to create a CPK CorDapp'
 
 ext {
-    osgi_service_component_version = '1.4.0'
+    osgi_service_component_version = '1.5.0'
     test_persistence_api_version = '2.2'
     test_hibernate_version = '5.4.32.Final'
-    test_kotlin_version = '1.4.32'
+    test_kotlin_version = '1.7.10'
     corda_guava_version = '20.0'
 }
 
@@ -109,7 +109,6 @@ processTestResources {
             'corda_slf4j_version': slf4j_version,
             'osgi_version': osgi_version,
             'kotlin_version': test_kotlin_version,
-            'java_home': System.getProperty('java.home'),
             'bnd_version': bnd_version
         ])
     }
