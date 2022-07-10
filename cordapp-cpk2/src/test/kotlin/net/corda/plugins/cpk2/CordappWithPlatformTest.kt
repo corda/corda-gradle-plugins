@@ -21,7 +21,7 @@ import java.nio.file.Path
 @TestInstance(PER_CLASS)
 class CordappWithPlatformTest {
     private companion object {
-        private const val kotlinOsgiVersion = "version=\"[1.4,2)\""
+        private const val kotlinOsgiVersion = "version=\"[1.7,2)\""
         private const val cordaOsgiVersion = "version=\"[5.0,6)\""
 
         private const val cordappVersion = "3.2.1-SNAPSHOT"

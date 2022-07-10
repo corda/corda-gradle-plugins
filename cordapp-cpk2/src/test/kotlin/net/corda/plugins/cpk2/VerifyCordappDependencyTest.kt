@@ -26,7 +26,7 @@ class VerifyCordappDependencyTest {
         private const val cordappVersion = "1.1.1-SNAPSHOT"
         private const val hostVersion = "2.0.0-SNAPSHOT"
 
-        private const val kotlinOsgiVersion = "version=\"[1.4,2)\""
+        private const val kotlinOsgiVersion = "version=\"[1.7,2)\""
         private const val cordaOsgiVersion = "version=\"[5.0,6)\""
         private const val cordappOsgiVersion = "version=\"[1.1,2)\""
         private const val hostOsgiVersion = "version=\"2.0.0\""

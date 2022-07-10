@@ -17,8 +17,8 @@ repositories {
 
 ext {
     kotlin_metadata_version = '0.4.2'
-    test_kotlin_api_version = '1.4'
-    test_kotlin_version = '1.7.0'
+    test_kotlin_api_version = '1.5'
+    test_kotlin_version = '1.7.10'
 }
 
 gradlePlugin {
@@ -76,7 +76,6 @@ tasks.named('compileTestKotlin') {
 processTestResources {
     filesMatching('gradle.properties') {
         expand(['jacocoAgent': configurations.jacocoRuntime.asPath.replace('\\', '/'),
-                'java_home': System.getProperty('java.home'),
                 'javax_annotations_version': javax_annotations_version,
                 'kotlin_api_version': test_kotlin_api_version,
                 'kotlin_version': test_kotlin_version,

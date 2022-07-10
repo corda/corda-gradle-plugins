@@ -1,10 +1,15 @@
-import static org.gradle.api.JavaVersion.VERSION_11
+pluginManager.withPlugin('org.jetbrains.kotlin.jvm') {
+    kotlin {
+        jvmToolchain {
+            languageVersion = JavaLanguageVersion.of(11)
+        }
+    }
 
-tasks.named('compileKotlin', AbstractCompile) {
-    kotlinOptions {
-        jvmTarget = VERSION_11
-        apiVersion = '1.4'
-        languageVersion = '1.4'
-        freeCompilerArgs = ['-Xjvm-default=all']
+    tasks.named('compileKotlin') {
+        kotlinOptions {
+            apiVersion = '1.7'
+            languageVersion = '1.7'
+            freeCompilerArgs = ['-Xjvm-default=all']
+        }
     }
 }
