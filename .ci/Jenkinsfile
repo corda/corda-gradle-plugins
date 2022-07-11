@@ -64,7 +64,7 @@ pipeline {
                 }
             }
             steps {
-                snykSecurityScan("${env.SNYK_TOKEN}", "${env.SNYK_COMMANDS}", false, ${isReleaseBranch() || isMainBranch() ? true : false})
+                snykSecurityScan("${env.SNYK_TOKEN}", "${env.SNYK_COMMANDS}", false, "${isReleaseBranch() || isMainBranch() ? true : false}")
             }
         }
         stage('Publish to Artifactory') {
