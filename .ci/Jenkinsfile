@@ -58,8 +58,13 @@ pipeline {
         }
         
         stage('Snyk Security Scan') {
+            when {
+                not {
+                    changeRequest()
+                }
+            }
             steps {
-                snykSecurityScan("${env.SNYK_TOKEN}", "${env.SNYK_COMMANDS}", false, true)
+                snykSecurityScan("${env.SNYK_TOKEN}", "${env.SNYK_COMMANDS}", false, ${isReleaseBranch() || isMainBranch() ? true : false})
             }
         }
         stage('Publish to Artifactory') {
@@ -101,4 +106,12 @@ pipeline {
             deleteDir()
         }
     }
+}
+
+def isReleaseBranch() {
+    return (env.BRANCH_NAME =~ /^release\/.*$/)
+}
+
+def isMainBranch() {
+    return (env.BRANCH_NAME =~ /^master$/)
 }
