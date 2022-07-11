@@ -39,12 +39,24 @@ pipeline {
         ARTIFACTORY_BUILD_NAME = "Corda Gradle Plugins / Publish To Artifactory"
             .replaceAll("/", " :: ")
         ARTIFACTORY_REPO = "${isRelease ? "corda-releases" : "corda-dev"}"
-    }
+        SNYK_TOKEN = "r3-gradle-plugins"
+        SNYK_COMMANDS = "--all-sub-projects --prune-repeated-subdependencies --target-reference='${env.BRANCH_NAME}' --project-tags=Branch='${env.BRANCH_NAME.replaceAll("[^0-9|a-z|A-Z]+","_")}'"
+}
     stages {
         stage('Build') {
             steps {
                 authenticateGradleWrapper()
                 sh './gradlew --no-daemon -s --no-build-cache clean build'
+            }
+        }
+        stage('Snyk Security Scan') {
+            when {
+                not {
+                    changeRequest()
+                }
+            }
+            steps {
+                snykSecurityScan("${env.SNYK_TOKEN}", "${env.SNYK_COMMANDS}", true, true)
             }
         }
         stage('Publish to Artifactory') {
@@ -85,6 +97,11 @@ pipeline {
     }
     post {
         always {
+            script {
+                if(!changeRequest()){
+                    snykSecurityScan.generateHtmlElements()
+                }
+            }
             junit testResults: '**/build/test-results/**/*.xml', keepLongStdio: true, allowEmptyResults: true
         }
         cleanup {
