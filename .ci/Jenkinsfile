@@ -46,12 +46,25 @@ pipeline {
         ARTIFACTORY_CREDENTIALS = credentials('artifactory-credentials')
         CORDA_ARTIFACTORY_USERNAME = "${env.ARTIFACTORY_CREDENTIALS_USR}"
         CORDA_ARTIFACTORY_PASSWORD = "${env.ARTIFACTORY_CREDENTIALS_PSW}"
+        SNYK_TOKEN = "r3-gradle-plugins"
+        SNYK_COMMANDS = "--all-sub-projects --prune-repeated-subdependencies --target-reference='${env.BRANCH_NAME}' --project-tags=Branch='${env.BRANCH_NAME.replaceAll("[^0-9|a-z|A-Z]+","_")}'"
     }
     stages {
         stage('Build') {
             steps {
                 authenticateGradleWrapper()
                 sh './gradlew --no-daemon --info --no-build-cache clean build'
+            }
+        }
+        
+        stage('Snyk Security Scan') {
+            when {
+                not {
+                    changeRequest()
+                }
+            }
+            steps {
+                snykSecurityScan("${env.SNYK_TOKEN}", "${env.SNYK_COMMANDS}", true, true)
             }
         }
         stage('Publish to Artifactory') {
@@ -87,10 +100,23 @@ pipeline {
     }
     post {
         always {
+            script {
+                if(!changeRequest()){
+                    snykSecurityScan.generateHtmlElements()
+                }
+            }
             junit testResults: '**/build/test-results/**/*.xml', keepLongStdio: true, allowEmptyResults: true
         }
         cleanup {
             deleteDir()
         }
     }
+}
+
+def isReleaseBranch() {
+    return (env.BRANCH_NAME =~ /^release\/.*$/)
+}
+
+def isMainBranch() {
+    return (env.BRANCH_NAME =~ /^master$/)
 }
