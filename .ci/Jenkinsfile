@@ -101,7 +101,7 @@ pipeline {
     post {
         always {
             script {
-                if(!changeRequest()){
+                if(!env.CHANGE_ID) {
                     snykSecurityScan.generateHtmlElements()
                 }
             }
