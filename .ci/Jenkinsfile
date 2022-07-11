@@ -20,7 +20,7 @@ boolean isRelease = (env.TAG_NAME =~ /^release\/.*/)
 
 pipeline {
     agent {
-        label 'standard'
+        label 'eight-cores'
     }
     parameters {
         booleanParam name: 'DO_PUBLISH',
@@ -31,7 +31,7 @@ pipeline {
         ansiColor('xterm')
         timestamps()
         timeout(3*60) // 3 hours
-        buildDiscarder(logRotator(daysToKeepStr: '14', artifactDaysToKeepStr: '14'))
+        buildDiscarder(logRotator(daysToKeepStr: '7', artifactDaysToKeepStr: '7'))
     }
     environment {
         // Replace / with :: as links from Jenkins to Artifactory are broken if we use slashes
