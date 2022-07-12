@@ -112,7 +112,11 @@ class WithDependentCordappTest {
         val cpk = artifacts.single { it.toString().endsWith(".cpk") }
         assertThat(cpk).isRegularFile
 
-        assertThat(testProject.libraries)
+        val contractCpk = testProjectDir.resolve("cordapp")
+            .resolve("build")
+            .resolve("libs")
+            .resolve("cordapp-cordapp.cpk")
+        assertThat(listLibrariesForCpk(contractCpk))
             .noneMatch { it == "biz.aQute.bnd.annotation-${bndVersion}.jar" }
             .noneMatch { it == "slf4j-api-${librarySlf4jVersion}.jar" }
             .noneMatch { it == "slf4j-api-${cordaSlf4jVersion}.jar" }

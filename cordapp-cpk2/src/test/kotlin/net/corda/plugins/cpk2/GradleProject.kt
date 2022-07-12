@@ -86,6 +86,15 @@ fun Path.hashOfEntry(entryName: String): ByteArray {
     }
 }
 
+fun listLibrariesForCpk(cpk: Path) = JarInputStream(cpk.toFile().inputStream(), false).use {
+    generateSequence { it.nextJarEntry }
+        .filter { !it.isDirectory }
+        .map { it.name }
+        .filter { it.startsWith("lib/") }
+        .map { it.removePrefix("lib/") }
+        .toList()
+}
+
 @Suppress("unused", "MemberVisibilityCanBePrivate")
 class GradleProject(private val projectDir: Path, private val reporter: TestReporter) {
     private companion object {
@@ -197,17 +206,8 @@ class GradleProject(private val projectDir: Path, private val reporter: TestRepo
         @Throws(IOException::class)
         get() {
             return artifacts
-                .single { it.fileName.toString().endsWith(".cpk") }
-                .let { cpk ->
-                    JarInputStream(cpk.toFile().inputStream(), false).use {
-                        generateSequence { it.nextJarEntry }
-                            .filter { !it.isDirectory }
-                            .map { it.name }
-                            .filter { it.startsWith("lib/") }
-                            .map { it.removePrefix("lib/") }
-                            .toList()
-                    }
-                }
+                .singleOrNull { it.fileName.toString().endsWith(".cpk") }
+                ?.let(::listLibrariesForCpk) ?: emptyList()
         }
 
     val cpkDependenciesFile: Path = buildDir.resolve("cpk-dependencies")
