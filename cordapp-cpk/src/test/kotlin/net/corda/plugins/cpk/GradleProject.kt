@@ -191,7 +191,7 @@ class GradleProject(private val projectDir: Path, private val reporter: TestRepo
         @Throws(IOException::class)
         get() {
             assertThat(artifactDir).isDirectory()
-            return Files.list(artifactDir).collect(toList())
+            return Files.list(artifactDir).use { it.collect(toList()) }
         }
 
     val dependencyConstraintsFile: Path = buildDir.resolve("generated-constraints")
