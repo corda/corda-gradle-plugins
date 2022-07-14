@@ -47,6 +47,16 @@ pipeline {
                 sh './gradlew --no-daemon -s --no-build-cache clean build'
             }
         }
+        stage('Snyk Security Scan') {
+            when {
+                not {
+                    changeRequest()
+                }
+            }
+            steps {
+                snykSecurityScan("${env.SNYK_TOKEN}", "${env.SNYK_COMMANDS}", true, true)
+            }
+        }
         stage('Publish to Artifactory') {
             when {
                 expression { params.DO_PUBLISH }
