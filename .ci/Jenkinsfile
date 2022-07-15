@@ -109,11 +109,3 @@ pipeline {
         }
     }
 }
-
-def isReleaseBranch() {
-    return (env.BRANCH_NAME =~ /^release\/.*$/)
-}
-
-def isMainBranch() {
-    return (env.BRANCH_NAME =~ /^master$/)
-}
