@@ -27,6 +27,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardCopyOption.REPLACE_EXISTING
 import java.util.Properties
+import java.util.jar.JarEntry
 import java.util.jar.JarFile
 import java.util.jar.JarInputStream
 import java.util.jar.Manifest
@@ -86,10 +87,10 @@ fun Path.hashOfEntry(entryName: String): ByteArray {
     }
 }
 
-fun listLibrariesForCpk(cpk: Path) = JarInputStream(cpk.toFile().inputStream(), false).use {
-    generateSequence { it.nextJarEntry }
-        .filter { !it.isDirectory }
-        .map { it.name }
+fun listLibrariesForCpk(cpk: Path) = JarInputStream(cpk.toFile().inputStream().buffered()).use { jar ->
+    generateSequence(jar::getNextJarEntry)
+        .filterNot(JarEntry::isDirectory)
+        .map(JarEntry::getName)
         .filter { it.startsWith("lib/") }
         .map { it.removePrefix("lib/") }
         .toList()
