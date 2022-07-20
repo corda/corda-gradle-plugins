@@ -5,6 +5,12 @@ plugins {
 apply from: 'repositories.gradle'
 apply from: 'javaTarget.gradle'
 
+configurations {
+    cordappDependency {
+        canBeConsumed = false
+    }
+}
+
 allprojects {
     group = 'com.example'
 }
@@ -39,4 +45,15 @@ dependencies {
     implementation("com.google.guava:guava:$guava_version") {
         transitive = false
     }
+    cordappDependency project(path: ':cordapp', configuration: 'cordaCPK')
+}
+
+// Copy the CPK from ':cordapp' into our build directory.
+def copy = tasks.register('copy', Copy) {
+    into project.layout.buildDirectory
+    from configurations.cordappDependency
+}
+
+tasks.named('assemble') {
+    dependsOn copy
 }
