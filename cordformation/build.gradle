@@ -77,12 +77,77 @@ pluginBundle {
 
 dependencies {
     constraints {
-        implementation "org.slf4j:slf4j-api:$slf4j_version"
-        implementation('org.apache.commons:commons-compress:1.21') {
-            because 'CVE-2021-35515, CVE-2021-35516, CVE-2021-35517, CVE-2021-36090'
+        implementation('org.slf4j:slf4j-api') {
+            version {
+                require slf4j_version
+            }
         }
-        testRuntimeOnly('org.apache.logging.log4j:log4j-core:2.17.2') {
-            because 'CVE-2021-44228, CVE-2021-45046, CVE-2021-45105, CVE-2021-44832'
+        implementation('org.apache.commons:commons-compress') {
+            version {
+                require commons_compress_version
+                because 'CVE-2021-35515, CVE-2021-35516, CVE-2021-35517, CVE-2021-36090'
+            }
+        }
+        implementation('commons-codec:commons-codec') {
+            version {
+                require commons_codec_version
+            }
+        }
+        implementation('commons-collections:commons-collections') {
+            version {
+                require commons_collections_version
+                because 'CVE-2015-7501, CVE-2015-4852'
+            }
+        }
+        implementation('commons-io:commons-io') {
+            version {
+                require commons_io_version
+            }
+        }
+        implementation('com.fasterxml.jackson.core:jackson-databind') {
+            version {
+                require jackson_version
+                because 'CVE-2020-36518'
+            }
+        }
+        implementation('com.fasterxml.jackson.datatype:jackson-datatype-guava') {
+            version {
+                require jackson_version
+            }
+        }
+        implementation('com.fasterxml.jackson.jaxrs:jackson-jaxrs-json-provider') {
+            version {
+                require jackson_version
+            }
+        }
+        implementation('org.bouncycastle:bcprov-jdk15on') {
+            version {
+                require bouncycastle_version
+                because 'CVE-2020-15522'
+            }
+        }
+        implementation('org.apache.httpcomponents:httpclient') {
+            version {
+                require httpclient_version
+                because 'CVE-2020-13956'
+            }
+        }
+        implementation('com.google.guava:guava') {
+            version {
+                require guava_version
+                because 'CVE-2020-8908'
+            }
+        }
+        implementation('com.github.jnr:jnr-posix') {
+            version {
+                require jnr_posix_version
+            }
+        }
+        testRuntimeOnly('org.apache.logging.log4j:log4j-core') {
+            version {
+                require log4j_version
+                because 'CVE-2021-44228, CVE-2021-45046, CVE-2021-45105, CVE-2021-44832'
+            }
         }
     }
 
