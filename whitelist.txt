@@ -1,0 +1,6 @@
+cordapp
+cordapp/net.corda.plugins.cordapp.gradle.plugin
+cordformation
+cordformation/net.corda.plugins.cordformation.gradle.plugin
+quasar-utils
+quasar-utils/net.corda.plugins.quasar-utils.gradle.plugin
