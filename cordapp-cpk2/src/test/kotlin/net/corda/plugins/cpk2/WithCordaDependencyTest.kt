@@ -26,7 +26,6 @@ class WithCordaDependencyTest {
 
     @Test
     fun hasCordaDependency() {
-        assertThat(testProject.outcomeOf("cordappDependencyConstraints")).isNull()
         assertThat(testProject.outcomeOf("cordappCPKDependencies")).isNull()
         assertThat(testProject.outcomeOf("jar")).isNull()
         assertThat(testProject.outcomeOf("cpk")).isNull()

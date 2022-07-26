@@ -49,7 +49,7 @@ class WithEmbeddedJarTest {
 
     @Test
     fun hasEmbeddedJar() {
-        assertThat(testProject.dependencyConstraints).isEmpty()
+        assertThat(testProject.libraries).isEmpty()
         assertThat(testProject.cpkDependencies).isEmpty()
 
         val artifacts = testProject.artifacts

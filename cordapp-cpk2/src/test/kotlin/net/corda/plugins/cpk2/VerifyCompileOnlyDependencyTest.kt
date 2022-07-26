@@ -44,7 +44,7 @@ class VerifyCompileOnlyDependencyTest {
 
     @Test
     fun verifyCompileOnlyDependency() {
-        assertThat(testProject.dependencyConstraints).isEmpty()
+        assertThat(testProject.libraries).isEmpty()
         assertThat(testProject.cpkDependencies).isEmpty()
         assertThat(testProject.outcomeOf("verifyBundle")).isEqualTo(SUCCESS)
 

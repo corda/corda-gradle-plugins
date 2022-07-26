@@ -43,13 +43,13 @@ class CordappWithConstraintTest {
     }
 
     @Test
-    fun testLibrariesWithConstraints() {
-        assertThat(testProject.dependencyConstraints)
-            .noneMatch { it.fileName.startsWith("commons-compress-") }
-            .noneMatch { it.fileName.startsWith("library1-") }
-            .anyMatch { it.fileName == "commons-io-$commonsIoVersion.jar" }
-            .anyMatch { it.fileName == "commons-codec-$commonsCodecVersion.jar" }
-            .anyMatch { it.fileName == "library2-$library2Version.jar" }
+    fun testLibraries() {
+        assertThat(testProject.libraries)
+            .noneMatch { it.startsWith("commons-compress-") }
+            .noneMatch { it.startsWith("library1-") }
+            .anyMatch { it == "commons-io-$commonsIoVersion.jar" }
+            .anyMatch { it == "commons-codec-$commonsCodecVersion.jar" }
+            .anyMatch { it == "library2-$library2Version.jar" }
             .hasSizeGreaterThanOrEqualTo(3)
     }
 }

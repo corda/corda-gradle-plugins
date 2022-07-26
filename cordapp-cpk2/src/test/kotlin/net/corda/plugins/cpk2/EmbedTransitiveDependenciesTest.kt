@@ -43,10 +43,9 @@ class EmbedTransitiveDependenciesTest {
 
     @Test
     fun testCordappWithEmbeddedTransitiveDependencies() {
-        assertThat(testProject.dependencyConstraints)
-            .anyMatch { it.fileName == "library.jar" }
-            .anyMatch { it.fileName == "commons-io-$commonsIoVersion.jar" }
-            .allMatch { it.hash.isSHA256 }
+        assertThat(testProject.libraries)
+            .anyMatch { it == "library.jar" }
+            .anyMatch { it == "commons-io-$commonsIoVersion.jar" }
             .hasSize(2)
         assertThat(testProject.cpkDependencies).isEmpty()
 

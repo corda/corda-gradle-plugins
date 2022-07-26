@@ -3,7 +3,6 @@
            xmlns:xs="http://www.w3.org/2001/XMLSchema"
            xmlns:cpk="urn:corda-cpk">
     <xs:element name="cpkDependencies" type="cpk:cpkDependenciesType"/>
-    <xs:element name="dependencyConstraints" type="cpk:dependencyConstraintsType"/>
 
     <xs:complexType name="hashType">
         <xs:simpleContent>
@@ -39,16 +38,4 @@
 
     <xs:complexType name="sameAsMeType"/>
 
-    <xs:complexType name="dependencyConstraintsType">
-        <xs:sequence minOccurs="0" maxOccurs="unbounded">
-            <xs:element name="dependencyConstraint" type="cpk:dependencyConstraintType"/>
-        </xs:sequence>
-    </xs:complexType>
-
-    <xs:complexType name="dependencyConstraintType">
-        <xs:all>
-            <xs:element name="fileName" type="xs:token"/>
-            <xs:element name="hash" type="cpk:hashType"/>
-        </xs:all>
-    </xs:complexType>
 </xs:schema>

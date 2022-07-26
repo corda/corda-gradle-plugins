@@ -74,9 +74,8 @@ open class CordappExtension @Inject constructor(
     val osgiVersion: Property<String> = objects.property(String::class.java).convention(osgiVersion)
 
     /**
-     * This property only provides the default value for [CPKDependenciesTask.hashAlgorithm]
-     * and [DependencyConstraintsTask.hashAlgorithm], which are themselves annotated with
-     * @Input. Hence this is not a task input itself.
+     * This property only provides the default value for [CPKDependenciesTask.hashAlgorithm], which is
+     * annotated with @Input. Hence this is not a task input itself.
      */
     val hashAlgorithm: Property<String> = objects.property(String::class.java).convention("SHA-256")
 

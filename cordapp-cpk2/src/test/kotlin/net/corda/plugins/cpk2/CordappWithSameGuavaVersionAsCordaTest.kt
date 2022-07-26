@@ -48,8 +48,8 @@ class CordappWithSameGuavaVersionAsCordaTest {
 
     @Test
     fun sameGuavaVersionsTest() {
-        assertThat(testProject.dependencyConstraints)
-            .anyMatch { it.fileName == "guava-$cordaGuavaVersion.jar" }
+        assertThat(testProject.libraries)
+            .anyMatch { it == "guava-$cordaGuavaVersion.jar" }
             .hasSizeGreaterThanOrEqualTo(1)
         assertThat(testProject.cpkDependencies).isEmpty()
 

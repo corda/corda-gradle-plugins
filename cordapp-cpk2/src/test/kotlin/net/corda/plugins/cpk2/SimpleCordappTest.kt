@@ -46,9 +46,8 @@ class SimpleCordappTest {
 
     @Test
     fun simpleTest() {
-        assertThat(testProject.dependencyConstraints)
-            .anyMatch { it.fileName == "commons-io-$commonsIoVersion.jar" }
-            .allMatch { it.hash.isSHA256 }
+        assertThat(testProject.libraries)
+            .anyMatch { it == "commons-io-$commonsIoVersion.jar" }
             .hasSize(1)
         assertThat(testProject.cpkDependencies).isEmpty()
 
@@ -62,8 +61,6 @@ class SimpleCordappTest {
         assertThat(cordapp).isRegularFile
         assertThat(cordapp.hashOfEntry(CPK_DEPENDENCIES))
             .isEqualTo(testProject.cpkDependenciesHash)
-        assertThat(cordapp.hashOfEntry(DEPENDENCY_CONSTRAINTS))
-            .isEqualTo(testProject.dependencyConstraintsHash)
 
         val jarManifest = cordapp.manifest
         println(jarManifest.mainAttributes.entries)

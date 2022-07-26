@@ -26,8 +26,8 @@ class EagerJarsTest {
 
     @Test
     fun eagerJarsTest() {
-        assertThat(testProject.dependencyConstraints)
-            .anyMatch { it.fileName == "commons-io-$commonsIoVersion.jar" }
+        assertThat(testProject.libraries)
+            .anyMatch { it == "commons-io-$commonsIoVersion.jar" }
             .hasSize(1)
 
         val artifacts = testProject.artifacts

@@ -74,40 +74,30 @@ class CordappGradleConfigurationsTest {
 
     @Test
     fun testApiIncluded() {
-        assertThat(testProject.output)
-            .contains("CorDapp library dependency: javax.annotation-api-1.3.2.jar")
         assertThat(dependencies)
             .anyMatch { it.name == "lib/javax.annotation-api-1.3.2.jar" }
     }
 
     @Test
     fun testImplementationIncluded() {
-        assertThat(testProject.output)
-            .contains("CorDapp library dependency: javax.persistence-api-2.2.jar")
         assertThat(dependencies)
             .anyMatch { it.name == "lib/javax.persistence-api-2.2.jar" }
     }
 
     @Test
     fun testRuntimeOnlyIncluded() {
-        assertThat(testProject.output)
-            .contains("CorDapp library dependency: validation-api-1.1.0.Final.jar")
         assertThat(dependencies)
             .anyMatch { it.name == "lib/validation-api-1.1.0.Final.jar" }
     }
 
     @Test
     fun testCordaRuntimeOnlyExcluded() {
-        assertThat(testProject.output)
-            .doesNotContain("CorDapp library dependency: javax.servlet-api-3.1.0.jar")
         assertThat(dependencies)
             .noneMatch { it.name == "lib/javax.servlet-api-3.1.0.jar" }
     }
 
     @Test
     fun testCordaProvidedExcluded() {
-        assertThat(testProject.output)
-            .doesNotContain("CorDapp library dependency: guava-20.0.jar")
         assertThat(dependencies)
             .noneMatch { it.name == "lib/guava-20.0.jar" }
     }
