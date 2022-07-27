@@ -158,6 +158,10 @@ open class DependencyCalculator @Inject constructor(objects: ObjectFactory) : De
             disallowChanges()
         }
 
+        for (library in _libraries) {
+            logger.info("CorDapp library dependency: {}", library.name)
+        }
+
         // Finally, work out which jars we have used that have not been packaged into our CPK.
         // We still ignore anything that was for "compile only", because we only want to validate packages
         // that will be available at runtime.
