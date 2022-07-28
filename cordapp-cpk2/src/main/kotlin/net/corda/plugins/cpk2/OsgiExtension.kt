@@ -188,6 +188,11 @@ open class OsgiExtension(objects: ObjectFactory, jar: Jar) {
 
     @get:Input
     val exports: Provider<String> = _exports.map { names ->
+
+        require(names.none { it.startsWith("net.corda.") }) {
+            "CorDapps must not export \"net.corda\" package"
+        }
+
         if (names.isNotEmpty()){
             names.joinToString(",", "-exportcontents:")
         } else {
