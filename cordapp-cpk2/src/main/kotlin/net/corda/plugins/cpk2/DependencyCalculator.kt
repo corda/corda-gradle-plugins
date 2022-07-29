@@ -156,9 +156,7 @@ open class DependencyCalculator @Inject constructor(objects: ObjectFactory) : De
         _libraries.apply {
             setFrom(packageFiles - bundledFiles)
             disallowChanges()
-        }
-
-        for (library in _libraries) {
+        }.forEach { library ->
             logger.info("CorDapp library dependency: {}", library.name)
         }
 
