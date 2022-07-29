@@ -10,7 +10,7 @@ pluginManagement {
     }
 }
 
-rootProject.name = 'cpk-export-reserved-package'
+rootProject.name = 'cpk-export-reserved-package-no-auto-export'
 
 include 'corda-api'
 project(':corda-api').projectDir = file('../resources/test/corda-api')

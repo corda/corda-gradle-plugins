@@ -13,7 +13,7 @@ cordapp {
     minimumPlatformVersion = platform_version.toInteger()
 
     contract {
-        name = 'cpk-export-reserved-package'
+        name = 'cpk-export-reserved-package-no-auto-export'
         versionId = cordapp_contract_version.toInteger()
         licence = 'Test-Licence'
         vendor = 'R3'
@@ -26,5 +26,8 @@ dependencies {
 }
 
 jar {
-    archiveBaseName = 'cpk-export-reserved-package'
+    archiveBaseName = 'cpk-export-reserved-package-no-auto-export'
+    osgi {
+        autoExport = false
+    }
 }

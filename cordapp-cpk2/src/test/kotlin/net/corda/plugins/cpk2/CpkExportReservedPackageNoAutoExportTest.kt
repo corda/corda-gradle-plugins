@@ -11,7 +11,7 @@ import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Path
 
 @TestInstance(PER_CLASS)
-class CpkExportReservedPackageTest2 {
+class CpkExportReservedPackageNoAutoExportTest {
     private companion object {
         private const val cordappVersion = "1.0.1-SNAPSHOT"
     }
@@ -21,8 +21,9 @@ class CpkExportReservedPackageTest2 {
     @BeforeAll
     fun setup(@TempDir testProjectDir: Path, reporter: TestReporter) {
         testProject = GradleProject(testProjectDir, reporter)
-            .withTestName("cpk-export-reserved-package")
+            .withTestName("cpk-export-reserved-package-no-auto-export")
             .withSubResource("src/main/java/net/corda/contract/ExampleContract.java")
+            .withSubResource("src/main/java/net/corda/contract/package-info.java")
             .buildAndFail(
                 "-Pcordapp_contract_version=$expectedCordappContractVersion",
                 "-Pcommons_io_version=$commonsIoVersion",
@@ -39,7 +40,7 @@ class CpkExportReservedPackageTest2 {
     @Test
     fun testLogExplainsFailure() {
         assertThat(testProject.output).contains(
-            "CorDapps must not export \"net.corda\" package"
+            "Export Package clause found for Corda package [net.corda.contract]"
         )
     }
 }
