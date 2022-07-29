@@ -156,6 +156,8 @@ open class DependencyCalculator @Inject constructor(objects: ObjectFactory) : De
         _libraries.apply {
             setFrom(packageFiles - bundledFiles)
             disallowChanges()
+        }.forEach { library ->
+            logger.info("CorDapp library dependency: {}", library.name)
         }
 
         // Finally, work out which jars we have used that have not been packaged into our CPK.
