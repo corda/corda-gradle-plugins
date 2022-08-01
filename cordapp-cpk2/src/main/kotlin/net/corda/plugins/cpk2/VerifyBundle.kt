@@ -108,8 +108,8 @@ open class VerifyBundle @Inject constructor(objects: ObjectFactory) : DefaultTas
         }
     }
 
-    private fun verifyExportPackage(verifier: Verifier) = verifier.exportPackage.entries
-        .map { it.key }
+    private fun verifyExportPackage(verifier: Verifier) = verifier.exportPackage
+        .keyList()
         .filter { it.startsWith("net.corda.") }
         .forEach { packageName -> verifier.error("Export Package clause found for Corda package [%s]", packageName) }
 
