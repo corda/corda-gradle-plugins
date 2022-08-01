@@ -108,10 +108,13 @@ open class VerifyBundle @Inject constructor(objects: ObjectFactory) : DefaultTas
         }
     }
 
-    private fun verifyExportPackage(verifier: Verifier) = verifier.exportPackage
-        .keyList()
-        .filter { it.startsWith("net.corda.") }
-        .forEach { packageName -> verifier.error("Export Package clause found for Corda package [%s]", packageName) }
+    private fun verifyExportPackage(verifier: Verifier) {
+        val reservedPackageName = Regex("^net.corda(\\..+)?$")
+        verifier.exportPackage
+            .keyList()
+            .filter(reservedPackageName::matches)
+            .forEach { packageName -> verifier.error("Export Package clause found for Corda package [%s]", packageName) }
+    }
 
     private fun verifyImportPackage(verifier: Verifier) {
         val analyzer = verifier.parent as Analyzer
