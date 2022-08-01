@@ -41,7 +41,7 @@ pipeline {
         // Replace / with :: as links from Jenkins to Artifactory are broken if we use slashes
         // in the name
         ARTIFACTORY_BUILD_NAME = "Corda Gradle Plugins / Publish To Artifactory"
-            .replaceAll("/", " :: ")
+            .replaceAll("/", "::")
         ARTIFACTORY_REPO = "${isRelease || isBeta ? "corda-releases" : "corda-dev"}"
         ARTIFACTORY_CREDENTIALS = credentials('artifactory-credentials')
         CORDA_ARTIFACTORY_USERNAME = "${env.ARTIFACTORY_CREDENTIALS_USR}"
