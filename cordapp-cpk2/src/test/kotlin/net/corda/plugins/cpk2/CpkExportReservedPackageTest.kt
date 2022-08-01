@@ -25,6 +25,7 @@ class CpkExportReservedPackageTest {
             .withSubResource("src/main/java/net/corda/contract/ExampleContract.java")
             .withSubResource("src/main/java/net/corda/test/ExampleContract.java")
             .withSubResource("src/main/java/net/corda/Test.java")
+            .withSubResource("src/main/java/net/cordapp/Test.java")
             .buildAndFail(
                 "-Pcordapp_contract_version=$expectedCordappContractVersion",
                 "-Pcommons_io_version=$commonsIoVersion",
@@ -57,6 +58,13 @@ class CpkExportReservedPackageTest {
     fun testLogListsTopLevelPackageInFailure() {
         assertThat(testProject.output).contains(
             "Export Package clause found for Corda package [net.corda]"
+        )
+    }
+
+    @Test
+    fun testLogDoesNotMentionNetCordapp() {
+        assertThat(testProject.output).doesNotContain(
+            "Export Package clause found for Corda package [net.cordapp]"
         )
     }
 }
