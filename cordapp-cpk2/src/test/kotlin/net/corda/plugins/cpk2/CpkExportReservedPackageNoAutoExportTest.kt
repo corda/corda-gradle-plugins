@@ -21,14 +21,15 @@ class CpkExportReservedPackageNoAutoExportTest {
     @BeforeAll
     fun setup(@TempDir testProjectDir: Path, reporter: TestReporter) {
         testProject = GradleProject(testProjectDir, reporter)
-            .withTestName("cpk-export-reserved-package-no-auto-export")
+            .withTestName("cpk-export-reserved-package")
             .withSubResource("src/main/java/net/corda/contract/ExampleContract.java")
             .withSubResource("src/main/java/net/corda/contract/package-info.java")
             .buildAndFail(
                 "-Pcordapp_contract_version=$expectedCordappContractVersion",
                 "-Pcommons_io_version=$commonsIoVersion",
                 "-Pcorda_api_version=$cordaApiVersion",
-                "-Pcordapp_version=$cordappVersion"
+                "-Pcordapp_version=$cordappVersion",
+                "-PosgiAutoExport=false"
             )
     }
 

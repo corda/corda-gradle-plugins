@@ -27,4 +27,7 @@ dependencies {
 
 jar {
     archiveBaseName = 'cpk-export-reserved-package'
+    osgi {
+        autoExport = osgiAutoExport.toBoolean()
+    }
 }
