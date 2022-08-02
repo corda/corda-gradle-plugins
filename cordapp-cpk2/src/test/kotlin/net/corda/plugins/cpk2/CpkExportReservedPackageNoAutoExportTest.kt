@@ -24,6 +24,7 @@ class CpkExportReservedPackageNoAutoExportTest {
             .withTestName("cpk-export-reserved-package")
             .withSubResource("src/main/java/net/corda/contract/ExampleContract.java")
             .withSubResource("src/main/java/net/corda/contract/package-info.java")
+            .withSubResource("src/main/java/net/corda/internal/Test.java")
             .buildAndFail(
                 "-Pcordapp_contract_version=$expectedCordappContractVersion",
                 "-Pcommons_io_version=$commonsIoVersion",
@@ -44,4 +45,12 @@ class CpkExportReservedPackageNoAutoExportTest {
             "Export Package clause found for Corda package [net.corda.contract]"
         )
     }
+
+    @Test
+    fun testPrivatePackageDetected() {
+        assertThat(testProject.output).contains(
+            "Export Package clause found for Corda package [net.corda.internal]"
+        )
+    }
+
 }
