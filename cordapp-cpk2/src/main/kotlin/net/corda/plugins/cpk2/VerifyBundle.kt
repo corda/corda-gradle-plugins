@@ -37,6 +37,11 @@ import javax.inject.Inject
 @Suppress("UnstableApiUsage", "MemberVisibilityCanBePrivate")
 @DisableCachingByDefault
 open class VerifyBundle @Inject constructor(objects: ObjectFactory) : DefaultTask() {
+
+    companion object {
+        private val reservedPackageName = Regex("^net\\.corda(\\..+)?$")
+    }
+
     init {
         description = "Verifies that a bundle's OSGi meta-data is consistent."
         group = CORDAPP_TASK_GROUP
@@ -109,7 +114,6 @@ open class VerifyBundle @Inject constructor(objects: ObjectFactory) : DefaultTas
     }
 
     private fun verifyReservedPackage(verifier: Verifier) {
-        val reservedPackageName = Regex("^net.corda(\\..+)?$")
         verifier.exportPackage
             .keyList()
             .asSequence()
