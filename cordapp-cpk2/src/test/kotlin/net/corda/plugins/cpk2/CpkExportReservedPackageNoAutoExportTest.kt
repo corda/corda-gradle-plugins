@@ -49,7 +49,7 @@ class CpkExportReservedPackageNoAutoExportTest {
     @Test
     fun testPrivatePackageDetected() {
         assertThat(testProject.output).contains(
-            "Export Package clause found for Corda package [net.corda.internal]"
+            "Private package found for Corda package [net.corda.internal]"
         )
     }
 
