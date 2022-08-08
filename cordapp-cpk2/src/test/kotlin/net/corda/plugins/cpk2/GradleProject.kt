@@ -208,7 +208,7 @@ class GradleProject(private val projectDir: Path, private val reporter: TestRepo
         }
 
     val cpkDependenciesFile: Path = buildDir.resolve("cpk-dependencies")
-        .resolve(META_INF_DIR).resolve("CPKDependencies")
+        .resolve(META_INF_DIR).resolve("CPKDependencies.json")
     val cpkDependencies: List<CPKDependency>
         @Throws(IOException::class)
         get() = cpkDependenciesStream.buffered().use(::loadCPKDependencies)
