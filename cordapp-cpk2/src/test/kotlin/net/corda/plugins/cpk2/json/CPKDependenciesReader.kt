@@ -6,6 +6,6 @@ import java.io.InputStream
 class CPKDependenciesReader{
     companion object {
         fun loadCPKDependencies(input: InputStream): List<CPKDependency> =
-            jacksonObjectMapper().readValue(input, Array<CPKDependency>::class.java).toList()
+            jacksonObjectMapper().readValue(input, CPKDependencyFile::class.java).dependencies.toList()
     }
 }

@@ -37,6 +37,8 @@ open class CPKDependenciesTask @Inject constructor(objects: ObjectFactory) : Def
         group = CORDAPP_TASK_GROUP
     }
 
+    private val CPK_DEPENDENCIES_FORMAT_VERSION2 = "2.0"
+
     @get:Input
     val hashAlgorithm: Property<String> = objects.property(String::class.java)
 
@@ -102,7 +104,7 @@ open class CPKDependenciesTask @Inject constructor(objects: ObjectFactory) : Def
         private var firstElement = true
 
         init {
-            output.write("[")
+            output.write("{\"formatVersion\":\"$CPK_DEPENDENCIES_FORMAT_VERSION2\",\"dependencies\":[")
         }
 
         private val encoder = Base64.getEncoder()
@@ -148,6 +150,6 @@ open class CPKDependenciesTask @Inject constructor(objects: ObjectFactory) : Def
 
         private fun closeDependency() = output.write("}")
 
-        override fun close() = output.write("]")
+        override fun close() = output.write("]}")
     }
 }
