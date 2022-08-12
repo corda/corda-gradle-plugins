@@ -3,6 +3,7 @@ package net.corda.plugins.cpk2
 import aQute.bnd.build.model.EE
 import aQute.bnd.header.Attrs
 import aQute.bnd.header.OSGiHeader
+import aQute.bnd.header.Parameters
 import aQute.bnd.osgi.Analyzer
 import aQute.bnd.osgi.Constants.EXPORT_PACKAGE
 import aQute.bnd.osgi.Constants.OPTIONAL
@@ -37,6 +38,11 @@ import javax.inject.Inject
 @Suppress("UnstableApiUsage", "MemberVisibilityCanBePrivate")
 @DisableCachingByDefault
 open class VerifyBundle @Inject constructor(objects: ObjectFactory) : DefaultTask() {
+
+    companion object {
+        private val reservedPackageName = Regex("^net\\.corda(\\..+)?$")
+    }
+
     init {
         description = "Verifies that a bundle's OSGi meta-data is consistent."
         group = CORDAPP_TASK_GROUP
@@ -88,6 +94,8 @@ open class VerifyBundle @Inject constructor(objects: ObjectFactory) : DefaultTas
             verifier.setProperty(STRICT, strict.get().toString())
             verifier.verify()
             verifyImportPackage(verifier)
+            verifyExportPackage(verifier)
+            verifyPrivatePackage(verifier)
 
             val jarName = jar.source.name
             for (warning in verifier.warnings) {
@@ -106,6 +114,20 @@ open class VerifyBundle @Inject constructor(objects: ObjectFactory) : DefaultTas
             }
         }
     }
+
+    private fun Parameters.filterReservedPackages(): Sequence<String> = keyList()
+        .asSequence()
+        .filter(reservedPackageName::matches)
+
+    private fun verifyExportPackage(verifier: Verifier) = verifier.exportPackage
+        .filterReservedPackages()
+        .map { packageName -> "Export Package clause found for Corda package [$packageName]" }
+        .forEach(verifier::error)
+
+    fun verifyPrivatePackage(verifier: Verifier) = verifier.privatePackage
+        .filterReservedPackages()
+        .map { packageName -> "Private package found for Corda package [$packageName]" }
+        .forEach(verifier::error)
 
     private fun verifyImportPackage(verifier: Verifier) {
         val analyzer = verifier.parent as Analyzer
