@@ -1,13 +1,15 @@
 plugins {
     id 'net.corda.plugins.cordformation'
-
-    // We should really be apply the `net.corda.plugins.cordapp` plugin here.
-    id 'java-library'
+    id 'net.corda.plugins.cordapp'
 }
 
-configurations {
-    cordaCordapp {
-        canBeResolved = false
+cordapp {
+    targetPlatformVersion = 100
+    contract {
+        name = projectCordappBaseName
+        versionId = 1
+        licence = 'Test Licence'
+        vendor = 'R3 Ltd'
     }
 }
 
@@ -17,16 +19,12 @@ dependencies {
     cordaBootstrapper "org.slf4j:slf4j-simple:$slf4j_version"
 }
 
-def jar = tasks.named('jar', Jar) {
-    archiveBaseName = 'locally-built-cordapp'
-}
-
-artifacts {
-    cordaCordapp jar
+tasks.named('jar', Jar) {
+    archiveBaseName = projectCordappBaseName
+    archiveVersion = projectCordappVersion
 }
 
 tasks.register('deployNodes', net.corda.plugins.Cordform) {
-    dependsOn jar
     node {
         name 'O=Notary Service,L=Zurich,C=CH'
         notary = [validating : true]
@@ -36,6 +34,7 @@ tasks.register('deployNodes', net.corda.plugins.Cordform) {
             adminAddress "localhost:10004"
         }
         projectCordapp {
+            deploy = true
             config "a=b"
         }
     }

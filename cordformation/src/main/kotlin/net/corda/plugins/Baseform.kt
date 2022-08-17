@@ -46,6 +46,7 @@ abstract class Baseform(
 
     init {
         group = GROUP_NAME
+
         // Ensure everything in our configurations that needs
         // to be built is available before this task executes.
         with(project.configurations) {
@@ -54,8 +55,9 @@ abstract class Baseform(
                 getByName(DEPLOY_CORDAPP_CONFIGURATION_NAME).buildDependencies
             )
 
+            // Ensure that any CorDapp this project may have is also built.
             project.pluginManager.withPlugin(CORDAPP_PLUGIN_ID) {
-                dependsOn(getByName(CORDA_CORDAPP_CONFIGURATION_NAME).buildDependencies)
+                dependsOn(getByName(CORDA_CORDAPP_CONFIGURATION_NAME).artifacts)
             }
         }
     }
