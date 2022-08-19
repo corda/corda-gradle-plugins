@@ -10,9 +10,10 @@ class KotlinCordformTest : BaseformTest() {
         val runner = getStandardGradleRunnerFor("DeployTwoNodeCordapp.gradle.kts")
 
         val result = runner.build()
+        println(result.output)
 
         // Check task succeeded
-        assertThat(result.task(":deployNodes")!!.outcome)
+        assertThat(result.task(":deployNodes")?.outcome)
             .isEqualTo(SUCCESS)
 
         // Check Notary node deployment
