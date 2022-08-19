@@ -22,8 +22,6 @@ dependencies {
 }
 
 tasks.register<Cordform>("deployNodes") {
-    dependsOn.add("jar")
-
     nodeDefaults {
         projectCordapp {
             deploy = false

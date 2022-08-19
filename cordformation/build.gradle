@@ -175,6 +175,7 @@ dependencies {
     testImplementation "org.assertj:assertj-core:$assertj_version"
     testImplementation "net.corda:corda-serialization:$corda_release_version"
     testRuntimeOnly "net.corda:corda-node-api:$corda_release_version"
+    testRuntimeOnly project(':cordapp')
 }
 
 tasks.named('validateTaskProperties', ValidateTaskProperties) {

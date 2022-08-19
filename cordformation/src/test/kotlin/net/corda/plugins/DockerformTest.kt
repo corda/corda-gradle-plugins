@@ -18,8 +18,9 @@ class DockerformTest : BaseformTest() {
                 "prepareDockerNodes")
 
         val result = runner.buildAndFail()
+        println(result.output)
 
-        assertThat(result.task(":prepareDockerNodes")!!.outcome).isEqualTo(FAILED)
+        assertThat(result.task(":prepareDockerNodes")?.outcome).isEqualTo(FAILED)
         assertThat(result.output).contains("Caused by: org.gradle.api.InvalidUserDataException: No value has been specified for property 'dockerImage'.")
     }
 
@@ -30,9 +31,10 @@ class DockerformTest : BaseformTest() {
             "prepareDockerNodes")
 
         val result = runner.build()
+        println(result.output)
         val notaryFullName = "${notaryNodeName}_${notaryNodeUnitName}"
 
-        assertThat(result.task(":prepareDockerNodes")!!.outcome).isEqualTo(SUCCESS)
+        assertThat(result.task(":prepareDockerNodes")?.outcome).isEqualTo(SUCCESS)
         assertThat(getNodeCordappJar(notaryFullName, cordaFinanceWorkflowsJarName)).isRegularFile()
         assertThat(getNodeCordappJar(notaryFullName, cordaFinanceContractsJarName)).isRegularFile()
         assertThat(getNetworkParameterOverrides(notaryFullName)).isRegularFile()
@@ -45,8 +47,9 @@ class DockerformTest : BaseformTest() {
                 "prepareDockerNodes")
 
         val result = runner.build()
+        println(result.output)
 
-        assertThat(result.task(":prepareDockerNodes")!!.outcome).isEqualTo(SUCCESS)
+        assertThat(result.task(":prepareDockerNodes")?.outcome).isEqualTo(SUCCESS)
         assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceWorkflowsJarName)).isRegularFile()
         assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceContractsJarName)).isRegularFile()
         assertThat(getNetworkParameterOverrides(notaryNodeName)).isRegularFile()
@@ -61,8 +64,9 @@ class DockerformTest : BaseformTest() {
         val bigCorporationNodeName = "BigCorporation"
 
         val result = runner.build()
+        println(result.output)
 
-        assertThat(result.task(":prepareDockerNodes")!!.outcome).isEqualTo(SUCCESS)
+        assertThat(result.task(":prepareDockerNodes")?.outcome).isEqualTo(SUCCESS)
         assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceWorkflowsJarName)).isRegularFile()
         assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceContractsJarName)).isRegularFile()
         assertThat(getNetworkParameterOverrides(notaryNodeName)).isRegularFile()
@@ -83,8 +87,9 @@ class DockerformTest : BaseformTest() {
         val bigCorporationNodeName = "BigCorporation"
 
         val result = runner.build()
+        println(result.output)
 
-        assertThat(result.task(":prepareDockerNodes")!!.outcome).isEqualTo(SUCCESS)
+        assertThat(result.task(":prepareDockerNodes")?.outcome).isEqualTo(SUCCESS)
         assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceWorkflowsJarName)).isRegularFile()
         assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceContractsJarName)).isRegularFile()
         assertThat(getNetworkParameterOverrides(notaryNodeName)).isRegularFile()
@@ -103,8 +108,9 @@ class DockerformTest : BaseformTest() {
                 "prepareDockerNodes")
 
         val result = runner.build()
+        println(result.output)
 
-        assertThat(result.task(":prepareDockerNodes")!!.outcome).isEqualTo(SUCCESS)
+        assertThat(result.task(":prepareDockerNodes")?.outcome).isEqualTo(SUCCESS)
         assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceWorkflowsJarName)).isRegularFile()
         assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceContractsJarName)).isRegularFile()
         assertThat(getNetworkParameterOverrides(notaryNodeName)).isRegularFile()
@@ -118,8 +124,9 @@ class DockerformTest : BaseformTest() {
                 "prepareDockerNodes")
 
         val result = runner.build()
+        println(result.output)
 
-        assertThat(result.task(":prepareDockerNodes")!!.outcome).isEqualTo(SUCCESS)
+        assertThat(result.task(":prepareDockerNodes")?.outcome).isEqualTo(SUCCESS)
         assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceWorkflowsJarName)).isRegularFile()
         assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceContractsJarName)).isRegularFile()
         assertThat(getNetworkParameterOverrides(notaryNodeName)).isRegularFile()
@@ -165,7 +172,8 @@ class DockerformTest : BaseformTest() {
                 "prepareDockerNodes")
 
         val result = runner.build()
-        assertThat(result.task(":prepareDockerNodes")!!.outcome).isEqualTo(SUCCESS)
+        println(result.output)
+        assertThat(result.task(":prepareDockerNodes")?.outcome).isEqualTo(SUCCESS)
 
         val dockerComposePath = getDockerCompose()
 
@@ -210,7 +218,8 @@ class DockerformTest : BaseformTest() {
                 "prepareDockerNodes")
 
         val result = runner.build()
-        assertThat(result.task(":prepareDockerNodes")!!.outcome).isEqualTo(SUCCESS)
+        println(result.output)
+        assertThat(result.task(":prepareDockerNodes")?.outcome).isEqualTo(SUCCESS)
 
         val dockerComposePath = getDockerCompose()
 

@@ -8,25 +8,40 @@ import net.corda.serialization.internal.amqp.AbstractAMQPSerializationScheme
 import net.corda.serialization.internal.amqp.amqpMagic
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.testkit.runner.GradleRunner
+import org.junit.jupiter.api.fail
 import org.junit.jupiter.api.io.TempDir
+import java.io.File
+import java.net.URI
+import java.net.URL
 import java.nio.file.Files
 import java.nio.file.NoSuchFileException
 import java.nio.file.Path
 import java.nio.file.Paths
 
-open class BaseformTest {
+abstract class BaseformTest {
     @TempDir
     lateinit var testProjectDir: Path
 
     companion object {
         const val cordaFinanceWorkflowsJarName = "corda-finance-workflows-4.8"
         const val cordaFinanceContractsJarName = "corda-finance-contracts-4.8"
-        const val localCordappJarName = "locally-built-cordapp"
         const val bankNodeName = "BankOfCorda"
         const val notaryNodeName = "NotaryService"
         const val notaryNodeUnitName = "OrgUnit"
 
         private val testGradleUserHome = System.getProperty("test.gradle.user.home", ".")
+
+        private const val CORDAPP_PLUGIN_ID = "net.corda.plugins.cordapp"
+        private val cordappPluginJar = File(extractFileURI(
+            this::class.java.classLoader.getResource("META-INF/gradle-plugins/${CORDAPP_PLUGIN_ID}.properties")
+                ?: fail("Gradle plugin '${CORDAPP_PLUGIN_ID}' not found.")
+        ))
+
+        private fun extractFileURI(jarURL: URL): URI {
+            assertThat(jarURL.protocol).isEqualTo("jar")
+            val jarPath = jarURL.path
+            return URI.create(jarPath.substring(0, jarPath.indexOf("!/")))
+        }
     }
 
     fun getStandardGradleRunnerFor(
@@ -49,10 +64,13 @@ open class BaseformTest {
         installResource("gradle.properties")
         installResource("postgres.gradle")
         return GradleRunner.create()
-                .withDebug(!isKotlin) // Debugging Kotlin DSL scripts breaks TestKit?!
-                .withProjectDir(testProjectDir.toFile())
-                .withArguments(taskName, "-s", "--info", "-g", testGradleUserHome, *extraArgs)
-                .withPluginClasspath()
+            .withDebug(!isKotlin) // Debugging Kotlin DSL scripts breaks TestKit?!
+            .withProjectDir(testProjectDir.toFile())
+            .withArguments(taskName, "-s", "--info", "-g", testGradleUserHome, *extraArgs)
+            .withPluginClasspath()
+            .let { runner ->
+                runner.withPluginClasspath(runner.pluginClasspath + cordappPluginJar)
+            }
     }
 
     private fun createBuildFile(buildFileResourceName: String, buildFile: Path): Long {
