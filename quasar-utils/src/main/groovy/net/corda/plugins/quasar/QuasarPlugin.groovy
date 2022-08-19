@@ -28,7 +28,7 @@ import static org.gradle.api.plugins.JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME
 import static org.gradle.api.plugins.JavaPlugin.RUNTIME_ONLY_CONFIGURATION_NAME
 
 /**
- * QuasarPlugin creates "quasar" and "quasarAgent" configurations and adds Quasar as a dependency.
+ * QuasarPlugin creates "quasar" configuration and adds Quasar as a dependency.
  */
 @CompileStatic
 class QuasarPlugin implements Plugin<Project> {
