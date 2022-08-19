@@ -44,7 +44,7 @@ quasar {
 task show {
     doFirst {
         def configs = configurations.matching {
-            it.name in ['quasar', 'quasarAgent', 'cordaRuntimeOnly', 'compileOnly', 'cordaProvided', 'compileClasspath', 'runtimeClasspath']
+            it.name in ['quasar', 'cordaRuntimeOnly', 'compileOnly', 'cordaProvided', 'compileClasspath', 'runtimeClasspath']
         }
         configs.collectEntries { [(it.name):it.incoming.dependencies] }.each { name, dependencies ->
             dependencies.each { dep ->
@@ -57,14 +57,13 @@ task show {
 }
 """, "show"
         assertThat(output).containsOnlyOnce(
-            "quasar: co.paralleluniverse:quasar-core-osgi:jar:${quasarVersion}:".toString(),
-            "quasarAgent: co.paralleluniverse:quasar-core-osgi:jar:${quasarVersion}:agent".toString(),
+            "quasar: co.paralleluniverse:quasar-core:jar:${quasarVersion}:".toString(),
         ).doesNotContain(
-            "cordaRuntimeOnly: co.paralleluniverse:quasar-core-osgi:jar:${quasarVersion}:".toString(),
-            "runtimeClasspath: co.paralleluniverse:quasar-core-osgi:jar:${quasarVersion}:".toString(),
-            "compileOnly: co.paralleluniverse:quasar-core-osgi:jar:${quasarVersion}:".toString(),
-            "cordaProvided: co.paralleluniverse:quasar-core-osgi:jar:${quasarVersion}:".toString(),
-            "compileClasspath: co.paralleluniverse:quasar-core-osgi:jar:${quasarVersion}:".toString()
+            "cordaRuntimeOnly: co.paralleluniverse:quasar-core:jar:${quasarVersion}:".toString(),
+            "runtimeClasspath: co.paralleluniverse:quasar-core:jar:${quasarVersion}:".toString(),
+            "compileOnly: co.paralleluniverse:quasar-core:jar:${quasarVersion}:".toString(),
+            "cordaProvided: co.paralleluniverse:quasar-core:jar:${quasarVersion}:".toString(),
+            "compileClasspath: co.paralleluniverse:quasar-core:jar:${quasarVersion}:".toString()
         )
     }
 
@@ -87,7 +86,7 @@ quasar {
 task show {
     doFirst {
         def configs = configurations.matching {
-            it.name in ['quasar', 'quasarAgent', 'cordaRuntimeOnly', 'compileOnly', 'cordaProvided', 'compileClasspath', 'runtimeClasspath']
+            it.name in ['quasar', 'cordaRuntimeOnly', 'compileOnly', 'cordaProvided', 'compileClasspath', 'runtimeClasspath']
         }
         configs.collectEntries { [(it.name):it.incoming.dependencies] }.each { name, dependencies ->
             dependencies.each { dep ->
@@ -104,13 +103,12 @@ task show {
 }
 """, "show"
         assertThat(output).containsOnlyOnce(
-            "quasar: co.paralleluniverse:quasar-core-osgi:jar:${quasarVersion}:".toString(),
-            "quasarAgent: co.paralleluniverse:quasar-core-osgi:jar:${quasarVersion}:agent".toString(),
-            "cordaRuntimeOnly: co.paralleluniverse:quasar-core-osgi:jar:${quasarVersion}:".toString(),
-            "runtimeClasspath: co.paralleluniverse:quasar-core-osgi:jar:${quasarVersion}:".toString(),
-            "compileOnly: co.paralleluniverse:quasar-core-osgi:jar:${quasarVersion}:".toString(),
-            "cordaProvided: co.paralleluniverse:quasar-core-osgi:jar:${quasarVersion}:".toString(),
-            "compileClasspath: co.paralleluniverse:quasar-core-osgi:jar:${quasarVersion}:".toString()
+            "quasar: co.paralleluniverse:quasar-core:jar:${quasarVersion}:".toString(),
+            "cordaRuntimeOnly: co.paralleluniverse:quasar-core:jar:${quasarVersion}:".toString(),
+            "runtimeClasspath: co.paralleluniverse:quasar-core:jar:${quasarVersion}:".toString(),
+            "compileOnly: co.paralleluniverse:quasar-core:jar:${quasarVersion}:".toString(),
+            "cordaProvided: co.paralleluniverse:quasar-core:jar:${quasarVersion}:".toString(),
+            "compileClasspath: co.paralleluniverse:quasar-core:jar:${quasarVersion}:".toString()
         )
         assertThat(output).containsOnlyOnce("QUASAR-ARG: []")
     }
