@@ -29,8 +29,9 @@ class CordformTest : BaseformTest() {
         installResource("testkeystore")
 
         val result = runner.build()
+        println(result.output)
 
-        assertThat(result.task(":deployNodes")!!.outcome).isEqualTo(SUCCESS)
+        assertThat(result.task(":deployNodes")?.outcome).isEqualTo(SUCCESS)
         assertThat(getNodeCordappJar(notaryNodeName, "corda-finance-workflows-$financeReleaseVersion")).isRegularFile()
         assertThat(getNodeCordappJar(notaryNodeName, "corda-finance-contracts-$financeReleaseVersion")).isRegularFile()
         assertThat(getNetworkParameterOverrides(notaryNodeName)).isRegularFile()
@@ -57,8 +58,9 @@ class CordformTest : BaseformTest() {
         val runner = getStandardGradleRunnerFor("DeploySingleNodeWithCordappBackwardsCompatibility.gradle")
 
         val result = runner.build()
+        println(result.output)
 
-        assertThat(result.task(":deployNodes")!!.outcome).isEqualTo(SUCCESS)
+        assertThat(result.task(":deployNodes")?.outcome).isEqualTo(SUCCESS)
         assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceWorkflowsJarName)).isRegularFile()
         assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceContractsJarName)).isRegularFile()
         assertThat(getNetworkParameterOverrides(notaryNodeName)).isRegularFile()
@@ -75,8 +77,9 @@ class CordformTest : BaseformTest() {
         )
 
         val result = runner.build()
+        println(result.output)
 
-        assertThat(result.task(":deployNodes")!!.outcome).isEqualTo(SUCCESS)
+        assertThat(result.task(":deployNodes")?.outcome).isEqualTo(SUCCESS)
         assertThat(getNodeLogFile(notaryNodeName, "node-run-migration.log")).isRegularFile()
         assertThat(getNodeLogFile(notaryNodeName, "node-schema-cordform.log")).isRegularFile()
         assertThat(getNodeLogFile(notaryNodeName, "node-info-gen.log")).isRegularFile()
@@ -87,8 +90,9 @@ class CordformTest : BaseformTest() {
         val runner = getStandardGradleRunnerFor("DeploySingleNodeWithCordapp.gradle")
 
         val result = runner.build()
+        println(result.output)
 
-        assertThat(result.task(":deployNodes")!!.outcome).isEqualTo(SUCCESS)
+        assertThat(result.task(":deployNodes")?.outcome).isEqualTo(SUCCESS)
         assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceWorkflowsJarName)).isRegularFile()
         assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceContractsJarName)).isRegularFile()
         assertThat(getNetworkParameterOverrides(notaryNodeName)).isRegularFile()
@@ -99,9 +103,11 @@ class CordformTest : BaseformTest() {
         val runner = getStandardGradleRunnerFor("DeploySingleNodeWithCordappWithOU.gradle")
 
         val result = runner.build()
+        println(result.output)
+
         val notaryFullName = "${notaryNodeName}_${notaryNodeUnitName}"
 
-        assertThat(result.task(":deployNodes")!!.outcome).isEqualTo(SUCCESS)
+        assertThat(result.task(":deployNodes")?.outcome).isEqualTo(SUCCESS)
         assertThat(getNodeCordappJar(notaryFullName, cordaFinanceWorkflowsJarName)).isRegularFile()
         assertThat(getNodeCordappJar(notaryFullName, cordaFinanceContractsJarName)).isRegularFile()
         assertThat(getNetworkParameterOverrides(notaryFullName)).isRegularFile()
@@ -112,8 +118,9 @@ class CordformTest : BaseformTest() {
         val runner = getStandardGradleRunnerFor("DeploySingleNodeWithCordappConfig.gradle")
 
         val result = runner.build()
+        println(result.output)
 
-        assertThat(result.task(":deployNodes")!!.outcome).isEqualTo(SUCCESS)
+        assertThat(result.task(":deployNodes")?.outcome).isEqualTo(SUCCESS)
         assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceWorkflowsJarName)).isRegularFile()
         assertThat(getNodeCordappJar(notaryNodeName, cordaFinanceContractsJarName)).isRegularFile()
         assertThat(getNodeCordappConfig(notaryNodeName, cordaFinanceWorkflowsJarName)).isRegularFile()
@@ -122,13 +129,25 @@ class CordformTest : BaseformTest() {
 
     @Test
     fun `deploy the locally built cordapp with cordapp config`() {
-        val runner = getStandardGradleRunnerFor("DeploySingleNodeWithLocallyBuildCordappAndConfig.gradle")
+        val projectCordappBaseName = "project-cordapp"
+        val projectCordappVersion = "1.2-SNAPSHOT"
 
-        val result = runner.build()
+        val result = getStandardGradleRunnerFor("DeploySingleNodeWithLocallyBuildCordappAndConfig.gradle",
+            taskName = "deployNodes",
+            extraArgs = *arrayOf(
+                "-PprojectCordappBaseName=$projectCordappBaseName",
+                "-PprojectCordappVersion=$projectCordappVersion"
+            )
+        ).build()
+        println(result.output)
 
-        assertThat(result.task(":deployNodes")!!.outcome).isEqualTo(SUCCESS)
-        assertThat(getNodeCordappJar(notaryNodeName, localCordappJarName)).isRegularFile()
-        assertThat(getNodeCordappConfig(notaryNodeName, localCordappJarName)).isRegularFile()
+        val projectCordappName = "${projectCordappBaseName}-${projectCordappVersion}"
+
+        assertThat(result.task(":jar")?.outcome).isEqualTo(SUCCESS)
+        assertThat(result.task(":deployNodes")?.outcome).isEqualTo(SUCCESS)
+        assertThat(getNodeCordappJar(notaryNodeName, projectCordappName)).isRegularFile()
+        assertThat(getNodeCordappConfig(notaryNodeName, projectCordappName)).isRegularFile()
+        assertThat(getNetworkParameterOverrides(notaryNodeName)).isRegularFile()
     }
 
     @Test

@@ -7,12 +7,24 @@ import org.junit.jupiter.api.Test
 class KotlinCordformTest : BaseformTest() {
     @Test
     fun `two nodes with cordapp dependency - backwards compatibility`() {
-        val runner = getStandardGradleRunnerFor("CompatibilityKotlinDSL.gradle.kts")
+        val projectCordappBaseName = "local-cordapp"
+        val projectCordappVersion = "1.2.3-SNAPSHOT"
 
-        val result = runner.build()
+        val result = getStandardGradleRunnerFor("CompatibilityKotlinDSL.gradle.kts",
+            taskName = "deployNodes",
+            extraArgs = *arrayOf(
+                "-PprojectCordappBaseName=$projectCordappBaseName",
+                "-PprojectCordappVersion=$projectCordappVersion"
+            )
+        ).build()
+        println(result.output)
 
-        // Check task succeeded
-        assertThat(result.task(":deployNodes")!!.outcome)
+        val projectCordappName = "${projectCordappBaseName}-${projectCordappVersion}"
+
+        // Check tasks succeeded
+        assertThat(result.task(":jar")?.outcome)
+            .isEqualTo(SUCCESS)
+        assertThat(result.task(":deployNodes")?.outcome)
             .isEqualTo(SUCCESS)
 
         // Check Notary node deployment
@@ -22,9 +34,9 @@ class KotlinCordformTest : BaseformTest() {
             .isRegularFile()
         assertThat(getNodeCordappConfig(notaryNodeName, cordaFinanceWorkflowsJarName))
             .isRegularFile()
-        assertThat(getNodeCordappJar(notaryNodeName, localCordappJarName))
+        assertThat(getNodeCordappJar(notaryNodeName, projectCordappName))
             .doesNotExist()
-        assertThat(getNodeCordappConfig(notaryNodeName, localCordappJarName))
+        assertThat(getNodeCordappConfig(notaryNodeName, projectCordappName))
             .doesNotExist()
         assertThatConfig(getNodeConfig(notaryNodeName))
             .hasPath("rpcSettings.address", "localhost:60001")
@@ -37,9 +49,9 @@ class KotlinCordformTest : BaseformTest() {
             .isRegularFile()
         assertThat(getNodeCordappConfig(bankNodeName, cordaFinanceWorkflowsJarName))
             .isRegularFile()
-        assertThat(getNodeCordappJar(bankNodeName, localCordappJarName))
+        assertThat(getNodeCordappJar(bankNodeName, projectCordappName))
             .isRegularFile()
-        assertThat(getNodeCordappConfig(bankNodeName, localCordappJarName))
+        assertThat(getNodeCordappConfig(bankNodeName, projectCordappName))
             .isRegularFile()
         assertThatConfig(getNodeConfig(bankNodeName))
             .hasPath("rpcSettings.address", "localhost:10001")
@@ -51,9 +63,10 @@ class KotlinCordformTest : BaseformTest() {
         val runner = getStandardGradleRunnerFor("DeployTwoNodeCordapp.gradle.kts")
 
         val result = runner.build()
+        println(result.output)
 
         // Check task succeeded
-        assertThat(result.task(":deployNodes")!!.outcome)
+        assertThat(result.task(":deployNodes")?.outcome)
             .isEqualTo(SUCCESS)
 
         // Check Notary node deployment

@@ -5,6 +5,7 @@ import net.corda.plugins.RpcSettings
 
 plugins {
     id("net.corda.plugins.cordformation")
+    id("net.corda.plugins.cordapp")
 }
 
 apply(from = "repositories.gradle")
@@ -12,6 +13,18 @@ apply(from = "repositories.gradle")
 val corda_group: String by project
 val corda_release_version: String by project
 val slf4j_version: String by project
+val projectCordappBaseName: String by project
+val projectCordappVersion: String by project
+
+cordapp {
+    targetPlatformVersion.set(100)
+    contract {
+        name.set(projectCordappBaseName)
+        versionId.set(1)
+        licence.set("Test Licence")
+        vendor.set("R3 Ltd")
+    }
+}
 
 dependencies {
     cordapp("$corda_group:corda-finance-contracts:$corda_release_version")
@@ -22,7 +35,8 @@ dependencies {
 }
 
 tasks.named<Jar>("jar") {
-    archiveBaseName.set("locally-built-cordapp")
+    archiveBaseName.set(projectCordappBaseName)
+    archiveVersion.set(projectCordappVersion)
 }
 
 tasks.register<Cordform>("deployNodes") {
