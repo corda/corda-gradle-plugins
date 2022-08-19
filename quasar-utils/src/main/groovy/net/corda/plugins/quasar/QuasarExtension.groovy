@@ -39,14 +39,9 @@ class QuasarExtension {
     final Property<Boolean> instrumentJavaExec
 
     /**
-     * Dependency notation for the Quasar bundle to use.
-     */
-    final Provider<Map<String, String>> dependency
-
-    /**
      * Dependency notation for the Quasar agent to use.
      */
-    final Provider<Map<String, String>> agent
+    final Provider<Map<String, String>> dependency
 
     /**
      * Runtime options for the Quasar agent:
@@ -79,10 +74,6 @@ class QuasarExtension {
         version = objects.property(String).convention(defaultVersion)
         dependency = group.zip(version) { grp, ver ->
             [ group: grp, name: QUASAR_ARTIFACT_NAME, version: ver, ext: 'jar' ] as Map<String, String>
-        }
-        agent = dependency.map {
-            it['classifier'] = 'agent'
-            it
         }
         instrumentTests = objects.property(Boolean).convention(true)
         instrumentJavaExec = objects.property(Boolean).convention(true)

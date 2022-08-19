@@ -34,11 +34,10 @@ import static org.gradle.api.plugins.JavaPlugin.RUNTIME_ONLY_CONFIGURATION_NAME
 class QuasarPlugin implements Plugin<Project> {
 
     private static final String QUASAR = 'quasar'
-    private static final String QUASAR_AGENT = 'quasarAgent'
     private static final String MINIMUM_GRADLE_VERSION = '7.2'
     private static final String CORDA_PROVIDED_CONFIGURATION_NAME = 'cordaProvided'
     private static final String CORDA_RUNTIME_ONLY_CONFIGURATION_NAME = 'cordaRuntimeOnly'
-    @PackageScope static final String QUASAR_ARTIFACT_NAME = 'quasar-core-osgi'
+    @PackageScope static final String QUASAR_ARTIFACT_NAME = 'quasar-core'
     @PackageScope static final String defaultGroup = 'co.paralleluniverse'
     @PackageScope static final String defaultVersion = '0.8.7_r3'
 
@@ -89,30 +88,21 @@ class QuasarPlugin implements Plugin<Project> {
                 dependencies.add(quasarDependency)
             }
 
-        configurations.create(QUASAR_AGENT)
-            .setVisible(false)
-            .withDependencies { dependencies ->
-                def quasarAgentDependency = adapter.createAgent { ModuleDependency dep ->
-                    dep.transitive = false
-                }
-                dependencies.add(quasarAgentDependency)
-            }
-
         // This definition of cordaRuntimeOnly must be consistent with the one in the cordapp-cpk2 plugin.
         def cordaRuntimeOnly = createBasicConfiguration(CORDA_RUNTIME_ONLY_CONFIGURATION_NAME, configurations)
-            // Instrumented code needs both the Quasar bundle and its transitive dependencies at runtime.
+            // Instrumented code needs both Quasar and its transitive dependencies at runtime.
             .withDependencies(new QuasarAction(adapter, true))
             .setTransitive(false)
 
         // This definition of cordaProvided must be consistent with the one in the cordapp-cpk2 plugin.
         def cordaProvided = createBasicConfiguration(CORDA_PROVIDED_CONFIGURATION_NAME, configurations)
-            // Add Quasar bundle WITHOUT any of its transitive dependencies.
+            // Add Quasar WITHOUT any of its transitive dependencies.
             .withDependencies(new QuasarAction(adapter, false))
 
-        // If we're building a JAR then also add the Quasar bundle to the appropriate Java configurations.
+        // If we're building a JAR then also add Quasar to the appropriate Java configurations.
         // This is also consistent with the cordapp-cpk2 plugin, which applies the 'java' plugin too.
         project.pluginManager.withPlugin('java') {
-            // Adds the Quasar bundle to the compileClasspath WITHOUT its transitive dependencies.
+            // Adds Quasar to the compileClasspath WITHOUT its transitive dependencies.
             configurations[COMPILE_ONLY_CONFIGURATION_NAME].extendsFrom(cordaProvided)
 
             // These are "testing" configurations, e.g. 'testImplementation'.
@@ -120,13 +110,13 @@ class QuasarPlugin implements Plugin<Project> {
                 cfg.extendsFrom(cordaProvided)
             }
 
-            // Adds the Quasar bundle to the runtimeClasspath WITH its transitive dependencies.
+            // Adds Quasar to the runtimeClasspath WITH its transitive dependencies.
             configurations[RUNTIME_ONLY_CONFIGURATION_NAME].extendsFrom(cordaRuntimeOnly)
         }
     }
 
     private void configureQuasarTasks(Project project, QuasarAdapter adapter) {
-        def quasarAgent = project.configurations[QUASAR_AGENT]
+        def quasarAgent = project.configurations[QUASAR]
         project.tasks.withType(Test).configureEach { Test task ->
             task.doFirst { Test t ->
                 if (adapter.instrumentingTests) {
@@ -188,10 +178,6 @@ class QuasarPlugin implements Plugin<Project> {
 
         String getOptions() {
             quasar.options.get()
-        }
-
-        Dependency createAgent(Closure closure) {
-            dependencies.create(quasar.agent.get(), closure)
         }
 
         Dependency createDependency(Closure closure) {
