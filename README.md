@@ -75,14 +75,14 @@ you with a `runnodes` script to boot it all up afterwards.
 - [`net.corda.plugins.quasar-utils`](quasar-utils/README.rst)\
 This plugin configures a Gradle module to use Quasar. Specifically:
     - It allows you to specify the Maven group and version of
-the `quasar-core-osgi` artifacts to use.
-    - Adds the `quasar-core-osgi` artifact, along with all of its transitive
+the `quasar-core` artifact to use.
+    - Adds the `quasar-core` artifact, along with all of its transitive
 dependencies, to Gradle's `cordaRuntimeOnly` configuration.
-    - Adds the `quasar-core-osgi` artifact to Gradle's `cordaProvided`
+    - Adds the `quasar-core` artifact to Gradle's `cordaProvided`
 configuration without any of its transitive dependencies.
-    - Applies the `quasar-core-osgi` Java agent to all of the module's
+    - Applies the `quasar-core` Java agent to all of the module's
 `JavaExec` tasks.
-    - Applies the `quasar-core-osgi` Java agent to all of the module's
+    - Applies the `quasar-core` Java agent to all of the module's
 `Test` tasks.
     - Provides a `quasar` Gradle extension so that you can configure
 which packages the Quasar Java agent should not instrument at runtime.
