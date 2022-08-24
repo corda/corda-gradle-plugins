@@ -48,25 +48,12 @@ class CpbPlugin : Plugin<Project> {
         project.configurations.create(CORDA_CPB_CONFIGURATION_NAME)
             .attributes(attributor::forCpb)
             .isCanBeResolved = false
-
-        /**
-         * We MUST resolve the CPB configurations after every project has been
-         * evaluated, but also before Gradle builds its Task Execution Graph!
-         *
-         * @see [Gradle #17765](https://github.com/gradle/gradle/issues/17765).
-         */
-        val cpbResolution = project.provider {
-            with(cpbPackaging) {
-                resolve()
-                buildDependencies
-            }
-        }
-
+        
         val cpkTask = project.tasks.named(JAR_TASK_NAME, Jar::class.java)
         val cpkPath = cpkTask.flatMap(Jar::getArchiveFile)
         val allCPKs = project.objects.fileCollection().from(cpkPath, cpbPackaging)
         val cpbTaskProvider = project.tasks.register(CPB_TASK_NAME, CpbTask::class.java) { cpbTask ->
-            cpbTask.dependsOn(cpbResolution)
+            cpbTask.dependsOn(cpbPackaging.buildDependencies)
             cpbTask.from(allCPKs)
             val cordappExtension = project.extensions.findByType(CordappExtension::class.java)
                 ?: throw GradleException("cordapp extension not found")
