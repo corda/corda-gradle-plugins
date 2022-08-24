@@ -6,14 +6,11 @@ import net.corda.plugins.cpk2.CordappExtension
 import net.corda.plugins.cpk2.CordappPlugin
 import net.corda.plugins.cpk2.SignJar.Companion.sign
 import net.corda.plugins.cpk2.copyJarEnabledTo
-import net.corda.plugins.cpk2.isPlatformModule
 import net.corda.plugins.cpk2.nested
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Dependency.ARCHIVES_CONFIGURATION
-import org.gradle.api.artifacts.ExternalDependency
-import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.plugins.JavaPlugin.JAR_TASK_NAME
 import org.gradle.api.tasks.bundling.Jar
 
@@ -44,30 +41,7 @@ class CpbPlugin : Plugin<Project> {
         val cpbPackaging = project.configurations.create(CPB_PACKAGING_CONFIGURATION_NAME)
             .setTransitive(false)
             .setVisible(false)
-            .withDependencies { dependencies ->
-                // Force Gradle to discover any transitive CPKs
-                // and include them in cpbConfiguration.
-                project.configurations.detachedConfiguration()
-                    .setTransitive(false)
-                    .setVisible(false)
-                    .extendsFrom(cpbConfiguration)
-                    .resolvedConfiguration
-
-                cpbConfiguration.allDependencies
-                    .filterIsInstance(ModuleDependency::class.java)
-                    .filterNot(::isPlatformModule)
-                    .forEach { dependency ->
-                        val cpk = dependency.copy()
-                        if (cpk is ExternalDependency && cpk.attributes.isEmpty) {
-                            cpk.artifact {
-                                it.name = dependency.name
-                            }
-                        } else {
-                            cpk.attributes(attributor::forJar)
-                        }
-                        dependencies.add(cpk)
-                    }
-            }.apply {
+            .extendsFrom(cpbConfiguration).apply {
                 isCanBeConsumed = false
             }
 
