@@ -56,13 +56,14 @@ class DeepTransitiveCordappsTest {
         val cpks = JarFile(cpb.toFile()).use { jar ->
             jar.entries().asSequence()
                 .map(JarEntry::getName)
-                .filter { it.endsWith(".cpk") }
+                .filter { it.endsWith(".jar") }
                 .toList()
         }
+        println(cpks)
         assertThat(cpks)
-            .anyMatch { it == "cpk-one-$cpk1Version-cordapp.cpk" }
-            .anyMatch { it == "cpk-two-$cpk2Version-cordapp.cpk" }
-            .anyMatch { it == "cpk-final-$cpkFinalVersion-cordapp.cpk" }
+            .anyMatch { it == "cpk-one-$cpk1Version.jar" }
+            .anyMatch { it == "cpk-two-$cpk2Version.jar" }
+            .anyMatch { it == "cpk-final-$cpkFinalVersion.jar" }
             .hasSize(3)
     }
 }

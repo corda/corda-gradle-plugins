@@ -1,6 +1,5 @@
 package net.corda.plugins.cpk2
 
-import java.nio.file.Path
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.api.plugins.JavaPlugin.COMPILE_JAVA_TASK_NAME
 import org.gradle.api.plugins.JavaPlugin.JAR_TASK_NAME
@@ -13,6 +12,7 @@ import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
 import org.junit.jupiter.api.TestReporter
 import org.junit.jupiter.api.io.TempDir
+import java.nio.file.Path
 
 @TestInstance(PER_CLASS)
 class CpkDisableJarTest {
@@ -48,10 +48,5 @@ class CpkDisableJarTest {
     @Test
     fun testVerifyIsSkipped() {
         assertThat(testProject.outcomeOf(VERIFY_BUNDLE_TASK_NAME)).isEqualTo(SKIPPED)
-    }
-
-    @Test
-    fun testCpkIsSkipped() {
-        assertThat(testProject.outcomeOf(CPK_TASK_NAME)).isEqualTo(SKIPPED)
     }
 }

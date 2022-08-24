@@ -104,15 +104,15 @@ class WithDependentCordappTest {
         }
 
         val artifacts = testProject.artifacts
-        assertThat(artifacts).hasSize(2)
+        assertThat(artifacts).hasSize(1)
 
         val cordapp = artifacts.single { it.toString().endsWith(".jar") }
         assertThat(cordapp).isRegularFile
 
-        val cpk = artifacts.single { it.toString().endsWith(".cpk") }
+        val cpk = artifacts.single { it.toString().endsWith(".jar") }
         assertThat(cpk).isRegularFile
 
-        val contractCpk = testProject.buildDir.resolve("cordapp-cordapp.cpk")
+        val contractCpk = testProject.buildDir.resolve("cordapp.jar")
         assertThat(contractCpk).isRegularFile
         assertThat(listLibrariesForCpk(contractCpk))
             .noneMatch { it == "biz.aQute.bnd.annotation-${bndVersion}.jar" }

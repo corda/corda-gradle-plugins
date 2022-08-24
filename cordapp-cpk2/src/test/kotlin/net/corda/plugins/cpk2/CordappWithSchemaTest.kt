@@ -38,7 +38,7 @@ class CordappWithSchemaTest {
     @Test
     fun schemaMigrationTest() {
         val artifacts = testProject.artifacts
-        assertThat(artifacts).hasSize(2)
+        assertThat(artifacts).hasSize(1)
 
         val cordapp = artifacts.single { it.toString().endsWith(".jar") }
         assertThat(cordapp).isRegularFile

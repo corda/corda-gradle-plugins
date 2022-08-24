@@ -103,10 +103,7 @@ class TransitiveRemoteCordappsTest {
             .hasSize(3)
 
         val artifacts = testProject.artifacts
-        assertThat(artifacts).hasSize(2)
-
-        val cpk = artifacts.single { it.toString().endsWith(".cpk") }
-        assertThat(cpk).isRegularFile
+        assertThat(artifacts).hasSize(1)
 
         val cordapp = artifacts.single { it.toString().endsWith(".jar") }
         assertThat(cordapp).isRegularFile

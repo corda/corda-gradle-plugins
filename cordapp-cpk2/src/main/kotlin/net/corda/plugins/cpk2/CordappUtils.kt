@@ -40,9 +40,7 @@ const val ENTERPRISE_API_GROUP = "com.r3.corda"
 
 const val CORDAPP_SEALING_SYSTEM_PROPERTY_NAME = "net.corda.cordapp.sealing.enabled"
 
-const val CPK_TASK_NAME = "cpk"
-const val CPK_FILE_EXTENSION = "cpk"
-const val CPK_ARTIFACT_CLASSIFIER = "cordapp"
+const val CPK_FILE_EXTENSION = "jar"
 
 const val CORDAPP_CONFIGURATION_NAME = "cordapp"
 const val CORDAPP_EXTERNAL_CONFIGURATION_NAME = "cordappExternal"

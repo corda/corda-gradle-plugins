@@ -10,7 +10,6 @@ import org.gradle.api.tasks.bundling.ZipEntryCompression
 import org.gradle.work.DisableCachingByDefault
 import java.nio.file.Files
 import java.util.jar.JarInputStream
-import java.util.zip.ZipInputStream
 
 @DisableCachingByDefault
 open class CpbTask : Jar() {
@@ -19,7 +18,6 @@ open class CpbTask : Jar() {
         private const val CPB_ARTIFACT_CLASSIFIER = "package"
         const val CPB_FILE_EXTENSION = "cpb"
         private const val CPK_FILE_SUFFIX = ".$CPK_FILE_EXTENSION"
-        private const val JAR_FILE_SUFFIX = ".jar"
         private val EXCLUDED_CPK_TYPES = setOf("corda-api")
         const val CPB_NAME_ATTRIBUTE = "Corda-CPB-Name"
         const val CPB_VERSION_ATTRIBUTE = "Corda-CPB-Version"
@@ -60,19 +58,10 @@ open class CpbTask : Jar() {
                     ?.file
                     ?.toPath()
                     ?.let {
-                        ZipInputStream(Files.newInputStream(it)).use { cpkStream ->
-                            generateSequence(cpkStream.nextEntry) { cpkStream.nextEntry }
-                                .find { zipEntry ->
-                                    // Check this entry represent the CPK's main jar
-                                    val slash = zipEntry.name.lastIndexOf('/')
-                                    zipEntry.name.endsWith(JAR_FILE_SUFFIX) && (slash == -1)
-                                }?.let {
-                                    JarInputStream(cpkStream).use { mainJarInputStream ->
-                                        mainJarInputStream.manifest.mainAttributes.getValue(CORDA_CPK_TYPE)
-                                            ?.let { cpkType ->
-                                                cpkType.toLowerCase() in EXCLUDED_CPK_TYPES
-                                            }
-                                    }
+                        JarInputStream(Files.newInputStream(it).buffered()).use { cpkStream ->
+                            cpkStream.manifest.mainAttributes.getValue(CORDA_CPK_TYPE)
+                                ?.let { cpkType ->
+                                    cpkType.toLowerCase() in EXCLUDED_CPK_TYPES
                                 }
                         }
                     } ?: false
