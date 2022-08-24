@@ -58,7 +58,7 @@ open class CpbTask : Jar() {
                     ?.file
                     ?.toPath()
                     ?.let {
-                        JarInputStream(Files.newInputStream(it)).use { cpkStream ->
+                        JarInputStream(Files.newInputStream(it).buffered()).use { cpkStream ->
                             cpkStream.manifest.mainAttributes.getValue(CORDA_CPK_TYPE)
                                 ?.let { cpkType ->
                                     cpkType.toLowerCase() in EXCLUDED_CPK_TYPES
