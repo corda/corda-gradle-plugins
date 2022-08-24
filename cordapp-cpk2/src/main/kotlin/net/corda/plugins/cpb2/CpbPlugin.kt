@@ -71,7 +71,7 @@ class CpbPlugin : Plugin<Project> {
                 }
             }
 
-            // Disable this task if either the jar task or cpk task is disabled.
+            // Disable this task if the jar task is disabled.
             project.gradle.taskGraph.whenReady { graph ->
                 copyJarEnabledTo(cpbTask).execute(graph)
             }
