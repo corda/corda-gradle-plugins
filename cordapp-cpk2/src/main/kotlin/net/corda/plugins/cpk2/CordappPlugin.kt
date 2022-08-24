@@ -2,7 +2,6 @@ package net.corda.plugins.cpk2
 
 import aQute.bnd.gradle.BndBuilderPlugin
 import aQute.bnd.gradle.BundleTaskExtension
-import aQute.bnd.version.MavenVersion
 import net.corda.plugins.cpk2.SignJar.Companion.sign
 import org.gradle.api.Action
 import org.gradle.api.GradleException
@@ -11,7 +10,6 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.Dependency.ARCHIVES_CONFIGURATION
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.component.ConfigurationVariantDetails
@@ -37,6 +35,7 @@ import org.osgi.framework.Constants.BUNDLE_LICENSE
 import org.osgi.framework.Constants.BUNDLE_NAME
 import org.osgi.framework.Constants.BUNDLE_SYMBOLICNAME
 import org.osgi.framework.Constants.BUNDLE_VENDOR
+import org.osgi.framework.Constants.BUNDLE_VERSION
 import java.util.Collections.unmodifiableList
 import java.util.Properties
 import javax.inject.Inject
@@ -302,6 +301,9 @@ class CordappPlugin @Inject constructor(
                 // Add Bnd instructions to scan for any contracts, flows, schemas etc.
                 bnd(osgi.scanCordaClasses)
 
+                // Set the CPK version tag to the same value as Bundle-Version.
+                bnd("$CPK_CORDAPP_VERSION: \${$BUNDLE_VERSION}")
+
                 // Accessing the Gradle [Project] during the task execution
                 // phase is incompatible with Gradle's configuration cache.
                 // Prevent this task from accessing the project's properties.
@@ -348,7 +350,6 @@ class CordappPlugin @Inject constructor(
                     attributes[CPK_PLATFORM_VERSION] = platformVersion
                 }
 
-                attributes[CPK_CORDAPP_VERSION] = MavenVersion(project.version.toString()).osGiVersion
                 configureCordappAttributes(osgi.symbolicName.get(), attributes)
             }.doLast { t ->
                 if (cordapp.signing.enabled.get()) {
