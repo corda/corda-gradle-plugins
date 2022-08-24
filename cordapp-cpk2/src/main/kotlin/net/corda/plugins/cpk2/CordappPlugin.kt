@@ -381,10 +381,7 @@ class CordappPlugin @Inject constructor(
             jar.finalizedBy(verifyBundle)
         }
 
-        with(project.artifacts) {
-            add(ARCHIVES_CONFIGURATION, jarTask)
-            add(CORDA_CPK_CONFIGURATION_NAME, jarTask)
-        }
+        project.artifacts.add(CORDA_CPK_CONFIGURATION_NAME, jarTask)
     }
 
     private fun configureCordappAttributes(symbolicName: String, attributes: Attributes) {
