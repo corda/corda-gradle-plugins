@@ -6,6 +6,7 @@ cordaPipeline(
     // always use -beta-9999999999999 for local publication as this is used for the version compatibility checks,
     //  This is a PR gate, so we want to check the "post merge" state before publication for real.
     publishRepoPrefix: '', // while testing
-    javaVersion: '8'
+    javaVersion: '8',
+    detekt: false
 
     )
