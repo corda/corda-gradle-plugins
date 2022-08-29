@@ -113,6 +113,13 @@ subprojects {
             downloadSources = true
         }
     }
+
+    tasks.register('compileAll') { task ->
+        description = "Compiles all the Kotlin and Java classes, including all of the test classes."
+        group = "verification"
+
+        task.dependsOn tasks.withType(AbstractCompile)
+    }
 }
 
 // Only the top-level projects are plugins, so only publish these ones.
