@@ -28,10 +28,10 @@ include 'cordapp-cpk2'
 //include 'cordapp'
 include 'jar-filter'
 include 'jar-filter:unwanteds'
-include 'flask'
-include 'flask:flask-common'
-include 'flask:flask-heartbeat-agent'
-include 'flask:flask-launcher'
+//include 'flask'
+//include 'flask:flask-common'
+//include 'flask:flask-heartbeat-agent'
+//include 'flask:flask-launcher'
 
 gradleEnterprise {
     buildScan {
