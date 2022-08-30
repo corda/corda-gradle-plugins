@@ -31,13 +31,13 @@ import javax.inject.Inject
 @Suppress("UnstableApiUsage", "MemberVisibilityCanBePrivate")
 @DisableCachingByDefault
 open class CPKDependenciesTask @Inject constructor(objects: ObjectFactory) : DefaultTask() {
+    private companion object {
+        private const val CPK_DEPENDENCIES_FORMAT_VERSION2 = "2.0"
+    }
+
     init {
         description = "Records this CorDapp's CPK dependencies."
         group = CORDAPP_TASK_GROUP
-    }
-
-    private companion object {
-        private const val CPK_DEPENDENCIES_FORMAT_VERSION2 = "2.0"
     }
 
     @get:Input
@@ -79,8 +79,8 @@ open class CPKDependenciesTask @Inject constructor(objects: ObjectFactory) : Def
 
         try {
             // Write CPK dependency information as JSON document.
-            cpkOutput.get().asFile.printWriter().use {
-                JsonDependencyWriter(it, digest).use { writer ->
+            cpkOutput.get().asFile.printWriter().use { pw ->
+                JsonDependencyWriter(pw, digest).use { writer ->
                     projectCpks.forEach { cpk ->
                         logger.info("Project CorDapp CPK dependency: {}", cpk.name)
                         writer.writeProjectDependency(cpk)
@@ -97,18 +97,16 @@ open class CPKDependenciesTask @Inject constructor(objects: ObjectFactory) : Def
         }
     }
 
-    private inner class JsonDependencyWriter(
+    private class JsonDependencyWriter(
         private val output: PrintWriter,
         private val digest: MessageDigest
     ): AutoCloseable {
-
+        private val encoder = Base64.getEncoder()
         private var firstElement = true
 
         init {
-            output.write("{\"formatVersion\":\"$CPK_DEPENDENCIES_FORMAT_VERSION2\",\"dependencies\":[")
+            output.print("{\"formatVersion\":\"$CPK_DEPENDENCIES_FORMAT_VERSION2\",\"dependencies\":[")
         }
-
-        private val encoder = Base64.getEncoder()
 
         // Escape slashes and quotes inside string
         private fun escapeString(s: String): String = s
@@ -118,10 +116,15 @@ open class CPKDependenciesTask @Inject constructor(objects: ObjectFactory) : Def
         @Throws(IOException::class)
         private fun writeCommonElements(jar: JarFile) {
             val mainAttributes = jar.manifest.mainAttributes
-            output.write("\"name\":\"${escapeString(mainAttributes.getValue(BUNDLE_SYMBOLICNAME))}\",")
-            output.write("\"version\":\"${escapeString(mainAttributes.getValue(BUNDLE_VERSION))}\",")
+            output.print("\"name\":\"")
+            output.print(escapeString(mainAttributes.getValue(BUNDLE_SYMBOLICNAME)))
+            output.print("\",\"version\":\"")
+            output.print(escapeString(mainAttributes.getValue(BUNDLE_VERSION)))
+            output.print("\",")
             mainAttributes.getValue(CORDA_CPK_TYPE)?.also { cpkType ->
-                output.write("\"type\":\"${escapeString(cpkType)}\",")
+                output.print("\"type\":\"")
+                output.print(escapeString(cpkType))
+                output.print("\",")
             }
         }
 
@@ -129,7 +132,7 @@ open class CPKDependenciesTask @Inject constructor(objects: ObjectFactory) : Def
         fun writeProjectDependency(jar: File) {
             openDependency()
             JarFile(jar).use(::writeCommonElements)
-            output.write("\"verifySameSignerAsMe\":true")
+            output.print("\"verifySameSignerAsMe\":true")
             closeDependency()
         }
 
@@ -138,20 +141,25 @@ open class CPKDependenciesTask @Inject constructor(objects: ObjectFactory) : Def
             openDependency()
             JarFile(jar).use(::writeCommonElements)
             val hash = jar.inputStream().use(digest::hashFor)
-            output.write("\"verifyFileHash\":{\"algorithm\":\"${digest.algorithm}\",\"fileHash\":\"${encoder.encodeToString(hash)}\"}")
+            output.print("\"verifyFileHash\":{\"algorithm\":\"")
+            output.print(digest.algorithm)
+            output.print("\",\"fileHash\":\"")
+            output.print(encoder.encodeToString(hash))
+            output.print("\"}")
             closeDependency()
         }
 
         private fun openDependency() {
-            if (!firstElement) {
-                output.write(",")
+            if (firstElement) {
+                firstElement = false
+            } else {
+                output.print(',')
             }
-            output.write("{")
-            firstElement = false
+            output.print('{')
         }
 
-        private fun closeDependency() = output.write("}")
+        private fun closeDependency() = output.print('}')
 
-        override fun close() = output.write("]}")
+        override fun close() = output.print("]}")
     }
 }

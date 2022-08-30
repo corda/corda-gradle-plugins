@@ -18,6 +18,11 @@ data class CPKDependency(
     val name: String,
     val version: String,
     val type: String?,
-    val verifySameSignerAsMe: Boolean = false,
+    val verifySameSignerAsMe: Boolean,
     val verifyFileHash: VerifyFileHash?,
+)
+
+data class VerifyFileHash(
+    val algorithm: String,
+    val fileHash: String
 )
