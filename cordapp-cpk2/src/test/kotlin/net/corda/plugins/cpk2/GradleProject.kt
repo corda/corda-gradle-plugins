@@ -4,9 +4,8 @@ package net.corda.plugins.cpk2
 import aQute.bnd.version.MavenVersion.parseMavenString
 import aQute.bnd.version.Version
 import aQute.bnd.version.VersionRange
-import net.corda.plugins.cpk2.json.CPKDependenciesReader
-import net.corda.plugins.cpk2.json.CPKDependenciesReader.Companion.loadCPKDependencies
 import net.corda.plugins.cpk2.json.CPKDependency
+import net.corda.plugins.cpk2.json.loadCPKDependencies
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.api.JavaVersion.VERSION_15
 import org.gradle.api.JavaVersion.current

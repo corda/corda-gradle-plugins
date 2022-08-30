@@ -23,7 +23,6 @@ import org.osgi.framework.Constants.BUNDLE_VERSION
 import java.io.File
 import java.io.IOException
 import java.io.PrintWriter
-import java.nio.charset.Charset
 import java.security.MessageDigest
 import java.util.Base64
 import java.util.jar.JarFile
@@ -37,7 +36,9 @@ open class CPKDependenciesTask @Inject constructor(objects: ObjectFactory) : Def
         group = CORDAPP_TASK_GROUP
     }
 
-    private val CPK_DEPENDENCIES_FORMAT_VERSION2 = "2.0"
+    private companion object {
+        private const val CPK_DEPENDENCIES_FORMAT_VERSION2 = "2.0"
+    }
 
     @get:Input
     val hashAlgorithm: Property<String> = objects.property(String::class.java)
@@ -78,7 +79,7 @@ open class CPKDependenciesTask @Inject constructor(objects: ObjectFactory) : Def
 
         try {
             // Write CPK dependency information as JSON document.
-            cpkOutput.get().asFile.printWriter(Charset.forName("UTF-8")).use {
+            cpkOutput.get().asFile.printWriter().use {
                 JsonDependencyWriter(it, digest).use { writer ->
                     projectCpks.forEach { cpk ->
                         logger.info("Project CorDapp CPK dependency: {}", cpk.name)
@@ -127,7 +128,7 @@ open class CPKDependenciesTask @Inject constructor(objects: ObjectFactory) : Def
         @Throws(IOException::class)
         fun writeProjectDependency(jar: File) {
             openDependency()
-            JarFile(jar).use {writeCommonElements(it) }
+            JarFile(jar).use(::writeCommonElements)
             output.write("\"verifySameSignerAsMe\":true")
             closeDependency()
         }
@@ -135,15 +136,16 @@ open class CPKDependenciesTask @Inject constructor(objects: ObjectFactory) : Def
         @Throws(IOException::class)
         fun writeRemoteDependency(jar: File) {
             openDependency()
-            JarFile(jar).use { writeCommonElements(it) }
-            val hash = jar.inputStream().use { digest.hashFor(it) }
+            JarFile(jar).use(::writeCommonElements)
+            val hash = jar.inputStream().use(digest::hashFor)
             output.write("\"verifyFileHash\":{\"algorithm\":\"${digest.algorithm}\",\"fileHash\":\"${encoder.encodeToString(hash)}\"}")
             closeDependency()
         }
 
         private fun openDependency() {
-            if (!firstElement)
+            if (!firstElement) {
                 output.write(",")
+            }
             output.write("{")
             firstElement = false
         }
