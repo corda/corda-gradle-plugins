@@ -9,6 +9,7 @@ import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.SetProperty
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskInputs
 import org.gradle.api.tasks.bundling.Jar
 import org.osgi.framework.Constants.BUNDLE_CLASSPATH
@@ -36,7 +37,6 @@ fun TaskInputs.nested(nestName: String, osgi: OsgiExtension) {
 @Suppress("UnstableApiUsage", "MemberVisibilityCanBePrivate", "unused")
 open class OsgiExtension(objects: ObjectFactory, jar: Jar) {
     private companion object {
-        private const val CORDAPP_CONFIG_PLUGIN_ID = "net.corda.cordapp.cordapp-configuration"
         private const val CORDAPP_CONFIG_FILENAME = "cordapp-configuration.properties"
 
         private val CORDA_CLASSES = "^Corda-.+-Classes\$".toRegex()
@@ -97,6 +97,10 @@ open class OsgiExtension(objects: ObjectFactory, jar: Jar) {
         fun optional(value: String): String = "$value;resolution:=optional"
         fun emptyVersion(value: String): String = "$value;version='[0,0)'"
     }
+
+    @get:Internal // Annotated for documentation purposes only.
+    var configured: Boolean = false
+        private set
 
     private val _noPackages: SetProperty<String> = objects.setProperty(String::class.java)
         .apply(SetProperty<String>::disallowChanges)
@@ -321,6 +325,11 @@ open class OsgiExtension(objects: ObjectFactory, jar: Jar) {
              * Apply our OSGi "consumer policy" when importing these packages.
              */
             config[IMPORT_POLICY_PACKAGES]?.let(::parsePackages)?.also(_policyPackages::set)
+
+            /**
+             * Show we have received our configuration.
+             */
+            configured = true
         }
     }
 
