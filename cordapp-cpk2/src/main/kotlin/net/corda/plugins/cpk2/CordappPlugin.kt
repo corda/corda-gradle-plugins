@@ -322,6 +322,11 @@ class CordappPlugin @Inject constructor(
             }
             jar.doFirst { t ->
                 t as Jar
+
+                if (!osgi.configured) {
+                    t.logger.warn("CORDAPP PLUGIN NOT CONFIGURED! Please apply '$CORDAPP_CONFIG_PLUGIN_ID' plugin to root project.")
+                }
+
                 t.fileMode = Integer.parseInt("444", 8)
                 t.dirMode = Integer.parseInt("555", 8)
                 t.manifestContentCharset = "UTF-8"

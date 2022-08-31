@@ -56,7 +56,7 @@ class CordappApiLibraryTest {
             .hasSizeGreaterThanOrEqualTo(1)
         assertThat(testProject.cpkDependencies)
             .anyMatch { it.name == "com.example.cordapp" && it.version == toOSGi(CONTRACT_CORDAPP_VERSION) }
-            .allMatch { it.signers.isSameAsMe }
+            .allMatch { it.verifySameSignerAsMe }
             .hasSize(1)
 
         val artifacts = testProject.artifacts

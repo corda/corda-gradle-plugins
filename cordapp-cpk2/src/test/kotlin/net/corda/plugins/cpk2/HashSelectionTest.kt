@@ -1,6 +1,5 @@
 package net.corda.plugins.cpk2
 
-import java.nio.file.Files
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -8,8 +7,8 @@ import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
 import org.junit.jupiter.api.TestReporter
 import org.junit.jupiter.api.io.TempDir
+import java.nio.file.Files
 import java.nio.file.Path
-import net.corda.plugins.cpk2.xml.HashValue
 
 @TestInstance(PER_CLASS)
 class HashSelectionTest {
@@ -57,8 +56,7 @@ class HashSelectionTest {
             .anyMatch { it == "commons-codec-$commonsCodecVersion.jar" }
             .hasSize(1)
         assertThat(testProject.cpkDependencies)
-            .allMatch { dep ->
-                dep.signers.isNotEmpty() && dep.signers.all { it is HashValue && it.algorithm == SHA3_256 }
-            }.hasSize(1)
+            .allMatch { dep -> dep?.verifyFileHash?.algorithm == SHA3_256 }
+            .hasSize(1)
     }
 }

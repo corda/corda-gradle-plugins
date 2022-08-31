@@ -2,6 +2,10 @@
 
 ## Version 7
 
+* Compatible with Gradle 7.2+.
+* Replace `cordapp-cpk`, `cordapp-cpb` with `cordapp-cpk2`, `cordapp-cpb2`.
+* Retire the `flask` plugin.
+
 ## Version 6
 
 ### Version 6.0.0
