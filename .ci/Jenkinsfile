@@ -7,6 +7,5 @@ cordaPipeline(
     //  This is a PR gate, so we want to check the "post merge" state before publication for real.
     publishRepoPrefix: '', // while testing
     javaVersion: '8',
-    runUnitTests: false,
     slimBuild: true
     )
