@@ -20,6 +20,7 @@ import java.util.jar.JarFile
 import java.util.jar.Manifest
 
 const val CORDAPP_CPK_PLUGIN_ID = "net.corda.plugins.cordapp-cpk2"
+const val CORDAPP_CONFIG_PLUGIN_ID = "net.corda.cordapp.cordapp-configuration"
 const val CORDAPP_TASK_GROUP = "Cordapp"
 
 const val CORDA_API_GROUP = "net.corda"
