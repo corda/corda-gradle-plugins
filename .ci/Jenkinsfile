@@ -7,5 +7,6 @@ cordaPipeline(
     //  This is a PR gate, so we want to check the "post merge" state before publication for real.
     publishRepoPrefix: 'corda-releases', 
     javaVersion: '8',
-    slimBuild: true
+    slimBuild: true,
+    publishToMavenS3Repository: true,
     )
