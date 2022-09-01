@@ -1,4 +1,4 @@
-@Library('corda-shared-build-pipeline-steps@CORE-6347/modifications-for-corda-gradle-plugins') _
+@Library('corda-shared-build-pipeline-steps@5.0') _
 
 cordaPipeline(
     runIntegrationTests: false,
