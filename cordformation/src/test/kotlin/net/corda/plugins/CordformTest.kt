@@ -7,6 +7,7 @@ import net.corda.core.serialization.SerializationDefaults
 import net.corda.core.serialization.SerializedBytes
 import net.corda.core.serialization.deserialize
 import net.corda.core.serialization.internal.SerializationEnvironment
+import net.corda.plugins.Cordformation.Companion.createJarRegex
 import net.corda.serialization.internal.AMQP_P2P_CONTEXT
 import net.corda.serialization.internal.SerializationFactoryImpl
 import org.assertj.core.api.Assertions.assertThat
@@ -155,7 +156,7 @@ class CordformTest : BaseformTest() {
         val jarName = "corda"
 
         var releaseVersion = "4.3"
-        var pattern = "\\Q$jarName\\E(-enterprise)?-\\Q$releaseVersion\\E(-.+)?\\.jar\$".toRegex().pattern
+        var pattern = createJarRegex(jarName, releaseVersion).toPattern()
         assertThat("corda-4.3.jar").containsPattern(pattern)
         assertThat("corda-4.3.jar").containsPattern(pattern)
         assertThat("corda-4.3.jarBla").doesNotContainPattern(pattern)
@@ -165,14 +166,16 @@ class CordformTest : BaseformTest() {
         assertThat("bla\\bla\\bla\\corda-enterprise-4.3.jar").containsPattern(pattern)
         assertThat("corda-enterprise-4.3.jar").containsPattern(pattern)
         assertThat("corda-enterprise-4.3-jdk11.jar").containsPattern(pattern)
+        assertThat("corda-jdk11-4.3.jar").containsPattern(pattern)
+        assertThat("corda-enterprise-jdk11-4.3.jar").containsPattern(pattern)
 
         releaseVersion = "4.3-RC01"
-        pattern = "\\Q$jarName\\E(-enterprise)?-\\Q$releaseVersion\\E(-.+)?\\.jar\$".toRegex().pattern
+        pattern = createJarRegex(jarName, releaseVersion).toPattern()
         assertThat("corda-4.3-RC01.jar").containsPattern(pattern)
         assertThat("corda-4.3RC01.jar").doesNotContainPattern(pattern)
 
         releaseVersion = "4.3.20190925"
-        pattern = "\\Q$jarName\\E(-enterprise)?-\\Q$releaseVersion\\E(-.+)?\\.jar\$".toRegex().pattern
+        pattern = createJarRegex(jarName, releaseVersion).toPattern()
         assertThat("corda-4.3.20190925.jar").containsPattern(pattern)
         assertThat("corda-4.3.20190925-TEST.jar").containsPattern(pattern)
     }
