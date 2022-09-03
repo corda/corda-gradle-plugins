@@ -148,29 +148,14 @@ class CordformTest : BaseformTest() {
     }
 
     @Test
-    fun `regex matching used by verifyAndGetRuntimeJar()`() {
-        val jarName = "corda"
+    fun `deploy node with testserver`() {
+        val runner = getStandardGradleRunnerFor("DeploySingleNodeWithTestServer.gradle")
 
-        var releaseVersion = "4.3"
-        var pattern = "\\Q$jarName\\E(-enterprise)?-\\Q$releaseVersion\\E(-.+)?\\.jar\$".toRegex().pattern
-        assertThat("corda-4.3.jar").containsPattern(pattern)
-        assertThat("corda-4.3.jar").containsPattern(pattern)
-        assertThat("corda-4.3.jarBla").doesNotContainPattern(pattern)
-        assertThat("bla\\bla\\bla\\corda-4.3.jar").containsPattern(pattern)
-        assertThat("corda-4.3-jdk11.jar").containsPattern(pattern)
-        assertThat("corda-4.3jdk11.jar").doesNotContainPattern(pattern)
-        assertThat("bla\\bla\\bla\\corda-enterprise-4.3.jar").containsPattern(pattern)
-        assertThat("corda-enterprise-4.3.jar").containsPattern(pattern)
-        assertThat("corda-enterprise-4.3-jdk11.jar").containsPattern(pattern)
+        val result = runner.build()
+        println(result.output)
 
-        releaseVersion = "4.3-RC01"
-        pattern = "\\Q$jarName\\E(-enterprise)?-\\Q$releaseVersion\\E(-.+)?\\.jar\$".toRegex().pattern
-        assertThat("corda-4.3-RC01.jar").containsPattern(pattern)
-        assertThat("corda-4.3RC01.jar").doesNotContainPattern(pattern)
-
-        releaseVersion = "4.3.20190925"
-        pattern = "\\Q$jarName\\E(-enterprise)?-\\Q$releaseVersion\\E(-.+)?\\.jar\$".toRegex().pattern
-        assertThat("corda-4.3.20190925.jar").containsPattern(pattern)
-        assertThat("corda-4.3.20190925-TEST.jar").containsPattern(pattern)
+        assertThat(result.task(":deployNodes")?.outcome).isEqualTo(SUCCESS)
+        assertThat(getNodeFile(notaryNodeName, "corda.jar")).isRegularFile
+        assertThat(getNodeFile(notaryNodeName, "corda-testserver.jar")).isRegularFile
     }
 }

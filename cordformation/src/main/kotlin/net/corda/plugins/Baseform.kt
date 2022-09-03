@@ -42,6 +42,8 @@ abstract class Baseform(
     protected companion object {
         const val nodeJarName = "corda.jar"
         const val GROUP_NAME = "Cordformation"
+
+        private val CORDA_EXPRESSION = "^corda-(?!(testserver-|webserver-)).*\\.jar\$".toRegex()
     }
 
     init {
@@ -163,7 +165,7 @@ abstract class Baseform(
      * Installs the corda fat JAR to the root directory, for the network bootstrapper to use.
      */
     protected fun installCordaJar() {
-        val cordaJar = Cordformation.verifyAndGetRuntimeJar(project, "corda")
+        val cordaJar = Cordformation.verifyAndGetRuntimeJar(project.configurations, CORDA_EXPRESSION)
         fs.copy {
             it.apply {
                 from(cordaJar)

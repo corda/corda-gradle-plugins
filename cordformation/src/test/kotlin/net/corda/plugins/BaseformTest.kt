@@ -16,7 +16,6 @@ import java.net.URL
 import java.nio.file.Files
 import java.nio.file.NoSuchFileException
 import java.nio.file.Path
-import java.nio.file.Paths
 
 abstract class BaseformTest {
     @TempDir
@@ -85,11 +84,13 @@ abstract class BaseformTest {
         } ?: throw NoSuchFileException(resourceName)
     }
 
-    fun getNodeLogFile( nodeName: String, fileName: String ): Path = Paths.get(testProjectDir.toAbsolutePath().toString(), "build", "nodes", nodeName, "logs", fileName)
-    fun getNodeCordappJar(nodeName: String, cordappJarName: String): Path = Paths.get(testProjectDir.toAbsolutePath().toString(), "build", "nodes", nodeName, "cordapps", "$cordappJarName.jar")
-    fun getNodeCordappConfig(nodeName: String, cordappJarName: String): Path = Paths.get(testProjectDir.toAbsolutePath().toString(), "build", "nodes", nodeName, "cordapps", "config", "$cordappJarName.conf")
-    fun getNetworkParameterOverrides(nodeName: String): Path = Paths.get(testProjectDir.toAbsolutePath().toString(), "build", "nodes", nodeName, "network-parameters")
-    fun getNodeConfigFile(nodeName: String): Path = Paths.get(testProjectDir.toAbsolutePath().toString(), "build", "nodes", nodeName, "node.conf")
+    fun getNodeDir(nodeName: String): Path = testProjectDir.toAbsolutePath().resolve("build").resolve("nodes").resolve(nodeName)
+    fun getNodeFile(nodeName: String, fileName: String): Path = getNodeDir(nodeName).resolve(fileName)
+    fun getNodeLogFile(nodeName: String, fileName: String ): Path = getNodeDir(nodeName).resolve("logs").resolve(fileName)
+    fun getNodeCordappJar(nodeName: String, cordappJarName: String): Path = getNodeDir(nodeName).resolve("cordapps").resolve("$cordappJarName.jar")
+    fun getNodeCordappConfig(nodeName: String, cordappJarName: String): Path = getNodeDir(nodeName).resolve("cordapps").resolve("config").resolve("$cordappJarName.conf")
+    fun getNetworkParameterOverrides(nodeName: String): Path = getNodeFile(nodeName, "network-parameters")
+    fun getNodeConfigFile(nodeName: String): Path = getNodeFile(nodeName, "node.conf")
 
     fun getNodeConfig(nodeName: String): Config {
         val configFile = getNodeConfigFile(nodeName)
