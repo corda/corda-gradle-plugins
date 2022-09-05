@@ -38,7 +38,7 @@ class Cordformation : Plugin<Project> {
         }
 
         fun createJarRegex(jarName: String, releaseVersion: String): Regex {
-            return "\\Q$jarName\\E(-enterprise)?(-jdk11)?-\\Q$releaseVersion\\E(-.+)?\\.jar\$".toRegex()
+            return "\\Q$jarName\\E(-enterprise)?(-jdk1[17])?-\\Q$releaseVersion\\E(-.+)?\\.jar\$".toRegex()
         }
 
         /**
