@@ -37,18 +37,23 @@ class Cordformation : Plugin<Project> {
             return outputFile
         }
 
+        fun createJarRegex(jarName: String, releaseVersion: String): Regex {
+            return "\\Q$jarName\\E(-enterprise)?(-jdk1[17])?-\\Q$releaseVersion\\E(-.+)?\\.jar\$".toRegex()
+        }
+
         /**
          * Gets a current built corda jar file
          *
          * @param project The project environment this plugin executes in.
          * @param jarName The name of the JAR you wish to access.
-         * @return A file handle to the file in the JAR.
+         * @return A [File] for the requested jar artifact.
          */
         fun verifyAndGetRuntimeJar(project: Project, jarName: String): File {
             val releaseVersion = project.findRootProperty("corda_release_version")
                     ?: throw IllegalStateException("Could not find a valid declaration of \"corda_release_version\"")
-            // need to cater for optional classifier (eg. corda-4.3-jdk11.jar)
-            val pattern = "\\Q$jarName\\E(-enterprise)?-\\Q$releaseVersion\\E(-.+)?\\.jar\$".toRegex()
+            // need to cater for optional classifier (e.g. corda-4.3-jdk11.jar)
+            // also for optional archive appendix of '-jdk11' (e.g. corda-jdk11-4.3.jar)
+            val pattern = createJarRegex(jarName, releaseVersion)
             val maybeJar = project.configurations.getByName(RUNTIME_CLASSPATH_CONFIGURATION_NAME).filter {
                 it.toString().contains(pattern)
             }
