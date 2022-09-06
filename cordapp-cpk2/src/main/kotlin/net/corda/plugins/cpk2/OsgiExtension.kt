@@ -1,6 +1,8 @@
 @file:JvmName("OsgiProperties")
 package net.corda.plugins.cpk2
 
+import aQute.bnd.header.Attrs
+import aQute.bnd.header.OSGiHeader
 import org.gradle.api.Project
 import org.gradle.api.file.FileSystemLocation
 import org.gradle.api.model.ObjectFactory
@@ -38,6 +40,8 @@ fun TaskInputs.nested(nestName: String, osgi: OsgiExtension) {
 open class OsgiExtension(objects: ObjectFactory, jar: Jar) {
     private companion object {
         private const val CORDAPP_CONFIG_FILENAME = "cordapp-configuration.properties"
+        private const val VERSION_RANGE_ATTRIBUTE = "range"
+        private const val DEFAULT_IMPORT_POLICY = "[=,+)"
 
         private val CORDA_CLASSES = "^Corda-.+-Classes\$".toRegex()
 
@@ -92,7 +96,7 @@ open class OsgiExtension(objects: ObjectFactory, jar: Jar) {
             return value.split(",").mapTo(LinkedHashSet(), String::trim)
         }
 
-        fun consumerPolicy(value: String): String = "$value:o;version='\${range;[=,+);\${@}}'"
+        fun consumerPolicy(value: String, versionPolicy: String): String = "$value:o;version='\${range;$versionPolicy;\${@}}'"
         fun dynamic(value: String): String = "$value;resolution:=dynamic;version=!"
         fun optional(value: String): String = "$value;resolution:=optional"
         fun emptyVersion(value: String): String = "$value;version='[0,0)'"
@@ -104,7 +108,9 @@ open class OsgiExtension(objects: ObjectFactory, jar: Jar) {
 
     private val _noPackages: SetProperty<String> = objects.setProperty(String::class.java)
         .apply(SetProperty<String>::disallowChanges)
-    private val _policyPackages: SetProperty<String> = objects.setProperty(String::class.java)
+    private val _noPolicies: MapProperty<String, String> = objects.mapProperty(String::class.java, String::class.java)
+        .apply(MapProperty<String, String>::disallowChanges)
+    private val _packagePolicies: MapProperty<String, String> = objects.mapProperty(String::class.java, String::class.java)
     private val _requiredPackages: SetProperty<String> = objects.setProperty(String::class.java).value(BASE_REQUIRED_PACKAGES)
     private val _cordaClasses: MapProperty<String, String> = objects.mapProperty(String::class.java, String::class.java)
     private val _autoExportPackages: SetProperty<String> = objects.setProperty(String::class.java)
@@ -218,14 +224,14 @@ open class OsgiExtension(objects: ObjectFactory, jar: Jar) {
         }
     }
 
-    val applyImportPolicy: Property<Boolean> = objects.property(Boolean::class.java).convention(true)
+    val applyImportPolicies: Property<Boolean> = objects.property(Boolean::class.java).convention(true)
 
-    private val activePolicy: Provider<out Set<String>>
-        get() = applyImportPolicy.flatMap { isActive ->
+    private val activePolicies: Provider<out Map<String, String>>
+        get() = applyImportPolicies.flatMap { isActive ->
             if (isActive) {
-                _policyPackages
+                _packagePolicies
             } else {
-                _noPackages
+                _noPolicies
             }
         }
 
@@ -234,8 +240,8 @@ open class OsgiExtension(objects: ObjectFactory, jar: Jar) {
         val result = LinkedHashSet(imports)
         result.addAll(required.map(::dynamic))
         result
-    }.zip(activePolicy) { imports, policy ->
-        imports.addAll(policy.map(::consumerPolicy))
+    }.zip(activePolicies) { imports, policy ->
+        imports.addAll(policy.map { p -> consumerPolicy(p.key, p.value) })
         imports
     }.map(::declareImports)
 
@@ -324,7 +330,11 @@ open class OsgiExtension(objects: ObjectFactory, jar: Jar) {
             /**
              * Apply our OSGi "consumer policy" when importing these packages.
              */
-            config[IMPORT_POLICY_PACKAGES]?.let(::parsePackages)?.also(_policyPackages::set)
+            config[IMPORT_POLICY_PACKAGES]?.let(OSGiHeader::parseHeader)
+                ?.let(Map<String, Attrs>::entries)
+                ?.associate { entry ->
+                    entry.key to (entry.value[VERSION_RANGE_ATTRIBUTE] ?: DEFAULT_IMPORT_POLICY)
+                }?.also(_packagePolicies::putAll)
 
             /**
              * Show we have received our configuration.
