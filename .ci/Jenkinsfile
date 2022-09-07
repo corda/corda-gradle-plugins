@@ -1,10 +1,10 @@
 @Library('corda-shared-build-pipeline-steps@ronanb/non-standard-publishing') _
 
 cordaPipeline(
-    publishRepoPrefix: 'corda',
-    javaVersion: '8',
-    slimBuild: true,
-    publishToMavenS3Repository: true,
-    stableUnstablePattern: false,
     dedicatedJobForSnykDelta: false
+    javaVersion: '8',
+    publishToMavenS3Repository: true,
+    publishRepoPrefix: 'corda',
+    slimBuild: true,
+    stableUnstableRepoPattern: false,
     )
