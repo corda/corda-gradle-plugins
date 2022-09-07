@@ -7,5 +7,6 @@ cordaPipeline(
     publishRepoPrefix: 'corda',
     slimBuild: true,
     stableUnstableRepoPattern: false,
-    nexusAppId :'corda-gradle-plugins-7.0.0'
+    nexusAppId :'corda-gradle-plugins-7.0.0',
+    snykAdditionalCommands: "--all-sub-projects --configuration-matching='^runtimeClasspath\$' -d"
     )
