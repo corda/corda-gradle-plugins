@@ -1,7 +1,7 @@
 @Library('corda-shared-build-pipeline-steps@ronanb/non-standard-publishing') _
 
 cordaPipeline(
-    dedicatedJobForSnykDelta: false
+    dedicatedJobForSnykDelta: false,
     javaVersion: '8',
     publishToMavenS3Repository: true,
     publishRepoPrefix: 'corda',
