@@ -7,4 +7,5 @@ cordaPipeline(
     publishRepoPrefix: 'corda',
     slimBuild: true,
     stableUnstableRepoPattern: false,
+    nexusAppId :'corda-gradle-plugins-7.0.0'
     )
