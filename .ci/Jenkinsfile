@@ -1,4 +1,4 @@
-@Library('corda-shared-build-pipeline-steps@ronanb/non-standard-publishing') _
+@Library('corda-shared-build-pipeline-steps@5.0') _
 
 cordaPipeline(
     dedicatedJobForSnykDelta: false,
