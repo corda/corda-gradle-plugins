@@ -3,6 +3,8 @@ package net.corda.plugins.cpk2
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
 import org.junit.jupiter.api.TestReporter
@@ -17,8 +19,6 @@ import org.osgi.framework.Constants.IMPORT_PACKAGE
 import org.osgi.framework.Constants.REQUIRE_CAPABILITY
 import java.nio.file.Files
 import java.nio.file.Path
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.Test
 
 /**
  * Verify that transitive cordapp and cordaProvided dependencies
@@ -99,7 +99,7 @@ class TransitiveRemoteCordappsTest {
             .anyMatch { it.name == "com.example.cpk-one" && it.version == toOSGi(cpk1Version) && it.type == cpk1Type }
             .anyMatch { it.name == "com.example.cpk-two" && it.version == toOSGi(cpk2Version) && it.type == cpk2Type }
             .anyMatch { it.name == "com.example.cpk-three" && it.version == toOSGi(cpk3Version) && it.type == null }
-            .allMatch { it.signers.allSHA256 }
+            .allMatch { !it.verifySameSignerAsMe }
             .hasSize(3)
 
         val artifacts = testProject.artifacts

@@ -17,6 +17,7 @@ class ConfigureCordaMetadataTest {
         private const val CORDAPP_VERSION = "1.1.1-SNAPSHOT"
         private const val HIBERNATE_ANNOTATIONS_PACKAGE = "org.hibernate.annotations"
         private const val HIBERNATE_PROXY_PACKAGE = "org.hibernate.proxy"
+        private const val KOTLIN_OSGI_VERSION = "version=[1.7,1.8)"
         private const val CORDA_OSGI_VERSION = "version=[5,6)"
     }
 
@@ -57,6 +58,7 @@ class ConfigureCordaMetadataTest {
                 .containsPackageWithAttributes("net.corda.v5.application.identity", CORDA_OSGI_VERSION)
                 .containsPackageWithAttributes("net.corda.v5.ledger.contracts", CORDA_OSGI_VERSION)
                 .containsPackageWithAttributes("net.corda.v5.ledger.transactions", CORDA_OSGI_VERSION)
+                .containsPackageWithAttributes("kotlin", KOTLIN_OSGI_VERSION)
             assertThatHeader(getValue(DYNAMICIMPORT_PACKAGE))
                 .doesNotContainPackage(HIBERNATE_ANNOTATIONS_PACKAGE, HIBERNATE_PROXY_PACKAGE)
                 .containsPackageWithAttributes("org.testing")

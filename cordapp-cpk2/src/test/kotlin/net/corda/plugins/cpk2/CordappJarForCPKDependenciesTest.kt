@@ -2,13 +2,13 @@ package net.corda.plugins.cpk2
 
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.testkit.runner.TaskOutcome.SUCCESS
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
 import org.junit.jupiter.api.TestReporter
 import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Path
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.Test
 
 /**
  * Generating the CPKDependencies file requires that Gradle
@@ -50,7 +50,7 @@ class CordappJarForCPKDependenciesTest {
             .doesNotExist()
         assertThat(testProject.cpkDependencies)
             .anyMatch { it.name == "com.example.cordapp" && it.version == toOSGi(cordappVersion) }
-            .allMatch { it.signers.isSameAsMe }
+            .allMatch { it.verifySameSignerAsMe }
             .hasSize(1)
     }
 }

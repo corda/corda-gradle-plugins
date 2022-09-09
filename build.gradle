@@ -118,7 +118,8 @@ subprojects {
 // Only the top-level projects are plugins, so only publish these ones.
 // The "child projects" are the immediate children of the root. Any
 // "grandchild" project is considered to be internal to its parent.
-def publishProjects = childProjects.values()
+//  if maven.repo.s3 is set publish DP2 specific artifacts
+def publishProjects = hasProperty('maven.repo.s3') ? [ project(':cordapp-cpk2')] : childProjects.values()
 
 configure(publishProjects) { Project subproject ->
     apply plugin: 'com.jfrog.artifactory'
@@ -242,6 +243,19 @@ configure(publishProjects) { Project subproject ->
                 }
             }
         }
+        if (subproject.hasProperty('maven.repo.s3')) {
+            repositories {
+                maven {
+                    name = 'AWS'
+                    url = subproject.findProperty('maven.repo.s3')
+                    credentials(AwsCredentials) {
+                        accessKey "${System.getenv('AWS_ACCESS_KEY_ID')}"
+                        secretKey "${System.getenv('AWS_SECRET_ACCESS_KEY')}"
+                        sessionToken "${System.getenv('AWS_SESSION_TOKEN')}"
+                    }
+                }
+            }
+      }
     }
 }
 
