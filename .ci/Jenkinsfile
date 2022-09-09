@@ -1,4 +1,4 @@
-@Library('corda-shared-build-pipeline-steps@ronanb/non-standard-publishing') _
+@Library('corda-shared-build-pipeline-steps@DP2') _
 
 cordaPipeline(
     dedicatedJobForSnykDelta: false,
@@ -8,5 +8,6 @@ cordaPipeline(
     slimBuild: true,
     stableUnstableRepoPattern: false,
     nexusAppId :'corda-gradle-plugins-7.0.0',
-    snykAdditionalCommands: "--all-sub-projects --configuration-matching='^runtimeClasspath\$' -d"
+    snykAdditionalCommands: "--all-sub-projects --configuration-matching='^runtimeClasspath\$' -d",
+    enableNotifications: false
     )

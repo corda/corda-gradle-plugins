@@ -263,7 +263,7 @@ artifactory {
     publish {
         contextUrl = artifactory_contextUrl
         repository {
-            repoKey =  System.getenv('CORDA_PUBLISH_REPOSITORY_KEY') ?: System.getProperty('corda.artifactory.repokey', 'corda-dev')
+            repoKey =  'corda-releases'
             username = project.findProperty('cordaArtifactoryUsername') ?: System.getenv('CORDA_ARTIFACTORY_USERNAME') ?: System.getProperty('corda.artifactory.username')
             password = project.findProperty('cordaArtifactoryPassword') ?: System.getenv('CORDA_ARTIFACTORY_PASSWORD') ?: System.getProperty('corda.artifactory.password')
         }
