@@ -47,6 +47,7 @@ open class Node @Inject constructor(
         private const val LOGS_DIR_NAME = "logs"
         private const val CPK_TASK_NAME = "cpk"
 
+        private val TESTSERVER_PATTERN = "^corda-(testserver|webserver)-.*\\.jar\$".toRegex()
         private val WHITESPACE = "\\s++".toRegex()
 
         /**
@@ -461,12 +462,8 @@ open class Node @Inject constructor(
         } ?: run {
             // If no webserver JAR is provided, the default development webserver is used.
             task.logger.lifecycle("Using default development webserver.")
-            try {
-                Cordformation.verifyAndGetRuntimeJar(task.project, "corda-testserver")
-            } catch (e: IllegalStateException) {
-                task.logger.lifecycle("Detecting older version of corda. Falling back to the old webserver.")
-                Cordformation.verifyAndGetRuntimeJar(task.project, "corda-webserver")
-            }
+            val configurations = task.project.configurations
+            Cordformation.verifyAndGetRuntimeJar(configurations, TESTSERVER_PATTERN)
         }
 
         fs.copy {

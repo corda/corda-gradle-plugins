@@ -4,6 +4,9 @@ import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.ConfigurationContainer
+import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.plugins.JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME
 import org.gradle.util.GradleVersion
@@ -36,25 +39,26 @@ class Cordformation : Plugin<Project> {
             return outputFile
         }
 
+        private fun Iterable<Dependency>.toUniqueFiles(configuration: Configuration): Set<File> {
+            return flatMapTo(LinkedHashSet()) { dep -> configuration.files(dep) }
+        }
+
         /**
          * Gets a current built corda jar file
          *
-         * @param project The project environment this plugin executes in.
-         * @param jarName The name of the JAR you wish to access.
-         * @return A file handle to the file in the JAR.
+         * @param configurations The [ConfigurationContainer] for this project.
+         * @param jarExpression A [Regex] to match the name of our jar.
+         * @return A [File] for the requested jar artifact.
          */
-        fun verifyAndGetRuntimeJar(project: Project, jarName: String): File {
-            val releaseVersion = project.findRootProperty("corda_release_version")
-                    ?: throw IllegalStateException("Could not find a valid declaration of \"corda_release_version\"")
-            // need to cater for optional classifier (eg. corda-4.3-jdk11.jar)
-            val pattern = "\\Q$jarName\\E(-enterprise)?-\\Q$releaseVersion\\E(-.+)?\\.jar\$".toRegex()
-            val maybeJar = project.configurations.getByName(DEPLOY_CORDFORMATION_CONFIGURATION_NAME).filter {
-                it.toString().contains(pattern)
+        fun verifyAndGetRuntimeJar(configurations: ConfigurationContainer, jarExpression: Regex): File {
+            val cordaDeps = configurations.getByName(CORDA_CONFIGURATION_NAME).allDependencies
+            val maybeJar = cordaDeps.toUniqueFiles(configurations.getByName(DEPLOY_CORDFORMATION_CONFIGURATION_NAME)).filter {
+                jarExpression matches it.name
             }
-            if (maybeJar.isEmpty) {
-                throw IllegalStateException("No $jarName JAR found. Have you deployed the Corda project to Maven? Looked for \"$jarName-$releaseVersion.jar\"")
+            if (maybeJar.isEmpty()) {
+                throw IllegalStateException("No JAR matching '$jarExpression' found. Have you deployed the Corda project to Maven?")
             } else {
-                val jar = maybeJar.singleFile
+                val jar = maybeJar.single()
                 require(jar.isFile) { "$jar either does not exist or is not a file" }
                 return jar
             }
