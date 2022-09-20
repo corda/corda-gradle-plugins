@@ -54,24 +54,6 @@ metadata.
 
     <sup>Requires Gradle 7.2</sup>
 
-- [`net.corda.plugins.cordapp`](cordapp/README.md)\
-This plugin packages your CorDapp classes into a single jar file, along with
-the contents of all of the jar's dependent jars. Dependencies which are added
-to Gradle's `cordaCompile`, `cordaRuntime` and `cordapp` configurations are
-excluded from this packaging. The final jar is then signed. It also provides
-a `cordapp` Gradle extension so that you can configure your CorDapp's metadata.
-This metadata is currently optional, but you are _strongly_ advised to provide it.
-
-    <sup>Requires Gradle 5.6</sup>
-
-- [`net.corda.plugins.cordformation`](cordformation/README.rst)\
-This plugin provides `Cordform`, `Dockerform` and `DockerImage` Gradle tasks
-for creating test deployments of multiple Corda nodes and their CorDapps. It
-also invokes the Network Bootstrapper over the deployment for you, and provides
-you with a `runnodes` script to boot it all up afterwards.
-
-    <sup>Requires Gradle 5.1</sup>
-
 - [`net.corda.plugins.quasar-utils`](quasar-utils/README.rst)\
 This plugin configures a Gradle module to use Quasar. Specifically:
     - It allows you to specify the Maven group and version of
@@ -111,14 +93,3 @@ again with their revised byte-code. It has been successfully tested with
 Kotlin 1.4.32 and 1.7.0.
 
     <sup>Requires Gradle 7.2</sup>
-
-- [`net.corda.plugins.publish-utils`](publish-utils/README.rst)\
-**_Here be Dragons!_**
-This plugin helps configure Gradle's `maven-publish` plugin to publish Corda
-modules to Bintray and to R3's Artifactory. However, its workings probably
-shouldn't be allowed and they should _most definitely_ **never** be copied.
-Unfortunately, it is heavily constrained by how JFrog's Bintray and Artifactory
-plugins themselves work, and so we're currently stuck with it "as is". It _is_
-useful though - just shut your eyes and hold your nose.
-
-    <sup>Requires Gradle 6.6</sup>
