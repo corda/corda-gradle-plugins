@@ -19,7 +19,7 @@ class QuasarPluginTest {
 if (org.gradle.api.JavaVersion.current().java9Compatible) {
     version = '0.8.4_r3'
 } else {
-    version = '0.7.14_r3'
+    version = '0.7.15_r3'
 }
 """
 

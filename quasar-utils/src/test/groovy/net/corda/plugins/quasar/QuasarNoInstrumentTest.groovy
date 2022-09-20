@@ -28,7 +28,7 @@ class QuasarNoInstrumentTest {
 
     @Test
     void testUninstrumentedTests() {
-        def quasarVersion = '0.8.7_r3'
+        def quasarVersion = '0.8.8_r3'
         def output = runGradleFor """\
 plugins {
     id 'net.corda.plugins.quasar-utils'
@@ -57,7 +57,7 @@ tasks.named('test', Test) {
 
     @Test
     void testUninstrumentedJavaExec() {
-        def quasarVersion = '0.8.7_r3'
+        def quasarVersion = '0.8.8_r3'
         def output = runGradleFor """\
 plugins {
     id 'net.corda.plugins.quasar-utils'
