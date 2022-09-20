@@ -304,6 +304,9 @@ class CordappPlugin @Inject constructor(
                 // Set the CPK version tag to the same value as Bundle-Version.
                 bnd("$CPK_CORDAPP_VERSION: \${$BUNDLE_VERSION}")
 
+                // Disable the bndfile property, which could clobber our bnd instructions.
+                bndfile.fileValue(null).disallowChanges()
+
                 // Accessing the Gradle [Project] during the task execution
                 // phase is incompatible with Gradle's configuration cache.
                 // Prevent this task from accessing the project's properties.

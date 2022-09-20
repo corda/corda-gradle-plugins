@@ -210,7 +210,7 @@ open class OsgiExtension(objects: ObjectFactory, jar: Jar) {
 
     private fun declareEmbeddedJars(locations: Set<FileSystemLocation>): String {
         return if (locations.isNotEmpty()) {
-            val includeResource = StringJoiner(",", "-includeresource:", System.lineSeparator())
+            val includeResource = StringJoiner(",", "-includeresource.cordapp:", System.lineSeparator())
             val bundleClassPath = StringJoiner(",", "$BUNDLE_CLASSPATH=", System.lineSeparator()).add(".")
             for (location in locations) {
                 val file = location.asFile
