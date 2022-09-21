@@ -308,6 +308,9 @@ class CordappPlugin @Inject constructor(
                 // Add Bnd instructions to scan for any contracts, flows, schemas etc.
                 bnd(osgi.scanCordaClasses)
 
+                // Disable the bndfile property, which could clobber our bnd instructions.
+                bndfile.fileValue(null).disallowChanges()
+
                 // Accessing the Gradle [Project] during the task execution
                 // phase is incompatible with Gradle's configuration cache.
                 // Prevent this task from accessing the project's properties.
