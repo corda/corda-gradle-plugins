@@ -10,7 +10,7 @@ repositories {
 }
 
 dependencies {
-    api 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
+    compileOnly 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
 }
 
 tasks.named('jar', Jar) {
