@@ -21,6 +21,7 @@ import java.io.InputStream
 import java.util.Collections.unmodifiableSet
 import java.util.Properties
 import java.util.StringJoiner
+import java.util.TreeMap
 
 /**
  * Registers these [OsgiExtension] properties as task inputs,
@@ -253,7 +254,7 @@ open class OsgiExtension(objects: ObjectFactory, jar: Jar) {
         .apply(Property<String>::finalizeValueOnRead)
 
     private fun generateCordaClassQuery(cordaClasses: Map<String, String>): String {
-        return cordaClasses.map { cordaClass ->
+        return TreeMap(cordaClasses).map { cordaClass ->
             // This NAMED filter only identifies "anonymous" classes.
             // Adding STATIC removes all inner classes as well.
             "${cordaClass.key}=\${classes;${cordaClass.value};CONCRETE;PUBLIC;STATIC;NAMED;!*\\.[\\\\d]+*}"

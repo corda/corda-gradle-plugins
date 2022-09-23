@@ -4,3 +4,5 @@ pluginManagement {
         gradlePluginPortal()
     }
 }
+
+includeBuild '../resources/test/base-cordapp-configuration'

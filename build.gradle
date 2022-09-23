@@ -50,6 +50,11 @@ subprojects {
                 website = project.vcsUrl
                 vcsUrl = project.vcsUrl
                 tags = ['corda']
+
+                mavenCoordinates {
+                    groupId = project.group
+                    artifactId = project.name
+                }
             }
         }
     }

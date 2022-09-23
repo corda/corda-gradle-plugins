@@ -63,6 +63,8 @@ class CordappPlugin @Inject constructor(
         private const val MIN_GRADLE_VERSION = "7.2"
         private const val UNKNOWN = "Unknown"
 
+        private const val CORDAPP_VERSION_INSTRUCTION = "$CPK_CORDAPP_VERSION=\${$BUNDLE_VERSION}"
+
         private val CORDAPP_BUILD_CONFIGURATIONS: List<String> = unmodifiableList(listOf(
             /**
              * Every CorDapp configuration is a super-configuration of at least one of these
@@ -284,7 +286,8 @@ class CordappPlugin @Inject constructor(
             osgi.embed(calculatorTask.flatMap(DependencyCalculator::embeddedJars))
             jar.inputs.nested(OSGI_EXTENSION_NAME, osgi)
 
-            with(jar.extensions.getByType(BundleTaskExtension::class.java)) {
+            val bndBundle = jar.extensions.getByType(BundleTaskExtension::class.java)
+            with(bndBundle) {
                 // Add jars which have been migrated off the Bundle-Classpath
                 // back into Bnd's regular classpath.
                 classpath(calculatorTask.flatMap(DependencyCalculator::unbundledJars))
@@ -302,7 +305,7 @@ class CordappPlugin @Inject constructor(
                 bnd(osgi.scanCordaClasses)
 
                 // Set the CPK version tag to the same value as Bundle-Version.
-                bnd("$CPK_CORDAPP_VERSION: \${$BUNDLE_VERSION}")
+                bnd(CORDAPP_VERSION_INSTRUCTION)
 
                 // Disable the bndfile property, which could clobber our bnd instructions.
                 bndfile.fileValue(null).disallowChanges()
@@ -328,6 +331,15 @@ class CordappPlugin @Inject constructor(
 
                 if (!osgi.configured) {
                     t.logger.warn("CORDAPP PLUGIN NOT CONFIGURED! Please apply '$CORDAPP_CONFIG_PLUGIN_ID' plugin to root project.")
+                }
+
+                // Check that Bnd still contains all the instructions we expect.
+                bndBundle.bnd.get().parseInstructions().apply {
+                    // No need to check the exports because they're computed as the jar is built.
+                    mustContain(osgi.imports.get())
+                    mustContainAll(osgi.embeddedJars.get().parseInstructions())
+                    mustContainAll(osgi.scanCordaClasses.get().parseInstructions())
+                    mustContain(CORDAPP_VERSION_INSTRUCTION)
                 }
 
                 t.fileMode = Integer.parseInt("444", 8)
@@ -455,6 +467,26 @@ class CordappPlugin @Inject constructor(
             throw InvalidUserDataException("CorDapp `versionId` must not be smaller than 1.")
         }
         return value
+    }
+
+    private fun Map<String, String>.mustContain(item: String?) {
+        val required = item?.parseInstruction() ?: return
+        val actualValue = get(required.first)
+        if (actualValue != required.second) {
+            throw InvalidUserDataException("Bnd instruction '$item' was replaced with '$actualValue'")
+        }
+    }
+
+    private fun Map<String, String>.mustContainAll(items: Map<String, String>) {
+        if (items.isNotEmpty()) {
+            val missing = items.toMutableMap()
+            items.keys.forEach { key ->
+                missing.remove(key, get(key))
+            }
+            if (missing.isNotEmpty()) {
+                throw InvalidUserDataException("Bnd instructions $missing were replaced with ${filterKeys(missing.keys::contains)}.")
+            }
+        }
     }
 }
 
