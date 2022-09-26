@@ -34,10 +34,13 @@ import java.util.stream.Collectors.toList
 const val VERIFY_BUNDLE_TASK_NAME = "verifyBundle"
 const val CPB_TASK_NAME = "cpb"
 
+const val CORDA_CONTRACT_CLASSES = "Corda-Contract-Classes"
+const val CORDA_MAPPED_SCHEMA_CLASSES = "Corda-MappedSchema-Classes"
+const val CORDA_WORKFLOW_CLASSES = "Corda-Flow-Classes"
+
 const val testPlatformVersion = "1000"
 const val expectedCordappContractVersion = 2
 const val expectedCordappWorkflowVersion = 3
-const val expectedCordappServiceVersion = 4
 const val cordaReleaseVersion = "4.8"
 const val cordaApiVersion = "5.0.0"
 const val annotationsVersion = "1.0.1"
