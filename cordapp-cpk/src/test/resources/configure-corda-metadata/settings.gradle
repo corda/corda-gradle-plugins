@@ -14,5 +14,4 @@ include 'cordapp'
 include 'corda-api'
 project(':corda-api').projectDir = file('../resources/test/corda-api')
 
-includeBuild '../resources/test/cordapp-configuration'
-
+includeBuild '../resources/test/custom-cordapp-configuration'
