@@ -31,6 +31,7 @@ fun TaskInputs.nested(nestName: String, osgi: OsgiExtension) {
     property("${nestName}.autoExport", osgi.autoExport)
     property("${nestName}.exports", osgi.exports)
     property("${nestName}.embeddedJars", osgi.embeddedJars)
+    property("${nestName}.applyImportPolicies", osgi.applyImportPolicies)
     property("${nestName}.imports", osgi.imports)
     property("${nestName}.scanCordaClasses", osgi.scanCordaClasses)
     property("${nestName}.symbolicName", osgi.symbolicName)
@@ -224,6 +225,7 @@ open class OsgiExtension(objects: ObjectFactory, jar: Jar) {
         }
     }
 
+    @get:Input
     val applyImportPolicies: Property<Boolean> = objects.property(Boolean::class.java).convention(true)
 
     private val activePolicies: Provider<out Map<String, String>>
