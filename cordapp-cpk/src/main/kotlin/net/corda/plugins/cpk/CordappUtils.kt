@@ -70,10 +70,6 @@ const val CPK_FORMAT = "1.0"
 
 // These tags are for the "main" JAR file.
 const val PLATFORM_VERSION_X = 999
-const val CORDA_CONTRACT_CLASSES = "Corda-Contract-Classes"
-const val CORDA_WORKFLOW_CLASSES = "Corda-Flow-Classes"
-const val CORDA_MAPPED_SCHEMA_CLASSES = "Corda-MappedSchema-Classes"
-const val CORDA_SERVICE_CLASSES = "Corda-Service-Classes"
 const val IMPORT_POLICY_PACKAGES = "Import-Policy-Packages"
 const val REQUIRED_PACKAGES = "Required-Packages"
 

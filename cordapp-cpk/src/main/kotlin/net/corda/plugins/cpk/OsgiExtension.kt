@@ -16,7 +16,6 @@ import org.osgi.framework.Constants.BUNDLE_CLASSPATH
 import org.osgi.framework.Constants.IMPORT_PACKAGE
 import java.io.IOException
 import java.io.InputStream
-import java.util.Collections.unmodifiableMap
 import java.util.Collections.unmodifiableSet
 import java.util.Properties
 import java.util.StringJoiner
@@ -41,13 +40,6 @@ open class OsgiExtension(objects: ObjectFactory, jar: Jar) {
         private const val CORDAPP_CONFIG_FILENAME = "cordapp-configuration.properties"
 
         private val CORDA_CLASSES = "^Corda-.+-Classes\$".toRegex()
-
-        private val BASE_CORDA_CLASSES: Map<String, String> = unmodifiableMap(mapOf(
-            CORDA_CONTRACT_CLASSES to "IMPLEMENTS;net.corda.v5.ledger.contracts.Contract",
-            CORDA_WORKFLOW_CLASSES to "IMPLEMENTS;net.corda.v5.application.flows.Flow",
-            CORDA_MAPPED_SCHEMA_CLASSES to "EXTENDS;net.corda.v5.persistence.MappedSchema",
-            CORDA_SERVICE_CLASSES to "IMPLEMENTS;net.corda.v5.application.services.CordaService"
-        ))
 
         /**
          * We need to import these packages so that the OSGi framework
@@ -298,8 +290,6 @@ open class OsgiExtension(objects: ObjectFactory, jar: Jar) {
 
         // Add the auto-extracted package names to the exports.
         _exports.addAll(autoExported)
-
-        _cordaClasses.putAll(BASE_CORDA_CLASSES)
 
         /**
          * Read an optional configuration file from a "friend" plugin:
