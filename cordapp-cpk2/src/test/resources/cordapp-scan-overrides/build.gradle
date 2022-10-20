@@ -7,23 +7,29 @@ apply from: 'repositories.gradle'
 apply from: 'javaTarget.gradle'
 
 group = 'com.example'
-version = '1.0.1-SNAPSHOT'
+version = cordapp_version
 
 cordapp {
     targetPlatformVersion = platform_version.toInteger()
-    minimumPlatformVersion = platform_version.toInteger()
 
     contract {
-        name = 'Complex Packages'
+        name = 'CorDapp Scan Overrides'
         versionId = cordapp_contract_version.toInteger()
         licence = 'Test-Licence'
         vendor = 'R3'
     }
 }
 
-jar {
-    archiveBaseName = 'complex-packages'
-    osgi {
-        autoExport = false
+dependencies {
+    cordaProvided project(':corda-api')
+}
+
+tasks.named('jar', Jar) {
+    archiveBaseName = 'cordapp-scan-overrides'
+    bundle {
+        bnd '''\
+Corda-Contract-Classes=NONSENSE
+Corda-Flow-Classes=RUBBISH
+'''
     }
 }

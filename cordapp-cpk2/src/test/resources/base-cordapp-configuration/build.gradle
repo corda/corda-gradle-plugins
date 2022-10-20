@@ -5,7 +5,7 @@ plugins {
     id 'java-library'
 }
 
-group = 'com.example'
+group = 'net.corda.cordapp'
 
 java {
     toolchain {

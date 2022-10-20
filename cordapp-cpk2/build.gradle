@@ -64,14 +64,27 @@ sourceSets {
 }
 
 dependencies {
+    constraints {
+        implementation('biz.aQute.bnd:biz.aQute.bnd.gradle') {
+            version {
+                require bnd_version
+            }
+        }
+        implementation('biz.aQute.bnd:biz.aQute.bndlib') {
+            version {
+                require bnd_version
+            }
+        }
+    }
+
     // Gradle plugins written in Kotlin will always use Gradle's
     // own provided Kotlin libraries at runtime. So ensure that
     // we don't add Kotlin as a dependency in our published POM.
     compileOnly 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
 
     // Add the Bnd plugins to our classpath too, so that we can use them.
-    implementation "biz.aQute.bnd:biz.aQute.bnd.gradle:$bnd_version"
-    implementation "biz.aQute.bnd:biz.aQute.bndlib:$bnd_version"
+    implementation 'biz.aQute.bnd:biz.aQute.bnd.gradle'
+    implementation 'biz.aQute.bnd:biz.aQute.bndlib'
 
     testImplementation 'org.jetbrains.kotlin:kotlin-test'
     testImplementation "org.junit.jupiter:junit-jupiter-api:$junit_jupiter_version"

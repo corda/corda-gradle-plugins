@@ -14,8 +14,10 @@ import org.w3c.dom.Element
 import java.io.File
 import java.io.IOException
 import java.io.InputStream
+import java.io.StringReader
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
+import java.util.Collections
 import java.util.jar.JarFile
 import java.util.jar.Manifest
 
@@ -182,6 +184,32 @@ private fun isValidPackage(name: String): Boolean {
 
 private fun String.toPackageName(): String {
     return replace(DIRECTORY_SEPARATOR, PACKAGE_SEPARATOR)
+}
+
+/**
+ * Convert a [String] into a [Map] of 'key,value' pairs.
+ * Any lines which do not match the patterns 'key = value'
+ * or 'key: value' are skipped.
+ */
+fun String.parseInstructions(): Map<String, String> = StringReader(this).readLines()
+    .onEach(String::trim)
+    .filterNot(String::isEmpty)
+    .mapNotNull(String::parseInstruction)
+    .toMap(LinkedHashMap())
+    .let(Collections::unmodifiableMap)
+
+fun String.parseInstruction(): Pair<String, String>? {
+    val idx = indexOfFirst { c -> c == '=' || c == ':' }
+    return if (idx == -1) {
+        null
+    } else {
+        val key = substring(0, idx).trim()
+        if (key.isEmpty()) {
+            null
+        } else {
+            key to substring(idx + 1, length).trim()
+        }
+    }
 }
 
 /**

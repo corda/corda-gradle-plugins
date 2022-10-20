@@ -1,0 +1,35 @@
+plugins {
+    id 'net.corda.plugins.cordapp-cpk2'
+}
+
+apply from: 'repositories.gradle'
+apply from: 'javaTarget.gradle'
+
+group = 'com.example'
+version = cordapp_version
+
+cordapp {
+    targetPlatformVersion = platform_version.toInteger()
+
+    contract {
+        name = 'CorDapp Embedded Overrides'
+        versionId = cordapp_contract_version.toInteger()
+        licence = 'Test-Licence'
+        vendor = 'R3'
+    }
+}
+
+dependencies {
+    cordaProvided project(':corda-api')
+    cordaEmbedded "commons-io:commons-io:$commons_io_version"
+}
+
+tasks.named('jar', Jar) {
+    archiveBaseName = 'cordapp-embedded-overrides'
+    bundle {
+        bnd '''\
+Bundle-ClassPath=NONSENSE
+-includeresource.cordapp:@bongo.jar
+'''
+    }
+}
