@@ -140,7 +140,16 @@ As with `cordaProvided`, the dependency is also added implicitly to Gradle's `co
 published POM file, and the contents of the CPK file. The "main" jars of all `cordapp` dependencies
 are listed as lines in this "main" jar's `META-INF/CPKDependencies.json` file:
 ```json
-{"formatVersion":"2.0","dependencies":[{"name":"$BUNDLE_SYMBOLIC_NAME","version":"$BUNDLE_VERSION","verifySameSignerAsMe":true}]}
+{
+    "formatVersion": "2.0",
+    "dependencies": [
+        {
+            "name": "$BUNDLE_SYMBOLIC_NAME",
+            "version": "$BUNDLE_VERSION",
+            "verifySameSignerAsMe": true
+        }
+    ]
+}
 ```
 `cordapp` dependencies are transitive in the sense that if CorDapp `B` declares a `cordapp`
 dependency on CorDapp `A`, and then CorDapp `C` declares a `cordapp` dependency on CorDapp `B`,
