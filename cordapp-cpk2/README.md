@@ -3,7 +3,7 @@
 
 ## Purpose.
 Applying this plugin to a project declares that the project should create a CPK-format CorDapp. The CPK-format
-CorDapp is a ZIP file with a `.cpk` extension that contains the output of the `jar` task (the "main" jar), along
+CorDapp is a ZIP file with a `.jar` extension that contains the output of the `jar` task (the "main" jar), along
 with that jar's dependent jars. In practice, the plugin will not include any of Corda's own jars among these
 dependencies, nor any jars which should be provided by Corda, e.g. Kotlin or Quasar. The "main" jar  should also
 contain sufficient OSGi metadata to be a valid OSGi bundle.
@@ -138,19 +138,9 @@ not become transitive `cordaProvided` dependencies of any CorDapps which depend 
 As with `cordaProvided`, the dependency is also added implicitly to Gradle's `compileOnly` and
 `*Implementation` configurations, and is excluded from the `runtimeClasspath` configuration, the
 published POM file, and the contents of the CPK file. The "main" jars of all `cordapp` dependencies
-are listed as lines in this "main" jar's `META-INF/CPKDependencies` file:
-```xml
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<cpkDependencies xmlns="corda-cpk">
-    <cpkDependency>
-        <name>$BUNDLE_SYMBOLIC_NAME</name>
-        <version>$BUNDLE_VERSION</version>
-        <signers>
-            <signer algorithm="$HASH_ALGORITHM">$BASE64_HASH_OF_PUBLIC_KEY</signer>
-        </signers>
-    </cpkDependency>
-    ...
-</cpkDependencies>
+are listed as lines in this "main" jar's `META-INF/CPKDependencies.json` file:
+```json
+{"formatVersion":"2.0","dependencies":[{"name":"$BUNDLE_SYMBOLIC_NAME","version":"$BUNDLE_VERSION","verifySameSignerAsMe":true}]}
 ```
 `cordapp` dependencies are transitive in the sense that if CorDapp `B` declares a `cordapp`
 dependency on CorDapp `A`, and then CorDapp `C` declares a `cordapp` dependency on CorDapp `B`,
@@ -173,7 +163,7 @@ the "companion"'s Maven coordinates will be:
 
 - `cordaEmbedded`: This configuration behaves similarly to `cordaProvided` in the sense that it
 declares a `compileOnly` dependency that is excluded from both the CPK contents and from the
-published POM. The difference is that the dependent jar is also added to a `lib/` folder inside the
+published POM. The difference is that the dependent jar is also added to a `META-INF/privatelib` folder inside the
 CorDapp's "main" jar, and appended to the jar's `Bundle-Classpath` manifest attribute. Note that
 an OSGi framework considers a `Bundle-Classpath` to contain ordinary jars and not bundles, even
 if those jars contain OSGi metadata of their own. Note also that the embedded jars' transitive
@@ -213,14 +203,12 @@ publishing {
 ## External Tasks.
 
 - `jar`: This is the standard `Jar` task created by Gradle's `java-library` plugin, and
-then enhanced by Bnd's `builder` plugin to create an OSGi bundle.
-
-- `cpk`: This task creates a `.cpk` file with the output from `jar` as its "main" jar. The
-contents of the jar's `runtimeClasspath` configuration is added to the CPK's `lib/` folder,
+then enhanced by Bnd's `builder` plugin to create an OSGi bundle. The
+contents of the jar's `runtimeClasspath` configuration is added to the CPK's `META-INF/privatelib` folder,
 except for those jars which have been declared as either a `cordapp`, `cordaProvided`,
 `cordaEmbedded` or `cordaRuntimeOnly` dependency.
 
-The `jar` and `cpk` tasks are both automatic dependencies of Gradle's `assemble` task.
+The `jar` task is an automatic dependency of Gradle's `assemble` task.
 
 ## Internal Tasks.
 
@@ -228,7 +216,7 @@ These tasks perform intermediate steps as part of creating a CPK.
 
 - `cordappDependencyCalculator`: Calculates which jars belong to which part of a CPK's packaging.
 
-- `cordappCPKDependencies`: Generates the "main" jar's `META-INF/CPKDependencies` file.
+- `cordappCPKDependencies`: Generates the "main" jar's `META-INF/CPKDependencies.json` file.
 
 - `verifyBundle`: Verifies that the "main" jar's OSGi metadata is consistent with the packages
 that have been included in the CPK. This task uses Bnd's `Verifier` class with "strict" verification
