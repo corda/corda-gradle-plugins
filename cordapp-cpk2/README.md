@@ -172,7 +172,7 @@ the "companion"'s Maven coordinates will be:
 
 - `cordaEmbedded`: This configuration behaves similarly to `cordaProvided` in the sense that it
 declares a `compileOnly` dependency that is excluded from both the CPK contents and from the
-published POM. The difference is that the dependent jar is also added to a `META-INF/privatelib` folder inside the
+published POM. The difference is that the dependent jar is also added to a `META-INF/lib` folder inside the
 CorDapp's jar, and appended to the jar's `Bundle-Classpath` manifest attribute. Note that
 an OSGi framework considers a `Bundle-Classpath` to contain ordinary jars and not bundles, even
 if those jars contain OSGi metadata of their own. Note also that the embedded jars' transitive
