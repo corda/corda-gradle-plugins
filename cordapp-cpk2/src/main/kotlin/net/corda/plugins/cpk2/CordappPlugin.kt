@@ -2,6 +2,7 @@ package net.corda.plugins.cpk2
 
 import aQute.bnd.gradle.BndBuilderPlugin
 import aQute.bnd.gradle.BundleTaskExtension
+import aQute.bnd.osgi.Constants.NOEXTRAHEADERS
 import net.corda.plugins.cpk2.SignJar.Companion.sign
 import org.gradle.api.Action
 import org.gradle.api.GradleException
@@ -51,6 +52,7 @@ class CordappPlugin @Inject constructor(
 ): Plugin<Project> {
     private companion object {
         private const val UNKNOWN_PLATFORM_VERSION = -1
+        private const val EXCLUDE_EXTRA_HEADERS = "$NOEXTRAHEADERS=true"
         private const val CORDA_PLATFORM_VERSION = "Corda-Platform-Version"
         private const val PLUGIN_PROPERTIES = "cordapp-cpk2.properties"
         private const val DEPENDENCY_CALCULATOR_TASK_NAME = "cordappDependencyCalculator"
@@ -307,6 +309,9 @@ class CordappPlugin @Inject constructor(
                 // Set the CPK version tag to the same value as Bundle-Version.
                 bnd(CORDAPP_VERSION_INSTRUCTION)
 
+                // Instruct Bnd not to add any extra manifest headers concerning JDK or Bnd versions.
+                bnd(EXCLUDE_EXTRA_HEADERS)
+
                 // Disable the bndfile property, which could clobber our bnd instructions.
                 bndfile.fileValue(null).disallowChanges()
 
@@ -340,6 +345,7 @@ class CordappPlugin @Inject constructor(
                     mustContainAll(osgi.embeddedJars.get().parseInstructions())
                     mustContainAll(osgi.scanCordaClasses.get().parseInstructions())
                     mustContain(CORDAPP_VERSION_INSTRUCTION)
+                    mustContain(EXCLUDE_EXTRA_HEADERS)
                 }
 
                 t.fileMode = Integer.parseInt("444", 8)
