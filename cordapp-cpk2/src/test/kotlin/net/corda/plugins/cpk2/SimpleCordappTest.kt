@@ -1,5 +1,9 @@
 package net.corda.plugins.cpk2
 
+import aQute.bnd.osgi.Constants.BND_LASTMODIFIED
+import aQute.bnd.osgi.Constants.CREATED_BY
+import aQute.bnd.osgi.Constants.PRIVATE_PACKAGE
+import aQute.bnd.osgi.Constants.TOOL
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
@@ -78,7 +82,10 @@ class SimpleCordappTest {
             assertEquals("Test-Licence", getValue(BUNDLE_LICENSE))
             assertEquals("R3", getValue(BUNDLE_VENDOR))
             assertEquals("true", getValue("Sealed"))
-            assertNull(getValue("Private-Package"))
+            assertNull(getValue(PRIVATE_PACKAGE))
+            assertNull(getValue(BND_LASTMODIFIED))
+            assertNull(getValue(CREATED_BY))
+            assertNull(getValue(TOOL))
         }
     }
 
