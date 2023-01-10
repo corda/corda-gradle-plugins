@@ -2,6 +2,16 @@
 
 ## Version 7
 
+### Version 7.0.2
+
+* Upgrade to Bnd 6.4.0.
+
+### Version 7.0.1
+
+* Prevent Bnd from adding extra manifest attributes to the CPK bundle.
+
+### Version 7.0.0
+
 * Compatible with Gradle 7.2+.
 * Replace `cordapp-cpk`, `cordapp-cpb` with `cordapp-cpk2`, `cordapp-cpb2`.
 * Retire the `flask` plugin.

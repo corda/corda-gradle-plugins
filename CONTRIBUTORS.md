@@ -120,6 +120,7 @@ changes to this list.
 * Robin Green (CIBC)
 * Rodrigo Bueno (Itau)
 * Roger Willis (R3)
+* Ronan Browne (R3)
 * Ross Burnett (Macquarie)
 * Ross Nicoll (R3)
 * Sajindra Jayasena (Deutsche Bank)
