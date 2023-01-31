@@ -8,5 +8,6 @@ cordaPipeline(
     slimBuild: true,
     stableUnstableRepoPattern: false,
     nexusAppId :'corda-gradle-plugins-7.0.0',
-    snykAdditionalCommands: "--configuration-matching='^runtimeClasspath\$' -d"
+    snykAdditionalCommands: "--configuration-matching='^runtimeClasspath\$' -d",
+    gitHubComments: false
     )
