@@ -16,9 +16,9 @@ repositories {
 }
 
 ext {
-    kotlin_metadata_version = '0.4.2'
-    test_kotlin_api_version = '1.5'
-    test_kotlin_version = '1.7.10'
+    kotlin_metadata_version = '0.6.0'
+    test_kotlin_api_version = '1.7'
+    test_kotlin_version = '1.7.21'
 }
 
 gradlePlugin {
