@@ -111,7 +111,11 @@ class CordappPlugin @Inject constructor(
 
         // Create our plugin's "cordapp" extension.
         cordapp = with(pluginProperties) {
-            project.extensions.create(CORDAPP_EXTENSION_NAME, CordappExtension::class.java, getValue("osgiVersion"), getValue("bndVersion"))
+            project.extensions.create(CORDAPP_EXTENSION_NAME, CordappExtension::class.java,
+                getValue("osgiVersion"),
+                getValue("bndVersion"),
+                getValue("jetbrainsAnnotationsVersion")
+            )
         }
 
         project.configurations.apply {
@@ -144,6 +148,9 @@ class CordappPlugin @Inject constructor(
 
                 val osgiDependency = project.dependencies.create("org.osgi:osgi.annotation:" + cordapp.osgiVersion.get())
                 dependencies.add(osgiDependency)
+
+                val jetbrainsDependency = project.dependencies.create("org.jetbrains:annotations:" + cordapp.jetbrainsAnnotationsVersion.get())
+                dependencies.add(jetbrainsDependency)
             }
 
             // We will ALWAYS want to compile against bundles, and not classes.

@@ -35,7 +35,7 @@ import java.io.File
 import java.util.function.Function
 import javax.inject.Inject
 
-@Suppress("UnstableApiUsage", "MemberVisibilityCanBePrivate")
+@Suppress("MemberVisibilityCanBePrivate")
 @DisableCachingByDefault
 open class VerifyBundle @Inject constructor(objects: ObjectFactory) : DefaultTask() {
 

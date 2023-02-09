@@ -22,7 +22,7 @@ fun TaskInputs.nested(nestName: String, signing: Signing) {
     nested("${nestName}.options", signing.options)
 }
 
-@Suppress("UnstableApiUsage", "Unused", "PlatformExtensionReceiverOfInline")
+@Suppress("Unused")
 open class Signing @Inject constructor(objects: ObjectFactory, providers: ProviderFactory) {
 
     @get:Input

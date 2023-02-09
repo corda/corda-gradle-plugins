@@ -22,14 +22,17 @@ fun TaskInputs.nested(nestName: String, cordapp: CordappExtension) {
     nested("${nestName}.signing", cordapp.signing)
     property("${nestName}.sealing", cordapp.sealing)
     property("${nestName}.bndVersion", cordapp.bndVersion)
+    property("${nestName}.osgiVersion", cordapp.osgiVersion)
+    property("${nestName}.jetbrainsAnnotationsVersion", cordapp.jetbrainsAnnotationsVersion)
 }
 
-@Suppress("UnstableApiUsage", "Unused", "PlatformExtensionReceiverOfInline")
+@Suppress("Unused")
 open class CordappExtension @Inject constructor(
     objects: ObjectFactory,
     providers: ProviderFactory,
     osgiVersion: String,
-    bndVersion: String
+    bndVersion: String,
+    jetbrainsAnnotationsVersion: String
 ) {
     /**
      * Top-level CorDapp attributes
@@ -72,6 +75,9 @@ open class CordappExtension @Inject constructor(
 
     @get:Input
     val osgiVersion: Property<String> = objects.property(String::class.java).convention(osgiVersion)
+
+    @get:Input
+    val jetbrainsAnnotationsVersion: Property<String> = objects.property(String::class.java).convention(jetbrainsAnnotationsVersion)
 
     /**
      * This property only provides the default value for [CPKDependenciesTask.hashAlgorithm], which is

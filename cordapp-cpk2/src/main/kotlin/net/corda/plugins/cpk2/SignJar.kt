@@ -28,7 +28,7 @@ import java.nio.file.Paths
 import java.nio.file.StandardCopyOption.REPLACE_EXISTING
 import javax.inject.Inject
 
-@Suppress("Unused", "UnstableApiUsage", "MemberVisibilityCanBePrivate")
+@Suppress("Unused", "MemberVisibilityCanBePrivate")
 @DisableCachingByDefault
 open class SignJar @Inject constructor(objects: ObjectFactory) : DefaultTask() {
     companion object {

@@ -37,7 +37,7 @@ fun TaskInputs.nested(nestName: String, osgi: OsgiExtension) {
     property("${nestName}.symbolicName", osgi.symbolicName)
 }
 
-@Suppress("UnstableApiUsage", "MemberVisibilityCanBePrivate", "unused")
+@Suppress("MemberVisibilityCanBePrivate", "unused")
 open class OsgiExtension(objects: ObjectFactory, jar: Jar) {
     private companion object {
         private const val CORDAPP_CONFIG_FILENAME = "cordapp-configuration.properties"

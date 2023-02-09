@@ -14,7 +14,7 @@ import org.gradle.api.artifacts.Dependency.ARCHIVES_CONFIGURATION
 import org.gradle.api.plugins.JavaPlugin.JAR_TASK_NAME
 import org.gradle.api.tasks.bundling.Jar
 
-@Suppress("Unused", "UnstableApiUsage")
+@Suppress("Unused")
 class CpbPlugin : Plugin<Project> {
 
     companion object {

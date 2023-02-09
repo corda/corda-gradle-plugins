@@ -19,7 +19,7 @@ fun TaskInputs.nested(nestName: String, data: CordappData) {
     property("${nestName}.licence", data.licence).optional(true)
 }
 
-@Suppress("UnstableApiUsage", "Unused")
+@Suppress("Unused")
 open class CordappData @Inject constructor(objects: ObjectFactory) {
     @get:Optional
     @get:Input
