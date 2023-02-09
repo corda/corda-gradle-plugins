@@ -2,8 +2,8 @@
 package net.corda.gradle.jarfilter.asm
 
 import kotlinx.metadata.InconsistentKotlinMetadataException
-import kotlinx.metadata.jvm.KotlinClassHeader
 import kotlinx.metadata.jvm.KotlinClassMetadata
+import kotlinx.metadata.jvm.Metadata as JvmMetadata
 import net.corda.gradle.jarfilter.ASM_API
 import net.corda.gradle.jarfilter.KOTLIN_METADATA_DATA_FIELD_NAME
 import net.corda.gradle.jarfilter.KOTLIN_METADATA_DESC
@@ -22,7 +22,7 @@ fun <T: Any, X: Any> Class<in T>.metadataAs(template: Class<in X>): ByteArray {
         val templatePrefix = templateDescriptor.dropLast(1) + '$'
         val targetDescriptor = descriptor
         val targetPrefix = targetDescriptor.dropLast(1) + '$'
-        KotlinClassHeader(
+        JvmMetadata(
             m.kind,
             m.metadataVersion,
             m.data1,
@@ -60,9 +60,9 @@ val Class<*>.classMetadata: ClassMetadata get() {
     return ClassMetadata(metadata)
 }
 
-private fun Class<*>.readMetadata(): KotlinClassHeader {
+private fun Class<*>.readMetadata(): Metadata {
     val metadata = getAnnotation(Metadata::class.java)
-    return KotlinClassHeader(
+    return JvmMetadata(
         kind = metadata.kind,
         metadataVersion = metadata.metadataVersion,
         data1 = metadata.data1,
@@ -73,7 +73,7 @@ private fun Class<*>.readMetadata(): KotlinClassHeader {
     )
 }
 
-private class MetadataWriter(metadata: KotlinClassHeader, visitor: ClassVisitor) : ClassVisitor(ASM_API, visitor) {
+private class MetadataWriter(metadata: Metadata, visitor: ClassVisitor) : ClassVisitor(ASM_API, visitor) {
     private val kotlinMetadata: MutableMap<String, Array<String>> = mutableMapOf(
         KOTLIN_METADATA_DATA_FIELD_NAME to metadata.data1,
         KOTLIN_METADATA_STRINGS_FIELD_NAME to metadata.data2
