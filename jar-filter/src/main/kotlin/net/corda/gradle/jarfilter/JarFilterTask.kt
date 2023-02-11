@@ -38,7 +38,7 @@ import java.util.zip.ZipOutputStream
 import javax.inject.Inject
 import kotlin.math.max
 
-@Suppress("Unused", "UnstableApiUsage")
+@Suppress("Unused")
 @DisableCachingByDefault
 open class JarFilterTask @Inject constructor(objects: ObjectFactory, layouts: ProjectLayout) : DefaultTask() {
     private companion object {

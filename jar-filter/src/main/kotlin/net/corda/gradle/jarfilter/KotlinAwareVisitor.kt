@@ -94,7 +94,7 @@ abstract class KotlinAwareVisitor(
             is KotlinClassMetadata.FileFacade -> processFileFacadeMetadata(header, metadata)
             is KotlinClassMetadata.MultiFileClassPart -> processMultiFileClassPartMetadata(header, metadata)
             is KotlinClassMetadata.SyntheticClass -> {
-                logger.log(level,"-- synthetic class ignored")
+                logger.log(level, "-- synthetic class ignored")
                 null
             }
             else -> {
@@ -102,7 +102,7 @@ abstract class KotlinAwareVisitor(
                  * For class-kind=4 (i.e. "multi-file"), we currently
                  * expect data1=[list of multi-file-part classes], data2=null.
                  */
-                logger.log(level,"-- unsupported class-kind {}", classKind)
+                logger.log(level, "-- unsupported class-kind {}", classKind)
                 null
             }
         }

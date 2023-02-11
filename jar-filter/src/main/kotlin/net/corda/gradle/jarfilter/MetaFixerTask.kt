@@ -31,7 +31,7 @@ import java.util.zip.ZipFile
 import java.util.zip.ZipOutputStream
 import javax.inject.Inject
 
-@Suppress("Unused", "UnstableApiUsage")
+@Suppress("Unused")
 @DisableCachingByDefault
 open class MetaFixerTask @Inject constructor(objects: ObjectFactory, layouts: ProjectLayout) : DefaultTask() {
     init {

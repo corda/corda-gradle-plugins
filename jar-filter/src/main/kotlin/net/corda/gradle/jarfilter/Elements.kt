@@ -52,8 +52,8 @@ class MethodElement(name: String, descriptor: String, access: Int = DUMMY_ELEMEN
     override fun toString(): String = "MethodElement[name=$name, descriptor=$descriptor, access=$access]"
 
     val isConstructor: Boolean get() = isObjectConstructor || isClassConstructor
-    val isClassConstructor: Boolean get() = name == "<clinit>"
-    val isObjectConstructor: Boolean get() = name == "<init>"
+    private val isClassConstructor: Boolean get() = name == "<clinit>"
+    private val isObjectConstructor: Boolean get() = name == "<init>"
     val isVoidFunction: Boolean get() = !isConstructor && descriptor.endsWith(")V")
 
     private val suffix: String

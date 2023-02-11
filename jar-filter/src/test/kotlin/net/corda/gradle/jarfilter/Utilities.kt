@@ -53,7 +53,6 @@ fun getBasicArgsForTasks(vararg taskNames: String): MutableList<String> = mutabl
  * Gradle 6.x is compatible with Java 8 <= x <= Java 15.
  * Gradle 7.0 is compatible with Java 8 <= x <= Java 16.
  */
-@Suppress("UnstableApiUsage")
 fun isDebuggable(gradleVersion: GradleVersion): Boolean {
     return VERSION_15.isCompatibleWith(current()) || gradleVersion >= GRADLE_7
 }
@@ -67,7 +66,7 @@ fun copyResourceTo(resourceName: String, target: Path) {
 
 @Throws(IOException::class)
 fun Path.installResources(vararg resourceNames: String) {
-    resourceNames.forEach { installResource(it) }
+    resourceNames.forEach(::installResource)
 }
 
 @Throws(IOException::class)
