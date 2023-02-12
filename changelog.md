@@ -4,11 +4,12 @@
 
 ### Version 7.0.2
 
-* Upgrade to Bnd 6.4.0.
+* `cordapp-cpk2`: Upgrade to Bnd 6.4.0.
+* `quasar-utils`: Upgrade to use Quasar 0.8.9_r3.
 
 ### Version 7.0.1
 
-* Prevent Bnd from adding extra manifest attributes to the CPK bundle.
+* `cordapp-cpk2`: Prevent Bnd from adding extra manifest attributes to the CPK bundle.
 
 ### Version 7.0.0
 
