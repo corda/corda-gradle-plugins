@@ -21,7 +21,6 @@ import java.io.File
 import java.util.Collections.unmodifiableSet
 import javax.inject.Inject
 
-@Suppress("UnstableApiUsage")
 @DisableCachingByDefault
 open class DependencyCalculator @Inject constructor(objects: ObjectFactory) : DefaultTask() {
     private companion object {
@@ -126,7 +125,7 @@ open class DependencyCalculator @Inject constructor(objects: ObjectFactory) : De
         val (cordaDeps, nonCordaDeps) = runtimeDeps.groupBy { dep ->
             isCordaProvided(dep.group, dep.name)
         }.let { group ->
-            Pair(group[CORDA] ?: emptySet<Dependency>(), group[NON_CORDA] ?: emptySet<Dependency>())
+            Pair(group[CORDA] ?: emptySet(), group[NON_CORDA] ?: emptySet())
         }
 
         // Compute the set of resolved artifacts that will define this CorDapp.

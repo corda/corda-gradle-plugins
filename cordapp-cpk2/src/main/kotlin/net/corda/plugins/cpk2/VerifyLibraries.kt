@@ -20,7 +20,7 @@ import org.osgi.framework.Constants.BUNDLE_MANIFESTVERSION
 import org.osgi.framework.Constants.BUNDLE_SYMBOLICNAME
 import org.osgi.framework.Constants.BUNDLE_VERSION
 
-@Suppress("UnstableApiUsage", "MemberVisibilityCanBePrivate")
+@Suppress("MemberVisibilityCanBePrivate")
 @DisableCachingByDefault
 open class VerifyLibraries @Inject constructor(objects: ObjectFactory) : DefaultTask() {
     init {

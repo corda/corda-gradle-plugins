@@ -57,7 +57,6 @@ class PublishAfterEvaluationHandler(rootProject: Project) : Action<Gradle> {
         }
     }
 
-    @Suppress("UnstableApiUsage")
     private fun publishCompanionFor(project: Project) {
         val publications = (project.extensions.findByType(PublishingExtension::class.java) ?: return).publications
         val pomXmlWriter = PomXmlWriter(project.configurations)

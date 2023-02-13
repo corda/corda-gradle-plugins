@@ -107,6 +107,7 @@ tasks.named('javadoc', Javadoc) {
 processResources {
     filesMatching('**/cordapp-cpk2.properties') {
         expand([
+            'jetbrains_annotations_version': jetbrains_annotations_version,
             'osgi_version': osgi_version,
             'bnd_version': bnd_version
         ])
@@ -122,6 +123,7 @@ processTestResources {
             'corda_guava_version': corda_guava_version,
             'corda_slf4j_version': slf4j_version,
             'osgi_version': osgi_version,
+            'jetbrains_annotations_version': jetbrains_annotations_version,
             'kotlin_version': test_kotlin_version,
             'bnd_version': bnd_version
         ])

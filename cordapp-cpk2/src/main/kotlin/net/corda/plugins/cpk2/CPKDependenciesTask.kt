@@ -28,7 +28,7 @@ import java.util.Base64
 import java.util.jar.JarFile
 import javax.inject.Inject
 
-@Suppress("UnstableApiUsage", "MemberVisibilityCanBePrivate")
+@Suppress("MemberVisibilityCanBePrivate")
 @DisableCachingByDefault
 open class CPKDependenciesTask @Inject constructor(objects: ObjectFactory) : DefaultTask() {
     private companion object {

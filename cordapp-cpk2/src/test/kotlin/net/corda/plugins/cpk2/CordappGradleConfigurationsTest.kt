@@ -9,9 +9,9 @@ import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
 import org.junit.jupiter.api.TestReporter
 import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Path
-import java.util.stream.Collectors.toList
 import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
+import kotlin.streams.asSequence
 
 @TestInstance(PER_CLASS)
 class CordappGradleConfigurationsTest {
@@ -62,8 +62,9 @@ class CordappGradleConfigurationsTest {
         assertThat(cordapp).isRegularFile
 
         dependencies = ZipFile(cordapp.toFile()).use { zip ->
-            zip.stream().filter { entry -> entry.name.startsWith("META-INF/privatelib/") && !entry.isDirectory }
-               .collect(toList())
+            zip.stream().asSequence().filter { entry ->
+                entry.name.startsWith("META-INF/privatelib/") && !entry.isDirectory
+            }.toList()
         }
     }
 

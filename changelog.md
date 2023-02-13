@@ -5,6 +5,7 @@
 ### Version 7.0.2
 
 * `cordapp-cpk2`: Upgrade to Bnd 6.4.0.
+* `cordapp-cpk2`: Include JetBrains annotations as a compile-only dependency.
 * `quasar-utils`: Upgrade to use Quasar 0.8.9_r3.
 
 ### Version 7.0.1
