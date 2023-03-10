@@ -1,6 +1,6 @@
 package net.corda.plugins.cpk2
 
-import java.io.StringReader
+import net.corda.plugins.cpk2.CordappUtils.CPK_DEPENDENCIES
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
@@ -8,6 +8,7 @@ import org.junit.jupiter.api.TestReporter
 import org.junit.jupiter.api.io.TempDir
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
+import java.io.StringReader
 import java.nio.file.Path
 
 /**

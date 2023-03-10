@@ -1,5 +1,6 @@
 package net.corda.plugins.cpk2
 
+import net.corda.plugins.cpk2.CordappUtils.CORDAPP_WORKFLOW_NAME
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeAll
