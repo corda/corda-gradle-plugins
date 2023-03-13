@@ -44,11 +44,13 @@ import java.util.regex.Pattern;
 import javax.inject.Inject;
 
 import static aQute.bnd.osgi.Constants.EXPORT_PACKAGE;
+import static aQute.bnd.osgi.Constants.FIXUPMESSAGES;
 import static aQute.bnd.osgi.Constants.OPTIONAL;
 import static aQute.bnd.osgi.Constants.RESOLUTION_DIRECTIVE;
 import static aQute.bnd.osgi.Constants.STRICT;
 import static aQute.bnd.osgi.Constants.VERSION_ATTRIBUTE;
 import static java.util.Collections.emptyMap;
+import static net.corda.plugins.cpk2.CordappUtils.CLASSES_IN_WRONG_DIRECTORY_FIXUP;
 import static net.corda.plugins.cpk2.CordappUtils.CORDAPP_TASK_GROUP;
 import static net.corda.plugins.cpk2.CordappUtils.flatMapTo;
 import static net.corda.plugins.cpk2.CordappUtils.joinToString;
@@ -128,6 +130,7 @@ public class VerifyBundle extends DefaultTask {
 
     private void verify(@NotNull Jar jar) {
         try (Verifier verifier = new Verifier(jar)) {
+            verifier.setProperty(FIXUPMESSAGES, CLASSES_IN_WRONG_DIRECTORY_FIXUP);
             verifier.setProperty(STRICT, strict.get().toString());
             verifier.verify();
             verifyImportPackage(verifier);

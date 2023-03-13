@@ -25,7 +25,7 @@ tasks.named('jar', Jar) {
 }
 
 dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-osgi-bundle:$kotlin_version"
+    cordaProvided "org.jetbrains.kotlin:kotlin-osgi-bundle:$kotlin_version"
     cordaProvided project(':corda-api')
     cordaProvided("org.hibernate:hibernate-osgi:$hibernate_version") {
         exclude group: 'org.osgi'

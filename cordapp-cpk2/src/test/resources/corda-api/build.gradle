@@ -1,11 +1,9 @@
 plugins {
-    id 'org.jetbrains.kotlin.jvm'
     id 'biz.aQute.bnd.builder'
     id 'java-library'
     id 'maven-publish'
 }
 apply from: '../javaTarget.gradle'
-apply from: '../kotlin.gradle'
 
 group = 'net.corda'
 version = corda_api_version
@@ -19,7 +17,7 @@ repositories {
 
 dependencies {
     compileOnly "org.osgi:osgi.annotation:$osgi_version"
-    api "org.jetbrains.kotlin:kotlin-osgi-bundle:$kotlin_version"
+    compileOnly "org.jetbrains:annotations:$jetbrains_annotations_version"
     api "javax.persistence:javax.persistence-api:$persistence_api_version"
     api "org.slf4j:slf4j-api:$corda_slf4j_version"
     runtimeOnly "com.google.guava:guava:$corda_guava_version"
@@ -41,7 +39,7 @@ Bundle-Name: Fake Corda APIs
 publishing {
     publications {
         cordaApi(MavenPublication) {
-            from components.kotlin
+            from components.java
 
             pom {
                 name = 'Corda API'

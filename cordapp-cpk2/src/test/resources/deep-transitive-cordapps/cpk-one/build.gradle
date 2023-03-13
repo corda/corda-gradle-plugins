@@ -33,6 +33,6 @@ tasks.named('compileKotlin') {
 }
 
 dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-osgi-bundle:$kotlin_version"
+    cordaProvided "org.jetbrains.kotlin:kotlin-osgi-bundle:$kotlin_version"
     cordapp project(':cpk-two')
 }

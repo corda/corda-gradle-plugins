@@ -263,10 +263,16 @@ class GradleProject(private val projectDir: Path, private val reporter: TestRepo
         println(output)
     }
 
+    fun execute(vararg args: String): GradleProject {
+        configureGradle(GradleRunner::build, args)
+        assertEquals(taskOutcome, resultFor(taskName).outcome)
+        return this
+    }
+
     fun build(vararg args: String): GradleProject {
         configureGradle(GradleRunner::build, args)
-        assertThat(buildDir).isDirectory
         assertEquals(taskOutcome, resultFor(taskName).outcome)
+        assertThat(buildDir).isDirectory
         return this
     }
 

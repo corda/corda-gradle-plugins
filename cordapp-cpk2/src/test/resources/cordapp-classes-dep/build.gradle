@@ -23,7 +23,7 @@ cordapp {
 
 dependencies {
     compileOnly "org.osgi:org.osgi.service.component.annotations:$osgi_service_component_version"
-    implementation "org.jetbrains.kotlin:kotlin-osgi-bundle:$kotlin_version"
+    cordaProvided "org.jetbrains.kotlin:kotlin-osgi-bundle:$kotlin_version"
     cordaProvided project(':corda-api')
     implementation project(':library')
 }

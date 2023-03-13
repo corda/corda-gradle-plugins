@@ -31,7 +31,7 @@ tasks.named('jar', Jar) {
 
 dependencies {
     cordaProvided project(':corda-api')
+    cordaProvided "org.jetbrains.kotlin:kotlin-osgi-bundle:$kotlin_version"
     cordapp project(':cordapp')
-    implementation "org.jetbrains.kotlin:kotlin-osgi-bundle:$kotlin_version"
     implementation "com.google.guava:guava:$workflow_guava_version"
 }

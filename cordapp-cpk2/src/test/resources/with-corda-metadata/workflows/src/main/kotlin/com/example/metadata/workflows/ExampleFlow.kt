@@ -1,4 +1,4 @@
-@file:Suppress("unused")
+@file:Suppress("unused", "PackageDirectoryMismatch")
 package com.example.metadata.workflows
 
 import com.example.metadata.contracts.ExampleState

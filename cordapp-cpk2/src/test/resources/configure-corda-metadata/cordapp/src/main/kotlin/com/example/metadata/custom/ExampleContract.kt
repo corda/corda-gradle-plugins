@@ -31,5 +31,8 @@ class ExampleContract : Contract {
 }
 
 class ExampleState(issuer: AbstractParty) : ContractState {
-    override val participants: List<AbstractParty> = unmodifiableList(listOf(issuer))
+    private val participants = unmodifiableList(listOf(issuer))
+    override fun getParticipants(): List<AbstractParty> {
+        return participants
+    }
 }

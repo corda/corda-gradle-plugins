@@ -1,4 +1,4 @@
-@file:Suppress("unused")
+@file:Suppress("unused", "PackageDirectoryMismatch")
 package com.example.metadata.schemas
 
 import net.corda.v5.persistence.MappedSchema
@@ -9,11 +9,7 @@ import javax.persistence.Table
 
 object ExampleSchema
 
-object ExampleSchemaV1 : MappedSchema(
-    schemaFamily = ExampleSchema::class.java,
-    version = 1,
-    mappedTypes = listOf(ExampleEntity::class.java)
-) {
+object ExampleSchemaV1 : MappedSchema(ExampleSchema::class.java, 1, listOf(ExampleEntity::class.java)) {
     @Entity
     @Table(name = "example_entities")
     class ExampleEntity(
