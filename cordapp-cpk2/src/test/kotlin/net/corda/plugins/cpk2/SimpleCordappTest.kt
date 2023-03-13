@@ -4,6 +4,8 @@ import aQute.bnd.osgi.Constants.BND_LASTMODIFIED
 import aQute.bnd.osgi.Constants.CREATED_BY
 import aQute.bnd.osgi.Constants.PRIVATE_PACKAGE
 import aQute.bnd.osgi.Constants.TOOL
+import net.corda.plugins.cpk2.CordappUtils.CORDAPP_PLATFORM_VERSION
+import net.corda.plugins.cpk2.CordappUtils.CPK_DEPENDENCIES
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull

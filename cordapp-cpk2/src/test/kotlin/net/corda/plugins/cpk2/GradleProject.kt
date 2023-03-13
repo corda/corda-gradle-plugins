@@ -4,6 +4,9 @@ package net.corda.plugins.cpk2
 import aQute.bnd.version.MavenVersion.parseMavenString
 import aQute.bnd.version.Version
 import aQute.bnd.version.VersionRange
+import net.corda.plugins.cpk2.CordappUtils.digestFor
+import net.corda.plugins.cpk2.CordappUtils.hashFor
+import net.corda.plugins.cpk2.CordappUtils.manifestOf
 import net.corda.plugins.cpk2.json.CPKDependency
 import net.corda.plugins.cpk2.json.loadCPKDependencies
 import org.assertj.core.api.Assertions.assertThat
@@ -72,14 +75,14 @@ fun toOSGiRange(mavenVersion: String): String {
     }
 }
 
-val Path.manifest: Manifest get() = toFile().manifest
+val Path.manifest: Manifest get() = manifestOf(toFile())
 
 private const val HASH_ALGORITHM = "SHA-256"
 
 @Throws(IOException::class)
 fun Path.hashOfEntry(entryName: String): ByteArray {
     return JarFile(toFile()).use { jar ->
-        jar.getInputStream(jar.getJarEntry(entryName)).use(digestFor(HASH_ALGORITHM)::hashFor)
+        jar.getInputStream(jar.getJarEntry(entryName)).use { hashFor(digestFor(HASH_ALGORITHM), it) }
     }
 }
 
@@ -139,7 +142,6 @@ class GradleProject(private val projectDir: Path, private val reporter: TestRepo
      * Gradle 7.0 is compatible with Java 8 <= x <= Java 16.
      */
     private val isDebuggable: Boolean
-        @Suppress("UnstableApiUsage")
         get() = VERSION_15.isCompatibleWith(current()) || gradleVersion >= GRADLE_7
 
     fun withGradleVersion(version: GradleVersion): GradleProject {
@@ -216,7 +218,7 @@ class GradleProject(private val projectDir: Path, private val reporter: TestRepo
         get() = cpkDependenciesStream.buffered().use(::loadCPKDependencies)
     val cpkDependenciesHash: ByteArray
         @Throws(IOException::class)
-        get() = cpkDependenciesStream.use(digestFor(HASH_ALGORITHM)::hashFor)
+        get() = cpkDependenciesStream.use { hashFor(digestFor(HASH_ALGORITHM), it) }
     private val cpkDependenciesStream: InputStream
         @Throws(IOException::class)
         get() = cpkDependenciesFile.toFile().inputStream()

@@ -4,9 +4,8 @@ import static org.gradle.jvm.toolchain.JavaLanguageVersion.of
 plugins {
     id 'com.gradle.plugin-publish'
     id 'org.jetbrains.kotlin.jvm'
-    id 'org.jetbrains.dokka'
     id 'java-gradle-plugin'
-    id 'java-library'
+    id 'corda.java-only'
 }
 
 description 'Configures this project to create a CPK CorDapp'
@@ -57,8 +56,8 @@ def generateSource = tasks.register('generateSource', Copy) {
 
 sourceSets {
     main {
-        kotlin {
-            srcDirs files('src/main/kotlin', generatedSourceDir).builtBy(generateSource)
+        java {
+            srcDirs files(generatedSourceDir).builtBy(generateSource)
         }
     }
 }
@@ -77,16 +76,13 @@ dependencies {
         }
     }
 
-    // Gradle plugins written in Kotlin will always use Gradle's
-    // own provided Kotlin libraries at runtime. So ensure that
-    // we don't add Kotlin as a dependency in our published POM.
-    compileOnly 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
+    compileOnly "org.jetbrains:annotations:$jetbrains_annotations_version"
 
     // Add the Bnd plugins to our classpath too, so that we can use them.
     implementation "biz.aQute.bnd:biz.aQute.bnd.gradle:$bnd_version"
     implementation "biz.aQute.bnd:biz.aQute.bndlib:$bnd_version"
 
-    testImplementation 'org.jetbrains.kotlin:kotlin-test'
+    testImplementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
     testImplementation "org.junit.jupiter:junit-jupiter-api:$junit_jupiter_version"
     testImplementation "org.junit.jupiter:junit-jupiter-params:$junit_jupiter_version"
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junit_jupiter_version"
@@ -98,10 +94,6 @@ tasks.named('jar', Jar) {
     manifest {
         attributes('Sealed': true)
     }
-}
-
-tasks.named('javadoc', Javadoc) {
-    enabled = false
 }
 
 processResources {
@@ -127,6 +119,14 @@ processTestResources {
             'kotlin_version': test_kotlin_version,
             'bnd_version': bnd_version
         ])
+    }
+}
+
+tasks.named('compileTestKotlin') {
+    kotlinOptions {
+        apiVersion = '1.7'
+        languageVersion = '1.7'
+        freeCompilerArgs = ['-Xjvm-default=all']
     }
 }
 

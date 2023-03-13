@@ -1,5 +1,6 @@
 package net.corda.plugins.cpk2
 
+import net.corda.plugins.cpk2.CordappUtils.CORDAPP_PLATFORM_VERSION
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
 import org.junit.jupiter.api.Assertions.assertEquals

@@ -1,13 +1,13 @@
 package net.corda.plugins.cpb2
 
-import net.corda.plugins.cpb2.CpbTask.Companion.CPB_CURRENT_FORMAT_VERSION
-import net.corda.plugins.cpb2.CpbTask.Companion.CPB_FORMAT_VERSION
-import net.corda.plugins.cpb2.CpbTask.Companion.CPB_VERSION_ATTRIBUTE
+import net.corda.plugins.cpb2.CpbTask.CPB_CURRENT_FORMAT_VERSION
+import net.corda.plugins.cpb2.CpbTask.CPB_FORMAT_VERSION
+import net.corda.plugins.cpb2.CpbTask.CPB_VERSION_ATTRIBUTE
 import net.corda.plugins.cpk2.GradleProject
+import net.corda.plugins.cpk2.CordappUtils.digestFor
+import net.corda.plugins.cpk2.CordappUtils.hashFor
 import net.corda.plugins.cpk2.cordaApiVersion
-import net.corda.plugins.cpk2.digestFor
 import net.corda.plugins.cpk2.expectedCordappContractVersion
-import net.corda.plugins.cpk2.hashFor
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.BeforeAll
@@ -69,7 +69,7 @@ class CpbTest {
     }
 
     private fun sha256(inputStream : InputStream) : String {
-        return digestFor(algorithmName = "SHA-256").hashFor(inputStream).toHex()
+        return hashFor(digestFor("SHA-256"), inputStream).toHex()
     }
 
     @Test

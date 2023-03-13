@@ -1,5 +1,6 @@
 package net.corda.plugins.cpk2
 
+import net.corda.plugins.cpk2.CordappUtils.CPK_DEPENDENCIES
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
