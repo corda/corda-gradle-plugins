@@ -1,4 +1,3 @@
-//@file:JvmName("AttributeUtils")
 package net.corda.plugins.cpk2;
 
 import org.gradle.api.attributes.AttributeContainer;

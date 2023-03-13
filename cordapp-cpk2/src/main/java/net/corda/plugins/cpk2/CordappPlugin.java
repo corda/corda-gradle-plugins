@@ -2,6 +2,15 @@ package net.corda.plugins.cpk2;
 
 import aQute.bnd.gradle.BndBuilderPlugin;
 import aQute.bnd.gradle.BundleTaskExtension;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UncheckedIOException;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Properties;
 import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
@@ -34,16 +43,6 @@ import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.util.GradleVersion;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UncheckedIOException;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Properties;
 
 import static aQute.bnd.osgi.Constants.NOEXTRAHEADERS;
 import static java.util.Arrays.asList;
