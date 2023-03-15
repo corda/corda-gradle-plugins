@@ -1,0 +1,11 @@
+// Common settings for all Gradle test projects.
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+    }
+}
+
+rootProject.name = 'multi-version-cordapp'
+
+include 'corda-api'
+project(':corda-api').projectDir = file('../resources/test/corda-api')

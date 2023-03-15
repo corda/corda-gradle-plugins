@@ -1,4 +1,4 @@
-@file:Suppress("unused")
+@file:Suppress("unused", "PackageDirectoryMismatch")
 package com.example.metadata.contracts
 
 import net.corda.v5.application.identity.AbstractParty
@@ -31,5 +31,7 @@ class ExampleContract : Contract {
 }
 
 class ExampleState(val issuer: AbstractParty) : ContractState {
-    override val participants: List<AbstractParty> = unmodifiableList(listOf(issuer))
+    override fun getParticipants(): List<AbstractParty> {
+        return unmodifiableList(listOf(issuer))
+    }
 }

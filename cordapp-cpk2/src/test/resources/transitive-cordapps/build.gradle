@@ -77,7 +77,7 @@ cordapp {
 }
 
 dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-osgi-bundle:$kotlin_version"
+    cordaProvided "org.jetbrains.kotlin:kotlin-osgi-bundle:$kotlin_version"
     implementation "commons-io:commons-io:$commons_io_version"
     cordapp project(':cpk-three')
 }

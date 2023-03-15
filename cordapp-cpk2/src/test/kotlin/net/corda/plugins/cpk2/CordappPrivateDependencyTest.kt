@@ -50,6 +50,7 @@ class CordappPrivateDependencyTest {
         val cordapp = artifacts.single { it.toString().endsWith(".jar") }
         assertThat(cordapp).isRegularFile
 
+        val kotlinVersion = testProject.properties["kotlin_version"]
         val providedDeps = StringReader(testProject.output)
             .readLines()
             .filter { it.startsWith(dependencyPrefix) }
@@ -57,10 +58,12 @@ class CordappPrivateDependencyTest {
         assertThat(providedDeps)
             .contains("CORDAPP cordaPrivateProvided: commons-collections:$commonsCollectionsVersion")
             .contains("CORDAPP cordaAllProvided: commons-collections:$commonsCollectionsVersion")
+            .contains("CORDAPP cordaAllProvided: kotlin-osgi-bundle:$kotlinVersion")
             .contains("CORDAPP cordaAllProvided: corda-api:$cordaApiVersion")
             .contains("HOST cordaPrivateProvided: commons-codec:$commonsCodecVersion")
             .contains("HOST cordaAllProvided: commons-codec:$commonsCodecVersion")
+            .contains("HOST cordaAllProvided: kotlin-osgi-bundle:$kotlinVersion")
             .contains("HOST cordaAllProvided: corda-api:$cordaApiVersion")
-            .hasSize(6)
+            .hasSize(8)
     }
 }

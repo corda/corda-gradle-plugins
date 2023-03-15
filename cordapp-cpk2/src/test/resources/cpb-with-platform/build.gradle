@@ -34,7 +34,7 @@ configurations {
 }
 
 dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-osgi-bundle:$kotlin_version"
+    cordaProvided "org.jetbrains.kotlin:kotlin-osgi-bundle:$kotlin_version"
     cordaProvided 'net.corda:corda-api'
 
     cordapp platform("net.corda:corda-platform:$corda_api_version")

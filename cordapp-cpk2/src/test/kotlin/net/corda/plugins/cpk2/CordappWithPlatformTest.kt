@@ -42,7 +42,7 @@ class CordappWithPlatformTest {
             .withTestName("publish-platform")
             .withTaskName("publishAllPublicationsToTestRepository")
             .withTaskOutcome(UP_TO_DATE)
-            .build(
+            .execute(
                 "-Pcorda_api_version=$cordaApiVersion",
                 "-Prepository_dir=$repositoryDir"
             )

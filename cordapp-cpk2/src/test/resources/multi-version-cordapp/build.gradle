@@ -1,0 +1,55 @@
+plugins {
+    id 'net.corda.plugins.cordapp-cpk2'
+}
+
+apply from: 'repositories.gradle'
+apply from: 'javaTarget.gradle'
+
+group = 'com.example'
+version = cordapp_version
+
+cordapp {
+    targetPlatformVersion = platform_version.toInteger()
+    minimumPlatformVersion = platform_version.toInteger()
+
+    contract {
+        name = 'Multi-Version Java'
+        versionId = cordapp_contract_version.toInteger()
+        licence = 'Test-Licence'
+        vendor = 'R3'
+    }
+}
+
+sourceSets {
+    java11 {
+        java {
+            srcDirs = [ 'src/main/java11' ]
+        }
+        compileClasspath += main.compileClasspath
+    }
+}
+
+dependencies {
+    cordaProvided project(':corda-api')
+    implementation "commons-io:commons-io:$commons_io_version"
+
+    java11Implementation files(sourceSets.main.output) {
+        builtBy tasks.named('compileJava', JavaCompile)
+    }
+}
+
+tasks.named('compileJava11Java', JavaCompile) {
+    options.release = 11
+}
+
+tasks.named('jar', Jar) {
+    archiveBaseName = 'multi-version-cordapp'
+
+    from(sourceSets.java11.output) { CopySpec spec ->
+        spec.into 'META-INF/versions/11'
+    }
+
+    manifest {
+        attributes('Multi-Release': true)
+    }
+}

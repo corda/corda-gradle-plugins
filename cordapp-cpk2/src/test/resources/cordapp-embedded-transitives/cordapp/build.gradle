@@ -22,7 +22,7 @@ cordapp {
 }
 
 dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-osgi-bundle:$kotlin_version"
+    cordaProvided "org.jetbrains.kotlin:kotlin-osgi-bundle:$kotlin_version"
     cordaEmbedded project(':embeddable-library')
     cordaProvided project(':corda-api')
     cordaProvided "org.slf4j:slf4j-api:$slf4j_version"

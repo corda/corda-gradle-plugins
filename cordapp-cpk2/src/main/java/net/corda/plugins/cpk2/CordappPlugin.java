@@ -44,6 +44,7 @@ import org.gradle.util.GradleVersion;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static aQute.bnd.osgi.Constants.FIXUPMESSAGES;
 import static aQute.bnd.osgi.Constants.NOEXTRAHEADERS;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyMap;
@@ -52,6 +53,7 @@ import static java.util.Collections.unmodifiableList;
 import static net.corda.plugins.cpk2.Attributor.isPlatformModule;
 import static net.corda.plugins.cpk2.CordappProperties.nested;
 import static net.corda.plugins.cpk2.CordappUtils.ALL_CORDAPPS_CONFIGURATION_NAME;
+import static net.corda.plugins.cpk2.CordappUtils.CLASSES_IN_WRONG_DIRECTORY_FIXUP;
 import static net.corda.plugins.cpk2.CordappUtils.CORDAPP_CONFIGURATION_NAME;
 import static net.corda.plugins.cpk2.CordappUtils.CORDAPP_CONFIG_PLUGIN_ID;
 import static net.corda.plugins.cpk2.CordappUtils.CORDAPP_CONTRACT_NAME;
@@ -121,6 +123,7 @@ public final class CordappPlugin implements Plugin<Project> {
     private static final int TARGET_PLATFORM = 0;
 
     private static final String CORDAPP_VERSION_INSTRUCTION = CPK_CORDAPP_VERSION + "=${" + BUNDLE_VERSION + '}';
+    private static final String CLASSES_IN_WRONG_DIRECTORY_WARNING_INSTRUCTION = FIXUPMESSAGES + '=' + CLASSES_IN_WRONG_DIRECTORY_FIXUP;
 
     private static final List<String> CORDAPP_BUILD_CONFIGURATIONS = unmodifiableList(asList(
         /*
@@ -400,6 +403,9 @@ public final class CordappPlugin implements Plugin<Project> {
 
             // Instruct Bnd not to add any extra manifest headers concerning JDK or Bnd versions.
             bndBundle.bnd(EXCLUDE_EXTRA_HEADERS);
+
+            // Instruct Bnd that finding META-INF/versions/ classes is not an error.
+            bndBundle.bnd(CLASSES_IN_WRONG_DIRECTORY_WARNING_INSTRUCTION);
 
             // Disable the bndfile property, which could clobber our bnd instructions.
             bndBundle.getBndfile().fileValue(null).disallowChanges();

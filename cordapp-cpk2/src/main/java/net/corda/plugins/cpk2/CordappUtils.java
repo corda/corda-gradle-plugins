@@ -41,6 +41,10 @@ import java.util.jar.Manifest;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static aQute.bnd.osgi.Constants.FIXUPMESSAGES_IS_DIRECTIVE;
+import static aQute.bnd.osgi.Constants.FIXUPMESSAGES_IS_ERROR;
+import static aQute.bnd.osgi.Constants.FIXUPMESSAGES_IS_WARNING;
+import static aQute.bnd.osgi.Constants.FIXUPMESSAGES_RESTRICT_DIRECTIVE;
 import static java.util.Collections.max;
 import static java.util.Collections.unmodifiableMap;
 import static org.gradle.api.plugins.JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME;
@@ -91,6 +95,11 @@ public final class CordappUtils {
     static final String CORDAPP_WORKFLOW_NAME = "Cordapp-Workflow-Name";
     static final String CORDAPP_WORKFLOW_VERSION = "Cordapp-Workflow-Version";
     public static final String CORDA_CPK_TYPE = "Corda-CPK-Type";
+
+    static final String CLASSES_IN_WRONG_DIRECTORY_FIXUP
+        = "\"Classes found in the wrong directory\";"
+            + FIXUPMESSAGES_RESTRICT_DIRECTIVE + '=' + FIXUPMESSAGES_IS_ERROR + ';'
+            + FIXUPMESSAGES_IS_DIRECTIVE + '=' + FIXUPMESSAGES_IS_WARNING;
 
     /*
      * Location of official R3 documentation for building CPKs and CPBs.
