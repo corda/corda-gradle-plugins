@@ -2,6 +2,8 @@
 
 ## Version 7
 
+### Version 7.0.3
+
 ### Version 7.0.2
 
 * `cordapp-cpk2`: Upgrade to Bnd 6.4.0.
