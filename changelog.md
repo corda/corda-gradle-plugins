@@ -4,6 +4,8 @@
 
 ### Version 7.0.3
 
+* `cordapp-cpk2`: Set "name" correctly in CPK marker POM.
+
 ### Version 7.0.2
 
 * `cordapp-cpk2`: Upgrade to Bnd 6.4.0.

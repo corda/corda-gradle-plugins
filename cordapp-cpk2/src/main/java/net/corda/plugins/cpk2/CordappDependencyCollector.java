@@ -150,7 +150,7 @@ final class CordappDependencyCollector {
                         }
                     }
                     final Dependency cordapp = dependencyHandler.create(toCPK(depMap));
-                    // Try to resolve the CorDapp's "companion" dependency.
+                    // Try to resolve the CorDapp's "marker" dependency.
                     // This may not exist, although it's better if it does.
                     collectFrom(cordapp);
                 }
@@ -175,7 +175,7 @@ final class CordappDependencyCollector {
         if (resolved.hasError()) {
             logger.warn("CorDapp has unresolved dependencies:{}",
                 joinToString(resolved.getLenientConfiguration().getUnresolvedModuleDependencies(), SEPARATOR, SEPARATOR));
-            logger.warn("Cannot resolve CPK companion artifact '{}' - SKIPPED", toMaven(cordapp));
+            logger.warn("Cannot resolve CPK marker artifact '{}' - SKIPPED", toMaven(cordapp));
         } else {
             // This should never now throw ResolveException.
             collectFrom(resolved.getFirstLevelModuleDependencies(dep ->
@@ -202,12 +202,12 @@ final class CordappDependencyCollector {
     }
 
     @NotNull
-    static String toCompanionGroupId(@Nullable String group, @NotNull String artifactId) {
+    static String toMarkerGroupId(@Nullable String group, @NotNull String artifactId) {
         return toCpkPrefix(group) + artifactId;
     }
 
     @NotNull
-    static String toCompanionArtifactId(@NotNull String artifactId) {
+    static String toMarkerArtifactId(@NotNull String artifactId) {
         return artifactId + CPK_SUFFIX;
     }
 
@@ -265,8 +265,8 @@ final class CordappDependencyCollector {
     @NotNull
     private static Map<String, String> toCPK(@NotNull Map<String, String> map) {
         final String artifactName = map.get(DEPENDENCY_NAME);
-        map.put(DEPENDENCY_GROUP, toCompanionGroupId(map.get(DEPENDENCY_GROUP), artifactName));
-        map.put(DEPENDENCY_NAME, toCompanionArtifactId(artifactName));
+        map.put(DEPENDENCY_GROUP, toMarkerGroupId(map.get(DEPENDENCY_GROUP), artifactName));
+        map.put(DEPENDENCY_NAME, toMarkerArtifactId(artifactName));
         return map;
     }
 

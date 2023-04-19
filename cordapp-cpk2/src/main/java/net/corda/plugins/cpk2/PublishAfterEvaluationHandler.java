@@ -41,7 +41,7 @@ final class PublishAfterEvaluationHandler implements Action<Gradle> {
         try {
             publisher = new ArtifactoryPublisher(plugin, logger);
         } catch (Exception e) {
-            logger.warn("Cannot publish CPK companion POM to Artifactory");
+            logger.warn("Cannot publish CPK marker POM to Artifactory");
             publisher = null;
         }
         artifactoryPublisher = publisher;
@@ -61,12 +61,12 @@ final class PublishAfterEvaluationHandler implements Action<Gradle> {
             // own classloader, which makes all the {@link Plugin}
             // implementation classes different.
             project.getPlugins().withId(CordappUtils.CORDAPP_CPK_PLUGIN_ID, plugin ->
-                publishCompanionFor(project)
+                publishMarkerFor(project)
             );
         }
     }
 
-    private void publishCompanionFor(@NotNull Project project) {
+    private void publishMarkerFor(@NotNull Project project) {
         final PublishingExtension extension = project.getExtensions().findByType(PublishingExtension.class);
         if (extension == null) {
             return;
@@ -77,11 +77,11 @@ final class PublishAfterEvaluationHandler implements Action<Gradle> {
         publications.withType(MavenPublication.class)
             .matching(pub -> "jar".equals(pub.getPom().getPackaging()) && !isNullOrEmpty(pub.getGroupId()))
             .all(pub -> {
-                // Create a "companion" POM to support transitive CPK relationships.
-                final String publicationName = "cpk-" + pub.getName() + "-companion";
+                // Create a "marker" POM to support transitive CPK relationships.
+                final String publicationName = "cpk-" + pub.getName() + "-marker";
                 final NamedDomainObjectProvider<MavenPublication> publicationProvider = publications.register(publicationName, MavenPublication.class, cpk -> {
-                    cpk.setGroupId(CordappDependencyCollector.toCompanionGroupId(pub.getGroupId(), pub.getArtifactId()));
-                    cpk.setArtifactId(CordappDependencyCollector.toCompanionArtifactId(pub.getArtifactId()));
+                    cpk.setGroupId(CordappDependencyCollector.toMarkerGroupId(pub.getGroupId(), pub.getArtifactId()));
+                    cpk.setArtifactId(CordappDependencyCollector.toMarkerArtifactId(pub.getArtifactId()));
                     cpk.setVersion(pub.getVersion());
                     maybeSetAlias(cpk, true);
                     cpk.pom(pom -> {
@@ -89,7 +89,7 @@ final class PublishAfterEvaluationHandler implements Action<Gradle> {
 
                         pom.setPackaging("pom");
                         pom.getUrl().set(pubPom.getUrl());
-                        pom.getName().set(pubPom.getName() + " Companion");
+                        pom.getName().set(pubPom.getName().map(n -> n + " Marker"));
                         pom.getDescription().set(pubPom.getDescription());
                         pom.getInceptionYear().set(pubPom.getInceptionYear());
                         final MavenPomScm pubScm = maybeGetScm(pubPom);
@@ -247,7 +247,7 @@ final class PublishAfterEvaluationHandler implements Action<Gradle> {
  * <p>
  * All we need is the set of {@link MavenPublication} objects that are to be
  * published to Artifactory. If our CPK's own {@link MavenPublication} is
- * among them then we include its companion's publication too.
+ * among them then we include its marker's publication too.
  */
 final class ArtifactoryPublisher {
     private static final String ARTIFACTORY_TASK_NAME = "org.jfrog.gradle.plugin.artifactory.task.ArtifactoryTask";
