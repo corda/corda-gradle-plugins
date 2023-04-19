@@ -12,8 +12,8 @@ import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 import java.util.function.Function;
 
-import static net.corda.plugins.cpk2.CordappDependencyCollector.toCompanionArtifactId;
-import static net.corda.plugins.cpk2.CordappDependencyCollector.toCompanionGroupId;
+import static net.corda.plugins.cpk2.CordappDependencyCollector.toMarkerArtifactId;
+import static net.corda.plugins.cpk2.CordappDependencyCollector.toMarkerGroupId;
 import static net.corda.plugins.cpk2.CordappUtils.CORDAPP_CONFIGURATION_NAME;
 import static net.corda.plugins.cpk2.CordappUtils.CORDA_PROVIDED_CONFIGURATION_NAME;
 import static net.corda.plugins.cpk2.CordappUtils.appendElement;
@@ -98,13 +98,13 @@ final class CordappCoordinate extends MavenCoordinate {
     @Override
     @NotNull
     String getGroupId() {
-        return toCompanionGroupId(id.getGroup(), artifactName);
+        return toMarkerGroupId(id.getGroup(), artifactName);
     }
 
     @Override
     @NotNull
     String getArtifactId() {
-        return toCompanionArtifactId(artifactName);
+        return toMarkerArtifactId(artifactName);
     }
 }
 

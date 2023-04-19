@@ -294,7 +294,7 @@ public final class CordappPlugin implements Plugin<Project> {
 
             // Unlike cordaProvided dependencies, cordaPrivateProvided ones will not be
             // added to the compilation classpath of any CPKs that will depend on this CPK.
-            // In other words, they will not be included in this CPK's companion POM.
+            // In other words, they will not be included in this CPK's marker POM.
             final Configuration cordaPrivate = createCompileConfiguration(configurations, CORDA_PRIVATE_CONFIGURATION_NAME)
                 .setDescription("Corda-provided dependencies which are only available to this CorDapp.");
 
