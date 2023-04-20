@@ -2,6 +2,8 @@
 
 ## Version 7
 
+### Version 7.0.4
+
 ### Version 7.0.3
 
 * `cordapp-cpk2`: Set "name" correctly in CPK marker POM.
