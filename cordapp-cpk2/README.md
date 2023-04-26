@@ -243,14 +243,14 @@ These annotations [control how Bnd will generate OSGi metadata](https://bnd.bndt
 for the jar. In practice, the plugin already tries to handle the typical cases for creating CorDapps.
 
 ## Bundle Symbolic Name
-An OSGi bundle should be _uniquely_ identified by the combination of its `Bundle-SymbolicName` and `Bundle-Version`
+An OSGi bundle should be _uniquely_ identifiable by the combination of its `Bundle-SymbolicName` and `Bundle-Version`
 manifest attributes. The `cordapp-cpk2` plugin always sets the `Bundle-Version` attribute to the `Jar` task's `archiveVersion`
-property, and it generates a default `Bundle-SymbolicName` value according to this pattern:
+property, and it generates a default `Bundle-SymbolicName` value according to the following pattern:
 ```text
 (${project.group}.)?${archiveBaseName}(-${archiveAppendix})?(-${archiveClassifier})?
 ```
 
-However, the `Bundle-SymbolicName` can also be set explicitly via:
+However, if this default value is unacceptable for any reason, the `Bundle-SymbolicName` can also be set explicitly via:
 ```groovy
 tasks.named('jar', Jar) {
     osgi {
@@ -258,7 +258,6 @@ tasks.named('jar', Jar) {
     }
 }
 ```
-should this default value be unacceptable for any reason.
 
 ## Package Exports
 
