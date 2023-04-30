@@ -5,6 +5,7 @@ import kotlinx.metadata.KmClass
 import kotlinx.metadata.KmPackage
 import kotlinx.metadata.jvm.KotlinClassMetadata
 import kotlinx.metadata.jvm.Metadata as JvmMetadata
+import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.Logger
 import org.objectweb.asm.AnnotationVisitor
@@ -96,6 +97,9 @@ abstract class KotlinAwareVisitor(
             is KotlinClassMetadata.SyntheticClass -> {
                 logger.log(level, "-- synthetic class ignored")
                 null
+            }
+            null -> {
+                throw InvalidUserCodeException("Unsupported metadata version '${header.metadataVersion.joinToString(".")}'")
             }
             else -> {
                 /*

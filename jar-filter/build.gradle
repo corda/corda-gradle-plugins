@@ -68,6 +68,7 @@ dependencies {
 
 tasks.named('compileTestKotlin') {
     kotlinOptions {
+        allWarningsAsErrors = true
         apiVersion = test_kotlin_api_version
         languageVersion = test_kotlin_api_version
     }
