@@ -3,8 +3,9 @@ package net.corda.gradle.jarfilter
 
 import kotlinx.metadata.KmClass
 import kotlinx.metadata.KmPackage
-import kotlinx.metadata.jvm.KotlinClassHeader
 import kotlinx.metadata.jvm.KotlinClassMetadata
+import kotlinx.metadata.jvm.Metadata as JvmMetadata
+import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.Logger
 import org.objectweb.asm.AnnotationVisitor
@@ -54,8 +55,8 @@ abstract class KotlinAwareVisitor(
             logger.log(level, "- Examining Kotlin @Metadata[k={}]", classKind)
             val data1 = kotlinMetadata.remove(KOTLIN_METADATA_DATA_FIELD_NAME)
             val data2 = kotlinMetadata.remove(KOTLIN_METADATA_STRINGS_FIELD_NAME)
-            if (data1 != null && data1.isNotEmpty() && data2 != null) {
-                val header = KotlinClassHeader(
+            if (!data1.isNullOrEmpty() && data2 != null) {
+                val header = JvmMetadata(
                     classKind,
                     metadataVersion,
                     data1,
@@ -72,45 +73,42 @@ abstract class KotlinAwareVisitor(
         }
     }
 
-    private fun processClassMetadata(header: KotlinClassHeader, metadata: KotlinClassMetadata.Class): KotlinClassHeader? {
+    private fun processClassMetadata(header: Metadata, metadata: KotlinClassMetadata.Class): Metadata? {
         val kmClass = processClassMetadata(metadata.toKmClass()) ?: return null
-        return KotlinClassMetadata.Class.Writer()
-            .apply(kmClass::accept)
-            .write(header.metadataVersion, header.extraInt)
-            .header
+        return KotlinClassMetadata.writeClass(kmClass, header.metadataVersion, header.extraInt)
+            .annotationData
     }
 
-    private fun processFileFacadeMetadata(header: KotlinClassHeader, metadata: KotlinClassMetadata.FileFacade): KotlinClassHeader? {
+    private fun processFileFacadeMetadata(header: Metadata, metadata: KotlinClassMetadata.FileFacade): Metadata? {
         val kmPackage = processPackageMetadata(metadata.toKmPackage()) ?: return null
-        return KotlinClassMetadata.FileFacade.Writer()
-            .apply(kmPackage::accept)
-            .write(header.metadataVersion, header.extraInt)
-            .header
+        return KotlinClassMetadata.writeFileFacade(kmPackage, header.metadataVersion, header.extraInt)
+            .annotationData
     }
 
-    private fun processMultiFileClassPartMetadata(header: KotlinClassHeader, metadata: KotlinClassMetadata.MultiFileClassPart): KotlinClassHeader? {
+    private fun processMultiFileClassPartMetadata(header: Metadata, metadata: KotlinClassMetadata.MultiFileClassPart): Metadata? {
         val kmPackage = processPackageMetadata(metadata.toKmPackage()) ?: return null
-        return KotlinClassMetadata.MultiFileClassPart.Writer()
-            .apply(kmPackage::accept)
-            .write(metadata.facadeClassName, header.metadataVersion, header.extraInt)
-            .header
+        return KotlinClassMetadata.writeMultiFileClassPart(kmPackage, metadata.facadeClassName, header.metadataVersion, header.extraInt)
+            .annotationData
     }
 
-    private fun processMetadata(header: KotlinClassHeader): KotlinClassHeader? {
+    private fun processMetadata(header: Metadata): Metadata? {
         return when (val metadata = KotlinClassMetadata.read(header)) {
             is KotlinClassMetadata.Class -> processClassMetadata(header, metadata)
             is KotlinClassMetadata.FileFacade -> processFileFacadeMetadata(header, metadata)
             is KotlinClassMetadata.MultiFileClassPart -> processMultiFileClassPartMetadata(header, metadata)
             is KotlinClassMetadata.SyntheticClass -> {
-                logger.log(level,"-- synthetic class ignored")
+                logger.log(level, "-- synthetic class ignored")
                 null
+            }
+            null -> {
+                throw InvalidUserCodeException("Unsupported metadata version '${header.metadataVersion.joinToString(".")}'")
             }
             else -> {
                 /*
                  * For class-kind=4 (i.e. "multi-file"), we currently
                  * expect data1=[list of multi-file-part classes], data2=null.
                  */
-                logger.log(level,"-- unsupported class-kind {}", classKind)
+                logger.log(level, "-- unsupported class-kind {}", classKind)
                 null
             }
         }
