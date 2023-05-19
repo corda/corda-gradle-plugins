@@ -263,7 +263,7 @@ open class Dockerform @Inject constructor(
         }
 
         init {
-            this.representers[QuotedString::class.java] = RepresentQuotedString()
+            representers[QuotedString::class.java] = RepresentQuotedString()
         }
     }
 }
