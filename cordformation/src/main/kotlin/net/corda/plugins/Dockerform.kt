@@ -49,7 +49,7 @@ open class Dockerform @Inject constructor(
             defaultFlowStyle = DumperOptions.FlowStyle.BLOCK
         }
 
-        private val YAML_MAPPER = Yaml(DockerComposeRepresenter(), YAML_FORMAT_OPTIONS)
+        private val YAML_MAPPER = Yaml(DockerComposeRepresenter(YAML_FORMAT_OPTIONS))
     }
 
     init {
@@ -253,7 +253,7 @@ open class Dockerform @Inject constructor(
 
     private class QuotedString(val value: String)
 
-    private class DockerComposeRepresenter : Representer() {
+    private class DockerComposeRepresenter(options: DumperOptions) : Representer(options) {
 
         private inner class RepresentQuotedString : Represent {
             override fun representData(data: Any): org.yaml.snakeyaml.nodes.Node? {
