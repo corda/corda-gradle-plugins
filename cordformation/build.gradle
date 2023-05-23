@@ -82,16 +82,6 @@ dependencies {
                 require slf4j_version
             }
         }
-        implementation('org.slf4j:jcl-over-slf4j') {
-            version {
-                require slf4j_version
-            }
-        }
-        implementation('com.typesafe:config') {
-            version {
-                require typesafe_config_version
-            }
-        }
         implementation('org.apache.commons:commons-compress') {
             version {
                 require commons_compress_version
@@ -153,11 +143,6 @@ dependencies {
                 require jnr_posix_version
             }
         }
-        implementation('org.yaml:snakeyaml') {
-            version {
-                require snake_yaml_version
-            }
-        }
         testRuntimeOnly('org.apache.logging.log4j:log4j-core') {
             version {
                 require log4j_version
@@ -170,16 +155,16 @@ dependencies {
     // own provided Kotlin libraries at runtime. So ensure that
     // we don't add Kotlin as a dependency in our published POM.
     compileOnly 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
-    implementation 'com.typesafe:config'
+    implementation "com.typesafe:config:$typesafe_config_version"
 
     // Docker-compose file generation
-    implementation 'org.yaml:snakeyaml'
+    implementation "org.yaml:snakeyaml:$snake_yaml_version"
 
     // DockerFile Generation
     implementation("com.spotify:docker-client:$docker_client_version") {
         exclude group: 'commons-logging', module: 'commons-logging'
     }
-    implementation 'org.slf4j:jcl-over-slf4j'
+    implementation "org.slf4j:jcl-over-slf4j:$slf4j_version"
 
     noderunner "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 
@@ -203,7 +188,7 @@ tasks.named('validateTaskProperties', ValidateTaskProperties) {
     failOnWarning = false
 }
 
-task createNodeRunner(type: Jar) {
+def createNodeRunner = tasks.register('createNodeRunner', Jar) {
     manifest {
         attributes('Main-Class': 'net.corda.plugins.NodeRunnerKt')
     }
