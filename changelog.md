@@ -4,7 +4,10 @@
 
 ### Version 5.0.17
 
+* Update dependencies to resolve security alerts.
+
 ### Version 5.0.16
+
 * `quasar-utils`: Upgrade default Quasar version to 0.7.15_r3.
 
 ### Version 5.0.15
