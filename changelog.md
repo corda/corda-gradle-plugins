@@ -2,6 +2,8 @@
 
 ## Version 5.1
 
+### Version 5.1.2
+
 ### Version 5.1.1
 
 * `cordformation`: CORDA-4262 - Fix Gradle exception when applied with `cordapp` plugin.
