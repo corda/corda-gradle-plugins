@@ -27,7 +27,7 @@ cordapp {
     }
 }
 
-jar {
+tasks.named('jar', Jar) {
     archiveBaseName = 'with-dependent-cordapp'
     doFirst {
         configurations.compileClasspath.forEach { dep ->
@@ -52,6 +52,7 @@ dependencies {
 def copy = tasks.register('copy', Copy) {
     into project.layout.buildDirectory
     from configurations.cordappDependency
+    mustRunAfter tasks.named('verifyBundle')
 }
 
 tasks.named('assemble') {

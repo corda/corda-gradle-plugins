@@ -4,6 +4,8 @@
 
 ### Version 7.0.4
 
+* `cordapp-cpk2`: Upgrade to Bndlib 6.4.1.
+
 ### Version 7.0.3
 
 * `cordapp-cpk2`: Set "name" correctly in CPK marker POM.

@@ -54,14 +54,14 @@ class WithDependentCordappTest {
     ) {
         val testProject = buildProject(guavaVersion, libraryGuavaVersion, testProjectDir, reporter)
         val cordaSlf4jVersion = testProject.properties.getProperty("corda_slf4j_version")
-        val bndVersion = testProject.properties.getProperty("bnd_version")
+        val bndlibVersion = testProject.properties.getProperty("bndlib_version")
         val osgiVersion = testProject.properties.getProperty("osgi_version")
         val jetbrainsAnnotationsVersion = testProject.properties.getProperty("jetbrains_annotations_version")
         assertEquals(CORDA_GUAVA_VERSION, testProject.properties.getProperty("corda_guava_version"))
         assertNotEquals(cordaSlf4jVersion, librarySlf4jVersion)
 
         assertThat(testProject.outputLines)
-            .contains("COMPILE-WORKFLOW> biz.aQute.bnd.annotation-${bndVersion}.jar")
+            .contains("COMPILE-WORKFLOW> biz.aQute.bnd.annotation-${bndlibVersion}.jar")
             .contains("COMPILE-WORKFLOW> osgi.annotation-${osgiVersion}.jar")
             .contains("COMPILE-WORKFLOW> annotations-${jetbrainsAnnotationsVersion}.jar")
             .contains("COMPILE-WORKFLOW> guava-${guavaVersion}.jar")
@@ -69,7 +69,7 @@ class WithDependentCordappTest {
             .contains("EXTERNAL-WORKFLOW> corda-api-${cordaApiVersion}.jar")
             .contains("EXTERNAL-WORKFLOW> slf4j-api-${cordaSlf4jVersion}.jar")
             .contains("EXTERNAL-WORKFLOW> cordapp.jar")
-            .contains("COMPILE-CONTRACT> biz.aQute.bnd.annotation-${bndVersion}.jar")
+            .contains("COMPILE-CONTRACT> biz.aQute.bnd.annotation-${bndlibVersion}.jar")
             .contains("COMPILE-CONTRACT> osgi.annotation-${osgiVersion}.jar")
             .contains("COMPILE-CONTRACT> annotations-${jetbrainsAnnotationsVersion}.jar")
             .contains("COMPILE-CONTRACT> slf4j-api-${cordaSlf4jVersion}.jar")
@@ -95,7 +95,7 @@ class WithDependentCordappTest {
             .noneMatch { it == "commons-io-$commonsIoVersion.jar" }
             .noneMatch { it == "slf4j-api-${cordaSlf4jVersion}.jar" }
             .noneMatch { it == "slf4j-api-${librarySlf4jVersion}.jar" }
-            .noneMatch { it == "biz.aQute.bnd.annotation-${bndVersion}.jar" }
+            .noneMatch { it == "biz.aQute.bnd.annotation-${bndlibVersion}.jar" }
             .noneMatch { it == "osgi.annotation-${osgiVersion}.jar" }
             .noneMatch { it == "annotations-${jetbrainsAnnotationsVersion}.jar" }
             .noneMatch { it == "library.jar" }
@@ -123,7 +123,7 @@ class WithDependentCordappTest {
         val contractCpk = testProject.buildDir.resolve("cordapp.jar")
         assertThat(contractCpk).isRegularFile
         assertThat(listLibrariesForCpk(contractCpk))
-            .noneMatch { it == "biz.aQute.bnd.annotation-${bndVersion}.jar" }
+            .noneMatch { it == "biz.aQute.bnd.annotation-${bndlibVersion}.jar" }
             .noneMatch { it == "osgi.annotation-${osgiVersion}.jar" }
             .noneMatch { it == "annotations-${jetbrainsAnnotationsVersion}.jar" }
             .noneMatch { it == "slf4j-api-${librarySlf4jVersion}.jar" }
