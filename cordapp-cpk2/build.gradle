@@ -71,7 +71,22 @@ dependencies {
         }
         implementation('biz.aQute.bnd:biz.aQute.bndlib') {
             version {
-                require bnd_version
+                require bndlib_version
+            }
+        }
+        implementation('biz.aQute.bnd:biz.aQute.bnd.embedded-repo') {
+            version {
+                require bndlib_version
+            }
+        }
+        implementation('biz.aQute.bnd:biz.aQute.repository') {
+            version {
+                require bndlib_version
+            }
+        }
+        implementation('biz.aQute.bnd:biz.aQute.resolve') {
+            version {
+                require bndlib_version
             }
         }
     }
@@ -80,7 +95,7 @@ dependencies {
 
     // Add the Bnd plugins to our classpath too, so that we can use them.
     implementation "biz.aQute.bnd:biz.aQute.bnd.gradle:$bnd_version"
-    implementation "biz.aQute.bnd:biz.aQute.bndlib:$bnd_version"
+    implementation "biz.aQute.bnd:biz.aQute.bndlib:$bndlib_version"
 
     testImplementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
     testImplementation "org.junit.jupiter:junit-jupiter-api:$junit_jupiter_version"
@@ -101,7 +116,7 @@ processResources {
         expand([
             'jetbrains_annotations_version': jetbrains_annotations_version,
             'osgi_version': osgi_version,
-            'bnd_version': bnd_version
+            'bndlib_version': bndlib_version
         ])
     }
 }
@@ -117,6 +132,7 @@ processTestResources {
             'osgi_version': osgi_version,
             'jetbrains_annotations_version': jetbrains_annotations_version,
             'kotlin_version': test_kotlin_version,
+            'bndlib_version': bndlib_version,
             'bnd_version': bnd_version
         ])
     }
