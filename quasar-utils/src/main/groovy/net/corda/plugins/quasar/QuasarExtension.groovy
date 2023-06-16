@@ -53,12 +53,14 @@ class QuasarExtension {
 
     final Property<Boolean> verbose
 
+    final Property<String> options
+
     final ListProperty<String> excludePackages
 
     final ListProperty<String> excludeClassLoaders
 
     @PackageScope
-    final Provider<String> options
+    final Provider<String> excludeOptions
 
     @Inject
     QuasarExtension(
@@ -85,15 +87,16 @@ class QuasarExtension {
 
         debug = objects.property(Boolean).convention(false)
         verbose = objects.property(Boolean).convention(false)
+        options = objects.property(String).convention("")
         excludePackages = objects.listProperty(String)
         excludePackages.set(initialPackageExclusions)
         excludeClassLoaders = objects.listProperty(String)
         excludeClassLoaders.set(initialClassLoaderExclusions)
-        options = excludePackages.flatMap { List<String> packages ->
+        excludeOptions = excludePackages.flatMap { List<String> packages ->
             excludeClassLoaders.flatMap { List<String> classLoaders ->
                 debug.flatMap { isDebug ->
                     verbose.map { isVerbose ->
-                        final def builder = new StringBuilder('=')
+                        final def builder = new StringBuilder('')
                         if (isDebug) {
                             builder.append('d')
                         }

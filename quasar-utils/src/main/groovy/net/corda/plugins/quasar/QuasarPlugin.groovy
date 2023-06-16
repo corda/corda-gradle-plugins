@@ -102,7 +102,8 @@ class QuasarPlugin implements Plugin<Project> {
         project.tasks.withType(Test).configureEach { Test task ->
             task.doFirst { Test t ->
                 if (adapter.instrumentingTests) {
-                    t.jvmArgs "-javaagent:${quasarAgent.singleFile}${adapter.options}",
+                    def options = adapter.hasOptions() ? "=${adapter.agentOptions}${adapter.excludeOptions}" : "";
+                    t.jvmArgs "-javaagent:${quasarAgent.singleFile}${options}",
                             "-Dco.paralleluniverse.fibers.verifyInstrumentation"
                 }
             }
@@ -110,7 +111,7 @@ class QuasarPlugin implements Plugin<Project> {
         project.tasks.withType(JavaExec).configureEach { JavaExec task ->
             task.doFirst { JavaExec je ->
                 if (adapter.instrumentingJavaExec) {
-                    je.jvmArgs "-javaagent:${quasarAgent.singleFile}${adapter.options}",
+                    je.jvmArgs "-javaagent:${quasarAgent.singleFile}${adapter.excludeOptions}",
                             "-Dco.paralleluniverse.fibers.verifyInstrumentation"
                 }
             }
@@ -148,8 +149,16 @@ class QuasarPlugin implements Plugin<Project> {
             this.logger = logger
         }
 
-        String getOptions() {
+        Boolean hasOptions() {
+            !(quasar.options.get().isEmpty() && quasar.excludeOptions.get().isEmpty())
+        }
+
+        String getAgentOptions() {
             quasar.options.get()
+        }
+
+        String getExcludeOptions() {
+            quasar.excludeOptions.get()
         }
 
         Dependency createDependency(Closure closure) {

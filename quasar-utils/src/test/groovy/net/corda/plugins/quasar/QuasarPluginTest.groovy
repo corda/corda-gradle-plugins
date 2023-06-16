@@ -508,6 +508,40 @@ test {
         }
     }
 
+    @Test
+    void testMonitorOptionIsAddedToAgent() {
+        def output = runGradleFor """
+plugins {
+    id 'net.corda.plugins.quasar-utils'
+    id 'java-library'
+}
+
+dependencies {
+    testImplementation 'junit:junit:4.12'
+}
+
+quasar {
+   ${QUASAR_R3}
+   options = 'm'
+}
+
+jar {
+    enabled = false
+}
+
+test {
+    doLast {
+        allJvmArgs.each {
+            println "TEST-JVM: \${it}"
+        }
+    }
+}
+""", "test"
+        assertThat(output).anyMatch {
+            it.startsWith("TEST-JVM: -javaagent:") && it.contains('=m')
+        }
+    }
+
     private List<String> runGradleFor(String script, String taskName) {
         def result = runnerFor(script, taskName).build()
         println result.output
