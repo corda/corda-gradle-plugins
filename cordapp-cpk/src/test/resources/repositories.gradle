@@ -1,7 +1,13 @@
 repositories {
     mavenCentral()
     maven {
-        url "$publicArtifactURL/corda"
+        url "$publicArtifactURL/corda-dependencies"
+        mavenContent {
+            releasesOnly()
+        }
+    }
+    maven {
+        url "$publicArtifactURL/corda-releases"
         mavenContent {
             releasesOnly()
         }
