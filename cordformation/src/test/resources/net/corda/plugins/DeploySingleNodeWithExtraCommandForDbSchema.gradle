@@ -4,8 +4,8 @@ plugins {
 
 repositories {
     mavenCentral()
-    maven { url 'https://software.r3.com/artifactory/corda-dev' }
-    maven { url 'https://software.r3.com/artifactory/corda-dependencies' }
+    maven { url "${publicArtifactURL}/corda-dev" }
+    maven { url "${publicArtifactURL}/corda-dependencies" }
 }
 
 dependencies {
