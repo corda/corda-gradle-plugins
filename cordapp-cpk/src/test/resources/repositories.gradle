@@ -1,7 +1,7 @@
 repositories {
     mavenCentral()
     maven {
-        url "$artifactory_contextUrl/corda"
+        url "$publicArtifactURL/corda"
         mavenContent {
             releasesOnly()
         }
