@@ -17,7 +17,7 @@ ext {
 repositories {
     mavenCentral()
     maven {
-        url "$artifactory_contextUrl/corda-dependencies"
+        url "$publicArtifactURL/corda-dependencies"
     }
 }
 
