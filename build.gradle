@@ -235,7 +235,7 @@ configure(publishProjects) { Project subproject ->
 
 artifactory {
     publish {
-        contextUrl = publicArtifactURL
+        contextUrl = artifactory_contextUrl
         repository {
             repoKey = 'corda-dev'
             username = project.findProperty('cordaArtifactoryUsername') ?: System.getenv('CORDA_ARTIFACTORY_USERNAME') ?: System.getProperty('corda.artifactory.username')
