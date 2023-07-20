@@ -9,6 +9,6 @@ cordaPipeline(
     slimBuild: true,
     snykAdditionalCommands: "--configuration-matching='^runtimeClasspath\$' -d",
     snykOrgId: 'r3-gradle-plugins-snyk-org-id',
-    snykToken: 'r3-gradle-plugins',
+    snykToken: 'r3-gradle-plugins-secret',
     stableUnstableRepoPattern: false,
     )
