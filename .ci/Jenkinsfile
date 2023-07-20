@@ -8,7 +8,6 @@ cordaPipeline(
     publishRepoPrefix: 'corda',
     slimBuild: true,
     snykAdditionalCommands: "--configuration-matching='^runtimeClasspath\$' -d",
-    snykIntegrationId: 'snyk-artifactory-c4',
     snykOrgId: 'r3-gradle-plugins-snyk-org-id',
     snykToken: 'r3-gradle-plugins',
     stableUnstableRepoPattern: false,
