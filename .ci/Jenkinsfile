@@ -1,4 +1,5 @@
-@Library('corda-shared-build-pipeline-steps@5.1') _
+@Library('corda-shared-build-pipeline-steps@connelm/ES-858/corda-gradle-plugins-changes') _
+
 cordaPipeline(
     dedicatedJobForSnykDelta: false,
     gitHubComments: false,
@@ -9,5 +10,6 @@ cordaPipeline(
     snykAdditionalCommands: "--configuration-matching='^runtimeClasspath\$' -d",
     snykIntegrationId: 'snyk-artifactory-c4',
     snykOrgId: 'r3-gradle-plugins-snyk-org-id',
+    snykToken: 'r3-gradle-plugins',
     stableUnstableRepoPattern: false,
     )
