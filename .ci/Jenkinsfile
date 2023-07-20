@@ -1,13 +1,12 @@
-@Library('corda-shared-build-pipeline-steps@5.1') _
+@Library('corda-shared-build-pipeline-steps@connelm/ES-858/corda-gradle-plugins-changes') _
 
 cordaPipeline(
     dedicatedJobForSnykDelta: false,
+    gitHubComments: false,
     javaVersion: '8',
     publishToMavenS3Repository: true,
     publishRepoPrefix: 'corda',
     slimBuild: true,
-    stableUnstableRepoPattern: false,
-    nexusAppId :'corda-gradle-plugins-7.0.0',
     snykAdditionalCommands: "--configuration-matching='^runtimeClasspath\$' -d",
-    gitHubComments: false,
+    stableUnstableRepoPattern: false,
     )
