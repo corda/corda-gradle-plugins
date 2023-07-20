@@ -9,5 +9,5 @@ cordaPipeline(
     nexusAppId :'corda-gradle-plugins-7.0.0',
     snykAdditionalCommands: "--configuration-matching='^runtimeClasspath\$' -d",
     gitHubComments: false,
-    snykIntegrationId: 'r3-gradle-plugins'
+    snykIntegrationId: 'snyk-artifactory-c4'
     )
