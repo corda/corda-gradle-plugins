@@ -260,7 +260,7 @@ configure(publishProjects) { Project subproject ->
                     }
                 }
             }
-      }
+        }
     }
 }
 
