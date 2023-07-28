@@ -1,0 +1,7 @@
+@Library('corda-shared-build-pipeline-steps@5.1') _
+
+cordaSnykScanPipeline (
+    snykTokenId: 'r3-gradle-plugins',
+    snykAdditionalCommands: "--all-sub-projects --configuration-matching='^runtimeClasspath\$' -d"
+)
+    
