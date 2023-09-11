@@ -31,8 +31,9 @@ dependencies {
     implementation "io.github.classgraph:classgraph:$classgraph_version"
     testImplementation project(':api-scanner:annotations')
     testImplementation "org.assertj:assertj-core:$assertj_version"
-    testImplementation "org.junit.jupiter:junit-jupiter-api:$junit_jupiter_version"
+    testImplementation "org.junit.jupiter:junit-jupiter:$junit_jupiter_version"
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junit_jupiter_version"
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
     // This dependency is only to prevent IntelliJ from choking
     // on the Kotlin classes in the test/resources directory.

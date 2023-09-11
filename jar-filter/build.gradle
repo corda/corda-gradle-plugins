@@ -58,8 +58,9 @@ dependencies {
     testImplementation 'org.jetbrains.kotlin:kotlin-reflect'
     testImplementation "org.hamcrest:hamcrest:$hamcrest_version"
     testImplementation "org.assertj:assertj-core:$assertj_version"
-    testImplementation "org.junit.jupiter:junit-jupiter-api:$junit_jupiter_version"
+    testImplementation "org.junit.jupiter:junit-jupiter:$junit_jupiter_version"
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junit_jupiter_version"
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     testImplementation "javax.annotation:javax.annotation-api:$javax_annotations_version"
     testImplementation project(':jar-filter:unwanteds')
 

@@ -23,6 +23,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.invoke.MethodHandles;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Collection;
@@ -239,6 +240,11 @@ final class PublishAfterEvaluationHandler implements Action<Gradle> {
     }
 }
 
+@FunctionalInterface
+interface GetMavenPublications {
+    Collection<MavenPublication> getMavenPublications(Task task) throws ReflectiveOperationException;
+}
+
 /**
  * Integrate with the `com.jfrog.artifactory` Gradle plugin, which uses a
  * {@link org.gradle.api.ProjectEvaluationListener} to configure itself.
@@ -252,9 +258,10 @@ final class PublishAfterEvaluationHandler implements Action<Gradle> {
 final class ArtifactoryPublisher {
     private static final String ARTIFACTORY_TASK_NAME = "org.jfrog.gradle.plugin.artifactory.task.ArtifactoryTask";
     private static final String GET_PUBLICATIONS_METHOD_NAME = "getMavenPublications";
+    private static final String PUBLICATIONS_FIELD_NAME = "mavenPublications";
 
     private final Class<? extends Task> artifactoryTaskClass;
-    private final Method mavenPublications;
+    private final GetMavenPublications mavenPublications;
 
     @SuppressWarnings("unchecked")
     ArtifactoryPublisher(@NotNull Plugin<?> plugin, @NotNull Logger logger) throws Exception {
@@ -265,24 +272,57 @@ final class ArtifactoryPublisher {
             throw e;
         }
 
-        try {
-            mavenPublications = artifactoryTaskClass.getMethod(GET_PUBLICATIONS_METHOD_NAME);
-        } catch (Exception e) {
-            logger.warn("Cannot locate " + GET_PUBLICATIONS_METHOD_NAME + " method for ArtifactoryTask", e);
-            throw e;
-        }
+        mavenPublications = getMavenPublications(logger);
+    }
 
-        if (!Collection.class.isAssignableFrom(mavenPublications.getReturnType())) {
-            logger.warn("Method {} does not return a collection type.", mavenPublications);
-            throw new InvalidUserCodeException("Method " + mavenPublications + "has incompatible return type.");
+    @NotNull
+    private GetMavenPublications getMavenPublications(@NotNull Logger logger) {
+        try {
+            return getPublicationsMethod(logger);
+        } catch (NoSuchMethodException e1) {
+            try {
+                return getPublicationsField(logger);
+            } catch (NoSuchFieldException e2) {
+                final String message = "Cannot locate " + PUBLICATIONS_FIELD_NAME + " for ArtifactoryTask";
+                logger.warn(message);
+                final RuntimeException ex = new InvalidUserCodeException(message);
+                ex.addSuppressed(e1);
+                ex.addSuppressed(e2);
+                throw ex;
+            }
         }
     }
 
     @SuppressWarnings("unchecked")
     @NotNull
+    private GetMavenPublications getPublicationsMethod(@NotNull Logger logger) throws NoSuchMethodException {
+        final Method getPublicationsMethod = artifactoryTaskClass.getMethod(GET_PUBLICATIONS_METHOD_NAME);
+
+        if (!Collection.class.isAssignableFrom(getPublicationsMethod.getReturnType())) {
+            logger.warn("Method {} does not return a collection type.", getPublicationsMethod);
+            throw new NoSuchMethodException("Method " + getPublicationsMethod + " has incompatible return type.");
+        }
+
+        return task -> (Collection<MavenPublication>) getPublicationsMethod.invoke(task);
+    }
+
+    @SuppressWarnings("unchecked")
+    @NotNull
+    private GetMavenPublications getPublicationsField(@NotNull Logger logger) throws NoSuchFieldException {
+        final Field publicationsField = artifactoryTaskClass.getField(PUBLICATIONS_FIELD_NAME);
+
+        if (!Collection.class.isAssignableFrom(publicationsField.getType())) {
+            logger.warn("Field {} is not a collection type.", publicationsField);
+            throw new NoSuchFieldException("Field " + publicationsField + " has incompatible type.");
+        }
+
+        return task -> (Collection<MavenPublication>) publicationsField.get(task);
+    }
+
+    @NotNull
     private Collection<MavenPublication> getMavenPublications(@NotNull Task task) {
         try {
-            return (Collection<MavenPublication>) mavenPublications.invoke(task);
+            return mavenPublications.getMavenPublications(task);
         } catch (Exception e) {
             final Throwable ex = (e instanceof InvocationTargetException) ? ((InvocationTargetException) e).getTargetException() : e;
             throw new InvalidUserCodeException("Failed to extract Maven publications from " + task, ex);

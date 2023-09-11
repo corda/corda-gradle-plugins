@@ -26,8 +26,9 @@ gradlePlugin {
 }
 
 dependencies {
-    testImplementation("org.junit.jupiter:junit-jupiter-api:$junit_jupiter_version")
+    testImplementation("org.junit.jupiter:junit-jupiter:$junit_jupiter_version")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junit_jupiter_version")
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     testImplementation "org.assertj:assertj-core:$assertj_version"
 }
 
