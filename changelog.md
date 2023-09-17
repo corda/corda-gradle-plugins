@@ -5,6 +5,7 @@
 ### Version 7.0.4
 
 * `cordapp-cpk2`: Upgrade to Bndlib 6.4.1.
+* `cordapp-cpk2`: Resolve deprecation warnings when used with Gradle 8+.
 
 ### Version 7.0.3
 

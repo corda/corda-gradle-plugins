@@ -86,6 +86,7 @@ import static net.corda.plugins.cpk2.CordappUtils.mapTo;
 import static net.corda.plugins.cpk2.CordappUtils.maxOf;
 import static net.corda.plugins.cpk2.CordappUtils.parseInstruction;
 import static net.corda.plugins.cpk2.CordappUtils.parseInstructions;
+import static net.corda.plugins.cpk2.CordappUtils.setCannotBeDeclared;
 import static org.gradle.api.file.DuplicatesStrategy.FAIL;
 import static org.gradle.api.plugins.JavaBasePlugin.UNPUBLISHABLE_VARIANT_ARTIFACTS;
 import static org.gradle.api.plugins.JavaPlugin.API_ELEMENTS_CONFIGURATION_NAME;
@@ -212,6 +213,7 @@ public final class CordappPlugin implements Plugin<Project> {
         final Configuration cordaCPK = configurations.create(CORDA_CPK_CONFIGURATION_NAME)
             .attributes(attributor::forJar);
         cordaCPK.setCanBeResolved(false);
+        setCannotBeDeclared(cordaCPK);
 
         final AdhocComponentWithVariants component = softwareComponentFactory.adhoc(CORDAPP_COMPONENT_NAME);
         component.addVariantsFromConfiguration(configurations.getByName(API_ELEMENTS_CONFIGURATION_NAME),
@@ -314,17 +316,19 @@ public final class CordappPlugin implements Plugin<Project> {
             // both the runtimeElements and cordaEmbedded configurations.
             // This won't happen by default because cordaEmbedded is a
             // "compile only" configuration.
-            configurations.create(CORDAPP_PACKAGING_CONFIGURATION_NAME)
+            final Configuration cordappPackaging = configurations.create(CORDAPP_PACKAGING_CONFIGURATION_NAME)
                 .setVisible(false)
                 .extendsFrom(cordaEmbedded, configurations.getByName(RUNTIME_ELEMENTS_CONFIGURATION_NAME))
-                .attributes(attributor::forRuntimeClasspath)
-                .setCanBeConsumed(false);
+                .attributes(attributor::forRuntimeClasspath);
+            cordappPackaging.setCanBeConsumed(false);
+            setCannotBeDeclared(cordappPackaging);
 
-            configurations.create(CORDAPP_EXTERNAL_CONFIGURATION_NAME)
+            final Configuration cordappExternal = configurations.create(CORDAPP_EXTERNAL_CONFIGURATION_NAME)
                 .setVisible(false)
                 .extendsFrom(allProvided, allCordapps)
-                .attributes(attributor::forCompileClasspath)
-                .setCanBeConsumed(false);
+                .attributes(attributor::forCompileClasspath);
+            cordappExternal.setCanBeConsumed(false);
+            setCannotBeDeclared(cordappExternal);
 
         // We need to perform some extra work on the root project to support publication.
         project.getPluginManager().withPlugin("maven-publish", new CordappPublishing(project.getRootProject()));

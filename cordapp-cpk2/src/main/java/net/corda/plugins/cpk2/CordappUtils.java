@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
 import java.io.UncheckedIOException;
+import java.lang.invoke.MethodHandles;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
@@ -45,6 +46,7 @@ import static aQute.bnd.osgi.Constants.FIXUPMESSAGES_IS_DIRECTIVE;
 import static aQute.bnd.osgi.Constants.FIXUPMESSAGES_IS_ERROR;
 import static aQute.bnd.osgi.Constants.FIXUPMESSAGES_IS_WARNING;
 import static aQute.bnd.osgi.Constants.FIXUPMESSAGES_RESTRICT_DIRECTIVE;
+import static java.lang.invoke.MethodType.methodType;
 import static java.util.Collections.max;
 import static java.util.Collections.unmodifiableMap;
 import static org.gradle.api.plugins.JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME;
@@ -197,6 +199,18 @@ public final class CordappUtils {
             cfg.extendsFrom(configuration)
         );
         return configuration;
+    }
+
+    // Configuration.setCanBeDeclared(boolean) was introduced in Gradle 8.2.
+    public static void setCannotBeDeclared(@NotNull Configuration configuration) {
+        try {
+            MethodHandles.publicLookup()
+                .findVirtual(configuration.getClass(), "setCanBeDeclared", methodType(void.class, boolean.class))
+                .invoke(configuration, false);
+        } catch (Error e) {
+            throw e;
+        } catch (Throwable ignored) {
+        }
     }
 
     /**
