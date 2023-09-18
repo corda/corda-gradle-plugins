@@ -103,10 +103,11 @@ final class CordappDependencyCollector {
             dependencies[++idx] = platform;
         }
 
-        return configurations.detachedConfiguration(dependencies)
+        final Configuration detached = configurations.detachedConfiguration(dependencies)
             .attributes(attributor::forCompileClasspath)
-            .setVisible(false)
-            .getResolvedConfiguration();
+            .setVisible(false);
+        detached.setCanBeConsumed(false);
+        return detached.getResolvedConfiguration();
     }
 
     @SuppressWarnings("SynchronizationOnLocalVariableOrMethodParameter")
