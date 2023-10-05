@@ -74,4 +74,8 @@ public class CordappData {
     public void licence(@Nullable String value) {
         licence.set(value);
     }
+
+    public void cordappName(@Nullable String value) {
+        cordappName.set(value);
+    }
 }

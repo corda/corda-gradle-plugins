@@ -522,11 +522,7 @@ public final class CordappPlugin implements Plugin<Project> {
                 Matcher matcher = pattern.matcher(cordappName);
                 if (matcher.matches()) {
                     attributes.put(CPK_CORDAPP_NAME, cordappName);
-                } else {
-                    attributes.put(CPK_CORDAPP_NAME, symbolicName);
                 }
-            } else {
-                attributes.put(CPK_CORDAPP_NAME, symbolicName);
             }
             final String contractName = contract.getName().getOrElse(symbolicName);
             final String vendor = contract.getVendor().getOrElse(UNKNOWN);
@@ -538,11 +534,20 @@ public final class CordappPlugin implements Plugin<Project> {
             attributes.put(CORDAPP_CONTRACT_VERSION, checkCorDappVersionId(contract.getVersionId()));
             attributes.put("Cordapp-Contract-Vendor", vendor);
             attributes.put("Cordapp-Contract-Licence", licence);
-        } else {
-            attributes.put(CPK_CORDAPP_NAME, symbolicName);
         }
+
         final CordappData workflow = cordapp.getWorkflow();
         if (!workflow.isEmpty()) {
+            if (!attributes.containsKey(CPK_CORDAPP_NAME)) {
+                final String cordappName = contract.getCordappName().getOrElse(UNKNOWN);
+                if (!cordappName.equals(UNKNOWN)) {
+                    Pattern pattern = Pattern.compile("[a-zA-Z0-9.]+");
+                    Matcher matcher = pattern.matcher(cordappName);
+                    if (matcher.matches()) {
+                        attributes.put(CPK_CORDAPP_NAME, cordappName);
+                    }
+                }
+            }
             final String workflowName = workflow.getName().getOrElse(symbolicName);
             final String vendor = workflow.getVendor().getOrElse(UNKNOWN);
             final String licence = workflow.getLicence().getOrElse(UNKNOWN);
@@ -553,6 +558,9 @@ public final class CordappPlugin implements Plugin<Project> {
             attributes.put(CORDAPP_WORKFLOW_VERSION, checkCorDappVersionId(workflow.getVersionId()));
             attributes.put("Cordapp-Workflow-Vendor", vendor);
             attributes.put("Cordapp-Workflow-Licence", licence);
+        }
+        if (!attributes.containsKey(CPK_CORDAPP_NAME)) {
+            attributes.put(CPK_CORDAPP_NAME, symbolicName);
         }
         attributes.put(CPK_CORDAPP_VENDOR, attributes.get(BUNDLE_VENDOR));
         attributes.put(CPK_CORDAPP_LICENCE, attributes.get(BUNDLE_LICENSE));
