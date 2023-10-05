@@ -538,6 +538,8 @@ public final class CordappPlugin implements Plugin<Project> {
             attributes.put(CORDAPP_CONTRACT_VERSION, checkCorDappVersionId(contract.getVersionId()));
             attributes.put("Cordapp-Contract-Vendor", vendor);
             attributes.put("Cordapp-Contract-Licence", licence);
+        } else {
+            attributes.put(CPK_CORDAPP_NAME, symbolicName);
         }
         final CordappData workflow = cordapp.getWorkflow();
         if (!workflow.isEmpty()) {
