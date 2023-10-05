@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
@@ -510,11 +512,22 @@ public final class CordappPlugin implements Plugin<Project> {
 
     private void configureCordappAttributes(@NotNull String symbolicName, @NotNull Attributes attributes) {
         attributes.put(BUNDLE_SYMBOLICNAME, symbolicName);
-        attributes.put(CPK_CORDAPP_NAME, symbolicName);
         attributes.put(CPK_FORMAT_TAG, CPK_FORMAT);
 
         final CordappData contract = cordapp.getContract();
         if (!contract.isEmpty()) {
+            final String cordappName = contract.getCordappName().getOrElse(UNKNOWN);
+            if (!cordappName.equals(UNKNOWN)) {
+                Pattern pattern = Pattern.compile("[a-zA-Z0-9.]+");
+                Matcher matcher = pattern.matcher(cordappName);
+                if (matcher.matches()) {
+                    attributes.put(CPK_CORDAPP_NAME, cordappName);
+                } else {
+                    attributes.put(CPK_CORDAPP_NAME, symbolicName);
+                }
+            } else {
+                attributes.put(CPK_CORDAPP_NAME, symbolicName);
+            }
             final String contractName = contract.getName().getOrElse(symbolicName);
             final String vendor = contract.getVendor().getOrElse(UNKNOWN);
             final String licence = contract.getLicence().getOrElse(UNKNOWN);
