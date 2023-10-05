@@ -14,6 +14,7 @@ public class CordappData {
     private final Property<Integer> versionId;
     private final Property<String> vendor;
     private final Property<String> licence;
+    private final Property<String> cordappName;
 
     @Inject
     public CordappData(@NotNull ObjectFactory objects) {
@@ -21,6 +22,7 @@ public class CordappData {
         versionId = objects.property(Integer.class);
         vendor = objects.property(String.class);
         licence = objects.property(String.class);
+        cordappName = objects.property(String.class);
     }
 
     @Optional
@@ -45,6 +47,12 @@ public class CordappData {
     @Input
     public Property<String> getLicence() {
         return licence;
+    }
+
+    @Optional
+    @Input
+    public Property<String> getCordappName() {
+        return cordappName;
     }
 
     boolean isEmpty() {
