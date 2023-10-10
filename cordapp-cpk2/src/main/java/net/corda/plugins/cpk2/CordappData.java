@@ -56,7 +56,7 @@ public class CordappData {
     }
 
     boolean isEmpty() {
-        return (!name.isPresent() && !versionId.isPresent() && !vendor.isPresent() && !licence.isPresent());
+        return (!name.isPresent() && !versionId.isPresent() && !vendor.isPresent() && !licence.isPresent() && !cordappName.isPresent());
     }
 
     public void name(@Nullable String value) {
