@@ -8,7 +8,7 @@ pluginManagement {
     }
 }
 
-rootProject.name = 'with-corda-metadata'
+rootProject.name = 'with-cordapp-name'
 include 'contracts'
 include 'workflows'
 

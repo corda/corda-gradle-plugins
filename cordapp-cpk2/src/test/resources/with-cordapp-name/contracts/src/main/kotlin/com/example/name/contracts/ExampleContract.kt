@@ -1,5 +1,5 @@
 @file:Suppress("unused", "PackageDirectoryMismatch")
-package com.example.metadata.contracts
+package com.example.name.contracts
 
 import net.corda.v5.application.identity.AbstractParty
 import net.corda.v5.ledger.contracts.Contract

@@ -1,7 +1,7 @@
 @file:Suppress("unused", "PackageDirectoryMismatch")
-package com.example.metadata.workflows
+package com.example.name.workflows
 
-import com.example.metadata.contracts.ExampleState
+import com.example.name.contracts.ExampleState
 import net.corda.v5.application.flows.Flow
 
 class ExampleFlow(private val state: ExampleState) : Flow<String> {

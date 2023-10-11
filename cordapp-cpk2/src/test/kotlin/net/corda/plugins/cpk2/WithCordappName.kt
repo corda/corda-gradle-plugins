@@ -50,16 +50,16 @@ class WithCordappName {
         testProject = GradleProject(testProjectDir, reporter)
             .withTestName("with-cordapp-name")
             .withSubResource("contracts/build.gradle")
-            .withSubResource("contracts/src/main/kotlin/com/example/metadata/contracts/ExampleContract.kt")
-            .withSubResource("contracts/src/main/kotlin/com/example/metadata/schemas/ExampleSchema.kt")
+            .withSubResource("contracts/src/main/kotlin/com/example/name/contracts/ExampleContract.kt")
+            .withSubResource("contracts/src/main/kotlin/com/example/name/schemas/ExampleSchema.kt")
             .withSubResource("workflows/build.gradle")
-            .withSubResource("workflows/src/main/kotlin/com/example/metadata/workflows/ExampleFlow.kt")
+            .withSubResource("workflows/src/main/kotlin/com/example/name/workflows/ExampleFlow.kt")
             .build(
                 "-Pcorda_api_version=$cordaApiVersion",
-                "-Pcontract_name=With Contract Metadata",
+                "-Pcontract_name=With Cordapp Name",
                 "-Pcordapp_contract_version=$expectedCordappContractVersion",
                 "-Pcontract_cordapp_version=$CONTRACT_CORDAPP_VERSION",
-                "-Pworkflow_name=With Workflow Metadata",
+                "-Pworkflow_name=With Cordapp Name",
                 "-Pcordapp_workflow_version=$expectedCordappWorkflowVersion",
                 "-Pworkflow_cordapp_version=$WORKFLOW_CORDAPP_VERSION"
             )
@@ -82,12 +82,12 @@ class WithCordappName {
             assertThat(getValue(CORDAPP_PLATFORM_VERSION))
                 .isEqualTo(testPlatformVersion)
             assertThat(getValue(CORDA_CONTRACT_CLASSES))
-                .isEqualTo("com.example.metadata.contracts.ExampleContract,com.example.metadata.contracts.ExampleContract\$NestedContract")
+                .isEqualTo("com.example.name.contracts.ExampleContract,com.example.name.contracts.ExampleContract\$NestedContract")
             assertThat(getValue(CORDA_MAPPED_SCHEMA_CLASSES))
-                .isEqualTo("com.example.metadata.schemas.ExampleSchemaV1")
+                .isEqualTo("com.example.name.schemas.ExampleSchemaV1")
             assertThat(getValue(CORDA_WORKFLOW_CLASSES)).isNull()
             assertThat(getValue(CORDAPP_CONTRACT_NAME))
-                .isEqualTo("With Contract Metadata")
+                .isEqualTo("With Cordapp Name")
             assertThat(getValue(CORDAPP_CONTRACT_VERSION))
                 .isEqualTo(expectedCordappContractVersion.toString())
             assertThat(getValue(BUNDLE_SYMBOLICNAME))
@@ -129,11 +129,11 @@ class WithCordappName {
             assertThat(getValue(CORDAPP_PLATFORM_VERSION))
                 .isEqualTo(testPlatformVersion)
             assertThat(getValue(CORDA_WORKFLOW_CLASSES))
-                .isEqualTo("com.example.metadata.workflows.ExampleFlow,com.example.metadata.workflows.ExampleFlow\$NestedFlow")
+                .isEqualTo("com.example.name.workflows.ExampleFlow,com.example.name.workflows.ExampleFlow\$NestedFlow")
             assertThat(getValue(CORDA_CONTRACT_CLASSES)).isNull()
             assertThat(getValue(CORDA_MAPPED_SCHEMA_CLASSES)).isNull()
             assertThat(getValue(CORDAPP_WORKFLOW_NAME))
-                .isEqualTo("With Workflow Metadata")
+                .isEqualTo("With Cordapp Name")
             assertThat(getValue(CORDAPP_WORKFLOW_VERSION))
                 .isEqualTo(expectedCordappWorkflowVersion.toString())
             assertThat(getValue(BUNDLE_SYMBOLICNAME))

@@ -1,5 +1,5 @@
 @file:Suppress("unused", "PackageDirectoryMismatch")
-package com.example.metadata.schemas
+package com.example.name.schemas
 
 import net.corda.v5.persistence.MappedSchema
 import org.hibernate.annotations.Type
