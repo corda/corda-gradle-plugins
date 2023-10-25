@@ -13,12 +13,15 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.jar.JarInputStream;
 
 import static java.util.Collections.singleton;
 import static net.corda.plugins.cpk2.CordappUtils.CORDAPP_TASK_GROUP;
 import static net.corda.plugins.cpk2.CordappUtils.CORDA_CPK_TYPE;
+import static net.corda.plugins.cpk2.CordappUtils.CPK_CORDAPP_NAME;
 import static net.corda.plugins.cpk2.CordappUtils.CPK_FILE_EXTENSION;
 
 @DisableCachingByDefault
@@ -31,6 +34,7 @@ public class CpbTask extends Jar {
     public static final String CPB_VERSION_ATTRIBUTE = "Corda-CPB-Version";
     public static final String CPB_FORMAT_VERSION = "Corda-CPB-Format";
     public static final String CPB_CURRENT_FORMAT_VERSION = "2.0";
+    private static HashMap<String, Integer> cpkNames = new HashMap<>();
 
     public CpbTask() {
         setGroup(CORDAPP_TASK_GROUP);
@@ -55,6 +59,8 @@ public class CpbTask extends Jar {
             m.getAttributes().put(CPB_NAME_ATTRIBUTE, getArchiveBaseName());
             m.getAttributes().put(CPB_VERSION_ATTRIBUTE, getArchiveVersion());
         });
+
+        cpkNames = new HashMap<>();
     }
 
     @Override
@@ -73,6 +79,20 @@ public class CpbTask extends Jar {
         final Path cpkPath = element.getFile().toPath();
         try (JarInputStream cpkStream = new JarInputStream(new BufferedInputStream(Files.newInputStream(cpkPath)))) {
             final String cpkType = cpkStream.getManifest().getMainAttributes().getValue(CORDA_CPK_TYPE);
+            final String cpkCordappName = cpkStream.getManifest().getMainAttributes().getValue(CPK_CORDAPP_NAME);
+            System.out.println("Processing CPK " + cpkType + " " + cpkCordappName);
+            if (cpkCordappName != null) {
+                System.out.println(cpkCordappName);
+                if (cpkNames.containsKey(cpkCordappName)) {
+                    if (cpkNames.get(cpkCordappName) == 1) {
+                        cpkNames.put(cpkCordappName, 2);
+                    } else {
+                        throw new InvalidUserDataException("Two CPKs may not share a cordappName. Error in " + cpkCordappName);
+                    }
+                } else {
+                    cpkNames.put(cpkCordappName, 1);
+                }
+            }
             return cpkType != null && EXCLUDED_CPK_TYPES.contains(cpkType.toLowerCase());
         } catch (IOException e) {
             throw new InvalidUserDataException(e.getMessage(), e);
