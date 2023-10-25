@@ -519,13 +519,13 @@ public final class CordappPlugin implements Plugin<Project> {
         if (!contract.isEmpty()) {
             final String cordappName = contract.getCordappName().getOrElse(UNKNOWN);
             if (!cordappName.equals(UNKNOWN)) {
-                Pattern pattern = Pattern.compile("[a-zA-Z0-9.]+");
+                Pattern pattern = Pattern.compile("[a-zA-Z0-9.\\-]+");
                 Matcher matcher = pattern.matcher(cordappName);
                 if (matcher.matches()) {
                     attributes.put(CPK_CORDAPP_NAME, cordappName);
                     setName = true;
                 } else {
-                    throw new InvalidUserDataException("contract.cordappName should contain only letters, numbers, and dots.");
+                    throw new InvalidUserDataException("contract.cordappName should contain only letters, numbers, dots, and dashes.");
                 }
             }
             final String contractName = contract.getName().getOrElse(symbolicName);
