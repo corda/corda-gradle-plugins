@@ -14,7 +14,7 @@ public class CordappData {
     private final Property<Integer> versionId;
     private final Property<String> vendor;
     private final Property<String> licence;
-    private final Property<String> cordappName;
+    private final Property<String> cordappCpkName;
 
     @Inject
     public CordappData(@NotNull ObjectFactory objects) {
@@ -22,7 +22,7 @@ public class CordappData {
         versionId = objects.property(Integer.class);
         vendor = objects.property(String.class);
         licence = objects.property(String.class);
-        cordappName = objects.property(String.class);
+        cordappCpkName = objects.property(String.class);
     }
 
     @Optional
@@ -51,12 +51,12 @@ public class CordappData {
 
     @Optional
     @Input
-    public Property<String> getCordappName() {
-        return cordappName;
+    public Property<String> getCordappCpkName() {
+        return cordappCpkName;
     }
 
     boolean isEmpty() {
-        return (!name.isPresent() && !versionId.isPresent() && !vendor.isPresent() && !licence.isPresent() && !cordappName.isPresent());
+        return (!name.isPresent() && !versionId.isPresent() && !vendor.isPresent() && !licence.isPresent() && !cordappCpkName.isPresent());
     }
 
     public void name(@Nullable String value) {
@@ -75,7 +75,7 @@ public class CordappData {
         licence.set(value);
     }
 
-    public void cordappName(@Nullable String value) {
-        cordappName.set(value);
+    public void cordappCpkName(@Nullable String value) {
+        cordappCpkName.set(value);
     }
 }

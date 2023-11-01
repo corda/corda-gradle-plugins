@@ -16,6 +16,6 @@ final class CordappDataProperties {
         inputs.property(nestName + ".versionId", data.getVersionId()).optional(true);
         inputs.property(nestName + ".vendor", data.getVendor()).optional(true);
         inputs.property(nestName + ".licence", data.getLicence()).optional(true);
-        inputs.property(nestName + ".cordappName", data.getCordappName()).optional(true);
+        inputs.property(nestName + ".cordappCpkName", data.getCordappCpkName()).optional(true);
     }
 }

@@ -515,18 +515,18 @@ public final class CordappPlugin implements Plugin<Project> {
         attributes.put(CPK_FORMAT_TAG, CPK_FORMAT);
 
         final CordappData contract = cordapp.getContract();
-        boolean setName = false;
         if (!contract.isEmpty()) {
-            final String cordappName = contract.getCordappName().getOrElse(UNKNOWN);
-            if (!cordappName.equals(UNKNOWN)) {
+            final String cordappCpkName = contract.getCordappCpkName().getOrNull();
+            if (!(cordappCpkName == null)) {
                 Pattern pattern = Pattern.compile("[a-zA-Z0-9.\\-]+");
-                Matcher matcher = pattern.matcher(cordappName);
+                Matcher matcher = pattern.matcher(cordappCpkName);
                 if (matcher.matches()) {
-                    attributes.put(CPK_CORDAPP_NAME, cordappName);
-                    setName = true;
+                    attributes.put(CPK_CORDAPP_NAME, cordappCpkName);
                 } else {
-                    throw new InvalidUserDataException("contract.cordappName should contain only letters, numbers, dots, and dashes.");
+                    throw new InvalidUserDataException("contract.cordappCpkName should contain only letters, numbers, dots, and dashes.");
                 }
+            } else {
+                attributes.put(CPK_CORDAPP_NAME, symbolicName);
             }
             final String contractName = contract.getName().getOrElse(symbolicName);
             final String vendor = contract.getVendor().getOrElse(UNKNOWN);
@@ -542,18 +542,17 @@ public final class CordappPlugin implements Plugin<Project> {
 
         final CordappData workflow = cordapp.getWorkflow();
         if (!workflow.isEmpty()) {
-            if (!setName) {
-                final String cordappName = workflow.getCordappName().getOrElse(UNKNOWN);
-                if (!cordappName.equals(UNKNOWN)) {
-                    Pattern pattern = Pattern.compile("[a-zA-Z0-9.]+");
-                    Matcher matcher = pattern.matcher(cordappName);
-                    if (matcher.matches()) {
-                        attributes.put(CPK_CORDAPP_NAME, cordappName);
-                        setName = true;
-                    } else {
-                        throw new InvalidUserDataException("workflow.cordappName should contain only letters, numbers, and dots.");
-                    }
+            final String cordappCpkName = workflow.getCordappCpkName().getOrNull();
+            if (!(cordappCpkName == null)) {
+                Pattern pattern = Pattern.compile("[a-zA-Z0-9.]+");
+                Matcher matcher = pattern.matcher(cordappCpkName);
+                if (matcher.matches()) {
+                    attributes.put(CPK_CORDAPP_NAME, cordappCpkName);
+                } else {
+                    throw new InvalidUserDataException("workflow.cordappCpkName should contain only letters, numbers, and dots.");
                 }
+            } else {
+                attributes.put(CPK_CORDAPP_NAME, symbolicName);
             }
             final String workflowName = workflow.getName().getOrElse(symbolicName);
             final String vendor = workflow.getVendor().getOrElse(UNKNOWN);
@@ -565,9 +564,6 @@ public final class CordappPlugin implements Plugin<Project> {
             attributes.put(CORDAPP_WORKFLOW_VERSION, checkCorDappVersionId(workflow.getVersionId()));
             attributes.put("Cordapp-Workflow-Vendor", vendor);
             attributes.put("Cordapp-Workflow-Licence", licence);
-        }
-        if (!setName) {
-            attributes.put(CPK_CORDAPP_NAME, symbolicName);
         }
         attributes.put(CPK_CORDAPP_VENDOR, attributes.get(BUNDLE_VENDOR));
         attributes.put(CPK_CORDAPP_LICENCE, attributes.get(BUNDLE_LICENSE));
