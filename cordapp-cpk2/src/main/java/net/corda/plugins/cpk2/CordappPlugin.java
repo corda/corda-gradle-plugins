@@ -515,11 +515,11 @@ public final class CordappPlugin implements Plugin<Project> {
         attributes.put(CPK_FORMAT_TAG, CPK_FORMAT);
 
         final CordappData contract = cordapp.getContract();
+        Pattern cordappCpkNamePattern = Pattern.compile("[a-zA-Z0-9.\\-]+");
         if (!contract.isEmpty()) {
             final String cordappCpkName = contract.getCordappCpkName().getOrNull();
             if (!(cordappCpkName == null)) {
-                Pattern pattern = Pattern.compile("[a-zA-Z0-9.\\-]+");
-                Matcher matcher = pattern.matcher(cordappCpkName);
+                Matcher matcher = cordappCpkNamePattern.matcher(cordappCpkName);
                 if (matcher.matches()) {
                     attributes.put(CPK_CORDAPP_NAME, cordappCpkName);
                 } else {
@@ -544,8 +544,7 @@ public final class CordappPlugin implements Plugin<Project> {
         if (!workflow.isEmpty()) {
             final String cordappCpkName = workflow.getCordappCpkName().getOrNull();
             if (!(cordappCpkName == null)) {
-                Pattern pattern = Pattern.compile("[a-zA-Z0-9.]+");
-                Matcher matcher = pattern.matcher(cordappCpkName);
+                Matcher matcher = cordappCpkNamePattern.matcher(cordappCpkName);
                 if (matcher.matches()) {
                     attributes.put(CPK_CORDAPP_NAME, cordappCpkName);
                 } else {
