@@ -7,6 +7,5 @@ cordaPipelineKubernetesAgent(
     publishToMavenS3Repository: true,
     publishRepoPrefix: 'corda',
     slimBuild: true,
-    snykAdditionalCommands: "--configuration-matching='^runtimeClasspath\$' -d",
-    stableUnstableRepoPattern: false,
+    snykAdditionalCommands: "--configuration-matching='^runtimeClasspath\$' -d"
     )
