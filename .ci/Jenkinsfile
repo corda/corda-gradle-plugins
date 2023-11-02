@@ -1,6 +1,6 @@
 @Library('corda-shared-build-pipeline-steps@5.1') _
 
-cordaPipeline(
+cordaPipelineKubernetesAgent(
     dedicatedJobForSnykDelta: false,
     gitHubComments: false,
     javaVersion: '8',
