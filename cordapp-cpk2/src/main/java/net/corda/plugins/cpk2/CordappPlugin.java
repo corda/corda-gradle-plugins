@@ -518,7 +518,7 @@ public final class CordappPlugin implements Plugin<Project> {
         Pattern cordappCpkNamePattern = Pattern.compile("[a-zA-Z0-9.\\-]+");
         if (!contract.isEmpty()) {
             final String cordappCpkName = contract.getCordappCpkName().getOrNull();
-            if (!(cordappCpkName == null)) {
+            if (cordappCpkName != null) {
                 Matcher matcher = cordappCpkNamePattern.matcher(cordappCpkName);
                 if (matcher.matches()) {
                     attributes.put(CPK_CORDAPP_NAME, cordappCpkName);
@@ -543,7 +543,7 @@ public final class CordappPlugin implements Plugin<Project> {
         final CordappData workflow = cordapp.getWorkflow();
         if (!workflow.isEmpty()) {
             final String cordappCpkName = workflow.getCordappCpkName().getOrNull();
-            if (!(cordappCpkName == null)) {
+            if (cordappCpkName != null) {
                 Matcher matcher = cordappCpkNamePattern.matcher(cordappCpkName);
                 if (matcher.matches()) {
                     attributes.put(CPK_CORDAPP_NAME, cordappCpkName);
