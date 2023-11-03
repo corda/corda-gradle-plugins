@@ -548,7 +548,7 @@ public final class CordappPlugin implements Plugin<Project> {
                 if (matcher.matches()) {
                     attributes.put(CPK_CORDAPP_NAME, cordappCpkName);
                 } else {
-                    throw new InvalidUserDataException("workflow.cordappCpkName should contain only letters, numbers, and dots.");
+                    throw new InvalidUserDataException("workflow.cordappCpkName should contain only letters, numbers, dots, and dashes.");
                 }
             } else {
                 attributes.put(CPK_CORDAPP_NAME, symbolicName);
