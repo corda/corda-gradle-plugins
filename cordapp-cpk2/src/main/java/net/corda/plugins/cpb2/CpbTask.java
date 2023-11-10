@@ -33,7 +33,7 @@ public class CpbTask extends Jar {
     public static final String CPB_VERSION_ATTRIBUTE = "Corda-CPB-Version";
     public static final String CPB_FORMAT_VERSION = "Corda-CPB-Format";
     public static final String CPB_CURRENT_FORMAT_VERSION = "2.0";
-    private static HashMap<String, Integer> cpkNames = new HashMap<>();
+    private final HashMap<String, Integer> cpkNames = new HashMap<>();
 
     public CpbTask() {
         setGroup(CORDAPP_TASK_GROUP);
@@ -58,8 +58,6 @@ public class CpbTask extends Jar {
             m.getAttributes().put(CPB_NAME_ATTRIBUTE, getArchiveBaseName());
             m.getAttributes().put(CPB_VERSION_ATTRIBUTE, getArchiveVersion());
         });
-
-        cpkNames = new HashMap<>();
     }
 
     @Override
