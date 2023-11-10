@@ -4,7 +4,7 @@ pluginManagement {
     }
 }
 
-rootProject.name = 'cordapp-cpb'
+rootProject.name = 'cpb-shared-name'
 
 include 'project-dependency'
-include 'project-dependency-2'
+include 'second-project-dependency'

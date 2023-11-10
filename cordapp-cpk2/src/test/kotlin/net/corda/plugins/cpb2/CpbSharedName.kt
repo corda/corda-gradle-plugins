@@ -45,6 +45,7 @@ class CpbSharedName {
             GradleProject(cpbProjectDir, reporter)
                 .withTestName("cpb-shared-name")
                 .withSubResource("project-dependency/build.gradle")
+                .withSubResource("second-project-dependency/build.gradle")
                 .build(
                     "-Pmaven_repository_dir=$mavenRepoDir",
                     "-Pplatform_cordapp_version=$platformCordappVersion",
