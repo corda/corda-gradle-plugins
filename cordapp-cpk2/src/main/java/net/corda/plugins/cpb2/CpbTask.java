@@ -66,11 +66,11 @@ public class CpbTask extends Jar {
     @NotNull
     public AbstractCopyTask from(@NotNull Object... args) {
         return super.from(args, copySpec ->
-            copySpec.exclude(this::isCPK)
+            copySpec.exclude(this::isValidCPK)
         );
     }
 
-    private boolean isCPK(@NotNull FileTreeElement element) {
+    private boolean isValidCPK(@NotNull FileTreeElement element) {
         if (!element.getName().endsWith(CPK_FILE_SUFFIX)) {
             return false;
         }

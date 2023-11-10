@@ -19,5 +19,5 @@ cordapp {
 }
 
 tasks.named('jar', Jar) {
-    archiveBaseName = 'second-project-cordapp'
+    archiveBaseName = 'project-cordapp'
 }
