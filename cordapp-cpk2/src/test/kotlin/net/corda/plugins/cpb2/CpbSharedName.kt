@@ -43,7 +43,7 @@ class CpbSharedName {
                 )
         }
 
-        val expectedMessage = "Two CPKs may not share a cordappName."
+        val expectedMessage = "Two CPKs may not share a cordappCpkName."
         assert(e.message!!.contains(expectedMessage)) {
             "Error message does not match expected value. Error message should contain \"$expectedMessage\""
         }
