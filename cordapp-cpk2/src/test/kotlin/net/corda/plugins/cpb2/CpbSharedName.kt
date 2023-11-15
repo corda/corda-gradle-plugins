@@ -25,22 +25,11 @@ class CpbSharedName {
 
     @Test
     fun `Assert 2 CPKs don't share a cordappName`(
-        @TempDir externalCordappProjectDir: Path,
         @TempDir testDir: Path,
         reporter: TestReporter
     ) {
         val mavenRepoDir = Files.createDirectory(testDir.resolve("maven"))
         val cpbProjectDir = Files.createDirectory(testDir.resolve("cpb"))
-        externalProject = GradleProject(externalCordappProjectDir, reporter)
-            .withTestName("external-cordapp")
-            .withSubResource("corda-platform-cordapp/build.gradle")
-            .withSubResource("external-cordapp-transitive-dependency/build.gradle")
-            .withTaskName("publishAllPublicationsToTestRepository")
-            .build("-Pmaven_repository_dir=$mavenRepoDir",
-                "-Pcorda_api_version=$cordaApiVersion",
-                "-Pplatform_cordapp_version=$platformCordappVersion",
-                "-Pcordapp_version=$cordappVersion",
-                "-Pcordapp_contract_version=$expectedCordappContractVersion")
         val e = assertThrows<UnexpectedBuildFailure> {
             GradleProject(cpbProjectDir, reporter)
                 .withTestName("cpb-shared-name")
