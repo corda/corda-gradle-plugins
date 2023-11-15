@@ -82,7 +82,7 @@ public class CpbTask extends Jar {
             if (cpkCordappName != null) {
                 if (cpkNames.containsKey(cpkCordappName)) {
                     if (!cpkNames.get(cpkCordappName).equals(manifest)) {
-                        throw new InvalidUserDataException("Two CPKs may not share a cordappName. Error in " + cpkCordappName);
+                        throw new InvalidUserDataException("Two CPKs may not share a cordappCpkName. Error in " + cpkCordappName);
                     }
                 } else {
                     cpkNames.put(cpkCordappName, manifest);
