@@ -16,6 +16,7 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Set;
 import java.util.jar.JarInputStream;
+import java.util.jar.Manifest;
 
 import static java.util.Collections.singleton;
 import static net.corda.plugins.cpk2.CordappUtils.CORDAPP_TASK_GROUP;
@@ -33,7 +34,7 @@ public class CpbTask extends Jar {
     public static final String CPB_VERSION_ATTRIBUTE = "Corda-CPB-Version";
     public static final String CPB_FORMAT_VERSION = "Corda-CPB-Format";
     public static final String CPB_CURRENT_FORMAT_VERSION = "2.0";
-    private final HashMap<String, Integer> cpkNames = new HashMap<>();
+    private final HashMap<String, Manifest> cpkNames = new HashMap<>();
 
     public CpbTask() {
         setGroup(CORDAPP_TASK_GROUP);
@@ -73,21 +74,18 @@ public class CpbTask extends Jar {
             return false;
         }
 
-        final Path cpkPath = element.getFile().toPath();
+        Path cpkPath = element.getFile().toPath();
         try (JarInputStream cpkStream = new JarInputStream(new BufferedInputStream(Files.newInputStream(cpkPath)))) {
-            final String cpkType = cpkStream.getManifest().getMainAttributes().getValue(CORDA_CPK_TYPE);
-            final String cpkCordappName = cpkStream.getManifest().getMainAttributes().getValue(CPK_CORDAPP_NAME);
-            System.out.println("Processing CPK " + cpkType + " " + cpkCordappName);
+            Manifest manifest = cpkStream.getManifest();
+            String cpkType = manifest.getMainAttributes().getValue(CORDA_CPK_TYPE);
+            String cpkCordappName = manifest.getMainAttributes().getValue(CPK_CORDAPP_NAME);
             if (cpkCordappName != null) {
-                System.out.println(cpkCordappName);
                 if (cpkNames.containsKey(cpkCordappName)) {
-                    if (cpkNames.get(cpkCordappName) == 1) {
-                        cpkNames.put(cpkCordappName, 2);
-                    } else {
+                    if (!cpkNames.get(cpkCordappName).equals(manifest)) {
                         throw new InvalidUserDataException("Two CPKs may not share a cordappName. Error in " + cpkCordappName);
                     }
                 } else {
-                    cpkNames.put(cpkCordappName, 1);
+                    cpkNames.put(cpkCordappName, manifest);
                 }
             }
             return cpkType != null && EXCLUDED_CPK_TYPES.contains(cpkType.toLowerCase());
