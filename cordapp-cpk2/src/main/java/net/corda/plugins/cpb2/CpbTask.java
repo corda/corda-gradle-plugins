@@ -74,9 +74,9 @@ public class CpbTask extends Jar {
             return false;
         }
 
-        Path cpkPath = element.getFile().toPath();
+        final Path cpkPath = element.getFile().toPath();
         try (JarInputStream cpkStream = new JarInputStream(new BufferedInputStream(Files.newInputStream(cpkPath)))) {
-            String cpkType = cpkStream.getManifest().getMainAttributes().getValue(CORDA_CPK_TYPE);
+            final String cpkType = cpkStream.getManifest().getMainAttributes().getValue(CORDA_CPK_TYPE);
             return cpkType != null && EXCLUDED_CPK_TYPES.contains(cpkType.toLowerCase());
         } catch (IOException e) {
             throw new InvalidUserDataException(e.getMessage(), e);
@@ -85,7 +85,6 @@ public class CpbTask extends Jar {
 
     public void checkForDuplicates() {
         Set<String> cpkNames = new HashSet<>();
-        System.out.println("checking duplicates");
         FileCollection files = getInputs().getFiles();
         for (File file : files) {
             Path path = file.toPath();
