@@ -65,11 +65,13 @@ public class CpbTask extends Jar {
     @NotNull
     public AbstractCopyTask from(@NotNull Object... args) {
         return super.from(args, copySpec ->
-            copySpec.exclude(this::isValidCPK)
+                copySpec
+                        .exclude(this::isCPK)
+                        .eachFile(this::checkCordappNameUniqueness)
         );
     }
 
-    private boolean isValidCPK(@NotNull FileTreeElement element) {
+    private boolean isCPK(@NotNull FileTreeElement element) {
         if (!element.getName().endsWith(CPK_FILE_SUFFIX)) {
             return false;
         }
@@ -78,6 +80,16 @@ public class CpbTask extends Jar {
         try (JarInputStream cpkStream = new JarInputStream(new BufferedInputStream(Files.newInputStream(cpkPath)))) {
             Manifest manifest = cpkStream.getManifest();
             String cpkType = manifest.getMainAttributes().getValue(CORDA_CPK_TYPE);
+            return cpkType != null && EXCLUDED_CPK_TYPES.contains(cpkType.toLowerCase());
+        } catch (IOException e) {
+            throw new InvalidUserDataException(e.getMessage(), e);
+        }
+    }
+
+    private void checkCordappNameUniqueness(FileTreeElement element) {
+        Path cpkPath = element.getFile().toPath();
+        try (JarInputStream cpkStream = new JarInputStream(new BufferedInputStream(Files.newInputStream(cpkPath)))) {
+            Manifest manifest = cpkStream.getManifest();
             String cpkCordappName = manifest.getMainAttributes().getValue(CPK_CORDAPP_NAME);
             if (cpkCordappName != null) {
                 if (cpkNames.containsKey(cpkCordappName)) {
@@ -88,7 +100,6 @@ public class CpbTask extends Jar {
                     cpkNames.put(cpkCordappName, manifest);
                 }
             }
-            return cpkType != null && EXCLUDED_CPK_TYPES.contains(cpkType.toLowerCase());
         } catch (IOException e) {
             throw new InvalidUserDataException(e.getMessage(), e);
         }

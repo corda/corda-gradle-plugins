@@ -40,8 +40,8 @@ dependencies {
     cordapp project('project-dependency')
     cordapp project('second-project-dependency')
 
-    cpks project(path: 'project-dependency', configuration: 'cordaCPK')
-    cpks project(path: 'second-project-dependency', configuration: 'cordaCPK')
+//    cpks project(path: 'project-dependency', configuration: 'cordaCPK')
+//    cpks project(path: 'second-project-dependency', configuration: 'cordaCPK')
 }
 
 
