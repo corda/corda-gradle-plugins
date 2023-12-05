@@ -517,14 +517,9 @@ public final class CordappPlugin implements Plugin<Project> {
         final CordappData contract = cordapp.getContract();
         Pattern cordappCpkNamePattern = Pattern.compile("[a-zA-Z0-9.\\-]+");
         if (!contract.isEmpty()) {
-            final String cordappCpkName = contract.getCordappCpkName().getOrNull();
+            final String cordappCpkName = getCordaCpkCordappName(contract);
             if (cordappCpkName != null) {
-                Matcher matcher = cordappCpkNamePattern.matcher(cordappCpkName);
-                if (matcher.matches()) {
-                    attributes.put(CPK_CORDAPP_NAME, cordappCpkName);
-                } else {
-                    throw new InvalidUserDataException("contract.cordappCpkName should contain only letters, numbers, dots, and dashes.");
-                }
+                attributes.put(CPK_CORDAPP_NAME, cordappCpkName);
             } else {
                 attributes.put(CPK_CORDAPP_NAME, symbolicName);
             }
@@ -542,14 +537,9 @@ public final class CordappPlugin implements Plugin<Project> {
 
         final CordappData workflow = cordapp.getWorkflow();
         if (!workflow.isEmpty()) {
-            final String cordappCpkName = workflow.getCordappCpkName().getOrNull();
+            final String cordappCpkName = getCordaCpkCordappName(workflow);
             if (cordappCpkName != null) {
-                Matcher matcher = cordappCpkNamePattern.matcher(cordappCpkName);
-                if (matcher.matches()) {
-                    attributes.put(CPK_CORDAPP_NAME, cordappCpkName);
-                } else {
-                    throw new InvalidUserDataException("workflow.cordappCpkName should contain only letters, numbers, dots, and dashes.");
-                }
+                attributes.put(CPK_CORDAPP_NAME, cordappCpkName);
             } else {
                 attributes.put(CPK_CORDAPP_NAME, symbolicName);
             }
@@ -625,6 +615,21 @@ public final class CordappPlugin implements Plugin<Project> {
                 replacements.keySet().retainAll(missing.keySet());
                 throw new InvalidUserDataException("Bnd instructions " + missing + " were replaced with " + replacements + '.');
             }
+        }
+    }
+
+    private static String getCordaCpkCordappName(@NotNull CordappData cordappData) {
+        Pattern cordappCpkNamePattern = Pattern.compile("[a-zA-Z0-9.\\-]+");
+        final String cordappCpkName = cordappData.getCordappCpkName().getOrNull();
+        if (cordappCpkName != null) {
+            Matcher matcher = cordappCpkNamePattern.matcher(cordappCpkName);
+            if (matcher.matches()) {
+                return cordappCpkName;
+            } else {
+                throw new InvalidUserDataException("cordappCpkName \"" + cordappCpkName + "\" should contain only letters, numbers, dots, and dashes.");
+            }
+        } else {
+            return null;
         }
     }
 }
