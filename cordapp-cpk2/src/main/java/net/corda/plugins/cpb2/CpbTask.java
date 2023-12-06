@@ -83,7 +83,7 @@ public class CpbTask extends Jar {
         }
     }
 
-    public void checkForDuplicates() {
+    public void checkForDuplicateCpkCordappNames() {
         Set<String> cpkNames = new HashSet<>();
         FileCollection files = getInputs().getFiles();
         for (File file : files) {
