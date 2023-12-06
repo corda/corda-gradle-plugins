@@ -92,10 +92,10 @@ public class CpbTask extends Jar {
                 try (JarInputStream cpkStream = new JarInputStream(new BufferedInputStream(Files.newInputStream(path)))) {
                     String cpkCordappName = cpkStream.getManifest().getMainAttributes().getValue(CPK_CORDAPP_NAME);
                     if (cpkCordappName != null) {
-                        if (cpkNames.contains(cpkCordappName)) {
-                            throw new InvalidUserDataException("Two CPKs may not share a cordappCpkName. Error in " + cpkCordappName);
+                        if (cpkCordappNames.contains(cpkCordappName)) {
+                            throw new InvalidUserDataException("Two CPKs may not share a cpkCordappName. Error in " + cpkCordappName);
                         } else {
-                            cpkNames.add(cpkCordappName);
+                            cpkCordappNames.add(cpkCordappName);
                         }
                     }
                 } catch (IOException e) {
