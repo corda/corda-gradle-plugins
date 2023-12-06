@@ -1,17 +1,6 @@
 package net.corda.plugins.cpk2
 
-import net.corda.plugins.cpk2.CordappUtils.CORDAPP_CONTRACT_NAME
-import net.corda.plugins.cpk2.CordappUtils.CORDAPP_CONTRACT_VERSION
-import net.corda.plugins.cpk2.CordappUtils.CORDAPP_PLATFORM_VERSION
-import net.corda.plugins.cpk2.CordappUtils.CORDAPP_WORKFLOW_NAME
-import net.corda.plugins.cpk2.CordappUtils.CORDAPP_WORKFLOW_VERSION
-import net.corda.plugins.cpk2.CordappUtils.CPK_CORDAPP_LICENCE
 import net.corda.plugins.cpk2.CordappUtils.CPK_CORDAPP_NAME
-import net.corda.plugins.cpk2.CordappUtils.CPK_CORDAPP_VENDOR
-import net.corda.plugins.cpk2.CordappUtils.CPK_CORDAPP_VERSION
-import net.corda.plugins.cpk2.CordappUtils.CPK_FORMAT
-import net.corda.plugins.cpk2.CordappUtils.CPK_FORMAT_TAG
-import net.corda.plugins.cpk2.CordappUtils.CPK_PLATFORM_VERSION
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -19,16 +8,10 @@ import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
 import org.junit.jupiter.api.TestReporter
 import org.junit.jupiter.api.io.TempDir
-import org.osgi.framework.Constants.BUNDLE_LICENSE
-import org.osgi.framework.Constants.BUNDLE_SYMBOLICNAME
-import org.osgi.framework.Constants.BUNDLE_VENDOR
-import org.osgi.framework.Constants.BUNDLE_VERSION
-import org.osgi.framework.Constants.DYNAMICIMPORT_PACKAGE
-import org.osgi.framework.Constants.IMPORT_PACKAGE
 import java.nio.file.Path
 
 @TestInstance(PER_CLASS)
-class WithCordappName {
+class WithCordappNameTest {
     private companion object {
         private const val CONTRACT_CORDAPP_VERSION = "1.1.1-SNAPSHOT"
         private const val CONTRACT_CORDAPP_CORDAPPNAME = "com.example.contracts.cpk"

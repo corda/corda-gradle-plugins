@@ -515,14 +515,8 @@ public final class CordappPlugin implements Plugin<Project> {
         attributes.put(CPK_FORMAT_TAG, CPK_FORMAT);
 
         final CordappData contract = cordapp.getContract();
-        Pattern cordappCpkNamePattern = Pattern.compile("[a-zA-Z0-9.\\-]+");
         if (!contract.isEmpty()) {
-            final String cordappCpkName = getCordaCpkCordappName(contract);
-            if (cordappCpkName != null) {
-                attributes.put(CPK_CORDAPP_NAME, cordappCpkName);
-            } else {
-                attributes.put(CPK_CORDAPP_NAME, symbolicName);
-            }
+            populateCordappCpkName(contract, symbolicName, attributes);
             final String contractName = contract.getName().getOrElse(symbolicName);
             final String vendor = contract.getVendor().getOrElse(UNKNOWN);
             final String licence = contract.getLicence().getOrElse(UNKNOWN);
@@ -537,12 +531,7 @@ public final class CordappPlugin implements Plugin<Project> {
 
         final CordappData workflow = cordapp.getWorkflow();
         if (!workflow.isEmpty()) {
-            final String cordappCpkName = getCordaCpkCordappName(workflow);
-            if (cordappCpkName != null) {
-                attributes.put(CPK_CORDAPP_NAME, cordappCpkName);
-            } else {
-                attributes.put(CPK_CORDAPP_NAME, symbolicName);
-            }
+            populateCordappCpkName(workflow, symbolicName, attributes);
             final String workflowName = workflow.getName().getOrElse(symbolicName);
             final String vendor = workflow.getVendor().getOrElse(UNKNOWN);
             final String licence = workflow.getLicence().getOrElse(UNKNOWN);
@@ -618,18 +607,18 @@ public final class CordappPlugin implements Plugin<Project> {
         }
     }
 
-    private static String getCordaCpkCordappName(@NotNull CordappData cordappData) {
+    private static void populateCordappCpkName(@NotNull CordappData cordappData, @NotNull String symbolicName, @NotNull Attributes attributes) {
         Pattern cordappCpkNamePattern = Pattern.compile("[a-zA-Z0-9.\\-]+");
         final String cordappCpkName = cordappData.getCordappCpkName().getOrNull();
         if (cordappCpkName != null) {
             Matcher matcher = cordappCpkNamePattern.matcher(cordappCpkName);
             if (matcher.matches()) {
-                return cordappCpkName;
+                attributes.put(CPK_CORDAPP_NAME, cordappCpkName);
             } else {
                 throw new InvalidUserDataException("cordappCpkName \"" + cordappCpkName + "\" should contain only letters, numbers, dots, and dashes.");
             }
         } else {
-            return null;
+            attributes.put(CPK_CORDAPP_NAME, symbolicName);
         }
     }
 }
