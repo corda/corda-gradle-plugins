@@ -2,6 +2,7 @@ package net.corda.plugins.cpb2;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.DuplicatesStrategy;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.tasks.AbstractCopyTask;
 import org.gradle.api.tasks.bundling.Jar;
@@ -10,15 +11,18 @@ import org.gradle.work.DisableCachingByDefault;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.BufferedInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.jar.JarInputStream;
 
 import static java.util.Collections.singleton;
 import static net.corda.plugins.cpk2.CordappUtils.CORDAPP_TASK_GROUP;
 import static net.corda.plugins.cpk2.CordappUtils.CORDA_CPK_TYPE;
+import static net.corda.plugins.cpk2.CordappUtils.CPK_CORDAPP_NAME;
 import static net.corda.plugins.cpk2.CordappUtils.CPK_FILE_EXTENSION;
 
 @DisableCachingByDefault
@@ -76,6 +80,28 @@ public class CpbTask extends Jar {
             return cpkType != null && EXCLUDED_CPK_TYPES.contains(cpkType.toLowerCase());
         } catch (IOException e) {
             throw new InvalidUserDataException(e.getMessage(), e);
+        }
+    }
+
+    public void checkForDuplicateCpkCordappNames() {
+        Set<String> cpkCordappNames = new HashSet<>();
+        FileCollection files = getInputs().getFiles();
+        for (File file : files) {
+            Path path = file.toPath();
+            if (path.toString().endsWith(CPK_FILE_SUFFIX)) {
+                try (JarInputStream cpkStream = new JarInputStream(new BufferedInputStream(Files.newInputStream(path)))) {
+                    String cpkCordappName = cpkStream.getManifest().getMainAttributes().getValue(CPK_CORDAPP_NAME);
+                    if (cpkCordappName != null) {
+                        if (cpkCordappNames.contains(cpkCordappName)) {
+                            throw new InvalidUserDataException("Two CPKs may not share a cpkCordappName. Error in " + cpkCordappName);
+                        } else {
+                            cpkCordappNames.add(cpkCordappName);
+                        }
+                    }
+                } catch (IOException e) {
+                    throw new InvalidUserDataException(e.getMessage(), e);
+                }
+            }
         }
     }
 }

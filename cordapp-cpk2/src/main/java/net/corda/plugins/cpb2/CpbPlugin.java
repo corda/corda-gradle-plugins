@@ -72,6 +72,8 @@ public final class CpbPlugin implements Plugin<Project> {
             cpbTask.getArchiveAppendix().convention(cpkTask.flatMap(Jar::getArchiveAppendix));
             cpbTask.getArchiveVersion().convention(cpkTask.flatMap(Jar::getArchiveVersion));
 
+            cpbTask.doFirst(task -> cpbTask.checkForDuplicateCpkCordappNames());
+
             cpbTask.doLast(task -> {
                 if (cordappExtension.getSigning().getEnabled().get()) {
                     sign(task, cordappExtension.getSigning().getOptions(), cpbTask.getArchiveFile().get().getAsFile());
