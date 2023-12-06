@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
@@ -510,11 +512,11 @@ public final class CordappPlugin implements Plugin<Project> {
 
     private void configureCordappAttributes(@NotNull String symbolicName, @NotNull Attributes attributes) {
         attributes.put(BUNDLE_SYMBOLICNAME, symbolicName);
-        attributes.put(CPK_CORDAPP_NAME, symbolicName);
         attributes.put(CPK_FORMAT_TAG, CPK_FORMAT);
 
         final CordappData contract = cordapp.getContract();
         if (!contract.isEmpty()) {
+            populateCpkCordappName(contract, symbolicName, attributes);
             final String contractName = contract.getName().getOrElse(symbolicName);
             final String vendor = contract.getVendor().getOrElse(UNKNOWN);
             final String licence = contract.getLicence().getOrElse(UNKNOWN);
@@ -526,8 +528,10 @@ public final class CordappPlugin implements Plugin<Project> {
             attributes.put("Cordapp-Contract-Vendor", vendor);
             attributes.put("Cordapp-Contract-Licence", licence);
         }
+
         final CordappData workflow = cordapp.getWorkflow();
         if (!workflow.isEmpty()) {
+            populateCpkCordappName(workflow, symbolicName, attributes);
             final String workflowName = workflow.getName().getOrElse(symbolicName);
             final String vendor = workflow.getVendor().getOrElse(UNKNOWN);
             final String licence = workflow.getLicence().getOrElse(UNKNOWN);
@@ -600,6 +604,21 @@ public final class CordappPlugin implements Plugin<Project> {
                 replacements.keySet().retainAll(missing.keySet());
                 throw new InvalidUserDataException("Bnd instructions " + missing + " were replaced with " + replacements + '.');
             }
+        }
+    }
+
+    private static void populateCpkCordappName(@NotNull CordappData cordappData, @NotNull String symbolicName, @NotNull Attributes attributes) {
+        Pattern cpkCordappNamePattern = Pattern.compile("[a-zA-Z0-9.\\-]+");
+        final String cpkCordappName = cordappData.getCpkCordappName().getOrNull();
+        if (cpkCordappName != null) {
+            Matcher matcher = cpkCordappNamePattern.matcher(cpkCordappName);
+            if (matcher.matches()) {
+                attributes.put(CPK_CORDAPP_NAME, cpkCordappName);
+            } else {
+                throw new InvalidUserDataException("cpkCordappName \"" + cpkCordappName + "\" should contain only letters, numbers, dots, and dashes.");
+            }
+        } else {
+            attributes.put(CPK_CORDAPP_NAME, symbolicName);
         }
     }
 }

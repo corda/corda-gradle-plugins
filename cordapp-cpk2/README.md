@@ -69,6 +69,7 @@ cordapp {
         versionId = 1
         licence = 'Test-Licence'
         vendor = 'R3'
+        cpkCordappName = 'com.r3.example.simplecordapp.contract'
     }
 
     workflow {
@@ -76,6 +77,7 @@ cordapp {
         versionId = 1
         licence = 'Test-Licence'
         vendor = 'R3'
+        cpkCordappName = 'com.r3.example.simplecordapp.workflow'
     }
 
     signing {

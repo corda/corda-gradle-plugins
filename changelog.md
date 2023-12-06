@@ -6,6 +6,8 @@
 
 * `cordapp-cpk2`: Upgrade to Bndlib 6.4.1.
 * `cordapp-cpk2`: Resolve deprecation warnings when used with Gradle 8+.
+* `cordapp-cpk2`: Allow users to set their own value for Corda-CPK-Cordapp-Name
+* `cordapp-cpb2`: Add check to ensure that CPKs do not share a Corda-CPK-Cordapp-Name
 
 ### Version 7.0.3
 

@@ -1,0 +1,18 @@
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+    }
+
+    plugins {
+        id 'org.jetbrains.kotlin.jvm' version kotlin_version
+    }
+}
+
+rootProject.name = 'with-cordapp-name'
+include 'contracts'
+include 'workflows'
+
+include 'corda-api'
+project(':corda-api').projectDir = file('../resources/test/corda-api')
+
+includeBuild '../resources/test/base-cordapp-configuration'

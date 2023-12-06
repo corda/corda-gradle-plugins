@@ -79,7 +79,7 @@ public final class CordappUtils {
 
     // These tags are for the CPK file.
     static final String CPK_PLATFORM_VERSION = "Corda-CPK-Built-Platform-Version";
-    static final String CPK_CORDAPP_NAME = "Corda-CPK-Cordapp-Name";
+    public static final String CPK_CORDAPP_NAME = "Corda-CPK-Cordapp-Name";
     static final String CPK_CORDAPP_VERSION = "Corda-CPK-Cordapp-Version";
     static final String CPK_CORDAPP_LICENCE = "Corda-CPK-Cordapp-Licence";
     static final String CPK_CORDAPP_VENDOR = "Corda-CPK-Cordapp-Vendor";
