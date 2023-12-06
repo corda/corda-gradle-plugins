@@ -16,7 +16,7 @@ cordapp {
         versionId = cordapp_contract_version.toInteger()
         licence = 'Test-Licence'
         vendor = 'R3'
-        cordappCpkName = 'com.example.contracts.cpk'
+        cpkCordappName = 'com.example.contracts.cpk'
     }
 }
 

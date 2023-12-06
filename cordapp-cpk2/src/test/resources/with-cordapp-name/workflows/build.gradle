@@ -16,7 +16,7 @@ cordapp {
         versionId = cordapp_workflow_version.toInteger()
         licence = 'Test-Licence'
         vendor = 'R3'
-        cordappCpkName = 'com.example.workflows.cpk'
+        cpkCordappName = 'com.example.workflows.cpk'
     }
 }
 
