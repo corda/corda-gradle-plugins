@@ -2,6 +2,8 @@
 
 ## Version 7
 
+### Version 7.0.5
+
 ### Version 7.0.4
 
 * `cordapp-cpk2`: Upgrade to Bndlib 6.4.1.
