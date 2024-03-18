@@ -1,9 +1,0 @@
-// Common settings for all Gradle test projects.
-pluginManagement {
-    repositories {
-        gradlePluginPortal()
-    }
-}
-
-rootProject.name = 'deploy-project-cordapp'
-include 'cordapp'
