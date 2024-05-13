@@ -1,0 +1,6 @@
+@Library('corda-shared-build-pipeline-steps@ES-2337/snyk-code') _
+
+staticCodeAnalysisPipeline(
+    snykIacEnable : false
+)
+
