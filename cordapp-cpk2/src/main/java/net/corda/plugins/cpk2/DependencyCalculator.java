@@ -297,6 +297,7 @@ public class DependencyCalculator extends DefaultTask {
         return transitives;
     }
 
+    @NotNull
     private static File extractJarEntry(JarFile jarFile, JarEntry jarEntry, Path pathToDir) throws IOException {
         File file;
         Path path = Paths.get(pathToDir.toString(), jarEntry.getName());
