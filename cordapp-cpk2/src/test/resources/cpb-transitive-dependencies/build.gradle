@@ -1,0 +1,22 @@
+plugins {
+    id 'base'
+}
+
+configurations {
+    cpbs {
+        canBeConsumed = false
+    }
+}
+
+dependencies {
+    cpbs project(path: ':cpk-final', configuration: 'cordaCPB')
+}
+
+def copyCPB = tasks.register('copyCPB', Copy) {
+    from configurations.cpbs
+    into layout.buildDirectory.dir('libs')
+}
+
+tasks.named('assemble') {
+    dependsOn copyCPB
+}
