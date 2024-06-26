@@ -73,6 +73,7 @@ public final class CpbPlugin implements Plugin<Project> {
             cpbTask.getArchiveVersion().convention(cpkTask.flatMap(Jar::getArchiveVersion));
 
             cpbTask.doFirst(task -> cpbTask.checkForDuplicateCpkCordappNames());
+            cpbTask.doFirst(task -> cpbTask.extractTransitiveDeps());
 
             cpbTask.doLast(task -> {
                 if (cordappExtension.getSigning().getEnabled().get()) {
