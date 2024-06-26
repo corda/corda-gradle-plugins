@@ -128,11 +128,9 @@ public class CpbTask extends Jar {
         if (jarDir != null) {
             FileCollection jars = getInputs().getFiles();
             Set<String> jarNames = new HashSet<>();
-            for (File file : jars) {
-                jarNames.add(file.getName());
-            }
             Set<File> cpbs = new HashSet<>();
             for (File file : jars) {
+                jarNames.add(file.getName());
                 File parent = file.getParentFile();
                 for (File sibling : parent.listFiles()) {
                     if (sibling.isFile() && sibling.getName().endsWith(CPB_FILE_SUFFIX)) {
