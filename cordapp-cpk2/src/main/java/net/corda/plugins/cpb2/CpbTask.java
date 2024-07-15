@@ -20,6 +20,7 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -45,7 +46,7 @@ public class CpbTask extends Jar {
     private static File jarDir;
     Set<String> cordappFileNames = new HashSet<>();
 
-    public CpbTask() {
+    public CpbTask() throws IOException {
         setGroup(CORDAPP_TASK_GROUP);
         setDescription("Assembles a .cpb archive that contains the current project's .cpk artifact " +
                 "and all of its dependencies");
@@ -69,13 +70,8 @@ public class CpbTask extends Jar {
             m.getAttributes().put(CPB_VERSION_ATTRIBUTE, getArchiveVersion());
         });
 
-        try {
-            jarDir = Files.createTempDirectory("").toFile();
-            jarDir.deleteOnExit();
-        } catch (IOException e) {
-            getLogger().warn("Could not create jar directory: {}", e.getMessage());
-            jarDir = null;
-        }
+        jarDir = Files.createTempDirectory("").toFile();
+        jarDir.deleteOnExit();
     }
 
     @Override
@@ -125,21 +121,17 @@ public class CpbTask extends Jar {
     }
 
     public void extractTransitiveDeps() {
-        if (jarDir != null) {
-            FileCollection jars = getInputs().getFiles();
-            Set<String> jarNames = new HashSet<>();
-            Set<File> cpbs = new HashSet<>();
-            for (File file : jars) {
-                jarNames.add(file.getName());
-                File parent = file.getParentFile();
-                for (File sibling : parent.listFiles()) {
-                    if (sibling.isFile() && sibling.getName().endsWith(CPB_FILE_SUFFIX)) {
-                        cpbs.add(sibling);
-                    }
+        Objects.requireNonNull(jarDir);
+        FileCollection jars = getInputs().getFiles();
+        Set<String> jarNames = new HashSet<>();
+        for (File jar : jars) {
+            jarNames.add(jar.getName());
+            File parent = jar.getParentFile();
+            for (File sibling : parent.listFiles()) {
+                if (sibling.isFile() && sibling.getName().endsWith(CPB_FILE_SUFFIX)) {
+                    extractJarsFromCPB(sibling, jarNames);
+                    break;
                 }
-            }
-            for (File cpb : cpbs) {
-                extractJarsFromCPB(cpb, jarNames);
             }
         }
     }

@@ -172,7 +172,7 @@ public class DependencyCalculator extends DefaultTask {
     }
 
     @TaskAction
-    public void calculate() {
+    public void calculate() throws IOException {
         // Compute the (unresolved) dependencies on the packaging classpath
         // that the user has selected for this CPK archive. We ignore any
         // dependencies from the cordaRuntimeOnly configuration because
@@ -242,12 +242,7 @@ public class DependencyCalculator extends DefaultTask {
             cordappFileNames.add(file.getName());
         }
         Set<File> cpbs = getCpbs(externalConfiguration);
-        Set<File> transitives = new HashSet<>();
-        try {
-            transitives = extractJarsFromCpb(cpbs, cordappFileNames);
-        } catch (IOException e) {
-            log.warn("Could not resolve transitive dependencies from CPBs: {}", e.getMessage());
-        }
+        Set<File> transitives = extractTransitiveDependenciesFromCpb(cpbs, cordappFileNames);
         cordappFiles.addAll(transitives);
         _projectCordapps.setFrom(projectCordappFiles);
         _projectCordapps.disallowChanges();
@@ -278,9 +273,9 @@ public class DependencyCalculator extends DefaultTask {
     }
 
     @NotNull
-    private static Set<File> extractJarsFromCpb(Set<File> cpbs, Set<String> cordappFileNames) throws IOException {
-        Path pathToDir = Files.createTempDirectory("jars");
-        pathToDir.toFile().deleteOnExit();
+    private static Set<File> extractTransitiveDependenciesFromCpb(Set<File> cpbs, Set<String> cordappFileNames) throws IOException {
+        Path tempDir = Files.createTempDirectory("jars");
+        tempDir.toFile().deleteOnExit();
         Set<File> transitives = new HashSet<>();
         for (File cpb: cpbs) {
             JarFile jarFile = new JarFile(cpb);
@@ -289,7 +284,7 @@ public class DependencyCalculator extends DefaultTask {
                 JarEntry jarEntry = jarEntries.nextElement();
                 if (!cordappFileNames.contains(jarEntry.getName())) {
                     if (jarEntry.getName().endsWith(".jar")) {
-                        transitives.add(extractJarEntry(jarFile, jarEntry, pathToDir));
+                        transitives.add(extractJarEntry(jarFile, jarEntry, tempDir));
                     }
                 }
             }
@@ -299,7 +294,6 @@ public class DependencyCalculator extends DefaultTask {
 
     @NotNull
     private static File extractJarEntry(JarFile jarFile, JarEntry jarEntry, Path pathToDir) throws IOException {
-        File file;
         Path path = Paths.get(pathToDir.toString(), jarEntry.getName());
         if (!Files.exists(pathToDir)) {
             Files.createDirectories(pathToDir);
@@ -309,7 +303,7 @@ public class DependencyCalculator extends DefaultTask {
             Files.copy(inputStream, path);
             path.toFile().deleteOnExit();
         }
-        file = path.toFile();
+        File file = path.toFile();
         file.deleteOnExit();
         return file;
     }
