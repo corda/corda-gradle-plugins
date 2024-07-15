@@ -13,10 +13,17 @@ import org.jetbrains.annotations.NotNull;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.Enumeration;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 import java.util.jar.JarInputStream;
 
 import static java.util.Collections.singleton;
@@ -29,14 +36,17 @@ import static net.corda.plugins.cpk2.CordappUtils.CPK_FILE_EXTENSION;
 public class CpbTask extends Jar {
     private static final String CPB_ARTIFACT_CLASSIFIER = "package";
     public static final String CPB_FILE_EXTENSION = "cpb";
+    private static final String CPB_FILE_SUFFIX = "." + CPB_FILE_EXTENSION;
     private static final String CPK_FILE_SUFFIX = '.' + CPK_FILE_EXTENSION;
     private static final Set<String> EXCLUDED_CPK_TYPES = singleton("corda-api");
     public static final String CPB_NAME_ATTRIBUTE = "Corda-CPB-Name";
     public static final String CPB_VERSION_ATTRIBUTE = "Corda-CPB-Version";
     public static final String CPB_FORMAT_VERSION = "Corda-CPB-Format";
     public static final String CPB_CURRENT_FORMAT_VERSION = "2.0";
+    private static File jarDir;
+    Set<String> cordappFileNames = new HashSet<>();
 
-    public CpbTask() {
+    public CpbTask() throws IOException {
         setGroup(CORDAPP_TASK_GROUP);
         setDescription("Assembles a .cpb archive that contains the current project's .cpk artifact " +
                 "and all of its dependencies");
@@ -59,11 +69,16 @@ public class CpbTask extends Jar {
             m.getAttributes().put(CPB_NAME_ATTRIBUTE, getArchiveBaseName());
             m.getAttributes().put(CPB_VERSION_ATTRIBUTE, getArchiveVersion());
         });
+
+        jarDir = Files.createTempDirectory("").toFile();
+        jarDir.deleteOnExit();
     }
 
     @Override
     @NotNull
     public AbstractCopyTask from(@NotNull Object... args) {
+        args = Arrays.copyOf(args, args.length + 1);
+        args[args.length - 1] = jarDir;
         return super.from(args, copySpec ->
             copySpec.exclude(this::isCPK)
         );
@@ -102,6 +117,53 @@ public class CpbTask extends Jar {
                     throw new InvalidUserDataException(e.getMessage(), e);
                 }
             }
+        }
+    }
+
+    public void extractTransitiveDeps() {
+        Objects.requireNonNull(jarDir);
+        FileCollection jars = getInputs().getFiles();
+        Set<String> jarNames = new HashSet<>();
+        for (File jar : jars) {
+            jarNames.add(jar.getName());
+            File parent = jar.getParentFile();
+            for (File sibling : parent.listFiles()) {
+                if (sibling.isFile() && sibling.getName().endsWith(CPB_FILE_SUFFIX)) {
+                    extractJarsFromCPB(sibling, jarNames);
+                    break;
+                }
+            }
+        }
+    }
+
+    private void extractJarsFromCPB(File cpb, Set<String> jarNames) {
+        try (JarFile jarFile = new JarFile(cpb)) {
+            Enumeration<JarEntry> jarEntries = jarFile.entries();
+            while (jarEntries.hasMoreElements()) {
+                JarEntry jarEntry = jarEntries.nextElement();
+                if (!cordappFileNames.contains(jarEntry.getName())) {
+                    cordappFileNames.add(jarEntry.getName());
+                    String jarName = jarEntry.getName();
+                    if (jarName.endsWith(".jar") && !jarNames.contains(jarName)) {
+                        extractJarEntry(jarFile, jarEntry);
+                    }
+                }
+            }
+        } catch (IOException e) {
+            getLogger().warn("Could not extract cpb: {}", e.getMessage());
+        }
+    }
+
+    private void extractJarEntry(JarFile jarFile, JarEntry jarEntry) {
+        try {
+            Path path = Paths.get(jarDir.getAbsolutePath(), jarEntry.getName());
+            if (!Files.exists(path)) {
+                InputStream inputStream = jarFile.getInputStream(jarEntry);
+                Files.copy(inputStream, path);
+                path.toFile().deleteOnExit();
+            }
+        } catch (IOException e) {
+            getLogger().error("Could not copy jar: {}", e.getMessage());
         }
     }
 }

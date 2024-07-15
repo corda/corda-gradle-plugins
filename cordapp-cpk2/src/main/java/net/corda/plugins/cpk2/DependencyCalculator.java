@@ -20,14 +20,26 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.work.DisableCachingByDefault;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 import javax.inject.Inject;
 
 import static java.util.Collections.emptySet;
@@ -69,6 +81,7 @@ public class DependencyCalculator extends DefaultTask {
         { "co.paralleluniverse", "quasar-core" },
         { "co.paralleluniverse", "quasar-core-osgi" }
     };
+    private static final Logger log = LoggerFactory.getLogger(DependencyCalculator.class);
 
     /**
      * Gradle's configuration cache forbids invoking {@link org.gradle.api.Task#getProject}
@@ -159,7 +172,7 @@ public class DependencyCalculator extends DefaultTask {
     }
 
     @TaskAction
-    public void calculate() {
+    public void calculate() throws IOException {
         // Compute the (unresolved) dependencies on the packaging classpath
         // that the user has selected for this CPK archive. We ignore any
         // dependencies from the cordaRuntimeOnly configuration because
@@ -224,6 +237,13 @@ public class DependencyCalculator extends DefaultTask {
         final Set<File> cordappFiles = resolveFirstLevelFilesFor(externalConfiguration, cordappDeps);
         final List<ProjectDependency> projectCordappDeps = filterIsInstance(cordappDeps, ProjectDependency.class);
         final Set<File> projectCordappFiles = toFiles(resolveFirstLevel(externalConfiguration, projectCordappDeps));
+        Set<String> cordappFileNames = new HashSet<>();
+        for(File file: cordappFiles) {
+            cordappFileNames.add(file.getName());
+        }
+        Set<File> cpbs = getCpbs(externalConfiguration);
+        Set<File> transitives = extractTransitiveDependenciesFromCpb(cpbs, cordappFileNames);
+        cordappFiles.addAll(transitives);
         _projectCordapps.setFrom(projectCordappFiles);
         _projectCordapps.disallowChanges();
 
@@ -234,6 +254,58 @@ public class DependencyCalculator extends DefaultTask {
         final Set<File> providedFiles = resolveAllFilesFor(externalConfiguration, providedDeps);
         _providedJars.setFrom(providedFiles);
         _providedJars.disallowChanges();
+    }
+
+    @NotNull
+    private static Set<File> getCpbs(ResolvedConfiguration externalConfiguration) {
+        Set<File> cpbs = new HashSet<>();
+        for (File file: externalConfiguration.getFiles()) {
+            if (!file.getAbsolutePath().contains("/.")) {
+                File dir = file.getAbsoluteFile().getParentFile();
+                for (File siblingFile: Objects.requireNonNull(dir.listFiles())) {
+                    if (siblingFile.isFile() && siblingFile.getAbsolutePath().endsWith(".cpb")) {
+                        cpbs.add(siblingFile);
+                    }
+                }
+            }
+        }
+        return cpbs;
+    }
+
+    @NotNull
+    private static Set<File> extractTransitiveDependenciesFromCpb(Set<File> cpbs, Set<String> cordappFileNames) throws IOException {
+        Path tempDir = Files.createTempDirectory("jars");
+        tempDir.toFile().deleteOnExit();
+        Set<File> transitives = new HashSet<>();
+        for (File cpb: cpbs) {
+            JarFile jarFile = new JarFile(cpb);
+            Enumeration<JarEntry> jarEntries = jarFile.entries();
+            while (jarEntries.hasMoreElements()) {
+                JarEntry jarEntry = jarEntries.nextElement();
+                if (!cordappFileNames.contains(jarEntry.getName())) {
+                    if (jarEntry.getName().endsWith(".jar")) {
+                        transitives.add(extractJarEntry(jarFile, jarEntry, tempDir));
+                    }
+                }
+            }
+        }
+        return transitives;
+    }
+
+    @NotNull
+    private static File extractJarEntry(JarFile jarFile, JarEntry jarEntry, Path pathToDir) throws IOException {
+        Path path = Paths.get(pathToDir.toString(), jarEntry.getName());
+        if (!Files.exists(pathToDir)) {
+            Files.createDirectories(pathToDir);
+        }
+        if (!Files.exists(path)) {
+            InputStream inputStream = jarFile.getInputStream(jarEntry);
+            Files.copy(inputStream, path);
+            path.toFile().deleteOnExit();
+        }
+        File file = path.toFile();
+        file.deleteOnExit();
+        return file;
     }
 
     @NotNull

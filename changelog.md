@@ -4,6 +4,9 @@
 
 ### Version 7.0.5
 
+* `cordapp-cpk2`: Include transitive dependencies in list of dependencies
+* `cordapp-cpb2`: Include transitive dependencies in CPB archive
+
 ### Version 7.0.4
 
 * `cordapp-cpk2`: Upgrade to Bndlib 6.4.1.
