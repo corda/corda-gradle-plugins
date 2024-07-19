@@ -3,7 +3,6 @@ import static org.gradle.api.JavaVersion.VERSION_1_8
 
 plugins {
     id 'org.jetbrains.kotlin.jvm' apply false
-    id 'com.jfrog.bintray' apply false
     id 'com.jfrog.artifactory'
     id 'com.gradle.build-scan'
 }
@@ -89,7 +88,6 @@ def publishProjects = childProjects.values()
 
 configure(publishProjects) { Project subproject ->
     apply plugin: 'maven-publish'
-    apply plugin: 'com.jfrog.bintray'
     apply plugin: 'com.jfrog.artifactory'
 
     evaluationDependsOn(subproject.path)
@@ -220,26 +218,6 @@ configure(publishProjects) { Project subproject ->
                         secretKey "${System.getenv('AWS_SECRET_ACCESS_KEY')}"
                         sessionToken "${System.getenv('AWS_SESSION_TOKEN')}"
                     }
-                }
-            }
-        }
-    }
-
-    bintray {
-        user = System.getenv('CORDA_BINTRAY_USER') ?: System.getProperty('corda.bintray.user')
-        key = System.getenv('CORDA_BINTRAY_KEY') ?: System.getProperty('corda.bintray.key')
-        publications = [subproject.name]
-        dryRun = (System.getenv('CORDA_BINTRAY_DRYRUN') != null || System.getProperty('corda.bintray.dryrun') != null)
-        pkg {
-            repo = 'corda'
-            name = subproject.name
-            userOrg = 'r3'
-            licenses = ['Apache-2.0']
-
-            version {
-                gpg {
-                    sign = true
-                    passphrase = System.getenv('CORDA_BINTRAY_GPG_PASSPHRASE')
                 }
             }
         }

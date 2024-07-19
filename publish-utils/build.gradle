@@ -7,6 +7,20 @@ plugins {
 repositories {
     mavenCentral()
     gradlePluginPortal()
+    def cordaUseCache = System.getenv("CORDA_USE_CACHE")
+    if (cordaUseCache != null) {
+        maven {
+            url = "https://software.r3.com/artifactory/corda-remotes"
+            name = "R3 Maven remote repositories"
+            authentication {
+                basic(BasicAuthentication)
+            }
+            credentials {
+                username = project.findProperty('cordaArtifactoryUsername') ?: System.getenv('CORDA_ARTIFACTORY_USERNAME')
+                password = project.findProperty('cordaArtifactoryPassword') ?: System.getenv('CORDA_ARTIFACTORY_PASSWORD')
+            }
+        }
+    }
 }
 
 dependencies {
