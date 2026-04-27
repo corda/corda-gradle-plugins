@@ -49,6 +49,9 @@ class CordappGradleConfigurationsTest {
                     |        versionId = 1
                     |        targetPlatformVersion = 5
                     |    }
+                    |    signing {
+                    |        enabled = false
+                    |    }
                     |}
                 """.trimMargin())
                 .build()

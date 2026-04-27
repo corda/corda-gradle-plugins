@@ -2,6 +2,7 @@ package net.corda.plugins
 
 import net.corda.plugins.cordapp.signing.SigningOptions
 import net.corda.plugins.cordapp.signing.SigningOptions.Key
+import org.gradle.api.Action
 import org.gradle.api.DefaultTask
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Task
@@ -12,6 +13,7 @@ import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.OutputFiles
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity.RELATIVE
@@ -39,37 +41,127 @@ open class SignJar @Inject constructor(objects: ObjectFactory) : DefaultTask() {
         }
 
         fun Task.sign(signing: Signing, file: File, outputFile: File? = null) {
-            val options = signing.options.signJarOptions.get()
-            val useDefaultKeyStore = !signing.options.keyStore.isPresent
-            if (useDefaultKeyStore) {
+            val opts = signing.options
+
+            val command = mutableListOf<String>()
+
+            // executable
+            opts.executable.orNull?.let { command.add(it.asFile.absolutePath) } ?: command.add("jarsigner")
+
+            // keystore
+            val useDefaultKeyStore = !opts.keyStore.isPresent
+            val keyStorePath: String = if (useDefaultKeyStore) {
                 logger.info("CorDapp JAR signing with the default Corda development key, suitable for Corda running in development mode only.")
                 val keyStore = File.createTempFile(SigningOptions.DEFAULT_KEYSTORE_FILE, SigningOptions.DEFAULT_KEYSTORE_EXTENSION, temporaryDir).toPath()
                 writeResourceToFile(SigningOptions.DEFAULT_KEYSTORE, keyStore)
-                options[Key.KEYSTORE] = keyStore.toString()
+                keyStore.toString()
+            } else {
+                opts.keyStore.get().toString()
             }
 
-            val path = file.toPath()
-            options[Key.JAR] = path.toString()
+            command.add("-keystore")
+            command.add(keyStorePath)
 
+            // storepass
+            command.add("-storepass")
+            command.add(opts.storePassword.get())
+
+            // keypass
+            command.add("-keypass")
+            command.add(opts.keyPassword.get())
+
+            // storetype
+            opts.storeType.orNull?.let {
+                command.add("-storetype")
+                command.add(it)
+            }
+
+            // alias
+            command.add("-alias")
+            command.add(opts.alias.get())
+
+            // sigfile
+            opts.signatureFileName.orNull?.let {
+                command.add("-sigfile")
+                command.add(it)
+            }
+
+            // verbose
+            if (opts.verbose.get()) command.add("-verbose")
+
+            // strict
+            if (opts.strict.get()) command.add("-strict")
+
+            // internalsf
+            if (opts.internalSF.get()) command.add("-internalsf")
+
+            // sectionsonly
+            if (opts.sectionsOnly.get()) command.add("-sectionsonly")
+
+            // tsa
+            opts.tsaUrl.orNull?.let {
+                command.add("-tsa")
+                command.add(it.toString())
+            }
+
+            // tsacert
+            opts.tsaCert.orNull?.let {
+                command.add("-tsacert")
+                command.add(it)
+            }
+
+            // sigalg
+            opts.signatureAlgorithm.orNull?.let {
+                command.add("-sigalg")
+                command.add(it)
+            }
+
+            // digestalg
+            opts.digestAlgorithm.orNull?.let {
+                command.add("-digestalg")
+                command.add(it)
+            }
+
+            // tsadigestalg
+            opts.tsaDigestAlgorithm.orNull?.let {
+                command.add("-tsadigestalg")
+                command.add(it)
+            }
+
+            // providerClassPath
+            opts.providerClassPath.orNull?.let {
+                command.add("-providerClassPath")
+                command.add(it)
+            }
+
+            // signedjar
             if (outputFile != null) {
-                options[Key.SIGNEDJAR] = outputFile.toPath().toString()
+                command.add("-signedjar")
+                command.add(outputFile.absolutePath)
             }
 
-            logger.info("Jar signing with following options: {}", options.toSanitized())
+            // jar
+            command.add(file.absolutePath)
+
+            // Log command with passwords masked
+            val sanitizedCommand = command.joinToString(" ") { arg ->
+                if (arg == opts.storePassword.get() || arg == opts.keyPassword.get()) DUMMY_VALUE else arg
+            }
+            logger.info("Jar signing with command: jarsigner {}", sanitizedCommand.substringAfter("jarsigner "))
+
             try {
-                ant.invokeMethod("signjar", options)
-            } catch (e: Exception) {
-                // Not adding error message as it's always meaningless, logs with --INFO level contain more insights
-                throw InvalidUserDataException("Exception while signing ${path.fileName}, " +
-                        "ensure the 'cordapp.signing.options' entry contains correct keyStore configuration, " +
-                        "or disable signing by 'cordapp.signing.enabled false'. " +
-                        if (logger.isInfoEnabled || logger.isDebugEnabled) "Search for 'ant:signjar' in log output."
-                        else "Run with --info or --debug option and search for 'ant:signjar' in log output. ", e)
+                val process = ProcessBuilder(command).redirectErrorStream(true).start()
+                val output = process.inputStream.bufferedReader().readText()
+                val exitCode = process.waitFor()
+                if (exitCode != 0) {
+                    throw InvalidUserDataException("Exception while signing ${file.name}, jarsigner failed with exit code $exitCode. Output: $output")
+                }
+                if (opts.verbose.get()) {
+                    logger.info("jarsigner output: $output")
+                }
             } finally {
                 if (useDefaultKeyStore) {
-                    options[Key.KEYSTORE]?.also { jarFile ->
-                        Files.deleteIfExists(Paths.get(jarFile))
-                    }
+                    Files.deleteIfExists(Paths.get(keyStorePath))
                 }
             }
         }
@@ -87,7 +179,16 @@ open class SignJar @Inject constructor(objects: ObjectFactory) : DefaultTask() {
         group = CORDAPP_TASK_GROUP
     }
 
-    private val signing: Signing = (project.extensions.findByName("cordapp") as CordappExtension).signing
+    private val defaultSigning: Signing = (project.extensions.findByName("cordapp") as CordappExtension).signing
+
+    @get:Nested
+    val signing: Signing = objects.newInstance(Signing::class.java).apply {
+        options.values(defaultSigning.options)
+    }
+
+    fun signing(action: Action<in Signing>) {
+        action.execute(signing)
+    }
 
     @get:Input
     val postfix: Property<String> = objects.property(String::class.java).convention("-signed")

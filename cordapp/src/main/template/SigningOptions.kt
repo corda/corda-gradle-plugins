@@ -43,6 +43,7 @@ fun TaskInputs.nested(nestName: String, options: SigningOptions) {
     file(options.executable).withPropertyName("${nestName}.executable")
         .withPathSensitivity(RELATIVE)
         .optional()
+    property("${nestName}.providerClassPath", options.providerClassPath).optional(true)
     property("${nestName}.force", options.force)
     property("${nestName}.signatureAlgorithm", options.signatureAlgorithm).optional(true)
     property("${nestName}.digestAlgorithm", options.digestAlgorithm).optional(true)
@@ -157,15 +158,14 @@ open class SigningOptions @Inject constructor(objects: ObjectFactory, providers:
     @get:Input
     val sectionsOnly: Property<Boolean> = objects.property(Boolean::class.java).convention(false)
 
-    @get:Input
-    val lazy: Property<Boolean> = objects.property(Boolean::class.java).convention(false)
+     @get:Input
+     val lazy: Property<Boolean> = objects.property(Boolean::class.java).convention(false)
 
-    @get:Optional
-    @get:Internal
-    val maxMemory: Property<String> = objects.property(String::class.java)
+     @get:Internal
+     val maxMemory: Property<String> = objects.property(String::class.java)
 
-    @get:Input
-    val preserveLastModified: Property<Boolean> = objects.property(Boolean::class.java).convention(false)
+     @get:Input
+     val preserveLastModified: Property<Boolean> = objects.property(Boolean::class.java).convention(false)
 
     @get:Optional
     @get:Input
@@ -207,6 +207,10 @@ open class SigningOptions @Inject constructor(objects: ObjectFactory, providers:
     @get:Input
     val tsaDigestAlgorithm: Property<String> = objects.property(String::class.java)
 
+    @get:Optional
+    @get:Input
+    val providerClassPath: Property<String> = objects.property(String::class.java)
+
     private val _signJarOptions = objects.mapProperty(String::class.java, String::class.java).apply {
         put(Key.ALIAS, alias)
         put(Key.STOREPASS, storePassword)
@@ -246,6 +250,7 @@ open class SigningOptions @Inject constructor(objects: ObjectFactory, providers:
         force.set(options.force)
         signatureAlgorithm.set(options.signatureAlgorithm)
         digestAlgorithm.set(options.digestAlgorithm)
+        providerClassPath.set(options.providerClassPath)
         return this
     }
 
