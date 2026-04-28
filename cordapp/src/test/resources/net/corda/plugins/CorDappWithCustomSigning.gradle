@@ -1,0 +1,25 @@
+plugins {
+    id 'net.corda.plugins.cordapp'
+}
+
+tasks.named('jar', Jar) {
+    archiveBaseName = 'test-cordapp'
+}
+
+cordapp {
+    targetPlatformVersion = target_version_arg.toInteger()
+
+    signing {
+        enabled = true
+        options {
+            if (project.hasProperty("signing_jvm_args")) {
+                jarsignerJvmArgs = signing_jvm_args.split(",") as List<String>
+            }
+        }
+    }
+
+    contract {
+        name "Test Contract"
+        versionId 1
+    }
+}
