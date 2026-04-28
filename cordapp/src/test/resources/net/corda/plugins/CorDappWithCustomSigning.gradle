@@ -15,6 +15,7 @@ cordapp {
             if (project.hasProperty("signing_jvm_args")) {
                 jarsignerJvmArgs = signing_jvm_args.split(",") as List<String>
             }
+            verbose = true
         }
     }
 

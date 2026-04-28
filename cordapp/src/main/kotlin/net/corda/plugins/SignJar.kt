@@ -86,7 +86,6 @@ open class SignJar @Inject constructor(objects: ObjectFactory) : DefaultTask() {
                             Key.FORCE -> {
                                 if (value.toBoolean()) {
                                     args.add("-$key")
-                                    args.add(value)
                                 }
                             }
                             else -> {
