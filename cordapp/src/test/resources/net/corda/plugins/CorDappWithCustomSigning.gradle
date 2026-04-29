@@ -10,12 +10,10 @@ cordapp {
     targetPlatformVersion = target_version_arg.toInteger()
 
     signing {
-        enabled = true
         options {
             if (project.hasProperty("signing_jvm_args")) {
                 jarsignerJvmArgs = signing_jvm_args.split(",") as List<String>
             }
-            verbose = true
         }
     }
 
