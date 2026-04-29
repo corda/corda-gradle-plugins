@@ -210,7 +210,7 @@ class CordappTest {
     fun `jarsigner JVM args are logged when configured`() {
         val extraArgs = listOf(
             "-Ptarget_version_arg=10",
-            "-Psigning_jvm_args=-cp,/path/to/primusX.jar"
+            "-Psigning_jvm_args=-Dcom.sun.net.ssl.checkRevocation=false,-Xmx512m"
         )
 
         val jarTaskRunner = jarTaskRunner("CorDappWithCustomSigning.gradle", extraArgs)
@@ -220,8 +220,8 @@ class CordappTest {
         assertThat(result.task(":jar")!!.outcome).isEqualTo(TaskOutcome.SUCCESS)
 
         assertThat(result.output)
-            .contains("-J-cp")
-            .contains("-J/path/to/primusX.jar")
+            .contains("-J-Dcom.sun.net.ssl.checkRevocation=false")
+            .contains("-J-Xmx512m")
     }
 
     @Test

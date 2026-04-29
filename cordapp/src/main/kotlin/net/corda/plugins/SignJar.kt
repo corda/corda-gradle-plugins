@@ -63,7 +63,25 @@ open class SignJar @Inject constructor(objects: ObjectFactory) : DefaultTask() {
                     ant.invokeMethod("signjar", options)
                 } else {
                     // direct jarsigner execution path
-                    val executable = signing.options.executable.orNull?.asFile?.absolutePath ?: "jarsigner"
+                    val executableFile = signing.options.executable.orNull?.asFile
+                    val executable = executableFile?.absolutePath ?: run {
+                        val javaHome = System.getProperty("java.home")
+                        // java.home might point to JRE inside JDK (e.g., .../jdk/jre)
+                        // Try to find jarsigner in bin directory, or parent JDK's bin
+                        val jarsignerPath = File(File(javaHome, "bin"), "jarsigner")
+                        if (jarsignerPath.exists()) {
+                            jarsignerPath.absolutePath
+                        } else {
+                            // Try parent directory (for JRE inside JDK layout)
+                            val parentJarsigner = File(File(javaHome).parentFile, "bin/jarsigner")
+                            if (parentJarsigner.exists()) {
+                                parentJarsigner.absolutePath
+                            } else {
+                                // Fallback to just "jarsigner"
+                                "jarsigner"
+                            }
+                        }
+                    }
                     val args = mutableListOf<String>()
                     jvmArgs.forEach{ arg ->
                         args.add("-J$arg")
