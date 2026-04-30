@@ -3,6 +3,7 @@ package @root_package@.signing
 import org.gradle.api.file.RegularFile
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
@@ -222,7 +223,7 @@ open class SigningOptions @Inject constructor(objects: ObjectFactory, providers:
 
     @get:Optional
     @get:Input
-    val jarsignerJvmArgs = objects.listProperty(String::class.java).convention(emptyList())
+    val jarsignerJvmArgs: ListProperty<String> = objects.listProperty(String::class.java).convention(emptyList())
 
     private val _signJarOptions = objects.mapProperty(String::class.java, String::class.java).apply {
         put(Key.ALIAS, alias)
