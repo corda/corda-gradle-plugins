@@ -57,7 +57,8 @@ open class SignJar @Inject constructor(objects: ObjectFactory) : DefaultTask() {
                 options[Key.SIGNEDJAR] = outputFile.toPath().toString()
             }
 
-            logger.info("Jar signing with following options: {}", options.toSanitized())
+            val jvmArgsMessage = if (jvmArgs.isNotEmpty()) " and JVM args: ${jvmArgs.joinToString()}." else "."
+            logger.info("Jar signing with following options: ${options.toSanitized().entries.joinToString { "${it.key}=${it.value}" }}$jvmArgsMessage")
             try {
                 if (jvmArgs.isEmpty()) {
                     ant.invokeMethod("signjar", options)
