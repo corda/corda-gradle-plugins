@@ -40,6 +40,8 @@ open class SignJar @Inject constructor(objects: ObjectFactory) : DefaultTask() {
 
         fun Task.sign(signing: Signing, file: File, outputFile: File? = null) {
             val options = signing.options.signJarOptions.get()
+            val jvmArgs = signing.options.jarsignerJvmArgs.orNull ?: emptyList()
+
             val useDefaultKeyStore = !signing.options.keyStore.isPresent
             if (useDefaultKeyStore) {
                 logger.info("CorDapp JAR signing with the default Corda development key, suitable for Corda running in development mode only.")
@@ -55,9 +57,53 @@ open class SignJar @Inject constructor(objects: ObjectFactory) : DefaultTask() {
                 options[Key.SIGNEDJAR] = outputFile.toPath().toString()
             }
 
-            logger.info("Jar signing with following options: {}", options.toSanitized())
+            val jvmArgsMessage = if (jvmArgs.isNotEmpty()) " and JVM args: ${jvmArgs.joinToString()}." else "."
+            logger.info("Jar signing with following options: ${options.toSanitized().entries.joinToString { "${it.key}=${it.value}" }}$jvmArgsMessage")
             try {
-                ant.invokeMethod("signjar", options)
+                if (jvmArgs.isEmpty()) {
+                    ant.invokeMethod("signjar", options)
+                } else {
+                    // direct jarsigner execution path
+                    val executable = signing.options.executable.orNull?.asFile?.absolutePath ?: "jarsigner"
+                    val args = mutableListOf<String>()
+                    jvmArgs.forEach{ arg ->
+                        args.add("-J$arg")
+                    }
+                    // convert options map to jarsigner args
+                    options.forEach { (key, value) ->
+                        when (key) {
+                            Key.JAR -> {
+                                //handled later
+                            }
+                            Key.ALIAS -> {
+                                // handled later
+                            }
+                            Key.VERBOSE,
+                            Key.STRICT,
+                            Key.INTERNALSF,
+                            Key.SECTIONSONLY,
+                            Key.LAZY,
+                            Key.PRESERVELASTMODIFIED,
+                            Key.FORCE -> {
+                                if (value.toBoolean()) {
+                                    args.add("-$key")
+                                }
+                            }
+                            else -> {
+                                args.add("-$key")
+                                args.add(value)
+                            }
+                        }
+                    }
+                    // Required args
+                    args.add(options[Key.JAR]!!)
+                    args.add(options[Key.ALIAS]!!)
+
+                    project.exec { execSpec ->
+                        execSpec.executable = executable
+                        execSpec.args = args
+                    }
+                }
             } catch (e: Exception) {
                 // Not adding error message as it's always meaningless, logs with --INFO level contain more insights
                 throw InvalidUserDataException("Exception while signing ${path.fileName}, " +

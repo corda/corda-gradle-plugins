@@ -205,6 +205,41 @@ class CordappTest {
         assertThat(attributes.getValue("Sealed")).isEqualTo(expectedSealed)
     }
 
+
+    @Test
+    fun `jarsigner JVM args are logged when configured`() {
+        val extraArgs = listOf(
+            "-Ptarget_version_arg=10",
+            "-Psigning_jvm_args=-Dcom.sun.net.ssl.checkRevocation=false,-Xmx512m"
+        )
+
+        val jarTaskRunner = jarTaskRunner("CorDappWithCustomSigning.gradle", extraArgs)
+
+        val result = jarTaskRunner.build()
+
+        assertThat(result.task(":jar")!!.outcome).isEqualTo(TaskOutcome.SUCCESS)
+
+        assertThat(result.output)
+            .contains("-J-Dcom.sun.net.ssl.checkRevocation=false")
+            .contains("-J-Xmx512m")
+    }
+
+    @Test
+    fun `legacy signing path still works without JVM args`() {
+        val jarTaskRunner = jarTaskRunner(
+            "CorDappWithoutMetadata.gradle",
+            listOf("-Ptarget_version_arg=10")
+        )
+
+        val result = jarTaskRunner.build()
+
+        assertThat(result.task(":jar")!!.outcome).isEqualTo(TaskOutcome.SUCCESS)
+
+        assertThat(result.output)
+            .doesNotContain("-J-cp")
+            .doesNotContain("primusX.jar")
+    }
+
     @Test
     fun `a cordapp without any metadata`() {
         val jarTaskRunner = jarTaskRunner("CorDappWithoutMetadata.gradle", listOf(

@@ -3,6 +3,7 @@ package @root_package@.signing
 import org.gradle.api.file.RegularFile
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
@@ -47,6 +48,8 @@ fun TaskInputs.nested(nestName: String, options: SigningOptions) {
     property("${nestName}.signatureAlgorithm", options.signatureAlgorithm).optional(true)
     property("${nestName}.digestAlgorithm", options.digestAlgorithm).optional(true)
     property("${nestName}.tsaDigestAlgorithm", options.tsaDigestAlgorithm).optional(true)
+    property("${nestName}.providerClass", options.providerClass).optional(true)
+    property("${nestName}.jarsignerJvmArgs", options.jarsignerJvmArgs).optional(true)
 }
 
 /** Options for ANT task "signjar". */
@@ -92,6 +95,7 @@ open class SigningOptions @Inject constructor(objects: ObjectFactory, providers:
             const val SIGALG = "sigalg"
             const val DIGESTALG = "digestalg"
             const val TSADIGESTALG = "tsadigestalg"
+            const val PROVIDER_CLASS = "providerClass"
         }
     }
 
@@ -207,6 +211,14 @@ open class SigningOptions @Inject constructor(objects: ObjectFactory, providers:
     @get:Input
     val tsaDigestAlgorithm: Property<String> = objects.property(String::class.java)
 
+    @get:Optional
+    @get:Input
+    val providerClass: Property<String> = objects.property(String::class.java)
+
+    @get:Optional
+    @get:Input
+    val jarsignerJvmArgs: ListProperty<String> = objects.listProperty(String::class.java).convention(emptyList())
+
     private val _signJarOptions = objects.mapProperty(String::class.java, String::class.java).apply {
         put(Key.ALIAS, alias)
         put(Key.STOREPASS, storePassword)
@@ -246,6 +258,8 @@ open class SigningOptions @Inject constructor(objects: ObjectFactory, providers:
         force.set(options.force)
         signatureAlgorithm.set(options.signatureAlgorithm)
         digestAlgorithm.set(options.digestAlgorithm)
+        providerClass.set(options.providerClass)
+        jarsignerJvmArgs.set(options.jarsignerJvmArgs)
         return this
     }
 
@@ -277,6 +291,7 @@ open class SigningOptions @Inject constructor(objects: ObjectFactory, providers:
         result.setOptional(Key.SIGALG, signatureAlgorithm)
         result.setOptional(Key.DIGESTALG, digestAlgorithm)
         result.setOptional(Key.TSADIGESTALG, tsaDigestAlgorithm)
+        result.setOptional(Key.PROVIDER_CLASS, providerClass)
         result
     }
 }
